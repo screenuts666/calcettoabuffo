@@ -1,0 +1,7 @@
+{
+  "name": "calcettoabbuffo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
