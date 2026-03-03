@@ -42,6 +42,7 @@ import {
   timeOutline,
   locationOutline,
   people,
+  play,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
 
@@ -88,6 +89,7 @@ export class Tab2Page {
       timeOutline,
       locationOutline,
       people,
+      play,
     });
     this.partite$ = collectionData(
       query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
