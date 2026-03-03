@@ -9,7 +9,11 @@ import {
   IonFabButton,
   ModalController,
   AlertController,
-  LoadingController,
+  IonList,
+  IonItem,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -18,8 +22,6 @@ import {
   collection,
   collectionData,
   doc,
-  updateDoc,
-  getDoc,
   query,
   orderBy,
   deleteDoc,
@@ -37,23 +39,11 @@ import {
   peopleOutline,
   footballOutline,
   calendarClearOutline,
+  trash,
+  close,
+  arrowBack,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
-
-interface Partita {
-  id: string;
-  dataPartita: string;
-  luogo: string;
-  scoreA: number;
-  scoreB: number;
-  matchConcluso: boolean;
-  pagelleInserite: boolean;
-  isTimerRunning: boolean;
-  convocati: any[];
-  teamA: any[];
-  teamB: any[];
-  classificaAggiornata?: boolean;
-}
 
 @Component({
   selector: 'app-tab2',
@@ -70,19 +60,23 @@ interface Partita {
     IonIcon,
     IonFab,
     IonFabButton,
+    IonList,
+    IonItem,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
   ],
 })
 export class Tab2Page {
   private firestore = inject(Firestore);
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
-  private loadingController = inject(LoadingController);
 
-  partite = toSignal<Partita[], Partita[]>(
+  partite = toSignal<any[], any[]>(
     collectionData(
       query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
       { idField: 'id' },
-    ) as Observable<Partita[]>,
+    ) as Observable<any[]>,
     { initialValue: [] },
   );
 
@@ -106,12 +100,14 @@ export class Tab2Page {
       peopleOutline,
       footballOutline,
       calendarClearOutline,
+      trash,
+      close,
+      arrowBack,
     });
   }
 
-  async apriModalePartita(partita?: Partita) {
+  async apriModalePartita(partita?: any) {
     const tutti = this.giocatori() ?? [];
-
     const data = partita
       ? JSON.parse(JSON.stringify(partita))
       : {
@@ -138,92 +134,29 @@ export class Tab2Page {
     return await modal.present();
   }
 
-  async aggiornaClassifica(partita: Partita) {
-    if (partita.classificaAggiornata || !partita.pagelleInserite) return;
-
+  /**
+   * Mostra l'alert di conferma prima di procedere con la pulizia del DB.
+   */
+  async confermaEliminazione(match: any, slidingItem: IonItemSliding) {
     const alert = await this.alertController.create({
-      header: 'Confermi invio dati?',
+      header: 'Elimina Partita',
+      message: `Sei sicuro di voler eliminare definitivamente il match a ${match.luogo}?`,
       buttons: [
-        { text: 'Annulla' },
         {
-          text: 'Aggiorna',
+          text: 'Annulla',
+          role: 'cancel',
+          handler: () => slidingItem.close(),
+        },
+        {
+          text: 'Elimina',
+          role: 'destructive',
           handler: async () => {
-            const loading = await this.loadingController.create({
-              message: 'Aggiornamento...',
-            });
-            await loading.present();
-
-            const updatePlayer = async (
-              team: any[],
-              vinto: boolean,
-              pareggio: boolean,
-            ) => {
-              for (let p of team) {
-                const ref = doc(this.firestore, `giocatori/${p.id}`);
-                const snap = await getDoc(ref);
-                const d = snap.data();
-                if (!d) continue;
-
-                const nGiocate = (d['partiteGiocate'] || 0) + 1;
-                const nuoviPunti =
-                  (d['punti'] || 0) + (vinto ? 3 : pareggio ? 1 : 0);
-                const nuoviGol = (d['gol'] || 0) + (Number(p.gol) || 0);
-                const mediaPrecedente = d['mediaVoto'] || 0;
-                const nuovaMedia =
-                  (mediaPrecedente * (nGiocate - 1) + Number(p.voto)) /
-                  nGiocate;
-
-                await updateDoc(ref, {
-                  punti: nuoviPunti,
-                  gol: nuoviGol,
-                  mediaVoto: parseFloat(nuovaMedia.toFixed(2)),
-                  partiteGiocate: nGiocate,
-                });
-              }
-            };
-
-            await updatePlayer(
-              partita.teamA,
-              partita.scoreA > partita.scoreB,
-              partita.scoreA === partita.scoreB,
-            );
-            await updatePlayer(
-              partita.teamB,
-              partita.scoreB > partita.scoreA,
-              partita.scoreA === partita.scoreB,
-            );
-
-            await updateDoc(doc(this.firestore, `partite/${partita.id}`), {
-              classificaAggiornata: true,
-            });
-
-            loading.dismiss();
+            await deleteDoc(doc(this.firestore, `partite/${match.id}`));
+            slidingItem.close();
           },
         },
       ],
     });
     await alert.present();
-  }
-
-  async eliminaPartita(id: string) {
-    const alert = await this.alertController.create({
-      header: 'Elimina Match?',
-      buttons: [
-        { text: 'No' },
-        {
-          text: 'Elimina',
-          handler: () => deleteDoc(doc(this.firestore, `partite/${id}`)),
-        },
-      ],
-    });
-    await alert.present();
-  }
-
-  async eliminaPagelle(id: string) {
-    await updateDoc(doc(this.firestore, `partite/${id}`), {
-      scoreA: 0,
-      scoreB: 0,
-      pagelleInserite: false,
-    });
   }
 }
