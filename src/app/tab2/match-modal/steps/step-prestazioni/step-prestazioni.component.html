@@ -1,73 +1,127 @@
-<ion-list>
-  <ion-list-header>
-    <ion-label>
-      Voti e Pagelle {{ state.pagelleInserite() ? "(Archiviate)" : "" }}
-    </ion-label>
-  </ion-list-header>
+<div class="prestazioni-container">
+  <div class="result-summary">
+    <div class="team-res white">
+      BIANCHI <span>{{ state.scoreA() }}</span>
+    </div>
+    <div class="res-divider">:</div>
+    <div class="team-res black">
+      <span>{{ state.scoreB() }}</span> NERI
+    </div>
 
-  @for (g of state.tuttiInCampo(); track g.id) {
-    <ion-item lines="full" class="ion-no-padding">
-      <ion-avatar slot="start" style="margin-left: 10px">
-        <img loading="lazy" [src]="g.fotoUrl" />
-      </ion-avatar>
+    <div class="mini-duration">
+      <ion-icon name="stopwatch-outline"></ion-icon>
+      Durata: {{ state.formatTimer() }}
+    </div>
+  </div>
 
-      <ion-label class="ion-text-wrap">
-        <h3 style="margin-bottom: 5px">
-          <b>{{ g.nome }}</b>
-        </h3>
+  <div class="page-header ion-padding">
+    <h2>Voti e Pagelle</h2>
+    <p class="subtitle">
+      {{
+        state.pagelleInserite()
+          ? "Sessione Archiviata"
+          : "Inserisci i giudizi della partita"
+      }}
+    </p>
+  </div>
 
-        <ion-textarea
-          placeholder="Inserisci la pagella..."
-          [value]="g.note || ''"
-          [readonly]="state.pagelleInserite()"
-          [autoGrow]="true"
-          rows="1"
-          (ionInput)="aggiornaNote(g, $event.detail.value || '')"
-          style="
-            font-size: 0.9em;
-            --padding-top: 0;
-            --padding-bottom: 8px;
-            color: var(--ion-color-medium);
-          "
-        ></ion-textarea>
-      </ion-label>
+  <div class="team-section">
+    <div class="team-divider white">TEAM BIANCHI</div>
 
-      <div
-        slot="end"
-        style="
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 5px;
-          margin-right: 10px;
-        "
-      >
-        <ion-input
-          type="number"
-          [value]="g.voto"
-          [readonly]="state.pagelleInserite()"
-          (ionInput)="aggiornaVoto(g, $event)"
-          class="voto-input"
-          [style.opacity]="state.pagelleInserite() ? '0.6' : '1'"
-        ></ion-input>
+    @for (g of state.teamA(); track g.id) {
+      <div class="player-card">
+        <div class="card-main">
+          <ion-avatar>
+            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+          </ion-avatar>
 
-        @if (g.gol > 0) {
-          <ion-badge color="success">⚽ {{ g.gol }}</ion-badge>
-        }
+          <div class="player-info">
+            <div class="name-row">
+              <h3 class="player-name">{{ g.nome }}</h3>
+              @if (g.gol > 0) {
+                <span class="goal-tag">
+                  <ion-icon name="football"></ion-icon> {{ g.gol }}
+                </span>
+              }
+            </div>
+
+            <ion-textarea
+              placeholder="Scrivi il commento tecnico..."
+              [value]="g.note || ''"
+              [readonly]="state.pagelleInserite()"
+              [autoGrow]="true"
+              rows="1"
+              (ionInput)="aggiornaNote(g, $event.detail.value || '')"
+              class="comment-area"
+            ></ion-textarea>
+          </div>
+
+          <div class="rating-box">
+            <input
+              type="number"
+              [value]="g.voto"
+              [readonly]="state.pagelleInserite()"
+              (ionInput)="aggiornaVoto(g, $event)"
+              [class]="getRatingClass(g.voto)"
+            />
+            <span class="label">VOTO</span>
+          </div>
+        </div>
       </div>
-    </ion-item>
-  }
-</ion-list>
+    }
+  </div>
+
+  <div class="team-section">
+    <div class="team-divider black">TEAM NERI</div>
+
+    @for (g of state.teamB(); track g.id) {
+      <div class="player-card">
+        <div class="card-main">
+          <ion-avatar>
+            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+          </ion-avatar>
+
+          <div class="player-info">
+            <div class="name-row">
+              <h3 class="player-name">{{ g.nome }}</h3>
+              @if (g.gol > 0) {
+                <span class="goal-tag">
+                  <ion-icon name="football"></ion-icon> {{ g.gol }}
+                </span>
+              }
+            </div>
+
+            <ion-textarea
+              placeholder="Scrivi il commento tecnico..."
+              [value]="g.note || ''"
+              [readonly]="state.pagelleInserite()"
+              [autoGrow]="true"
+              rows="1"
+              (ionInput)="aggiornaNote(g, $event.detail.value || '')"
+              class="comment-area"
+            ></ion-textarea>
+          </div>
+
+          <div class="rating-box">
+            <input
+              type="number"
+              [value]="g.voto"
+              [readonly]="state.pagelleInserite()"
+              (ionInput)="aggiornaVoto(g, $event)"
+              [class]="getRatingClass(g.voto)"
+            />
+            <span class="label">VOTO</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
 
 @if (!state.pagelleInserite()) {
-  <ion-fab
-    vertical="bottom"
-    horizontal="end"
-    slot="fixed"
-    style="margin-bottom: 20px; margin-right: 10px"
-  >
-    <ion-fab-button color="success" (click)="concludiTutto()">
+  <div class="fab-fixed-container">
+    <button class="fab-round" (click)="concludiTutto()">
       <ion-icon name="checkmark-done"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+    </button>
+  </div>
 }
