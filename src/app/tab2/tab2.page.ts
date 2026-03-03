@@ -40,7 +40,6 @@ import {
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
 
-// Interfaccia definita per risolvere l'errore NGTSC(4111)
 interface Partita {
   id: string;
   dataPartita: string;
@@ -79,10 +78,6 @@ export class Tab2Page {
   private alertController = inject(AlertController);
   private loadingController = inject(LoadingController);
 
-  // --- ANALISI FIX TS(2769) ---
-  // Usiamo <T, U> dove T è il tipo del flusso e U è il tipo dell'initialValue.
-  // Forzando entrambi a Partita[], eliminiamo l'incompatibilità con 'undefined'.
-
   partite = toSignal<Partita[], Partita[]>(
     collectionData(
       query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
@@ -115,9 +110,6 @@ export class Tab2Page {
   }
 
   async apriModalePartita(partita?: Partita) {
-    // --- ANALISI FIX ts(18048) ---
-    // Anche se initialValue è [], TS teme che il signal possa restituire undefined.
-    // L'operatore ?? [] garantisce un array pronto per il .map()
     const tutti = this.giocatori() ?? [];
 
     const data = partita

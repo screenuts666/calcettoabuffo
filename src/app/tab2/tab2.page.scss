@@ -20,7 +20,6 @@
   }
 }
 
-// --- HEADER ---
 .match-header {
   display: flex;
   justify-content: space-between;
@@ -76,7 +75,7 @@
   background: rgba(235, 68, 90, 0.15);
   color: var(--ion-color-danger);
   border: 1px solid rgba(235, 68, 90, 0.3);
-  animation: pulse-red 2s infinite; // Effetto pulsante per il LIVE!
+  animation: pulse-red 2s infinite;
 }
 
 .badge-medium {
@@ -85,7 +84,6 @@
   border: 1px solid rgba(146, 148, 156, 0.3);
 }
 
-// --- BODY E TABELLONE ---
 .match-body {
   margin: 15px 0;
   display: flex;
@@ -124,7 +122,6 @@
   color: var(--ion-color-medium);
 }
 
-// --- FOOTER ---
 .match-footer {
   display: flex;
   justify-content: space-between;
@@ -146,7 +143,6 @@
   }
 }
 
-// Animazione per il badge LIVE
 @keyframes pulse-red {
   0% {
     box-shadow: 0 0 0 0 rgba(235, 68, 90, 0.4);
