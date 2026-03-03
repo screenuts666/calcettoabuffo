@@ -1,51 +1,118 @@
-.convocati-summary-bar {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 15px 10px;
-  gap: 15px 10px;
-  background: var(--ion-color-step-50, #1e1e1e);
-  border-bottom: 1px solid var(--ion-color-step-150, #333);
+.convocati-container {
+  padding-bottom: 90px;
+}
 
-  .summary-avatar-wrapper {
-    position: relative;
+.search-header {
+  background: var(--ion-background-color);
+  .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    h2 {
+      margin: 0;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+  }
+}
+
+// 🏷️ CONTATORE VERDE
+.count-badge {
+  background: var(--ion-color-success);
+  color: #000;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(45, 211, 111, 0.3);
+}
+
+// 🔍 SEARCHBAR NERA PROFONDO
+.custom-searchbar {
+  --background: #121212; // Nero quasi totale
+  --color: #fff;
+  --placeholder-color: #666;
+  --icon-color: var(--ion-color-success);
+  --border-radius: 12px;
+  padding: 0;
+  margin-top: 5px;
+  border: 1px solid #333; // Un sottile bordo per non farla sparire
+
+  &::part(search-icon) {
+    transform: scale(1.1); // Ingrandisce un filo la lente
+  }
+}
+
+// ✅ CHECKBOX VERDE FORZATA
+.green-check {
+  --checkbox-background-checked: var(--ion-color-success);
+  --border-color-checked: var(--ion-color-success);
+  --checkmark-color: #000; // Segno di spunta nero su fondo verde
+}
+
+// Chips Orizzontali
+.selected-players-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 15px;
+  gap: 15px;
+  background: #0a0a0a; // Più scuro della lista
+  border-bottom: 1px solid #222;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .selected-chip {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 60px;
-    cursor: pointer;
-    transition: transform 0.2s;
-
-    &:active {
-      transform: scale(0.9);
+    min-width: 60px;
+    .avatar-wrapper {
+      position: relative;
+      img {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: 2px solid var(--ion-color-success);
+      }
+      .remove-btn {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: #fff;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        border: none;
+        ion-icon {
+          font-size: 20px;
+          color: var(--ion-color-danger);
+        }
+      }
     }
-
-    ion-avatar {
-      width: 50px;
-      height: 50px;
-      border: 2px solid var(--ion-color-success);
-      margin-bottom: 5px;
+    .chip-name {
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 4px;
+      font-weight: 600;
     }
+  }
+}
 
-    small {
-      font-size: 11px;
-      font-weight: bold;
-      color: var(--ion-color-medium);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 60px;
+.giocatori-list {
+  background: transparent;
+  .player-item {
+    --background: transparent;
+    --border-color: #222;
+    h3 {
+      font-weight: 700;
+      color: #fff;
     }
-
-    .remove-badge {
-      position: absolute;
-      top: -2px;
-      right: 0px;
-      font-size: 24px;
-      background: var(--ion-background-color, #000);
-      border-radius: 50%;
-      color: var(--ion-color-danger);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-      z-index: 10;
+    p {
+      color: #666;
+      font-style: italic;
     }
   }
 }

@@ -1,73 +1,64 @@
-<ion-searchbar
-  color="dark"
-  placeholder="Cerca per nome, piede, anno..."
-  [value]="state.filtro()"
-  (ionInput)="state.filtro.set($event.detail.value || '')"
-  animated="true"
-></ion-searchbar>
+<div class="convocati-container">
+  <div class="search-header ion-padding">
+    <div class="title-row">
+      <h2>Seleziona Giocatori</h2>
+      <div class="count-badge">{{ state.totaleConvocati() }} Selezionati</div>
+    </div>
 
-@if (state.totaleConvocati() > 0) {
-  <div class="convocati-summary-bar">
-    @for (g of state.convocati(); track g.id) {
-      <div class="summary-avatar-wrapper" (click)="toggleSelezione(g)">
-        <ion-avatar>
-          <img loading="lazy" [src]="g.fotoUrl" />
-        </ion-avatar>
-        <ion-icon
-          name="close-circle"
-          class="remove-badge"
-          color="danger"
-        ></ion-icon>
-        <small>{{ g.nome.split(" ")[0] }}</small>
-      </div>
-    }
-  </div>
-}
-
-<ion-list lines="full">
-  <ion-list-header style="min-height: 40px">
-    <ion-label style="color: var(--ion-color-medium)"
-      >Tutti i giocatori</ion-label
+    <ion-searchbar
+      placeholder="Cerca per nome, piede, anno..."
+      [value]="state.filtro()"
+      (ionInput)="state.filtro.set($event.detail.value || '')"
+      mode="ios"
+      class="custom-searchbar"
     >
-  </ion-list-header>
+    </ion-searchbar>
+  </div>
 
-  @for (g of state.giocatoriFiltrati(); track g.id) {
-    <ion-item (click)="toggleSelezione(g)" button="true" detail="false">
-      <ion-avatar slot="start">
-        <img
-          [src]="g.fotoUrl"
-          [style.border]="
-            g.selezionato ? '3px solid var(--ion-color-success)' : 'none'
-          "
-        />
-      </ion-avatar>
-      <ion-label>
-        <h2 [style.font-weight]="g.selezionato ? 'bold' : 'normal'">
-          {{ g.nome }}
-        </h2>
-        @if (g.soprannome) {
-          <p>
-            <i>"{{ g.soprannome }}"</i>
-          </p>
-        }
-      </ion-label>
-      <ion-icon
-        slot="end"
-        [name]="g.selezionato ? 'checkmark-circle' : 'ellipse-outline'"
-        [color]="g.selezionato ? 'success' : 'medium'"
-        style="font-size: 1.8em; transition: all 0.1s ease-in-out"
-      ></ion-icon>
-    </ion-item>
+  @if (state.convocati().length > 0) {
+    <div class="selected-players-scroll">
+      @for (g of state.convocati(); track g.id) {
+        <div class="selected-chip">
+          <div class="avatar-wrapper">
+            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+            <button class="remove-btn" (click)="toggleSelezione(g)">
+              <ion-icon name="close-circle"></ion-icon>
+            </button>
+          </div>
+          <span class="chip-name">{{ g.nome.split(" ")[0] }}</span>
+        </div>
+      }
+    </div>
   }
-</ion-list>
+
+  <ion-list mode="ios" class="giocatori-list">
+    @for (g of state.giocatoriFiltrati(); track g.id) {
+      <ion-item (click)="toggleSelezione(g)" lines="full" class="player-item">
+        <ion-avatar slot="start">
+          <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+        </ion-avatar>
+        <ion-label>
+          <h3>{{ g.nome }}</h3>
+          <p>
+            {{ g.soprannome ? '"' + g.soprannome + '"' : g.piedePreferito }}
+          </p>
+        </ion-label>
+
+        <ion-checkbox
+          slot="end"
+          [checked]="g.selezionato"
+          mode="ios"
+          class="green-check"
+        >
+        </ion-checkbox>
+      </ion-item>
+    }
+  </ion-list>
+</div>
 
 @if (state.totaleConvocati() >= 2) {
-  <ion-fab
-    vertical="bottom"
-    horizontal="end"
-    style="position: fixed; bottom: 20px; right: 20px"
-  >
-    <ion-fab-button color="success" (click)="vaiADettagli()">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="success" (click)="state.step.set('dettagli')">
       <ion-icon name="arrow-forward"></ion-icon>
     </ion-fab-button>
   </ion-fab>
