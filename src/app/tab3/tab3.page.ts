@@ -1,4 +1,10 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -13,42 +19,33 @@ import {
   IonItemOption,
   IonIcon,
   IonSearchbar,
-  LoadingController,
   AlertController,
-  IonButton,
-  IonSelect,
-  IonInput,
-  IonSelectOption,
   IonFab,
   IonModal,
   IonFabButton,
-  IonButtons,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import {
   Firestore,
   collection,
-  addDoc,
   collectionData,
   doc,
   deleteDoc,
   query,
   orderBy,
-  updateDoc,
 } from '@angular/fire/firestore';
-import {
-  Storage,
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from '@angular/fire/storage';
 import { addIcons } from 'ionicons';
-import { add, trash, camera, person, create, search } from 'ionicons/icons';
+import { add, trash, person, create, search } from 'ionicons/icons';
+
+// Importiamo il nuovo Form
+import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
+
 @Component({
   selector: 'app-tab3',
   templateUrl: 'tab3.page.html',
   styleUrls: ['tab3.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     IonHeader,
@@ -64,37 +61,21 @@ import { add, trash, camera, person, create, search } from 'ionicons/icons';
     IonItemOption,
     IonIcon,
     IonSearchbar,
-    IonButton,
-    IonSelect,
-    IonInput,
-    IonSelectOption,
     IonFab,
     IonFabButton,
-    IonButtons,
     IonModal,
+    FormGiocatoreComponent, // <--- IMPORTATO QUI
   ],
 })
 export class Tab3Page {
   private firestore = inject(Firestore);
-  private storage = inject(Storage);
-  private loadingController = inject(LoadingController);
   private alertController = inject(AlertController);
 
   tuttiIGiocatori = signal<any[]>([]);
   filtro = signal('');
 
   isModalOpen = signal(false);
-  giocatoreInModificaId = signal<string | null>(null);
-
-  nome = signal('');
-  soprannome = signal('');
-  annoNascita = signal('');
-  piedePreferito = signal('Destro');
-  altezza = signal('');
-  peso = signal('');
-
-  anteprimaFoto = signal<string | null>(null);
-  fileSelezionato: File | null = null;
+  giocatoreInModifica = signal<any>(null); // Passiamo tutto l'oggetto, non solo l'ID
 
   giocatoriFiltrati = computed(() => {
     const f = this.filtro().toLowerCase().trim();
@@ -118,102 +99,25 @@ export class Tab3Page {
   });
 
   constructor() {
-    addIcons({ add, trash, camera, person, create, search });
+    addIcons({ add, trash, person, create, search });
 
     const giocatoriQuery = query(
       collection(this.firestore, 'giocatori'),
       orderBy('nome'),
     );
-
     collectionData(giocatoriQuery, { idField: 'id' }).subscribe((data) => {
       this.tuttiIGiocatori.set(data);
     });
   }
 
   apriModale(g?: any) {
-    if (g) {
-      this.giocatoreInModificaId.set(g.id);
-      this.nome.set(g.nome || '');
-      this.soprannome.set(g.soprannome || '');
-      this.annoNascita.set(g.annoNascita || '');
-      this.piedePreferito.set(g.piedePreferito || 'Destro');
-      this.altezza.set(g.altezza || '');
-      this.peso.set(g.peso || '');
-      this.anteprimaFoto.set(g.fotoUrl || null);
-    } else {
-      this.giocatoreInModificaId.set(null);
-      this.nome.set('');
-      this.soprannome.set('');
-      this.annoNascita.set('');
-      this.piedePreferito.set('Destro');
-      this.altezza.set('');
-      this.peso.set('');
-      this.anteprimaFoto.set(null);
-    }
-    this.fileSelezionato = null;
+    this.giocatoreInModifica.set(g || null);
     this.isModalOpen.set(true);
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      this.fileSelezionato = file;
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.anteprimaFoto.set(e.target.result);
-      reader.readAsDataURL(file);
-    }
-  }
-
-  async salvaGiocatore() {
-    if (!this.nome().trim()) return;
-
-    const loading = await this.loadingController.create({
-      message: 'Salvataggio...',
-    });
-    await loading.present();
-
-    try {
-      let fotoUrl =
-        this.anteprimaFoto() ||
-        'https://ionicframework.com/docs/img/demos/avatar.svg';
-
-      if (this.fileSelezionato) {
-        const path = `avatars/${Date.now()}_${this.fileSelezionato.name}`;
-        const storageRef = ref(this.storage, path);
-        await uploadBytes(storageRef, this.fileSelezionato);
-        fotoUrl = await getDownloadURL(storageRef);
-      }
-
-      const payload = {
-        nome: this.nome(),
-        soprannome: this.soprannome(),
-        annoNascita: this.annoNascita(),
-        piedePreferito: this.piedePreferito(),
-        altezza: this.altezza(),
-        peso: this.peso(),
-        fotoUrl: fotoUrl,
-      };
-
-      const id = this.giocatoreInModificaId();
-      if (id) {
-        await updateDoc(doc(this.firestore, `giocatori/${id}`), payload);
-      } else {
-        await addDoc(collection(this.firestore, 'giocatori'), {
-          ...payload,
-          gol: 0,
-          punti: 0,
-          mediaVoto: 0,
-          partiteGiocate: 0,
-        });
-      }
-
-      this.isModalOpen.set(false);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      loading.dismiss();
-    }
-  }
+  chiudiModale = () => {
+    this.isModalOpen.set(false);
+  };
 
   async eliminaGiocatore(id: string) {
     const alert = await this.alertController.create({

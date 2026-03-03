@@ -6,7 +6,7 @@
   @for (g of state.teamA(); track g.id) {
     <div class="avatar-item" (click)="spostaIn(g, 'B')">
       <div class="avatar-wrapper">
-        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+        <ion-avatar><img loading="lazy" [src]="g.fotoUrl" /></ion-avatar>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
     </div>
@@ -21,7 +21,7 @@
   @for (g of state.teamB(); track g.id) {
     <div class="avatar-item" (click)="spostaIn(g, 'A')">
       <div class="avatar-wrapper">
-        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+        <ion-avatar><img loading="lazy" [src]="g.fotoUrl" /></ion-avatar>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
     </div>
@@ -36,8 +36,6 @@
     {{ state.messaggioEquilibrio() }}
   </p>
 }
-
-
 
 <ion-fab
   vertical="bottom"

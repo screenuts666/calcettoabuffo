@@ -51,9 +51,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     addIcons({ locationOutline, timeOutline, play, pause, add, remove, stop });
   }
 
-  // 🔥 IL MOTORE MATEMATICO DEL TIMER
   ngOnInit() {
-    // Questo gira ogni secondo ma NON SCRIVE MAI SUL DATABASE. Aggiorna solo lo schermo.
     this.timerRef = setInterval(() => {
       if (this.state.isTimerRunning()) {
         const start = this.state.timerStartAt() || Date.now();
@@ -69,12 +67,10 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     if (this.timerRef) clearInterval(this.timerRef);
   }
 
-  // 🔥 I PULSANTI SCRIVONO SUL DB UNA VOLTA SOLA
   async toggleTimer() {
     if (!this.state.matchId()) return;
 
     if (this.state.isTimerRunning()) {
-      // PAUSA: Calcoliamo quanti secondi sono passati e li salviamo
       const start = this.state.timerStartAt() || Date.now();
       const diffSec = Math.floor((Date.now() - start) / 1000);
       const nuovoAccumulo = this.state.accumulatedTime() + diffSec;
@@ -99,7 +95,6 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ... (Tutto il resto: chiediChiHaSegnato, registraGol, rimuoviUltimoGol, finisciMatch RIMANE IDENTICO a prima!)
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     const teamCheSegna =
       teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();

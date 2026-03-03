@@ -8,7 +8,7 @@
   @for (g of state.tuttiInCampo(); track g.id) {
     <ion-item lines="full" class="ion-no-padding">
       <ion-avatar slot="start" style="margin-left: 10px">
-        <img [src]="g.fotoUrl" />
+        <img loading="lazy" [src]="g.fotoUrl" />
       </ion-avatar>
 
       <ion-label class="ion-text-wrap">
@@ -58,8 +58,6 @@
     </ion-item>
   }
 </ion-list>
-
-
 
 @if (!state.pagelleInserite()) {
   <ion-fab

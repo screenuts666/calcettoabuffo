@@ -56,14 +56,12 @@
         <div class="fixed-check-badge">
           <ion-icon name="checkmark" color="light"></ion-icon>
         </div>
-        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+        <ion-avatar><img loading="lazy" [src]="g.fotoUrl" /></ion-avatar>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
     </div>
   }
 </div>
-
-
 
 @if (state.isDettagliValidi()) {
   <ion-fab

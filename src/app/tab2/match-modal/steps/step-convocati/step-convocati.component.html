@@ -11,7 +11,7 @@
     @for (g of state.convocati(); track g.id) {
       <div class="summary-avatar-wrapper" (click)="toggleSelezione(g)">
         <ion-avatar>
-          <img [src]="g.fotoUrl" />
+          <img loading="lazy" [src]="g.fotoUrl" />
         </ion-avatar>
         <ion-icon
           name="close-circle"
@@ -60,8 +60,6 @@
     </ion-item>
   }
 </ion-list>
-
-
 
 @if (state.totaleConvocati() >= 2) {
   <ion-fab

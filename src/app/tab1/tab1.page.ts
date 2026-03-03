@@ -1,4 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -11,29 +16,19 @@ import {
   IonNote,
   IonSpinner,
   IonModal,
-  IonButtons,
-  IonButton,
-  IonIcon,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { addIcons } from 'ionicons';
-import {
-  close,
-  football,
-  star,
-  analytics,
-  trophy,
-  people,
-} from 'ionicons/icons';
+import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AsyncPipe,
     CommonModule,
@@ -48,9 +43,7 @@ import {
     IonNote,
     IonSpinner,
     IonModal,
-    IonButtons,
-    IonButton,
-    IonIcon,
+    SchedaGiocatoreComponent,
   ],
 })
 export class Tab1Page {
@@ -62,8 +55,6 @@ export class Tab1Page {
   giocatoreSelezionato = signal<any>(null);
 
   constructor() {
-    addIcons({ close, football, star, analytics, trophy, people });
-
     const giocatori$ = collectionData(collection(this.firestore, 'giocatori'), {
       idField: 'id',
     });
@@ -141,7 +132,7 @@ export class Tab1Page {
     this.isModalOpen.set(true);
   }
 
-  chiudiModale() {
+  chiudiModale = () => {
     this.isModalOpen.set(false);
-  }
+  };
 }

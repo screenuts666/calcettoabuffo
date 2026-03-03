@@ -1,0 +1,92 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Scheda Giocatore</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="chiudiModale()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding ion-text-center">
+  <img
+    class="avatar-img"
+    [src]="
+      prof?.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
+    "
+    loading="lazy"
+  />
+
+  <h2 class="player-name">{{ prof?.nome }}</h2>
+
+  @if (prof?.soprannome) {
+    <p class="player-nickname">"{{ prof.soprannome }}"</p>
+  } @else {
+    <div class="spacer-15"></div>
+  }
+
+  <div class="physical-info-bar">
+    <div class="info-block">
+      <div class="info-emoji">🎂</div>
+      <div class="info-value">{{ prof?.annoNascita || "--" }}</div>
+    </div>
+
+    <div class="info-divider"></div>
+
+    <div class="info-block">
+      <div class="info-emoji">👟</div>
+      <div class="info-value capitalize">
+        {{ prof?.piedePreferito || "--" }}
+      </div>
+    </div>
+
+    <div class="info-divider"></div>
+
+    <div class="info-block">
+      <div class="info-emoji">📏</div>
+      <div class="info-value">{{ prof?.altezza ? prof.altezza : "--" }}</div>
+    </div>
+
+    <div class="info-divider"></div>
+
+    <div class="info-block">
+      <div class="info-emoji">⚖️</div>
+      <div class="info-value">{{ prof?.peso ? prof.peso : "--" }}</div>
+    </div>
+  </div>
+
+  <ion-row class="ion-text-center">
+    <ion-col size="6" class="stat-col">
+      <div class="stat-card card-success">
+        <ion-icon name="trophy" color="success" class="stat-icon"></ion-icon>
+        <div class="stat-label">Punti</div>
+        <div class="stat-value text-success">{{ prof?.puntiDisplay }}</div>
+      </div>
+    </ion-col>
+
+    <ion-col size="6" class="stat-col">
+      <div class="stat-card card-primary">
+        <ion-icon name="analytics" color="primary" class="stat-icon"></ion-icon>
+        <div class="stat-label">Media Voto</div>
+        <div class="stat-value text-primary">{{ prof?.mediaVotoDisplay }}</div>
+      </div>
+    </ion-col>
+
+    <ion-col size="6" class="stat-col">
+      <div class="stat-card card-warning">
+        <ion-icon name="football" color="warning" class="stat-icon"></ion-icon>
+        <div class="stat-label">Gol Fatti</div>
+        <div class="stat-value text-warning">{{ prof?.golTotali }}</div>
+      </div>
+    </ion-col>
+
+    <ion-col size="6" class="stat-col">
+      <div class="stat-card card-dark">
+        <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
+        <div class="stat-label">Presenze</div>
+        <div class="stat-value text-normal">{{ prof?.partiteGiocate }}</div>
+      </div>
+    </ion-col>
+  </ion-row>
+</ion-content>

@@ -5,3 +5,33 @@ ion-avatar {
 .item-native {
   --padding-start: 8px;
 }
+
+.nickname {
+  color: var(--ion-color-medium);
+  font-size: 0.85em;
+  margin-left: 5px;
+}
+
+.small-stats {
+  font-size: 0.85em;
+  margin-top: 4px;
+}
+
+.dim {
+  color: var(--ion-color-medium);
+}
+
+.empty-state {
+  padding: 16px;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.empty-icon {
+  font-size: 4em;
+  color: var(--ion-color-step-200);
+}
+
+.empty-text {
+  color: var(--ion-color-medium);
+}
