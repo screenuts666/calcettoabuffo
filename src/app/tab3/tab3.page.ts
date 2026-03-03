@@ -43,8 +43,7 @@ import {
   getDownloadURL,
 } from '@angular/fire/storage';
 import { addIcons } from 'ionicons';
-import { add, trash, camera, person, create, search } from 'ionicons/icons'; // <--- Aggiunto search
-
+import { add, trash, camera, person, create, search } from 'ionicons/icons';
 @Component({
   selector: 'app-tab3',
   templateUrl: 'tab3.page.html',
@@ -81,11 +80,9 @@ export class Tab3Page {
   private loadingController = inject(LoadingController);
   private alertController = inject(AlertController);
 
-  // --- SIGNALS PER LA RICERCA ---
   tuttiIGiocatori = signal<any[]>([]);
   filtro = signal('');
 
-  // --- STATO DELLA MODALE ---
   isModalOpen = signal(false);
   giocatoreInModificaId = signal<string | null>(null);
 
@@ -99,7 +96,6 @@ export class Tab3Page {
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
 
-  // 🔥 RICERCA IBRIDA COMPUTED
   giocatoriFiltrati = computed(() => {
     const f = this.filtro().toLowerCase().trim();
     const lista = this.tuttiIGiocatori();
@@ -129,7 +125,6 @@ export class Tab3Page {
       orderBy('nome'),
     );
 
-    // Carichiamo i dati nel signal invece di usare solo l'observable
     collectionData(giocatoriQuery, { idField: 'id' }).subscribe((data) => {
       this.tuttiIGiocatori.set(data);
     });
