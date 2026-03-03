@@ -1,37 +1,66 @@
-ion-avatar {
-  border: 2px solid var(--ion-color-success);
+.giocatori-container {
+  background: var(--ion-background-color);
+  min-height: 100%;
 }
 
-.item-native {
-  --padding-start: 8px;
+.search-wrapper {
+  background: var(--ion-background-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-bottom: 5px;
 }
 
-.nickname {
-  color: var(--ion-color-medium);
-  font-size: 0.85em;
-  margin-left: 5px;
+// 🔍 SEARCHBAR DEEP BLACK
+.custom-searchbar {
+  --background: #121212; // Nero profondo
+  --color: #fff;
+  --placeholder-color: #666;
+  --icon-color: var(--ion-color-success); // Lente verde coordinata
+  --border-radius: 12px;
+  padding: 0;
+  border: 1px solid #333; // Bordo per definire l'area sul fondo nero
+
+  &::part(search-icon) {
+    color: var(--ion-color-success);
+  }
 }
 
-.small-stats {
-  font-size: 0.85em;
-  margin-top: 4px;
-}
+// STILE LISTA E AVATAR
+.player-item {
+  --background: transparent;
+  --padding-top: 10px;
+  --padding-bottom: 10px;
 
-.dim {
-  color: var(--ion-color-medium);
-}
+  ion-avatar {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--ion-color-success); // Cerchio verde stile "Nuova Partita"
+  }
 
-.empty-state {
-  padding: 16px;
-  text-align: center;
-  margin-top: 50px;
-}
+  .name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    h3 {
+      margin: 0;
+      font-weight: 800;
+      color: #fff;
+      font-size: 1.1rem;
+    }
+    .nickname {
+      color: #888;
+      font-style: italic;
+      font-size: 0.85rem;
+    }
+  }
 
-.empty-icon {
-  font-size: 4em;
-  color: var(--ion-color-step-200);
-}
-
-.empty-text {
-  color: var(--ion-color-medium);
+  .player-stats,
+  .player-biometry {
+    display: flex;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 2px;
+  }
 }

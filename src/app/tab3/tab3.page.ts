@@ -25,6 +25,7 @@ import {
   IonFabButton,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Firestore,
   collection,
@@ -34,10 +35,16 @@ import {
   query,
   orderBy,
 } from '@angular/fire/firestore';
+import { Observable } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { add, trash, person, create, search } from 'ionicons/icons';
-
-// Importiamo il nuovo Form
+import {
+  add,
+  trash,
+  person,
+  create,
+  search,
+  closeCircle,
+} from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
 
 @Component({
@@ -64,31 +71,36 @@ import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.componen
     IonFab,
     IonFabButton,
     IonModal,
-    FormGiocatoreComponent, // <--- IMPORTATO QUI
+    FormGiocatoreComponent,
   ],
 })
 export class Tab3Page {
   private firestore = inject(Firestore);
   private alertController = inject(AlertController);
 
-  tuttiIGiocatori = signal<any[]>([]);
   filtro = signal('');
-
   isModalOpen = signal(false);
-  giocatoreInModifica = signal<any>(null); // Passiamo tutto l'oggetto, non solo l'ID
+  giocatoreInModifica = signal<any>(null);
 
+  // Caricamento dati con Signal
+  tuttiIGiocatori = toSignal<any[], any[]>(
+    collectionData(
+      query(collection(this.firestore, 'giocatori'), orderBy('nome')),
+      { idField: 'id' },
+    ) as Observable<any[]>,
+    { initialValue: [] },
+  );
+
+  // Ricerca reattiva
   giocatoriFiltrati = computed(() => {
     const f = this.filtro().toLowerCase().trim();
     const lista = this.tuttiIGiocatori();
-
     if (!f) return lista;
-
     return lista.filter((g) => {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
       const piede = (g.piedePreferito || '').toLowerCase();
-
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
@@ -99,36 +111,33 @@ export class Tab3Page {
   });
 
   constructor() {
-    addIcons({ add, trash, person, create, search });
-
-    const giocatoriQuery = query(
-      collection(this.firestore, 'giocatori'),
-      orderBy('nome'),
-    );
-    collectionData(giocatoriQuery, { idField: 'id' }).subscribe((data) => {
-      this.tuttiIGiocatori.set(data);
-    });
+    addIcons({ add, trash, person, create, search, closeCircle });
   }
 
+  // Sincronizzato con l'HTML (sia FAB che click su Item)
   apriModale(g?: any) {
     this.giocatoreInModifica.set(g || null);
     this.isModalOpen.set(true);
   }
 
-  chiudiModale = () => {
+  chiudiModale() {
     this.isModalOpen.set(false);
-  };
+  }
 
-  async eliminaGiocatore(id: string) {
+  // Sincronizzato con ion-item-sliding dell'HTML
+  async eliminaGiocatore(id: string, slidingItem: IonItemSliding) {
     const alert = await this.alertController.create({
       header: 'Elimina Giocatore?',
       message: 'Sei sicuro? I suoi dati statistici andranno persi.',
       buttons: [
-        { text: 'Annulla', role: 'cancel' },
+        { text: 'Annulla', role: 'cancel', handler: () => slidingItem.close() },
         {
           text: 'Elimina',
           role: 'destructive',
-          handler: () => deleteDoc(doc(this.firestore, `giocatori/${id}`)),
+          handler: async () => {
+            await deleteDoc(doc(this.firestore, `giocatori/${id}`));
+            slidingItem.close();
+          },
         },
       ],
     });
