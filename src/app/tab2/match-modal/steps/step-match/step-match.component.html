@@ -27,7 +27,11 @@
     <div class="number">{{ state.scoreA() }}</div>
 
     <div class="action-stack">
-      <button class="goal-btn" (click)="chiediChiHaSegnato('A')">
+      <button
+        class="goal-btn"
+        (click)="chiediChiHaSegnato('A')"
+        [disabled]="state.cronometro() === 0"
+      >
         <ion-icon name="add"></ion-icon> GOL
       </button>
       <button
@@ -45,7 +49,11 @@
     <div class="number">{{ state.scoreB() }}</div>
 
     <div class="action-stack">
-      <button class="goal-btn" (click)="chiediChiHaSegnato('B')">
+      <button
+        class="goal-btn"
+        (click)="chiediChiHaSegnato('B')"
+        [disabled]="state.cronometro() === 0"
+      >
         <ion-icon name="add"></ion-icon> GOL
       </button>
       <button
@@ -59,17 +67,24 @@
   </div>
 </div>
 
-<div class="events-log">
-  <ion-list-header mode="ios"><ion-label>CRONACA</ion-label></ion-list-header>
-  <div class="log-container">
-    @for (gol of state.eventiGol(); track $index) {
-      <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
-        <span class="l-time">{{ gol.tempo }}</span>
-        <span class="l-player">⚽ {{ gol.nome }}</span>
-      </div>
-    }
+@if (state.cronometro() > 0 || state.eventiGol().length > 0) {
+  <div class="events-log">
+    <ion-list-header mode="ios"><ion-label>CRONACA</ion-label></ion-list-header>
+    <div class="log-container">
+      @for (gol of state.eventiGol(); track $index) {
+        <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
+          <span class="l-time">{{ gol.tempo }}</span>
+          <span class="l-player">
+            ⚽ {{ gol.nome }}
+            @if (gol.isAutogoal) {
+              <span class="autogol-text">(Autogol)</span>
+            }
+          </span>
+        </div>
+      }
+    </div>
   </div>
-</div>
+}
 
 <div class="ion-padding">
   <ion-button

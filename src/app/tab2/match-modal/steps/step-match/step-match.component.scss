@@ -1,3 +1,6 @@
+// ==========================================
+// TIMER E INFO IN ALTO
+// ==========================================
 .giant-timer {
   font-size: 6rem;
   font-weight: 900;
@@ -6,6 +9,9 @@
   letter-spacing: -3px;
 }
 
+// ==========================================
+// GRIGLIA PUNTEGGIO E SQUADRE
+// ==========================================
 .score-grid {
   display: flex;
   padding: 10px;
@@ -47,6 +53,9 @@
   }
 }
 
+// ==========================================
+// BOTTONI AZIONE (GOL / RIMUOVI)
+// ==========================================
 .action-stack {
   width: 100%;
   display: flex;
@@ -69,6 +78,13 @@
 
     &:active {
       transform: scale(0.96);
+    }
+
+    // 🛑 STILE QUANDO IL TIMER È A ZERO O IN PAUSA
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none; // Evita l'effetto click
     }
   }
 
@@ -98,24 +114,43 @@
   }
 }
 
+// ==========================================
+// CRONACA DELLA PARTITA E AUTOGOL
+// ==========================================
 .log-container {
   padding: 10px 20px;
+
   .log-entry {
     display: flex;
     gap: 10px;
     margin-bottom: 5px;
+
     &.is-right {
       flex-direction: row-reverse;
       text-align: right;
     }
+
     .l-time {
       font-weight: 800;
       color: var(--ion-color-medium);
       font-size: 0.8rem;
     }
+
+    .l-player {
+      // 🚨 STILE PER L'AUTOGOL ROSSO
+      .autogol-text {
+        color: var(--ion-color-danger);
+        font-weight: 800;
+        font-size: 0.75rem;
+        margin-left: 4px;
+      }
+    }
   }
 }
 
+// ==========================================
+// TASTO FISCHIO FINALE
+// ==========================================
 .main-end-btn {
   height: 55px;
   --border-radius: 16px;
