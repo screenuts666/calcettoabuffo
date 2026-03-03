@@ -1,132 +1,82 @@
-<div class="match-info ion-text-center ion-padding-top">
-  <small>
+<div class="match-info-top ion-text-center">
+  <p>
     <ion-icon name="location-outline"></ion-icon> {{ state.luogo() }} |
     <ion-icon name="time-outline"></ion-icon> {{ state.orario() }}
-  </small>
+  </p>
 </div>
 
-<div class="timer-container ion-text-center">
-  <h1 class="timer-display" style="font-size: 4.5rem; font-weight: 900">
-    {{ state.formatTimer() }}
-  </h1>
+<div class="timer-display-section ion-text-center">
+  <h1 class="giant-timer">{{ state.formatTimer() }}</h1>
   <ion-button
     shape="round"
-    fill="solid"
     [color]="state.isTimerRunning() ? 'warning' : 'success'"
     (click)="toggleTimer()"
-    style="margin-top: 10px"
+    class="timer-control"
   >
     <ion-icon
       [name]="state.isTimerRunning() ? 'pause' : 'play'"
       slot="start"
     ></ion-icon>
-    {{ state.isTimerRunning() ? "Pausa" : "Avvia" }}
+    {{ state.isTimerRunning() ? "PAUSA" : "AVVIA" }}
   </ion-button>
 </div>
 
-<div class="scoreboard">
-  <div class="team-col">
-    <ion-badge
-      style="
-        background: #ffffff;
-        color: #000000;
-        border: 1px solid #cccccc;
-        width: 100%;
-        font-size: 1.1em;
-        padding: 6px;
-        border-radius: 8px;
-      "
-    >
-      BIANCHI
-    </ion-badge>
-    <div class="score-number" style="font-size: 4.5rem; font-weight: 900">
-      {{ state.scoreA() }}
-    </div>
-    <div class="action-buttons">
-      <ion-button
-        size="small"
-        color="success"
-        (click)="chiediChiHaSegnato('A')"
-      >
+<div class="score-grid">
+  <div class="score-card team-a">
+    <div class="tag">BIANCHI</div>
+    <div class="number">{{ state.scoreA() }}</div>
+
+    <div class="action-stack">
+      <button class="goal-btn" (click)="chiediChiHaSegnato('A')">
         <ion-icon name="add"></ion-icon> GOL
-      </ion-button>
-      <ion-button
-        fill="clear"
-        color="danger"
+      </button>
+      <button
+        class="undo-btn"
         (click)="rimuoviUltimoGol('A')"
         [disabled]="state.scoreA() === 0"
       >
-        <ion-icon name="remove"></ion-icon>
-      </ion-button>
+        <ion-icon name="trash-outline"></ion-icon> Rimuovi ultimo
+      </button>
     </div>
   </div>
 
-  <div class="team-col">
-    <ion-badge
-      style="
-        background: #222222;
-        color: #ffffff;
-        border: 1px solid #444444;
-        width: 100%;
-        font-size: 1.1em;
-        padding: 6px;
-        border-radius: 8px;
-      "
-    >
-      NERI
-    </ion-badge>
-    <div class="score-number" style="font-size: 4.5rem; font-weight: 900">
-      {{ state.scoreB() }}
-    </div>
-    <div class="action-buttons">
-      <ion-button
-        size="small"
-        color="success"
-        (click)="chiediChiHaSegnato('B')"
-      >
+  <div class="score-card team-b">
+    <div class="tag">NERI</div>
+    <div class="number">{{ state.scoreB() }}</div>
+
+    <div class="action-stack">
+      <button class="goal-btn" (click)="chiediChiHaSegnato('B')">
         <ion-icon name="add"></ion-icon> GOL
-      </ion-button>
-      <ion-button
-        fill="clear"
-        color="danger"
+      </button>
+      <button
+        class="undo-btn"
         (click)="rimuoviUltimoGol('B')"
         [disabled]="state.scoreB() === 0"
       >
-        <ion-icon name="remove"></ion-icon>
-      </ion-button>
+        <ion-icon name="trash-outline"></ion-icon> Rimuovi ultimo
+      </button>
     </div>
   </div>
 </div>
 
-<ion-list>
-  <ion-list-header><ion-label>Cronaca Partita</ion-label></ion-list-header>
-  @for (gol of state.eventiGol(); track $index) {
-    <ion-item lines="none" style="font-size: 0.9em; --min-height: 35px">
-      @if (gol.teamVantaggio === "A") {
-        <ion-label>
-          <b>{{ gol.tempo }}</b> - ⚽ {{ gol.nome }}
-          @if (gol.isAutogoal) {
-            <span style="color: var(--ion-color-danger)">(Autogol)</span>
-          }
-        </ion-label>
-      } @else {
-        <ion-label class="ion-text-right">
-          <b>{{ gol.tempo }}</b> - ⚽ {{ gol.nome }}
-          @if (gol.isAutogoal) {
-            <span style="color: var(--ion-color-danger)">(Autogol)</span>
-          }
-        </ion-label>
-      }
-    </ion-item>
-  }
-</ion-list>
+<div class="events-log">
+  <ion-list-header mode="ios"><ion-label>CRONACA</ion-label></ion-list-header>
+  <div class="log-container">
+    @for (gol of state.eventiGol(); track $index) {
+      <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
+        <span class="l-time">{{ gol.tempo }}</span>
+        <span class="l-player">⚽ {{ gol.nome }}</span>
+      </div>
+    }
+  </div>
+</div>
 
-<div class="ion-padding" style="margin-top: 20px; margin-bottom: 40px">
+<div class="ion-padding">
   <ion-button
     expand="block"
     color="danger"
     (click)="finisciMatch()"
-    style="height: 50px; font-weight: bold; font-size: 1.1em"
+    class="main-end-btn"
   >
     <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
   </ion-button>

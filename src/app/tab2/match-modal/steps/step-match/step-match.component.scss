@@ -1,55 +1,123 @@
-// ==========================================
-// STILI TABELLONE MATCH E CRONOMETRO
-// ==========================================
-.timer-container {
-  margin: 10px 0;
-  .timer-display {
-    font-size: 4.5rem;
-    font-weight: 900;
-    font-family: monospace;
-    margin: 0;
-    color: var(--ion-text-color, #fff);
-  }
+.giant-timer {
+  font-size: 6rem;
+  font-weight: 900;
+  margin: 0;
+  font-family: "Inter", "Roboto", sans-serif;
+  letter-spacing: -3px;
 }
 
-.scoreboard {
+.score-grid {
   display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  padding: 15px 10px;
-  background: var(--ion-color-step-100, #222);
-  border-radius: 16px;
-  margin: 10px 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  padding: 10px;
+  gap: 15px;
 
-  .team-col {
+  .score-card {
+    flex: 1;
+    background: #1a1a1a;
+    border-radius: 24px;
+    padding: 20px 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 45%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-    .score-number {
-      font-size: 4.5rem;
-      font-weight: 900;
-      margin: 10px 0;
-      color: var(--ion-text-color, #fff);
+    .tag {
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    &.team-a .tag {
+      background: #fff;
+      color: #000;
+    }
+    &.team-b .tag {
+      background: #333;
+      color: #fff;
+      border: 1px solid #444;
     }
 
-    .action-buttons {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-
-      ion-button {
-        --padding-start: 10px;
-        --padding-end: 10px;
-        font-weight: bold;
-      }
+    .number {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 20px;
     }
   }
 }
 
-.match-info {
-  color: var(--ion-color-medium);
+.action-stack {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .goal-btn {
+    background: var(--ion-color-success);
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    height: 48px;
+    font-weight: 900;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .undo-btn {
+    background: transparent;
+    color: var(--ion-color-medium);
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    opacity: 0.6;
+    height: 30px;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+    &:disabled {
+      display: none;
+    }
+    &:active {
+      color: var(--ion-color-danger);
+      opacity: 1;
+    }
+  }
+}
+
+.log-container {
+  padding: 10px 20px;
+  .log-entry {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+    &.is-right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .l-time {
+      font-weight: 800;
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.main-end-btn {
+  height: 55px;
+  --border-radius: 16px;
   font-weight: bold;
 }

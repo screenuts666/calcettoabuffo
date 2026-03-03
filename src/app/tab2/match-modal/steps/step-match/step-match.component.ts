@@ -1,12 +1,9 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonBadge,
   IonButton,
   IonIcon,
-  IonList,
   IonListHeader,
-  IonItem,
   IonLabel,
   ActionSheetController,
   AlertController,
@@ -20,6 +17,8 @@ import {
   add,
   remove,
   stop,
+  football, // Aggiunta per i badge gol
+  trashOutline, // Aggiunta per il tasto rimuovi
 } from 'ionicons/icons';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
@@ -29,16 +28,7 @@ import { MatchStateService } from '../../match-state.service';
   templateUrl: './step-match.component.html',
   styleUrls: ['./step-match.component.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonBadge,
-    IonButton,
-    IonIcon,
-    IonList,
-    IonListHeader,
-    IonItem,
-    IonLabel,
-  ],
+  imports: [CommonModule, IonButton, IonIcon, IonListHeader, IonLabel],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
@@ -48,7 +38,18 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private timerRef: any;
 
   constructor() {
-    addIcons({ locationOutline, timeOutline, play, pause, add, remove, stop });
+    // Registriamo TUTTE le icone necessarie
+    addIcons({
+      locationOutline,
+      timeOutline,
+      play,
+      pause,
+      add,
+      remove,
+      stop,
+      football,
+      trashOutline,
+    });
   }
 
   ngOnInit() {
@@ -84,7 +85,6 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         },
       );
     } else {
-      // PLAY: Salviamo solo l'ora di inizio
       await updateDoc(
         doc(this.state.firestore, `partite/${this.state.matchId()}`),
         {
@@ -137,13 +137,28 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       ? this.state.scoreA.update((s) => s + 1)
       : this.state.scoreB.update((s) => s + 1);
 
-    this.state.tutti.update((list) =>
-      list.map((g) =>
+    // 🔥 FIX: Dobbiamo aggiornare sia 'tutti' che i singoli team per vederli nelle pagelle
+    const updateGol = (lista: any[]) =>
+      lista.map((g) =>
         g.id === giocatore.id
           ? { ...g, gol: (g.gol || 0) + (isAutogoal ? 0 : 1) }
           : g,
-      ),
-    );
+      );
+
+    this.state.tutti.update(updateGol);
+
+    // Aggiorniamo il segnale del team specifico
+    if (teamVantaggio === 'A' && !isAutogoal) {
+      this.state.teamA.update(updateGol);
+    } else if (teamVantaggio === 'B' && !isAutogoal) {
+      this.state.teamB.update(updateGol);
+    } else if (isAutogoal) {
+      // Se è autogol, il gol va cercato nel team opposto a chi ha "vantaggio"
+      teamVantaggio === 'A'
+        ? this.state.teamB.update(updateGol)
+        : this.state.teamA.update(updateGol);
+    }
+
     this.state.salvaInDatabase(false);
   }
 
@@ -158,16 +173,23 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           ? this.state.scoreA.update((s) => Math.max(0, s - 1))
           : this.state.scoreB.update((s) => Math.max(0, s - 1));
 
-        this.state.tutti.update((l) =>
-          l.map((g) =>
+        const removeGol = (lista: any[]) =>
+          lista.map((g) =>
             g.id === rimosso.idAssegnato
               ? {
                   ...g,
                   gol: Math.max(0, (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)),
                 }
               : g,
-          ),
-        );
+          );
+
+        this.state.tutti.update(removeGol);
+
+        // Aggiorniamo il team corretto per la rimozione
+        this.state.teamA().find((p) => p.id === rimosso.idAssegnato)
+          ? this.state.teamA.update(removeGol)
+          : this.state.teamB.update(removeGol);
+
         this.state.salvaInDatabase(false);
         break;
       }
