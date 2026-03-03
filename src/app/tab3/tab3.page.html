@@ -66,4 +66,139 @@
     </div>
     }
   </ion-list>
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="success" (click)="apriModale()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="isModalOpen.set(false)">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="dark">
+          <ion-title
+            >{{ giocatoreInModificaId() ? 'Modifica' : 'Nuovo' }}
+            Giocatore</ion-title
+          >
+          <ion-buttons slot="end">
+            <ion-button color="light" (click)="isModalOpen.set(false)"
+              >Annulla</ion-button
+            >
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <div style="text-align: center; margin-bottom: 20px; margin-top: 10px">
+          <ion-avatar
+            (click)="f.click()"
+            style="
+              width: 110px;
+              height: 110px;
+              margin: 0 auto;
+              border: 3px solid var(--ion-color-success);
+              cursor: pointer;
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            "
+          >
+            <img
+              [src]="anteprimaFoto() || 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+            />
+          </ion-avatar>
+          <input
+            #f
+            type="file"
+            (change)="onFileSelected($event)"
+            hidden
+            accept="image/*"
+          />
+          <p style="color: var(--ion-color-medium)">
+            <small>Tocca per cambiare foto</small>
+          </p>
+        </div>
+
+        <ion-item lines="full">
+          <ion-input
+            label="Nome *"
+            labelPlacement="stacked"
+            placeholder="Es. Francesco Totti"
+            [value]="nome()"
+            (ionInput)="nome.set($event.detail.value || '')"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full">
+          <ion-input
+            label="Soprannome"
+            labelPlacement="stacked"
+            placeholder="Es. Er Pupone"
+            [value]="soprannome()"
+            (ionInput)="soprannome.set($event.detail.value || '')"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="full">
+          <ion-input
+            type="number"
+            label="Anno di Nascita"
+            labelPlacement="stacked"
+            placeholder="Es. 1990"
+            [value]="annoNascita()"
+            (ionInput)="annoNascita.set($event.detail.value || '')"
+          ></ion-input>
+        </ion-item>
+
+        <div style="display: flex; gap: 10px">
+          <ion-item lines="full" style="flex: 1">
+            <ion-input
+              type="number"
+              label="Altezza (cm)"
+              labelPlacement="stacked"
+              placeholder="180"
+              [value]="altezza()"
+              (ionInput)="altezza.set($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
+          <ion-item lines="full" style="flex: 1">
+            <ion-input
+              type="number"
+              label="Peso (kg)"
+              labelPlacement="stacked"
+              placeholder="75"
+              [value]="peso()"
+              (ionInput)="peso.set($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <ion-item lines="full">
+          <ion-select
+            label="Piede Preferito"
+            labelPlacement="stacked"
+            [value]="piedePreferito()"
+            (ionChange)="piedePreferito.set($event.detail.value)"
+          >
+            <ion-select-option value="Destro">Destro</ion-select-option>
+            <ion-select-option value="Sinistro">Sinistro</ion-select-option>
+            <ion-select-option value="Entrambi">Ambidestro</ion-select-option>
+          </ion-select>
+        </ion-item>
+
+        <ion-button
+          expand="block"
+          color="success"
+          (click)="salvaGiocatore()"
+          [disabled]="!nome().trim()"
+          style="
+            margin-top: 30px;
+            height: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+          "
+        >
+          {{ giocatoreInModificaId() ? 'Aggiorna Dati' : 'Salva Campione' }}
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>

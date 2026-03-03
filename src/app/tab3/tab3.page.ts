@@ -15,6 +15,14 @@ import {
   IonSearchbar,
   LoadingController,
   AlertController,
+  IonButton,
+  IonSelect,
+  IonInput,
+  IonSelectOption,
+  IonFab,
+  IonModal,
+  IonFabButton,
+  IonButtons,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import {
@@ -34,7 +42,6 @@ import {
   uploadBytes,
   getDownloadURL,
 } from '@angular/fire/storage';
-import { Observable } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { add, trash, camera, person, create, search } from 'ionicons/icons'; // <--- Aggiunto search
 
@@ -57,7 +64,15 @@ import { add, trash, camera, person, create, search } from 'ionicons/icons'; // 
     IonItemOptions,
     IonItemOption,
     IonIcon,
-    IonSearchbar, // <--- Aggiunto
+    IonSearchbar,
+    IonButton,
+    IonSelect,
+    IonInput,
+    IonSelectOption,
+    IonFab,
+    IonFabButton,
+    IonButtons,
+    IonModal,
   ],
 })
 export class Tab3Page {
