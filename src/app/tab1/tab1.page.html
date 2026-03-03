@@ -1,17 +1,275 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Classifica</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <ion-list lines="full">
+    @if (classifica$ | async; as giocatori) { @for (g of giocatori; track g.id;
+    let i = $index) {
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+    <ion-item button="true" detail="false" (click)="apriDettagliGiocatore(g)">
+      <ion-note
+        slot="start"
+        [style.color]="i === 0 ? '#ffd700' : (i === 1 ? '#c0c0c0' : (i === 2 ? '#cd7f32' : '#888'))"
+        style="
+          font-weight: bold;
+          font-size: 1.4em;
+          min-width: 35px;
+          text-align: center;
+          white-space: nowrap;
+        "
+      >
+        {{ i + 1 }}°
+      </ion-note>
+
+      <ion-avatar slot="start">
+        <img
+          [src]="g.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+        />
+      </ion-avatar>
+
+      <ion-label class="ion-text-wrap">
+        <h2 style="white-space: normal; line-height: 1.2; margin-bottom: 2px">
+          <b>{{ g.nome }}</b>
+          @if (g.soprannome) {
+          <span
+            style="
+              color: gray;
+              font-size: 0.8em;
+              margin-left: 3px;
+              display: inline-block;
+            "
+            >"{{ g.soprannome }}"</span
+          >
+          }
+        </h2>
+        <p
+          style="
+            white-space: nowrap;
+            font-size: 0.85em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          "
+        >
+          Media: <b>{{ g.mediaVotoDisplay }}</b> | Gol:
+          <b>{{ g.golTotali }}</b> | Match: <b>{{ g.partiteGiocate }}</b>
+        </p>
+      </ion-label>
+
+      <div
+        slot="end"
+        style="
+          text-align: right;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          min-width: 55px;
+        "
+      >
+        <span
+          style="
+            font-size: 1.6em;
+            font-weight: 900;
+            color: var(--ion-color-success);
+          "
+          >{{ g.puntiDisplay }}</span
+        >
+        <span
+          style="
+            font-size: 0.8em;
+            color: var(--ion-color-medium);
+            font-weight: bold;
+            margin-top: -5px;
+          "
+          >PUNTI</span
+        >
+      </div>
+    </ion-item>
+
+    } @empty {
+    <div class="ion-padding ion-text-center">
+      <p>Ancora nessun giocatore in database.</p>
+    </div>
+    } } @else {
+    <div class="ion-padding ion-text-center">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Calcolo classifica in corso...</p>
+    </div>
+    }
+  </ion-list>
+
+  <ion-modal
+    [isOpen]="isModalOpen()"
+    (didDismiss)="chiudiModale()"
+    [initialBreakpoint]="0.9"
+    [breakpoints]="[0, 0.5, 0.9, 1]"
+  >
+    <ng-template>
+      @if (giocatoreSelezionato(); as prof) {
+      <ion-header>
+        <ion-toolbar color="dark">
+          <ion-title>Scheda Giocatore</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="chiudiModale()"
+              ><ion-icon name="close"></ion-icon
+            ></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding ion-text-center">
+        <img
+          [src]="prof.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'"
+          style="
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--ion-color-success);
+            margin-top: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            object-fit: cover;
+          "
+        />
+
+        <h1 style="font-weight: 900; margin-bottom: 0px">{{ prof.nome }}</h1>
+        @if (prof.soprannome) {
+        <h4 style="color: var(--ion-color-medium); margin-top: 5px">
+          "{{ prof.soprannome }}"
+        </h4>
+        }
+
+        <div
+          style="
+            background: var(--ion-color-light);
+            color: var(--ion-color-dark);
+            padding: 10px;
+            border-radius: 12px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-around;
+          "
+        >
+          <div>
+            <div style="font-size: 0.7em; opacity: 0.7; font-weight: bold">
+              ANNO
+            </div>
+            <div style="font-size: 1.1em; font-weight: 900">
+              {{ prof.annoNascita || 'N.D.' }}
+            </div>
+          </div>
+          <div>
+            <div style="font-size: 0.7em; opacity: 0.7; font-weight: bold">
+              PIEDE
+            </div>
+            <div
+              style="
+                font-size: 1.1em;
+                font-weight: 900;
+                text-transform: capitalize;
+              "
+            >
+              {{ prof.piedePreferito || 'N.D.' }}
+            </div>
+          </div>
+        </div>
+
+        <h4
+          style="
+            text-align: left;
+            font-weight: bold;
+            color: var(--ion-color-medium);
+            border-bottom: 1px solid var(--ion-color-step-150);
+            padding-bottom: 5px;
+            margin-top: 20px;
+            font-size: 0.9em;
+          "
+        >
+          Rendimento Stagionale
+        </h4>
+
+        <ion-list lines="full" style="background: transparent">
+          <ion-item style="--background: transparent; --min-height: 40px">
+            <ion-icon
+              name="trophy"
+              slot="start"
+              color="success"
+              style="font-size: 1.2em"
+            ></ion-icon>
+            <ion-label style="font-size: 0.95em">Punti Classifica</ion-label>
+            <ion-note
+              slot="end"
+              style="
+                font-weight: bold;
+                font-size: 1.1em;
+                color: var(--ion-color-success);
+              "
+              >{{ prof.puntiDisplay }}</ion-note
+            >
+          </ion-item>
+
+          <ion-item style="--background: transparent; --min-height: 40px">
+            <ion-icon
+              name="analytics"
+              slot="start"
+              color="primary"
+              style="font-size: 1.2em"
+            ></ion-icon>
+            <ion-label style="font-size: 0.95em">Media Voti</ion-label>
+            <ion-note
+              slot="end"
+              style="
+                font-weight: bold;
+                font-size: 1.1em;
+                color: var(--ion-text-color);
+              "
+              >{{ prof.mediaVotoDisplay }}</ion-note
+            >
+          </ion-item>
+
+          <ion-item style="--background: transparent; --min-height: 40px">
+            <ion-icon
+              name="football"
+              slot="start"
+              color="warning"
+              style="font-size: 1.2em"
+            ></ion-icon>
+            <ion-label style="font-size: 0.95em">Gol Fatti</ion-label>
+            <ion-note
+              slot="end"
+              style="
+                font-weight: bold;
+                font-size: 1.1em;
+                color: var(--ion-text-color);
+              "
+              >{{ prof.golTotali }}</ion-note
+            >
+          </ion-item>
+
+          <ion-item style="--background: transparent; --min-height: 40px">
+            <ion-icon
+              name="people"
+              slot="start"
+              color="medium"
+              style="font-size: 1.2em"
+            ></ion-icon>
+            <ion-label style="font-size: 0.95em">Presenze</ion-label>
+            <ion-note
+              slot="end"
+              style="
+                font-weight: bold;
+                font-size: 1.1em;
+                color: var(--ion-text-color);
+              "
+              >{{ prof.partiteGiocate }}</ion-note
+            >
+          </ion-item>
+        </ion-list>
+
+        <div style="height: 40px"></div>
+      </ion-content>
+      }
+    </ng-template>
+  </ion-modal>
 </ion-content>

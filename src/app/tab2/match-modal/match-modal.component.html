@@ -1,0 +1,478 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      @if (step() === "dettagli" && !matchData.matchConcluso) {
+        <ion-button color="light" (click)="step.set('convocati')"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+      @if (step() === "squadre" && !matchData.matchConcluso) {
+        <ion-button color="light" (click)="step.set('dettagli')"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+      @if (
+        step() === "match" && !isTimerRunning() && !matchData.matchConcluso
+      ) {
+        <ion-button color="light" (click)="step.set('squadre')"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+    </ion-buttons>
+    <ion-title>{{
+      matchData.id ? "Gestione Match" : "Nuova Partita"
+    }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button color="light" (click)="chiudi()"
+        ><ion-icon name="close"></ion-icon
+      ></ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (step() === "convocati") {
+    <ion-searchbar
+      color="dark"
+      placeholder="Cerca per nome, piede, anno..."
+      [value]="filtro()"
+      (ionInput)="filtro.set($event.detail.value || '')"
+      animated="true"
+    ></ion-searchbar>
+
+    @if (totaleConvocati() > 0) {
+      <div class="convocati-summary-bar">
+        @for (g of convocati(); track g.id) {
+          <div class="summary-avatar-wrapper" (click)="toggleSelezione(g)">
+            <ion-avatar>
+              <img [src]="g.fotoUrl" />
+            </ion-avatar>
+            <ion-icon
+              name="close-circle"
+              class="remove-badge"
+              color="danger"
+            ></ion-icon>
+            <small>{{ g.nome.split(" ")[0] }}</small>
+          </div>
+        }
+      </div>
+    }
+
+    <ion-list lines="full">
+      <ion-list-header style="min-height: 40px">
+        <ion-label style="color: var(--ion-color-medium)"
+          >Tutti i contatti</ion-label
+        >
+      </ion-list-header>
+
+      @for (g of giocatoriFiltrati(); track g.id) {
+        <ion-item (click)="toggleSelezione(g)" button="true" detail="false">
+          <ion-avatar slot="start">
+            <img
+              [src]="g.fotoUrl"
+              [style.border]="
+                g.selezionato ? '3px solid var(--ion-color-success)' : 'none'
+              "
+            />
+          </ion-avatar>
+          <ion-label>
+            <h2 [style.font-weight]="g.selezionato ? 'bold' : 'normal'">
+              {{ g.nome }}
+            </h2>
+            @if (g.soprannome) {
+              <p>
+                <i>"{{ g.soprannome }}"</i>
+              </p>
+            }
+          </ion-label>
+          <ion-icon
+            slot="end"
+            [name]="g.selezionato ? 'checkmark-circle' : 'ellipse-outline'"
+            [color]="g.selezionato ? 'success' : 'medium'"
+            style="font-size: 1.8em; transition: all 0.1s ease-in-out"
+          ></ion-icon>
+        </ion-item>
+      }
+    </ion-list>
+
+    <div style="height: 100px"></div>
+
+    @if (totaleConvocati() >= 2) {
+      <ion-fab
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+        style="margin-bottom: 20px; margin-right: 10px"
+      >
+        <ion-fab-button color="success" (click)="vaiADettagli()">
+          <ion-icon name="arrow-forward"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
+  }
+
+  @if (step() === "dettagli") {
+    <div class="ion-padding">
+      <h2
+        style="
+          font-weight: bold;
+          margin-bottom: 20px;
+          color: var(--ion-color-success);
+        "
+      >
+        Dettagli Partita
+      </h2>
+
+      <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+        <ion-icon
+          name="location-outline"
+          slot="start"
+          color="medium"
+        ></ion-icon>
+        <ion-input
+          fill="outline"
+          label="Luogo Partita *"
+          labelPlacement="stacked"
+          placeholder="Es. Campetto dei Pioppi"
+          [value]="luogo()"
+          (ionInput)="luogo.set($event.detail.value || '')"
+        >
+        </ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+        <ion-icon
+          name="calendar-outline"
+          slot="start"
+          color="medium"
+        ></ion-icon>
+        <ion-input
+          fill="outline"
+          type="date"
+          label="Data *"
+          labelPlacement="stacked"
+          [value]="dataPartita()"
+          (ionInput)="dataPartita.set($event.detail.value || '')"
+        >
+        </ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+        <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          fill="outline"
+          type="time"
+          label="Orario *"
+          labelPlacement="stacked"
+          [value]="orario()"
+          (ionInput)="orario.set($event.detail.value || '')"
+        >
+        </ion-input>
+      </ion-item>
+    </div>
+
+    <div class="ion-padding-horizontal ion-margin-top">
+      <h3 style="font-weight: bold; color: var(--ion-color-medium)">
+        Giocatori Selezionati ({{ totaleConvocati() }})
+      </h3>
+    </div>
+
+    <div class="selected-avatars-grid ion-padding-bottom">
+      @for (g of convocati(); track g.id) {
+        <div class="avatar-item">
+          <div class="avatar-wrapper">
+            <div class="fixed-check-badge">
+              <ion-icon name="checkmark" color="light"></ion-icon>
+            </div>
+            <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+          </div>
+          <small>{{ g.nome.split(" ")[0] }}</small>
+        </div>
+      }
+    </div>
+
+    <div style="height: 100px"></div>
+
+    @if (isDettagliValidi()) {
+      <ion-fab
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+        style="margin-bottom: 20px; margin-right: 10px"
+      >
+        <ion-fab-button color="success" (click)="vaiASquadre()">
+          <ion-icon name="arrow-forward"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
+  }
+
+  @if (step() === "squadre") {
+    <div class="team-header team-bianchi">BIANCHI ({{ teamA().length }})</div>
+    <div
+      class="selected-avatars-grid"
+      style="border-bottom: none; min-height: 100px"
+    >
+      @for (g of teamA(); track g.id) {
+        <div class="avatar-item" (click)="spostaIn(g, 'B')">
+          <div class="avatar-wrapper">
+            <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+          </div>
+          <small>{{ g.nome.split(" ")[0] }}</small>
+        </div>
+      }
+    </div>
+
+    <div class="team-header team-neri">NERI ({{ teamB().length }})</div>
+    <div
+      class="selected-avatars-grid"
+      style="border-bottom: none; min-height: 100px"
+    >
+      @for (g of teamB(); track g.id) {
+        <div class="avatar-item" (click)="spostaIn(g, 'A')">
+          <div class="avatar-wrapper">
+            <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+          </div>
+          <small>{{ g.nome.split(" ")[0] }}</small>
+        </div>
+      }
+    </div>
+
+    @if (messaggioEquilibrio()) {
+      <p
+        class="ion-text-center error-text"
+        style="
+          color: var(--ion-color-danger);
+          font-weight: bold;
+          margin-top: 10px;
+        "
+      >
+        {{ messaggioEquilibrio() }}
+      </p>
+    }
+
+    <div style="height: 100px"></div>
+
+    <ion-fab
+      vertical="bottom"
+      horizontal="end"
+      slot="fixed"
+      style="margin-bottom: 20px; margin-right: 10px"
+    >
+      <ion-fab-button color="success" (click)="confermaSquadre()">
+        <ion-icon name="checkmark"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
+
+  @if (step() === "match") {
+    <div class="match-info ion-text-center ion-padding-top">
+      <small
+        ><ion-icon name="location-outline"></ion-icon> {{ luogo() }} |
+        <ion-icon name="time-outline"></ion-icon> {{ orario() }}</small
+      >
+    </div>
+
+    <div class="timer-container ion-text-center">
+      <h1 class="timer-display" style="font-size: 4.5rem; font-weight: 900">
+        {{ formatTimer() }}
+      </h1>
+      <ion-button
+        shape="round"
+        fill="solid"
+        [color]="isTimerRunning() ? 'warning' : 'success'"
+        (click)="toggleTimer()"
+        style="margin-top: 10px"
+      >
+        <ion-icon
+          [name]="isTimerRunning() ? 'pause' : 'play'"
+          slot="start"
+        ></ion-icon>
+        {{ isTimerRunning() ? "Pausa" : "Avvia" }}
+      </ion-button>
+    </div>
+
+    <div class="scoreboard">
+      <div class="team-col">
+        <ion-badge
+          style="
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #cccccc;
+            width: 100%;
+            font-size: 1.1em;
+            padding: 6px;
+            border-radius: 8px;
+          "
+          >BIANCHI</ion-badge
+        >
+        <div class="score-number" style="font-size: 4.5rem; font-weight: 900">
+          {{ scoreA() }}
+        </div>
+        <div class="action-buttons">
+          <ion-button
+            size="small"
+            color="success"
+            (click)="chiediChiHaSegnato('A')"
+            ><ion-icon name="add"></ion-icon> GOL</ion-button
+          >
+          <ion-button
+            fill="clear"
+            color="danger"
+            (click)="rimuoviUltimoGol('A')"
+            [disabled]="scoreA() === 0"
+            ><ion-icon name="remove"></ion-icon
+          ></ion-button>
+        </div>
+      </div>
+      <div class="team-col">
+        <ion-badge
+          style="
+            background: #222222;
+            color: #ffffff;
+            border: 1px solid #444444;
+            width: 100%;
+            font-size: 1.1em;
+            padding: 6px;
+            border-radius: 8px;
+          "
+          >NERI</ion-badge
+        >
+        <div class="score-number" style="font-size: 4.5rem; font-weight: 900">
+          {{ scoreB() }}
+        </div>
+        <div class="action-buttons">
+          <ion-button
+            size="small"
+            color="success"
+            (click)="chiediChiHaSegnato('B')"
+            ><ion-icon name="add"></ion-icon> GOL</ion-button
+          >
+          <ion-button
+            fill="clear"
+            color="danger"
+            (click)="rimuoviUltimoGol('B')"
+            [disabled]="scoreB() === 0"
+            ><ion-icon name="remove"></ion-icon
+          ></ion-button>
+        </div>
+      </div>
+    </div>
+
+    <ion-list>
+      <ion-list-header><ion-label>Cronaca Partita</ion-label></ion-list-header>
+      @for (gol of eventiGol(); track $index) {
+        <ion-item lines="none" style="font-size: 0.9em; --min-height: 35px">
+          @if (gol.teamVantaggio === "A") {
+            <ion-label
+              ><b>{{ gol.tempo }}</b> - ⚽ {{ gol.nome }}
+              <span
+                *ngIf="gol.isAutogoal"
+                style="color: var(--ion-color-danger)"
+                >(Autogol)</span
+              ></ion-label
+            >
+          } @else {
+            <ion-label class="ion-text-right"
+              ><b>{{ gol.tempo }}</b> - ⚽ {{ gol.nome }}
+              <span
+                *ngIf="gol.isAutogoal"
+                style="color: var(--ion-color-danger)"
+                >(Autogol)</span
+              ></ion-label
+            >
+          }
+        </ion-item>
+      }
+    </ion-list>
+
+    <div class="ion-padding" style="margin-top: 20px; margin-bottom: 40px">
+      <ion-button
+        expand="block"
+        color="danger"
+        (click)="finisciMatch()"
+        style="height: 50px; font-weight: bold; font-size: 1.1em"
+      >
+        <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
+      </ion-button>
+    </div>
+  }
+
+  @if (step() === "prestazioni") {
+    <ion-list>
+      <ion-list-header>
+        <ion-label>
+          Voti e Pagelle {{ matchData.pagelleInserite ? "(Archiviate)" : "" }}
+        </ion-label>
+      </ion-list-header>
+
+      @for (g of tuttiInCampo(); track g.id) {
+        <ion-item lines="full" class="ion-no-padding">
+          <ion-avatar slot="start" style="margin-left: 10px">
+            <img [src]="g.fotoUrl" />
+          </ion-avatar>
+
+          <ion-label class="ion-text-wrap">
+            <h3 style="margin-bottom: 5px">
+              <b>{{ g.nome }}</b>
+            </h3>
+
+            <ion-textarea
+              placeholder="Inserisci la pagella..."
+              [value]="g.note || ''"
+              [readonly]="matchData.pagelleInserite"
+              [autoGrow]="true"
+              rows="1"
+              (ionInput)="aggiornaNote(g, $event.detail.value || '')"
+              style="
+                font-size: 0.9em;
+                --padding-top: 0;
+                --padding-bottom: 8px;
+                color: var(--ion-color-medium);
+              "
+            ></ion-textarea>
+          </ion-label>
+
+          <div
+            slot="end"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
+              gap: 5px;
+              margin-right: 10px;
+            "
+          >
+            <ion-input
+              type="number"
+              [value]="g.voto"
+              [readonly]="matchData.pagelleInserite"
+              (ionInput)="aggiornaVoto(g, $event)"
+              class="voto-input"
+              [style.opacity]="matchData.pagelleInserite ? '0.6' : '1'"
+            ></ion-input>
+
+            @if (g.gol > 0) {
+              <ion-badge color="success">⚽ {{ g.gol }}</ion-badge>
+            }
+          </div>
+        </ion-item>
+      }
+    </ion-list>
+
+    <div style="height: 100px"></div>
+
+    @if (!matchData.pagelleInserite) {
+      <ion-fab
+        vertical="bottom"
+        horizontal="end"
+        slot="fixed"
+        style="margin-bottom: 20px; margin-right: 10px"
+      >
+        <ion-fab-button color="success" (click)="concludiTutto()">
+          <ion-icon name="checkmark-done"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
+  }
+</ion-content>

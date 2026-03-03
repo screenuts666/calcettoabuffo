@@ -1,0 +1,264 @@
+// ==========================================
+// 1. BARRA CONVOCATI (STEP 1) - FIX A CAPO
+// ==========================================
+.convocati-summary-bar {
+  display: flex;
+  flex-wrap: wrap; /* 🔥 ECCO LA MAGIA: Manda a capo in automatico! */
+  padding: 15px 10px;
+  gap: 15px 10px; /* Spazio verticale e orizzontale tra le facce */
+  background: var(--ion-color-step-50, #1e1e1e);
+  border-bottom: 1px solid var(--ion-color-step-150, #333);
+
+  .summary-avatar-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 60px; /* Fissiamo la larghezza per incollarli bene */
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:active {
+      transform: scale(0.9);
+    }
+
+    ion-avatar {
+      width: 50px;
+      height: 50px;
+      border: 2px solid var(--ion-color-success);
+      margin-bottom: 5px;
+    }
+
+    small {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--ion-color-medium);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60px;
+    }
+
+    .remove-badge {
+      position: absolute;
+      top: -2px;
+      right: 0px;
+      font-size: 24px;
+      background: var(--ion-background-color, #000);
+      border-radius: 50%;
+      color: var(--ion-color-danger);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+    }
+  }
+}
+// ==========================================
+// 2. GRIGLIA AVATAR (STEP 2 E 3) - FISSA A 5
+// ==========================================
+.selected-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* FORZATO A 5 COLONNE ESATTE */
+  gap: 15px 5px;
+  padding: 15px 5px;
+  border-bottom: 1px solid var(--ion-color-step-150, #333);
+  justify-items: center;
+
+  .avatar-item {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100%;
+
+    &:active {
+      transform: scale(0.85);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+
+      ion-avatar {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        border: 2px solid var(--ion-color-success);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      /* La "X" per togliere i giocatori in Step 2 (se riattivata) */
+      .remove-icon {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--ion-background-color, #000);
+        border-radius: 50%;
+        color: var(--ion-color-danger);
+        font-size: 22px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+      }
+
+      /* La Spunta Verde fissa dello Step 2 */
+      .fixed-check-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--ion-color-success);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+
+        ion-icon {
+          font-size: 14px;
+          font-weight: bold;
+        }
+      }
+    }
+
+    small {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--ion-color-step-600, #999);
+      display: block;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 55px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+// ==========================================
+// 3. INPUT ELEGANTI (STEP 2)
+// ==========================================
+.elegant-input-item {
+  --background: var(--ion-color-step-50, #1e1e1e);
+  border-radius: 12px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  ion-input {
+    font-weight: bold;
+  }
+}
+
+// ==========================================
+// 4. STILI PER RISULTATO E PAGELLE (STEP 4 e 5)
+// ==========================================
+.voto-input {
+  width: 45px;
+  text-align: center;
+  border-bottom: 2px solid var(--ion-color-step-200, #555);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+ion-input::part(native) {
+  &::placeholder {
+    color: var(--ion-color-step-400, #777);
+    font-style: italic;
+  }
+}
+
+.error-text {
+  font-size: 0.9em;
+  margin-bottom: 15px;
+}
+
+// ==========================================
+// 5. STILI TABELLONE MATCH
+// ==========================================
+.timer-container {
+  margin: 10px 0;
+  .timer-display {
+    font-size: 4.5rem;
+    font-weight: 900;
+    font-family: monospace;
+    margin: 0;
+    color: var(--ion-text-color, #fff);
+  }
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 15px 10px;
+  background: var(--ion-color-step-100, #222);
+  border-radius: 16px;
+  margin: 10px 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+  .team-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45%;
+
+    .score-number {
+      font-size: 4.5rem;
+      font-weight: 900;
+      margin: 10px 0;
+      color: var(--ion-text-color, #fff);
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      ion-button {
+        --padding-start: 10px;
+        --padding-end: 10px;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.match-info {
+  color: var(--ion-color-medium);
+  font-weight: bold;
+}
+
+// ==========================================
+// 6. BARRE SQUADRE CUSTOM (STEP 3)
+// ==========================================
+.team-header {
+  padding: 10px 15px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border-top: 1px solid var(--ion-color-step-200, #444);
+  border-bottom: 1px solid var(--ion-color-step-200, #444);
+  margin-top: 5px;
+}
+
+.team-bianchi {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.team-neri {
+  background-color: #111111;
+  color: #ffffff;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+
+
+ion-textarea {
+  --padding-start: 0;
+  margin-top: -5px;
+}
+
+// Rende l'item un po' più flessibile per ospitare testi lunghi
+ion-item {
+  --min-height: 80px;
+}

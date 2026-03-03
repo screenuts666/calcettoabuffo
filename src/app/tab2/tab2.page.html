@@ -1,17 +1,117 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 2
-    </ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Partite</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 2</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <ion-list>
+    @for (p of partite$ | async; track p.id) {
+    <ion-item-sliding>
+      <ion-item
+        lines="full"
+        (click)="apriModale(p)"
+        button="true"
+        detail="true"
+      >
+        <ion-label>
+          <h2 style="font-weight: bold">
+            Match del {{ p.dataPartita ? (p.dataPartita | date:'dd/MM/yyyy') :
+            p.dataDisplay }}
+          </h2>
 
-  <app-explore-container name="Tab 2 page"></app-explore-container>
+          @if (!p.teamA || p.teamA.length === 0) {
+          <p><ion-badge color="medium">Squadre da fare</ion-badge></p>
+          } @else if (!p.matchConcluso) {
+          <p>
+            <ion-badge color="danger" class="ion-margin-bottom"
+              ><ion-icon name="play"></ion-icon> Match in corso</ion-badge
+            >
+          </p>
+          } @else if (p.matchConcluso && !p.pagelleInserite) {
+          <p><ion-badge color="warning">In attesa di pagelle</ion-badge></p>
+          } @else {
+          <p>
+            Risultato:
+            <ion-badge color="success"
+              >{{p.scoreA || 0}} - {{p.scoreB || 0}}</ion-badge
+            >
+            @if (p.cronometro) {
+            <small style="margin-left: 5px; color: var(--ion-color-medium)">
+              (Finita al {{ (p.cronometro / 60) | number:'1.0-0' }}')
+            </small>
+            }
+          </p>
+          }
+
+          <p>
+            <small>
+              <ion-icon name="people"></ion-icon>
+              {{ p.convocati?.length || ((p.teamA?.length || 0) +
+              (p.teamB?.length || 0)) }} giocatori
+            </small>
+          </p>
+
+          <p>
+            <small>
+              <ion-icon name="time-outline"></ion-icon> {{ p.orario || '--:--'
+              }} | <ion-icon name="location-outline"></ion-icon> {{ p.luogo ||
+              'Da definire' }}
+            </small>
+          </p>
+        </ion-label>
+
+        <ion-buttons slot="end">
+          @if (p.pagelleInserite && !p.classificaAggiornata) {
+          <ion-button
+            fill="clear"
+            (click)="aggiornaClassifica(p); $event.stopPropagation()"
+          >
+            <ion-icon
+              name="checkmark-done"
+              color="warning"
+              style="font-size: 1.6em"
+            ></ion-icon>
+          </ion-button>
+          } @if (p.classificaAggiornata) {
+          <ion-icon
+            name="checkmark-done"
+            color="success"
+            style="font-size: 1.6em"
+          ></ion-icon>
+          }
+        </ion-buttons>
+      </ion-item>
+
+      <ion-item-options side="end">
+        @if (p.pagelleInserite && !p.classificaAggiornata) {
+        <ion-item-option color="warning" (click)="eliminaPagelle(p.id)"
+          >Reset Voti</ion-item-option
+        >
+        }
+        <ion-item-option color="danger" (click)="eliminaPartita(p.id)">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    } @empty {
+    <div
+      class="ion-padding ion-text-center"
+      style="margin-top: 60px; color: gray"
+    >
+      <ion-icon
+        name="football"
+        style="font-size: 80px; opacity: 0.2"
+      ></ion-icon>
+      <p>Ancora nessun match registrato.<br />Organizza la prima sfida!</p>
+    </div>
+    }
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="apriModale()" color="success">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>

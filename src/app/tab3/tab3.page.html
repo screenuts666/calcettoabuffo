@@ -1,17 +1,69 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Tab 3
-    </ion-title>
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Rosa Giocatori</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <ion-searchbar
+    color="dark"
+    placeholder="Cerca per nome, piede, anno..."
+    [value]="filtro()"
+    (ionInput)="filtro.set($event.detail.value || '')"
+    animated="true"
+    search-icon="search"
+  ></ion-searchbar>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <ion-list lines="full">
+    @for (g of giocatoriFiltrati(); track g.id) {
+    <ion-item-sliding>
+      <ion-item-options side="start">
+        <ion-item-option color="medium" (click)="apriModale(g)">
+          <ion-icon name="create" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+
+      <ion-item>
+        <ion-avatar slot="start"><img [src]="g.fotoUrl" /></ion-avatar>
+        <ion-label>
+          <h2>
+            <b>{{ g.nome }}</b>
+            @if (g.soprannome) {
+            <span
+              style="
+                color: var(--ion-color-medium);
+                font-size: 0.85em;
+                margin-left: 5px;
+              "
+              >"{{ g.soprannome }}"</span
+            >
+            }
+          </h2>
+          <p style="font-size: 0.85em; margin-top: 4px">
+            🎂 {{ g.annoNascita || 'N.D.' }} &nbsp;|&nbsp; 👟 {{
+            g.piedePreferito || 'N.D.' }}
+          </p>
+          <p style="font-size: 0.85em; color: var(--ion-color-medium)">
+            📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }} &nbsp;|&nbsp; ⚖️ {{
+            g.peso ? g.peso + ' kg' : 'N.D.' }}
+          </p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="eliminaGiocatore(g.id)">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+    } @empty {
+    <div class="ion-padding ion-text-center" style="margin-top: 50px">
+      <ion-icon
+        name="person"
+        style="font-size: 4em; color: var(--ion-color-step-200)"
+      ></ion-icon>
+      <p style="color: var(--ion-color-medium)">Nessun giocatore trovato.</p>
+    </div>
+    }
+  </ion-list>
 </ion-content>

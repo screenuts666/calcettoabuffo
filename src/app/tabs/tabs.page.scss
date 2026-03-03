@@ -1,1 +1,7 @@
-
+/* Questo è il posto corretto: src/app/tabs/tabs.page.scss */
+ion-tab-bar {
+  --color-selected: var(--ion-color-success); /* Verde per la tab attiva */
+  --color: var(--ion-color-medium);          /* Grigio per le tab spente */
+  border-top: 1px solid #111;                /* Separatore scuro elegante */
+  --background: var(--ion-color-dark);       /* Sfondo nero/scuro della barra */
+}
