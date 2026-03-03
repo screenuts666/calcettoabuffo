@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "calcettoabuffone"
-  }
+    "default": "calcettoabuffone",
+    "prod": "calcettoabuffone-prod"
+  },
+  "targets": {},
+  "etags": {}
 }

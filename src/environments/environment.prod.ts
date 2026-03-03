@@ -1,11 +1,11 @@
 export const environment = {
   production: true,
   firebase: {
-    apiKey: 'AIzaSyCqnjBXeJoJ7ZfUTLMYyAMBNhBZiazA7mA',
-    authDomain: 'calcettoabuffone.firebaseapp.com',
-    projectId: 'calcettoabuffone',
-    storageBucket: 'calcettoabuffone.firebasestorage.app',
-    messagingSenderId: '1048869516820',
-    appId: '1:1048869516820:web:02ca970bf5fafd47f79901',
+    apiKey: 'AIzaSyCgcwLuNlknT3WuwUhwQg9VXskSdWQ4pjo',
+    authDomain: 'calcettoabuffone-prod.firebaseapp.com',
+    projectId: 'calcettoabuffone-prod',
+    storageBucket: 'calcettoabuffone-prod.firebasestorage.app',
+    messagingSenderId: '188767969527',
+    appId: '1:188767969527:web:ddc554fbbef460e37f73f2',
   },
 };
