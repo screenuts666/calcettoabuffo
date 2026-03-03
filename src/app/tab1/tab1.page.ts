@@ -58,7 +58,6 @@ export class Tab1Page {
 
   classifica$: Observable<any[]>;
 
-  // --- STATO MODALE DETTAGLIO GIOCATORE ---
   isModalOpen = signal(false);
   giocatoreSelezionato = signal<any>(null);
 
@@ -144,6 +143,5 @@ export class Tab1Page {
 
   chiudiModale() {
     this.isModalOpen.set(false);
-    // ❌ Rimosso il timeout che creava il bug della schermata nera!
   }
 }
