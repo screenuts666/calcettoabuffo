@@ -1,0 +1,77 @@
+<ion-searchbar
+  color="dark"
+  placeholder="Cerca per nome, piede, anno..."
+  [value]="state.filtro()"
+  (ionInput)="state.filtro.set($event.detail.value || '')"
+  animated="true"
+></ion-searchbar>
+
+@if (state.totaleConvocati() > 0) {
+  <div class="convocati-summary-bar">
+    @for (g of state.convocati(); track g.id) {
+      <div class="summary-avatar-wrapper" (click)="toggleSelezione(g)">
+        <ion-avatar>
+          <img [src]="g.fotoUrl" />
+        </ion-avatar>
+        <ion-icon
+          name="close-circle"
+          class="remove-badge"
+          color="danger"
+        ></ion-icon>
+        <small>{{ g.nome.split(" ")[0] }}</small>
+      </div>
+    }
+  </div>
+}
+
+<ion-list lines="full">
+  <ion-list-header style="min-height: 40px">
+    <ion-label style="color: var(--ion-color-medium)"
+      >Tutti i contatti</ion-label
+    >
+  </ion-list-header>
+
+  @for (g of state.giocatoriFiltrati(); track g.id) {
+    <ion-item (click)="toggleSelezione(g)" button="true" detail="false">
+      <ion-avatar slot="start">
+        <img
+          [src]="g.fotoUrl"
+          [style.border]="
+            g.selezionato ? '3px solid var(--ion-color-success)' : 'none'
+          "
+        />
+      </ion-avatar>
+      <ion-label>
+        <h2 [style.font-weight]="g.selezionato ? 'bold' : 'normal'">
+          {{ g.nome }}
+        </h2>
+        @if (g.soprannome) {
+          <p>
+            <i>"{{ g.soprannome }}"</i>
+          </p>
+        }
+      </ion-label>
+      <ion-icon
+        slot="end"
+        [name]="g.selezionato ? 'checkmark-circle' : 'ellipse-outline'"
+        [color]="g.selezionato ? 'success' : 'medium'"
+        style="font-size: 1.8em; transition: all 0.1s ease-in-out"
+      ></ion-icon>
+    </ion-item>
+  }
+</ion-list>
+
+<div style="height: 100px"></div>
+
+@if (state.totaleConvocati() >= 2) {
+  <ion-fab
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+    style="margin-bottom: 20px; margin-right: 10px"
+  >
+    <ion-fab-button color="success" (click)="vaiADettagli()">
+      <ion-icon name="arrow-forward"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}

@@ -1,0 +1,26 @@
+// ==========================================
+// STILI PER RISULTATO E PAGELLE
+// ==========================================
+.voto-input {
+  width: 45px;
+  text-align: center;
+  border-bottom: 2px solid var(--ion-color-step-200, #555);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+ion-input::part(native) {
+  &::placeholder {
+    color: var(--ion-color-step-400, #777);
+    font-style: italic;
+  }
+}
+
+ion-textarea {
+  --padding-start: 0;
+  margin-top: -5px;
+}
+
+ion-item {
+  --min-height: 80px;
+}

@@ -1,0 +1,55 @@
+// ==========================================
+// STILI TABELLONE MATCH E CRONOMETRO
+// ==========================================
+.timer-container {
+  margin: 10px 0;
+  .timer-display {
+    font-size: 4.5rem;
+    font-weight: 900;
+    font-family: monospace;
+    margin: 0;
+    color: var(--ion-text-color, #fff);
+  }
+}
+
+.scoreboard {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+  padding: 15px 10px;
+  background: var(--ion-color-step-100, #222);
+  border-radius: 16px;
+  margin: 10px 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+  .team-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 45%;
+
+    .score-number {
+      font-size: 4.5rem;
+      font-weight: 900;
+      margin: 10px 0;
+      color: var(--ion-text-color, #fff);
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+
+      ion-button {
+        --padding-start: 10px;
+        --padding-end: 10px;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.match-info {
+  color: var(--ion-color-medium);
+  font-weight: bold;
+}

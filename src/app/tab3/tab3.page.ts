@@ -24,7 +24,7 @@ import {
   IonFabButton,
   IonButtons,
 } from '@ionic/angular/standalone';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   Firestore,
   collection,

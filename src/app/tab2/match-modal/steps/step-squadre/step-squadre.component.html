@@ -1,0 +1,51 @@
+<div class="team-header team-bianchi">BIANCHI ({{ state.teamA().length }})</div>
+<div
+  class="selected-avatars-grid"
+  style="border-bottom: none; min-height: 100px"
+>
+  @for (g of state.teamA(); track g.id) {
+    <div class="avatar-item" (click)="spostaIn(g, 'B')">
+      <div class="avatar-wrapper">
+        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+      </div>
+      <small>{{ g.nome.split(" ")[0] }}</small>
+    </div>
+  }
+</div>
+
+<div class="team-header team-neri">NERI ({{ state.teamB().length }})</div>
+<div
+  class="selected-avatars-grid"
+  style="border-bottom: none; min-height: 100px"
+>
+  @for (g of state.teamB(); track g.id) {
+    <div class="avatar-item" (click)="spostaIn(g, 'A')">
+      <div class="avatar-wrapper">
+        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+      </div>
+      <small>{{ g.nome.split(" ")[0] }}</small>
+    </div>
+  }
+</div>
+
+@if (state.messaggioEquilibrio()) {
+  <p
+    class="ion-text-center error-text"
+    style="color: var(--ion-color-danger); font-weight: bold; margin-top: 10px"
+  >
+    {{ state.messaggioEquilibrio() }}
+  </p>
+}
+
+<div style="height: 100px"></div>
+
+<ion-fab
+  vertical="bottom"
+  horizontal="end"
+  slot="fixed"
+  style="margin-bottom: 20px; margin-right: 10px"
+>
+  <ion-fab-button color="success" (click)="confermaSquadre()">
+    <ion-icon name="checkmark"></ion-icon>
+  </ion-fab-button>
+</ion-fab>

@@ -1,0 +1,85 @@
+// ==========================================
+// INPUT ELEGANTI (STILE CARD)
+// ==========================================
+.elegant-input-item {
+  --background: var(--ion-color-step-100, #222222);
+  --border-radius: 12px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  padding-top: 5px;
+  padding-bottom: 5px;
+
+  ion-icon {
+    font-size: 1.5em;
+    margin-right: 15px;
+  }
+
+  ion-input {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+}
+
+// ==========================================
+// GRIGLIA AVATAR - FISSA A 5
+// ==========================================
+.selected-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px 5px;
+  padding: 15px 5px;
+  border-bottom: 1px solid var(--ion-color-step-150, #333);
+  justify-items: center;
+
+  .avatar-item {
+    text-align: center;
+    width: 100%;
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+
+      ion-avatar {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        border: 2px solid var(--ion-color-success);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .fixed-check-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--ion-color-success);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+
+        ion-icon {
+          font-size: 14px;
+          font-weight: bold;
+        }
+      }
+    }
+
+    small {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--ion-color-step-600, #999);
+      display: block;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 65px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}

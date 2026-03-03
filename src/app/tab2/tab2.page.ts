@@ -100,9 +100,8 @@ export class Tab2Page {
   }
 
   async apriModale(partita?: any) {
-    const tutti = await firstValueFrom(this.giocatori$); // Prende la lista aggiornata
+    const tutti = await firstValueFrom(this.giocatori$);
 
-    // Passiamo un oggetto pulito alla modale
     const data = partita
       ? JSON.parse(JSON.stringify(partita))
       : {
@@ -114,7 +113,6 @@ export class Tab2Page {
           convocati: [],
         };
 
-    // Aggiungiamo sempre la rubrica fresca
     data.tuttiGiocatori = tutti.map((g: any) => ({
       ...g,
       selezionato: false,
@@ -130,7 +128,6 @@ export class Tab2Page {
     return await modal.present();
   }
 
-  // ... (aggiornaClassifica, eliminaPartita, eliminaPagelle rimangono IDENTICI a prima) ...
   async aggiornaClassifica(partita: any) {
     if (partita.classificaAggiornata || !partita.pagelleInserite) return;
     const alert = await this.alertController.create({

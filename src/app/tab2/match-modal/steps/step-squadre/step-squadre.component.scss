@@ -1,0 +1,72 @@
+// ==========================================
+// BARRE SQUADRE CUSTOM
+// ==========================================
+.team-header {
+  padding: 10px 15px;
+  font-size: 1.1em;
+  font-weight: bold;
+  border-top: 1px solid var(--ion-color-step-200, #444);
+  border-bottom: 1px solid var(--ion-color-step-200, #444);
+  margin-top: 5px;
+}
+
+.team-bianchi {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.team-neri {
+  background-color: #111111;
+  color: #ffffff;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+
+// ==========================================
+// GRIGLIA AVATAR (con effetto click)
+// ==========================================
+.selected-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px 5px;
+  padding: 15px 5px;
+  justify-items: center;
+
+  .avatar-item {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100%;
+
+    &:active {
+      transform: scale(0.85);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+
+      ion-avatar {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        border: 2px solid var(--ion-color-success);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    small {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--ion-color-step-600, #999);
+      display: block;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 55px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}

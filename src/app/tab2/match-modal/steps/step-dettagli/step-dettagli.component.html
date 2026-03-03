@@ -1,0 +1,79 @@
+<div class="ion-padding">
+  <h2
+    style="
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--ion-color-success);
+    "
+  >
+    Dettagli Partita
+  </h2>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+    <ion-input
+      label="Luogo Partita *"
+      labelPlacement="stacked"
+      placeholder="Es. Campetto dei Pioppi"
+      [value]="state.luogo()"
+      (ionInput)="state.luogo.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="calendar-outline" slot="start" color="medium"></ion-icon>
+    <ion-input
+      type="date"
+      label="Data *"
+      labelPlacement="stacked"
+      [value]="state.dataPartita()"
+      (ionInput)="state.dataPartita.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+    <ion-input
+      type="time"
+      label="Orario *"
+      labelPlacement="stacked"
+      [value]="state.orario()"
+      (ionInput)="state.orario.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+</div>
+
+<div class="ion-padding-horizontal ion-margin-top">
+  <h3 style="font-weight: bold; color: var(--ion-color-medium)">
+    Convocati ({{ state.totaleConvocati() }})
+  </h3>
+</div>
+
+<div class="selected-avatars-grid ion-padding-bottom">
+  @for (g of state.convocati(); track g.id) {
+    <div class="avatar-item">
+      <div class="avatar-wrapper">
+        <div class="fixed-check-badge">
+          <ion-icon name="checkmark" color="light"></ion-icon>
+        </div>
+        <ion-avatar><img [src]="g.fotoUrl" /></ion-avatar>
+      </div>
+      <small>{{ g.nome.split(" ")[0] }}</small>
+    </div>
+  }
+</div>
+
+<div style="height: 100px"></div>
+
+@if (state.isDettagliValidi()) {
+  <ion-fab
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+    style="margin-bottom: 20px; margin-right: 10px"
+  >
+    <ion-fab-button color="success" (click)="vaiASquadre()">
+      <ion-icon name="arrow-forward"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}
