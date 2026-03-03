@@ -5,7 +5,6 @@ import {
   IonTextarea,
   IonIcon,
   ModalController,
-  IonButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkDone, football } from 'ionicons/icons';
@@ -16,7 +15,7 @@ import { MatchStateService } from '../../match-state.service';
   templateUrl: './step-prestazioni.component.html',
   styleUrls: ['./step-prestazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonAvatar, IonTextarea, IonIcon, IonButton],
+  imports: [CommonModule, IonAvatar, IonTextarea, IonIcon],
 })
 export class StepPrestazioniComponent {
   public state = inject(MatchStateService);
