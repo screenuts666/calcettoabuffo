@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -42,7 +42,7 @@ import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazi
   ],
   providers: [MatchStateService],
 })
-export class MatchModalComponent implements OnInit {
+export class MatchModalComponent implements OnInit, OnDestroy {
   private modalCtrl = inject(ModalController);
   public state = inject(MatchStateService);
 
@@ -66,10 +66,11 @@ export class MatchModalComponent implements OnInit {
       this.state.luogo.set(this.matchData.luogo || '');
       this.state.dataPartita.set(this.matchData.dataPartita || '');
       this.state.orario.set(this.matchData.orario || '');
-      this.state.scoreA.set(this.matchData.scoreA || 0);
-      this.state.scoreB.set(this.matchData.scoreB || 0);
-      this.state.eventiGol.set(this.matchData.eventiGol || []);
+
       this.state.cronometro.set(this.matchData.cronometro || 0);
+      this.state.accumulatedTime.set(this.matchData.accumulatedTime || 0);
+      this.state.timerStartAt.set(this.matchData.timerStartAt || null);
+      this.state.isTimerRunning.set(this.matchData.isTimerRunning || false);
 
       const idsSalvati = (this.matchData.convocati || []).map((c: any) => c.id);
       this.state.tutti.set(
@@ -89,12 +90,18 @@ export class MatchModalComponent implements OnInit {
         this.state.step.set('squadre');
       else if (!this.matchData.matchConcluso) this.state.step.set('match');
       else this.state.step.set('prestazioni');
+
+      this.state.avviaAscoltoReale();
     } else {
       this.state.tutti.set(baseGiocatori);
       this.state.dataPartita.set(this.getProssimoMercoledi());
       this.state.orario.set('21:00');
       this.state.step.set('convocati');
     }
+  }
+
+  ngOnDestroy() {
+    this.state.fermaAscolto();
   }
 
   getProssimoMercoledi(): string {

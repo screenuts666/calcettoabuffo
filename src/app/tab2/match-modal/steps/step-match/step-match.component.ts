@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonBadge,
@@ -21,8 +21,8 @@ import {
   remove,
   stop,
 } from 'ionicons/icons';
+import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
-
 
 @Component({
   selector: 'app-step-match',
@@ -40,7 +40,7 @@ import { MatchStateService } from '../../match-state.service';
     IonLabel,
   ],
 })
-export class StepMatchComponent implements OnDestroy {
+export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
@@ -51,23 +51,55 @@ export class StepMatchComponent implements OnDestroy {
     addIcons({ locationOutline, timeOutline, play, pause, add, remove, stop });
   }
 
+  // 🔥 IL MOTORE MATEMATICO DEL TIMER
+  ngOnInit() {
+    // Questo gira ogni secondo ma NON SCRIVE MAI SUL DATABASE. Aggiorna solo lo schermo.
+    this.timerRef = setInterval(() => {
+      if (this.state.isTimerRunning()) {
+        const start = this.state.timerStartAt() || Date.now();
+        const diffSec = Math.floor((Date.now() - start) / 1000);
+        this.state.cronometro.set(this.state.accumulatedTime() + diffSec);
+      } else {
+        this.state.cronometro.set(this.state.accumulatedTime());
+      }
+    }, 1000);
+  }
+
   ngOnDestroy() {
     if (this.timerRef) clearInterval(this.timerRef);
   }
 
-  toggleTimer() {
+  // 🔥 I PULSANTI SCRIVONO SUL DB UNA VOLTA SOLA
+  async toggleTimer() {
+    if (!this.state.matchId()) return;
+
     if (this.state.isTimerRunning()) {
-      clearInterval(this.timerRef);
-      this.state.isTimerRunning.set(false);
+      // PAUSA: Calcoliamo quanti secondi sono passati e li salviamo
+      const start = this.state.timerStartAt() || Date.now();
+      const diffSec = Math.floor((Date.now() - start) / 1000);
+      const nuovoAccumulo = this.state.accumulatedTime() + diffSec;
+
+      await updateDoc(
+        doc(this.state.firestore, `partite/${this.state.matchId()}`),
+        {
+          isTimerRunning: false,
+          accumulatedTime: nuovoAccumulo,
+          timerStartAt: null,
+        },
+      );
     } else {
-      this.state.isTimerRunning.set(true);
-      this.timerRef = setInterval(
-        () => this.state.cronometro.update((t) => t + 1),
-        1000,
+      // PLAY: Salviamo solo l'ora di inizio
+      await updateDoc(
+        doc(this.state.firestore, `partite/${this.state.matchId()}`),
+        {
+          isTimerRunning: true,
+          timerStartAt: Date.now(),
+        },
       );
     }
   }
 
+  // ... (Tutto il resto: chiediChiHaSegnato, registraGol, rimuoviUltimoGol, finisciMatch RIMANE IDENTICO a prima!)
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     const teamCheSegna =
       teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();
