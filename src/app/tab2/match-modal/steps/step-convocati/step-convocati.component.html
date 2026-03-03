@@ -61,14 +61,13 @@
   }
 </ion-list>
 
-<div style="height: 100px"></div>
+
 
 @if (state.totaleConvocati() >= 2) {
   <ion-fab
     vertical="bottom"
     horizontal="end"
-    slot="fixed"
-    style="margin-bottom: 20px; margin-right: 10px"
+    style="position: fixed; bottom: 20px; right: 20px"
   >
     <ion-fab-button color="success" (click)="vaiADettagli()">
       <ion-icon name="arrow-forward"></ion-icon>
