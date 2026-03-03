@@ -5,112 +5,82 @@
 </ion-header>
 
 <ion-content>
-  <ion-list>
-    @for (p of partite$ | async; track p.id) {
-    <ion-item-sliding>
-      <ion-item
-        lines="full"
-        (click)="apriModale(p)"
-        button="true"
-        detail="true"
-      >
-        <ion-label>
-          <h2 style="font-weight: bold">
-            Match del {{ p.dataPartita ? (p.dataPartita | date:'dd/MM/yyyy') :
-            p.dataDisplay }}
-          </h2>
+  <div class="matches-container">
+    @for (m of partite(); track m.id) {
+    <div class="match-card" (click)="apriModalePartita(m)">
+      <div class="match-header">
+        <div class="match-date">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ m.dataPartita | date:'dd/MM/yyyy' }}</span>
+        </div>
 
-          @if (!p.teamA || p.teamA.length === 0) {
-          <p><ion-badge color="medium">Squadre da fare</ion-badge></p>
-          } @else if (!p.matchConcluso) {
-          <p>
-            <ion-badge color="danger" class="ion-margin-bottom"
-              ><ion-icon name="play"></ion-icon> Match in corso</ion-badge
-            >
-          </p>
-          } @else if (p.matchConcluso && !p.pagelleInserite) {
-          <p><ion-badge color="warning">In attesa di pagelle</ion-badge></p>
-          } @else {
-          <p>
-            Risultato:
-            <ion-badge color="success"
-              >{{p.scoreA || 0}} - {{p.scoreB || 0}}</ion-badge
-            >
-            @if (p.cronometro) {
-            <small style="margin-left: 5px; color: var(--ion-color-medium)">
-              (Finita al {{ (p.cronometro / 60) | number:'1.0-0' }}')
-            </small>
-            }
-          </p>
-          }
-
-          <p>
-            <small>
-              <ion-icon name="people"></ion-icon>
-              {{ p.convocati?.length || ((p.teamA?.length || 0) +
-              (p.teamB?.length || 0)) }} giocatori
-            </small>
-          </p>
-
-          <p>
-            <small>
-              <ion-icon name="time-outline"></ion-icon> {{ p.orario || '--:--'
-              }} | <ion-icon name="location-outline"></ion-icon> {{ p.luogo ||
-              'Da definire' }}
-            </small>
-          </p>
-        </ion-label>
-
-        <ion-buttons slot="end">
-          @if (p.pagelleInserite && !p.classificaAggiornata) {
-          <ion-button
-            fill="clear"
-            (click)="aggiornaClassifica(p); $event.stopPropagation()"
-          >
-            <ion-icon
-              name="checkmark-done"
-              color="warning"
-              style="font-size: 1.6em"
-            ></ion-icon>
-          </ion-button>
-          } @if (p.classificaAggiornata) {
-          <ion-icon
-            name="checkmark-done"
-            color="success"
-            style="font-size: 1.6em"
-          ></ion-icon>
-          }
-        </ion-buttons>
-      </ion-item>
-
-      <ion-item-options side="end">
-        @if (p.pagelleInserite && !p.classificaAggiornata) {
-        <ion-item-option color="warning" (click)="eliminaPagelle(p.id)"
-          >Reset Voti</ion-item-option
-        >
+        @if (m.matchConcluso && m.pagelleInserite) {
+        <div class="status-badge badge-success">
+          <ion-icon name="checkmark-done-circle"></ion-icon> Archiviata
+        </div>
+        } @else if (m.matchConcluso && !m.pagelleInserite) {
+        <div class="status-badge badge-warning">
+          <ion-icon name="star-half"></ion-icon> Da Votare
+        </div>
+        } @else if (m.isTimerRunning || m.scoreA > 0 || m.scoreB > 0) {
+        <div class="status-badge badge-danger">
+          <ion-icon name="play-circle"></ion-icon> LIVE
+        </div>
+        } @else {
+        <div class="status-badge badge-medium">
+          <ion-icon name="time-outline"></ion-icon> In Programma
+        </div>
         }
-        <ion-item-option color="danger" (click)="eliminaPartita(p.id)">
-          <ion-icon name="trash" slot="icon-only"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
+      </div>
+
+      <div class="match-body">
+        @if (m.matchConcluso || m.isTimerRunning || m.scoreA > 0 || m.scoreB >
+        0) {
+        <div class="scoreboard">
+          <div class="score-box">{{ m.scoreA || 0 }}</div>
+          <div class="score-divider">-</div>
+          <div class="score-box">{{ m.scoreB || 0 }}</div>
+        </div>
+        } @else {
+        <div class="versus-text">
+          <ion-icon
+            name="football-outline"
+            style="margin-right: 5px"
+          ></ion-icon>
+          In attesa del fischio d'inizio
+        </div>
+        }
+      </div>
+
+      <div class="match-footer">
+        <div class="info-pill">
+          <ion-icon name="location-outline"></ion-icon>
+          <span>{{ m.luogo || 'Da definire' }}</span>
+        </div>
+        <div class="info-pill">
+          <ion-icon name="people-outline"></ion-icon>
+          <span>{{ m.convocati?.length || 0 }} Giocatori</span>
+        </div>
+      </div>
+    </div>
 
     } @empty {
-    <div
-      class="ion-padding ion-text-center"
-      style="margin-top: 60px; color: gray"
-    >
+
+    <div class="ion-text-center ion-padding" style="margin-top: 50px">
       <ion-icon
-        name="football"
-        style="font-size: 80px; opacity: 0.2"
+        name="calendar-clear-outline"
+        style="font-size: 4em; color: var(--ion-color-medium)"
       ></ion-icon>
-      <p>Ancora nessun match registrato.<br />Organizza la prima sfida!</p>
+      <p style="color: var(--ion-color-medium)">
+        Nessuna partita in calendario.
+      </p>
     </div>
+
     }
-  </ion-list>
+  </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="apriModale()" color="success">
+    <ion-fab-button color="success" (click)="apriModalePartita()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

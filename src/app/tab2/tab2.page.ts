@@ -1,26 +1,18 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
   IonTitle,
   IonContent,
-  IonList,
-  IonItem,
   IonIcon,
   IonFab,
   IonFabButton,
-  IonButtons,
-  IonButton,
-  IonBadge,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
   ModalController,
   AlertController,
   LoadingController,
-  IonLabel,
 } from '@ionic/angular/standalone';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Firestore,
   collection,
@@ -32,43 +24,53 @@ import {
   orderBy,
   deleteDoc,
 } from '@angular/fire/firestore';
-import { Observable, firstValueFrom } from 'rxjs';
+import { Observable } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   add,
-  football,
-  checkmarkDone,
-  trash,
+  calendarOutline,
+  checkmarkDoneCircle,
+  starHalf,
+  playCircle,
   timeOutline,
   locationOutline,
-  people,
-  play,
+  peopleOutline,
+  footballOutline,
+  calendarClearOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
+
+// Interfaccia definita per risolvere l'errore NGTSC(4111)
+interface Partita {
+  id: string;
+  dataPartita: string;
+  luogo: string;
+  scoreA: number;
+  scoreB: number;
+  matchConcluso: boolean;
+  pagelleInserite: boolean;
+  isTimerRunning: boolean;
+  convocati: any[];
+  teamA: any[];
+  teamB: any[];
+  classificaAggiornata?: boolean;
+}
 
 @Component({
   selector: 'app-tab2',
   templateUrl: 'tab2.page.html',
+  styleUrls: ['tab2.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    AsyncPipe,
     IonHeader,
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
     IonIcon,
     IonFab,
     IonFabButton,
-    IonButtons,
-    IonButton,
-    IonBadge,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
-    IonLabel,
   ],
 })
 export class Tab2Page {
@@ -77,32 +79,46 @@ export class Tab2Page {
   private alertController = inject(AlertController);
   private loadingController = inject(LoadingController);
 
-  partite$: Observable<any[]>;
-  giocatori$: Observable<any[]>;
+  // --- ANALISI FIX TS(2769) ---
+  // Usiamo <T, U> dove T è il tipo del flusso e U è il tipo dell'initialValue.
+  // Forzando entrambi a Partita[], eliminiamo l'incompatibilità con 'undefined'.
+
+  partite = toSignal<Partita[], Partita[]>(
+    collectionData(
+      query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
+      { idField: 'id' },
+    ) as Observable<Partita[]>,
+    { initialValue: [] },
+  );
+
+  giocatori = toSignal<any[], any[]>(
+    collectionData(
+      query(collection(this.firestore, 'giocatori'), orderBy('nome')),
+      { idField: 'id' },
+    ) as Observable<any[]>,
+    { initialValue: [] },
+  );
 
   constructor() {
     addIcons({
       add,
-      football,
-      checkmarkDone,
-      trash,
+      calendarOutline,
+      checkmarkDoneCircle,
+      starHalf,
+      playCircle,
       timeOutline,
       locationOutline,
-      people,
-      play,
+      peopleOutline,
+      footballOutline,
+      calendarClearOutline,
     });
-    this.partite$ = collectionData(
-      query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
-      { idField: 'id' },
-    );
-    this.giocatori$ = collectionData(
-      query(collection(this.firestore, 'giocatori'), orderBy('nome')),
-      { idField: 'id' },
-    );
   }
 
-  async apriModale(partita?: any) {
-    const tutti = await firstValueFrom(this.giocatori$);
+  async apriModalePartita(partita?: Partita) {
+    // --- ANALISI FIX ts(18048) ---
+    // Anche se initialValue è [], TS teme che il signal possa restituire undefined.
+    // L'operatore ?? [] garantisce un array pronto per il .map()
+    const tutti = this.giocatori() ?? [];
 
     const data = partita
       ? JSON.parse(JSON.stringify(partita))
@@ -130,8 +146,9 @@ export class Tab2Page {
     return await modal.present();
   }
 
-  async aggiornaClassifica(partita: any) {
+  async aggiornaClassifica(partita: Partita) {
     if (partita.classificaAggiornata || !partita.pagelleInserite) return;
+
     const alert = await this.alertController.create({
       header: 'Confermi invio dati?',
       buttons: [
@@ -143,6 +160,7 @@ export class Tab2Page {
               message: 'Aggiornamento...',
             });
             await loading.present();
+
             const updatePlayer = async (
               team: any[],
               vinto: boolean,
@@ -153,6 +171,7 @@ export class Tab2Page {
                 const snap = await getDoc(ref);
                 const d = snap.data();
                 if (!d) continue;
+
                 const nGiocate = (d['partiteGiocate'] || 0) + 1;
                 const nuoviPunti =
                   (d['punti'] || 0) + (vinto ? 3 : pareggio ? 1 : 0);
@@ -161,6 +180,7 @@ export class Tab2Page {
                 const nuovaMedia =
                   (mediaPrecedente * (nGiocate - 1) + Number(p.voto)) /
                   nGiocate;
+
                 await updateDoc(ref, {
                   punti: nuoviPunti,
                   gol: nuoviGol,
@@ -169,6 +189,7 @@ export class Tab2Page {
                 });
               }
             };
+
             await updatePlayer(
               partita.teamA,
               partita.scoreA > partita.scoreB,
@@ -179,9 +200,11 @@ export class Tab2Page {
               partita.scoreB > partita.scoreA,
               partita.scoreA === partita.scoreB,
             );
+
             await updateDoc(doc(this.firestore, `partite/${partita.id}`), {
               classificaAggiornata: true,
             });
+
             loading.dismiss();
           },
         },
