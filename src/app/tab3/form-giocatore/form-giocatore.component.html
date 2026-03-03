@@ -1,13 +1,13 @@
 <ion-header>
   <ion-toolbar color="dark">
-    <ion-title>{{ giocatoreData ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
+    <ion-title>{{ giocatore ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
     <ion-buttons slot="end">
-      <ion-button color="light" (click)="chiudiModale()">Annulla</ion-button>
+      <ion-button color="light" (click)="close.emit()">Annulla</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content class="ion-padding deep-black-content">
   <div class="photo-container">
     <ion-avatar class="editable-avatar" (click)="f.click()">
       <img
@@ -16,6 +16,7 @@
           'https://ionicframework.com/docs/img/demos/avatar.svg'
         "
       />
+      <div class="overlay"><ion-icon name="camera"></ion-icon></div>
     </ion-avatar>
     <input
       #f
@@ -24,75 +25,79 @@
       hidden
       accept="image/*"
     />
-    <p class="photo-hint"><small>Tocca per cambiare foto</small></p>
+    <p class="photo-hint">Tocca l'avatar per cambiare foto</p>
   </div>
 
-  <ion-item lines="full">
-    <ion-input
-      label="Nome *"
-      labelPlacement="stacked"
-      placeholder="Es. Francesco Totti"
-      [value]="nome()"
-      (ionInput)="nome.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  <ion-item lines="full">
-    <ion-input
-      label="Soprannome"
-      labelPlacement="stacked"
-      placeholder="Es. Er Pupone"
-      [value]="soprannome()"
-      (ionInput)="soprannome.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  <ion-item lines="full">
-    <ion-input
-      type="number"
-      label="Anno di Nascita"
-      labelPlacement="stacked"
-      placeholder="Es. 1990"
-      [value]="annoNascita()"
-      (ionInput)="annoNascita.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  <div class="row-inputs">
-    <ion-item lines="full" class="flex-input">
+  <div class="form-list">
+    <ion-item lines="none" class="custom-input-item">
       <ion-input
-        type="number"
-        label="Altezza (cm)"
+        label="Nome *"
         labelPlacement="stacked"
-        placeholder="180"
-        [value]="altezza()"
-        (ionInput)="altezza.set($event.detail.value || '')"
+        placeholder="Es. Francesco Totti"
+        [value]="nome()"
+        (ionInput)="nome.set($event.detail.value || '')"
       ></ion-input>
     </ion-item>
-    <ion-item lines="full" class="flex-input">
+
+    <ion-item lines="none" class="custom-input-item">
       <ion-input
-        type="number"
-        label="Peso (kg)"
+        label="Soprannome"
         labelPlacement="stacked"
-        placeholder="75"
-        [value]="peso()"
-        (ionInput)="peso.set($event.detail.value || '')"
+        placeholder="Es. Er Pupone"
+        [value]="soprannome()"
+        (ionInput)="soprannome.set($event.detail.value || '')"
       ></ion-input>
     </ion-item>
+
+    <div class="grid-row">
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          type="number"
+          label="Anno Nascita"
+          labelPlacement="stacked"
+          placeholder="1990"
+          [value]="annoNascita()"
+          (ionInput)="annoNascita.set($event.detail.value || '')"
+        ></ion-input>
+      </ion-item>
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-select
+          label="Piede"
+          labelPlacement="stacked"
+          [value]="piedePreferito()"
+          (ionChange)="piedePreferito.set($event.detail.value)"
+          interface="popover"
+        >
+          <ion-select-option value="Destro">Destro</ion-select-option>
+          <ion-select-option value="Sinistro">Sinistro</ion-select-option>
+          <ion-select-option value="Entrambi">Entrambi</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+
+    <div class="grid-row">
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          type="number"
+          label="Altezza (cm)"
+          labelPlacement="stacked"
+          placeholder="180"
+          [value]="altezza()"
+          (ionInput)="altezza.set($event.detail.value || '')"
+        ></ion-input>
+      </ion-item>
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          type="number"
+          label="Peso (kg)"
+          labelPlacement="stacked"
+          placeholder="75"
+          [value]="peso()"
+          (ionInput)="peso.set($event.detail.value || '')"
+        ></ion-input>
+      </ion-item>
+    </div>
   </div>
-
-  <ion-item lines="full">
-    <ion-select
-      label="Piede Preferito"
-      labelPlacement="stacked"
-      [value]="piedePreferito()"
-      (ionChange)="piedePreferito.set($event.detail.value)"
-    >
-      <ion-select-option value="Destro">Destro</ion-select-option>
-      <ion-select-option value="Sinistro">Sinistro</ion-select-option>
-      <ion-select-option value="Entrambi">Ambidestro</ion-select-option>
-    </ion-select>
-  </ion-item>
 
   <ion-button
     expand="block"
@@ -101,6 +106,6 @@
     (click)="salvaGiocatore()"
     [disabled]="!nome().trim()"
   >
-    {{ giocatoreData ? "Aggiorna Dati" : "Salva Campione" }}
+    {{ giocatore ? "Aggiorna Dati" : "Salva Campione" }}
   </ion-button>
 </ion-content>

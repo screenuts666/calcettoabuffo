@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   inject,
   OnInit,
   ChangeDetectionStrategy,
@@ -19,6 +21,7 @@ import {
   IonSelect,
   IonSelectOption,
   IonAvatar,
+  IonIcon,
   LoadingController,
 } from '@ionic/angular/standalone';
 import {
@@ -34,6 +37,8 @@ import {
   uploadBytes,
   getDownloadURL,
 } from '@angular/fire/storage';
+import { camera } from 'ionicons/icons';
+import { addIcons } from 'ionicons';
 
 @Component({
   selector: 'app-form-giocatore',
@@ -41,6 +46,10 @@ import {
   styleUrls: ['./form-giocatore.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  // 🔥 IL FIX È QUI: Diciamo a Ionic di trattare questo componente come una pagina intera
+  host: {
+    class: 'ion-page',
+  },
   imports: [
     CommonModule,
     IonHeader,
@@ -54,6 +63,7 @@ import {
     IonSelect,
     IonSelectOption,
     IonAvatar,
+    IonIcon,
   ],
 })
 export class FormGiocatoreComponent implements OnInit {
@@ -61,8 +71,8 @@ export class FormGiocatoreComponent implements OnInit {
   private storage = inject(Storage);
   private loadingController = inject(LoadingController);
 
-  @Input() giocatoreData: any;
-  @Input() chiudiModale!: () => void;
+  @Input() giocatore: any;
+  @Output() close = new EventEmitter<void>();
 
   nome = signal('');
   soprannome = signal('');
@@ -74,15 +84,19 @@ export class FormGiocatoreComponent implements OnInit {
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
 
+  constructor() {
+    addIcons({ camera });
+  }
+
   ngOnInit() {
-    if (this.giocatoreData) {
-      this.nome.set(this.giocatoreData.nome || '');
-      this.soprannome.set(this.giocatoreData.soprannome || '');
-      this.annoNascita.set(this.giocatoreData.annoNascita || '');
-      this.piedePreferito.set(this.giocatoreData.piedePreferito || 'Destro');
-      this.altezza.set(this.giocatoreData.altezza || '');
-      this.peso.set(this.giocatoreData.peso || '');
-      this.anteprimaFoto.set(this.giocatoreData.fotoUrl || null);
+    if (this.giocatore) {
+      this.nome.set(this.giocatore.nome || '');
+      this.soprannome.set(this.giocatore.soprannome || '');
+      this.annoNascita.set(this.giocatore.annoNascita || '');
+      this.piedePreferito.set(this.giocatore.piedePreferito || 'Destro');
+      this.altezza.set(this.giocatore.altezza || '');
+      this.peso.set(this.giocatore.peso || '');
+      this.anteprimaFoto.set(this.giocatore.fotoUrl || null);
     }
   }
 
@@ -101,6 +115,7 @@ export class FormGiocatoreComponent implements OnInit {
 
     const loading = await this.loadingController.create({
       message: 'Salvataggio...',
+      mode: 'ios',
     });
     await loading.present();
 
@@ -126,9 +141,9 @@ export class FormGiocatoreComponent implements OnInit {
         fotoUrl: fotoUrl,
       };
 
-      if (this.giocatoreData?.id) {
+      if (this.giocatore?.id) {
         await updateDoc(
-          doc(this.firestore, `giocatori/${this.giocatoreData.id}`),
+          doc(this.firestore, `giocatori/${this.giocatore.id}`),
           payload,
         );
       } else {
@@ -141,7 +156,7 @@ export class FormGiocatoreComponent implements OnInit {
         });
       }
 
-      this.chiudiModale();
+      this.close.emit();
     } catch (e) {
       console.error(e);
     } finally {
