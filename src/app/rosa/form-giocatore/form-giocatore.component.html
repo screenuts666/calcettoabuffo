@@ -16,7 +16,6 @@
           'https://ionicframework.com/docs/img/demos/avatar.svg'
         "
       />
-      <div class="overlay"><ion-icon name="camera"></ion-icon></div>
     </ion-avatar>
     <input
       #f
@@ -62,15 +61,15 @@
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
         <ion-select
-          label="Piede"
-          labelPlacement="stacked"
-          [value]="piedePreferito()"
-          (ionChange)="piedePreferito.set($event.detail.value)"
-          interface="popover"
-        >
+            label="Piede"
+            labelPlacement="stacked"
+            [value]="piedePreferito()"
+            (ionChange)="piedePreferito.set($event.detail.value)"
+            interface="popover"
+          >
           <ion-select-option value="Destro">Destro</ion-select-option>
           <ion-select-option value="Sinistro">Sinistro</ion-select-option>
-          <ion-select-option value="Entrambi">Entrambi</ion-select-option>
+          <ion-select-option value="Ambidestro">Ambidestro</ion-select-option>
         </ion-select>
       </ion-item>
     </div>

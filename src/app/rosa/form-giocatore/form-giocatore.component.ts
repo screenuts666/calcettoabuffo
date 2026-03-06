@@ -7,6 +7,8 @@ import {
   OnInit,
   ChangeDetectionStrategy,
   signal,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -21,8 +23,8 @@ import {
   IonSelect,
   IonSelectOption,
   IonAvatar,
-  IonIcon,
   LoadingController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import {
   Firestore,
@@ -37,8 +39,11 @@ import {
   uploadBytes,
   getDownloadURL,
 } from '@angular/fire/storage';
-import { camera } from 'ionicons/icons';
+import { Giocatore } from '../../models/giocatore.model';
 import { addIcons } from 'ionicons';
+import { createOutline } from 'ionicons/icons';
+
+const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
 
 @Component({
   selector: 'app-form-giocatore',
@@ -46,7 +51,6 @@ import { addIcons } from 'ionicons';
   styleUrls: ['./form-giocatore.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // 🔥 IL FIX È QUI: Diciamo a Ionic di trattare questo componente come una pagina intera
   host: {
     class: 'ion-page',
   },
@@ -63,29 +67,31 @@ import { addIcons } from 'ionicons';
     IonSelect,
     IonSelectOption,
     IonAvatar,
-    IonIcon,
   ],
 })
 export class FormGiocatoreComponent implements OnInit {
   private firestore = inject(Firestore);
   private storage = inject(Storage);
   private loadingController = inject(LoadingController);
+  private toastController = inject(ToastController);
 
-  @Input() giocatore: any;
+  @Input() giocatore: Giocatore | null = null;
   @Output() close = new EventEmitter<void>();
 
   nome = signal('');
   soprannome = signal('');
   annoNascita = signal('');
-  piedePreferito = signal('Destro');
+  piedePreferito = signal<'Destro' | 'Sinistro' | 'Ambidestro'>('Destro');
   altezza = signal('');
   peso = signal('');
 
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
 
+  @ViewChild('f') fileInput!: ElementRef<HTMLInputElement>;
+
   constructor() {
-    addIcons({ camera });
+    addIcons({ createOutline });
   }
 
   ngOnInit() {
@@ -100,13 +106,13 @@ export class FormGiocatoreComponent implements OnInit {
     }
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement)?.files?.[0];
     if (file) {
       this.fileSelezionato = file;
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.anteprimaFoto.set(e.target.result);
-      reader.readAsDataURL(file);
+      this.readFileAsDataURL(file)
+        .then((d) => this.anteprimaFoto.set(d))
+        .catch(() => {});
     }
   }
 
@@ -120,9 +126,7 @@ export class FormGiocatoreComponent implements OnInit {
     await loading.present();
 
     try {
-      let fotoUrl =
-        this.anteprimaFoto() ||
-        'https://ionicframework.com/docs/img/demos/avatar.svg';
+      let fotoUrl = this.anteprimaFoto() || DEFAULT_AVATAR;
 
       if (this.fileSelezionato) {
         const path = `avatars/${Date.now()}_${this.fileSelezionato.name}`;
@@ -131,7 +135,10 @@ export class FormGiocatoreComponent implements OnInit {
         fotoUrl = await getDownloadURL(storageRef);
       }
 
-      const payload = {
+      const payload: Omit<
+        Giocatore,
+        'id' | 'gol' | 'punti' | 'mediaVoto' | 'partiteGiocate'
+      > = {
         nome: this.nome(),
         soprannome: this.soprannome(),
         annoNascita: this.annoNascita(),
@@ -158,9 +165,25 @@ export class FormGiocatoreComponent implements OnInit {
 
       this.close.emit();
     } catch (e) {
-      console.error(e);
+      console.error('Errore nel salvataggio del giocatore:', e);
+      const toast = await this.toastController.create({
+        message: 'Errore durante il salvataggio. Riprova.',
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      toast.present();
     } finally {
       loading.dismiss();
     }
+  }
+
+  private readFileAsDataURL(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   }
 }

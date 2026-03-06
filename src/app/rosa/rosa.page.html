@@ -1,0 +1,81 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Rosa Giocatori</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="dark">
+  <div class="giocatori-container">
+    <div class="search-wrapper ion-padding">
+      <ion-searchbar
+        placeholder="Cerca per nome, piede, anno..."
+        [value]="filtro()"
+        (ionInput)="filtro.set($event.detail.value || '')"
+        mode="ios"
+        class="custom-searchbar"
+      >
+      </ion-searchbar>
+    </div>
+
+    @if (giocatoriFiltrati().length === 0) {
+      <div class="ion-padding ion-text-center">
+        <p>Nessun giocatore trovato. Prova a rimuovere i filtri o aggiungi nuovi giocatori.</p>
+      </div>
+    }
+
+    @if (giocatoriFiltrati().length > 0) {
+      <ion-list mode="ios" class="giocatori-list">
+        @for (g of giocatoriFiltrati(); track g.id) {
+        <ion-item-sliding #slidingItem>
+          <ion-item lines="full" class="player-item" (click)="apriModale(g)">
+            <ion-avatar slot="start">
+              <img [src]="g.fotoUrl || DEFAULT_AVATAR" />
+            </ion-avatar>
+            <ion-label>
+              <div class="name-row">
+                <h3>{{ g.nome }}</h3>
+                <span class="nickname"
+                  >{{ g.soprannome ? '"' + g.soprannome + '"' : '' }}</span
+                >
+              </div>
+              <div class="player-stats">
+                <span>🎂 {{ g.annoNascita || 'N.D.' }}</span>
+                <span>| 👟 {{ g.piedePreferito || 'N.D.' }}</span>
+              </div>
+              <div class="player-biometry">
+                <span>📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
+                <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
+              </div>
+            </ion-label>
+          </ion-item>
+
+          <ion-item-options side="end">
+            <ion-item-option
+              color="danger"
+              (click)="eliminaGiocatore(g.id, slidingItem)"
+            >
+              <ion-icon name="trash" slot="icon-only"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+        }
+      </ion-list>
+    }
+  </div>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="success" (click)="apriModale()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="chiudiModale()">
+    <ng-template>
+      <app-form-giocatore
+        [giocatore]="giocatoreInModifica()"
+        (close)="chiudiModale()"
+      >
+      </app-form-giocatore>
+    </ng-template>
+  </ion-modal>
+</ion-content>

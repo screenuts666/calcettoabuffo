@@ -46,11 +46,12 @@ import {
   closeCircle,
 } from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
+import { Giocatore } from '../models/giocatore.model';
 
 @Component({
-  selector: 'app-tab3',
-  templateUrl: 'tab3.page.html',
-  styleUrls: ['tab3.page.scss'],
+  selector: 'app-rosa',
+  templateUrl: 'rosa.page.html',
+  styleUrls: ['rosa.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -74,20 +75,22 @@ import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.componen
     FormGiocatoreComponent,
   ],
 })
-export class Tab3Page {
+export class RosaPage {
   private firestore = inject(Firestore);
   private alertController = inject(AlertController);
 
+  readonly DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
+
   filtro = signal('');
   isModalOpen = signal(false);
-  giocatoreInModifica = signal<any>(null);
+  giocatoreInModifica = signal<Giocatore | null>(null);
 
   // Caricamento dati con Signal
-  tuttiIGiocatori = toSignal<any[], any[]>(
+  tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>(
     collectionData(
       query(collection(this.firestore, 'giocatori'), orderBy('nome')),
       { idField: 'id' },
-    ) as Observable<any[]>,
+    ) as Observable<Giocatore[]>,
     { initialValue: [] },
   );
 
@@ -115,7 +118,7 @@ export class Tab3Page {
   }
 
   // Sincronizzato con l'HTML (sia FAB che click su Item)
-  apriModale(g?: any) {
+  apriModale(g?: Giocatore) {
     this.giocatoreInModifica.set(g || null);
     this.isModalOpen.set(true);
   }

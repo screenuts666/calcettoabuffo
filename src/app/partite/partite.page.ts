@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -14,6 +14,8 @@ import {
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
+  IonListHeader,
+  IonLabel,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -27,6 +29,7 @@ import {
   deleteDoc,
 } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import {
   add,
@@ -42,13 +45,15 @@ import {
   trash,
   close,
   arrowBack,
+  radioOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
+import { deriveMatchState, MatchState } from '../models/match-state.enum';
 
 @Component({
-  selector: 'app-tab2',
-  templateUrl: 'tab2.page.html',
-  styleUrls: ['tab2.page.scss'],
+  selector: 'app-partite',
+  templateUrl: 'partite.page.html',
+  styleUrls: ['partite.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -61,13 +66,15 @@ import { MatchModalComponent } from './match-modal/match-modal.component';
     IonFab,
     IonFabButton,
     IonList,
+    IonListHeader,
+    IonLabel,
     IonItem,
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
   ],
 })
-export class Tab2Page {
+export class PartitePage {
   private firestore = inject(Firestore);
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
@@ -76,8 +83,45 @@ export class Tab2Page {
     collectionData(
       query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
       { idField: 'id' },
+    ).pipe(
+      map((list: any[]) => {
+        // priority: 0 = LIVE (matchConcluso === false)
+        // 1 = DA VOTARE (matchConcluso === true && pagelleInserite === false)
+        // 2 = ARCHIVIATA (pagelleInserite === true)
+        const priority = (m: any) =>
+          m.matchConcluso ? (m.pagelleInserite ? 2 : 1) : 0;
+
+        return [...list].sort((a: any, b: any) => {
+          const pa = priority(a);
+          const pb = priority(b);
+          if (pa !== pb) return pa - pb;
+
+          const at = a.dataOra?.seconds ?? 0;
+          const bt = b.dataOra?.seconds ?? 0;
+          return bt - at;
+        });
+      }),
     ) as Observable<any[]>,
     { initialValue: [] },
+  );
+
+  // derive lists per Gemini's UX suggestion
+  partiteLive = computed(() =>
+    [...this.partite()
+      .filter((m: any) => !m.matchConcluso)]
+      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
+  );
+
+  partiteDaVotare = computed(() =>
+    [...this.partite()
+      .filter((m: any) => m.matchConcluso && !m.pagelleInserite)]
+      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
+  );
+
+  partiteArchiviate = computed(() =>
+    [...this.partite()
+      .filter((m: any) => m.pagelleInserite)]
+      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
   );
 
   giocatori = toSignal<any[], any[]>(
@@ -103,7 +147,53 @@ export class Tab2Page {
       trash,
       close,
       arrowBack,
+      radioOutline,
     });
+  }
+
+  public MatchState = MatchState;
+
+  getMatchState(m: any): MatchState {
+    return deriveMatchState(m);
+  }
+
+  badgeClass(m: any) {
+    const st = this.getMatchState(m);
+    switch (st) {
+      case MatchState.ARCHIVED:
+        return 'badge-success';
+      case MatchState.TO_VOTE:
+        return 'badge-warning';
+      case MatchState.LIVE:
+      default:
+        return 'badge-danger blink';
+    }
+  }
+
+  badgeIcon(m: any) {
+    const st = this.getMatchState(m);
+    switch (st) {
+      case MatchState.ARCHIVED:
+        return 'checkmark-done-circle';
+      case MatchState.TO_VOTE:
+        return 'star-half';
+      case MatchState.LIVE:
+      default:
+        return 'radio-outline';
+    }
+  }
+
+  badgeLabel(m: any) {
+    const st = this.getMatchState(m);
+    switch (st) {
+      case MatchState.ARCHIVED:
+        return 'ARCHIVIATA';
+      case MatchState.TO_VOTE:
+        return 'DA VOTARE';
+      case MatchState.LIVE:
+      default:
+        return 'LIVE';
+    }
   }
 
   async apriModalePartita(partita?: any) {

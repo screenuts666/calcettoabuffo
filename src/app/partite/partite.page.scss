@@ -77,9 +77,15 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
   ion-icon {
     margin-right: 4px;
     font-size: 1.3em;
+  }
+
+  // Classe per l'animazione lampeggiante
+  &.blink {
+    animation: blinker 2s linear infinite;
   }
 }
 
@@ -93,6 +99,19 @@
   background: rgba(255, 196, 9, 0.15);
   color: var(--ion-color-warning);
   border: 1px solid rgba(255, 196, 9, 0.3);
+}
+
+.badge-danger {
+  background: rgba(235, 68, 90, 0.15); // Rosso trasparente
+  color: var(--ion-color-danger);
+  border: 1px solid rgba(235, 68, 90, 0.3);
+}
+
+// Animazione per il badge LIVE
+@keyframes blinker {
+  50% {
+    opacity: 0.4;
+  }
 }
 
 // ==========================================

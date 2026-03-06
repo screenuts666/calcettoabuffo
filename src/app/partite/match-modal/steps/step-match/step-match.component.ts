@@ -137,7 +137,6 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       ? this.state.scoreA.update((s) => s + 1)
       : this.state.scoreB.update((s) => s + 1);
 
-    // 🔥 FIX: Dobbiamo aggiornare sia 'tutti' che i singoli team per vederli nelle pagelle
     const updateGol = (lista: any[]) =>
       lista.map((g) =>
         g.id === giocatore.id
@@ -147,7 +146,6 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
     this.state.tutti.update(updateGol);
 
-    // Aggiorniamo il segnale del team specifico
     if (teamVantaggio === 'A' && !isAutogoal) {
       this.state.teamA.update(updateGol);
     } else if (teamVantaggio === 'B' && !isAutogoal) {

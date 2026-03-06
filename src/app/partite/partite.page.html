@@ -1,0 +1,172 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Partite</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="matches-container">
+  @if ((partiteLive().length + partiteDaVotare().length + partiteArchiviate().length) === 0) {
+    <div class="ion-padding ion-text-center">
+      <p>Al momento non ci sono partite. Crea una nuova partita con il + in basso a destra.</p>
+    </div>
+  }
+  @if (partiteLive().length > 0) {
+    <ion-list-header>
+      <ion-label>In Corso</ion-label>
+    </ion-list-header>
+    <ion-list mode="ios" style="background: transparent">
+      @for (m of partiteLive(); track m.id) {
+      <ion-item-sliding #slidingItem>
+        <ion-item (click)="apriModalePartita(m)" lines="none" class="match-card-item">
+          <div class="match-card">
+            <div class="match-header">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
+            </div>
+
+            <div class="match-body">
+              <div class="scoreboard">
+                <div class="score-box">{{ m.scoreA }}</div>
+                <div class="score-divider">-</div>
+                <div class="score-box">{{ m.scoreB }}</div>
+              </div>
+            </div>
+
+            <div class="match-footer">
+              <div class="info-pill">
+                <ion-icon name="location-outline"></ion-icon>
+                {{ m.luogo }}
+              </div>
+              <div class="info-pill">
+                <ion-icon name="people-outline"></ion-icon>
+                {{ m.convocati?.length || 0 }} Giocatori
+              </div>
+            </div>
+          </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+      }
+    </ion-list>
+  }
+
+  @if (partiteDaVotare().length > 0) {
+    <ion-list-header>
+      <ion-label>In Attesa di Pagelle</ion-label>
+    </ion-list-header>
+    <ion-list mode="ios" style="background: transparent">
+      @for (m of partiteDaVotare(); track m.id) {
+      <ion-item-sliding #slidingItem>
+        <ion-item (click)="apriModalePartita(m)" lines="none" class="match-card-item">
+          <div class="match-card">
+            <div class="match-header">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
+            </div>
+
+            <div class="match-body">
+              <div class="scoreboard">
+                <div class="score-box">{{ m.scoreA }}</div>
+                <div class="score-divider">-</div>
+                <div class="score-box">{{ m.scoreB }}</div>
+              </div>
+            </div>
+
+            <div class="match-footer">
+              <div class="info-pill">
+                <ion-icon name="location-outline"></ion-icon>
+                {{ m.luogo }}
+              </div>
+              <div class="info-pill">
+                <ion-icon name="people-outline"></ion-icon>
+                {{ m.convocati?.length || 0 }} Giocatori
+              </div>
+            </div>
+          </div>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
+            <ion-icon name="trash" slot="icon-only"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+      }
+    </ion-list>
+  }
+
+  <ion-list-header>
+    <ion-label>Storico Partite</ion-label>
+  </ion-list-header>
+  <ion-list mode="ios" style="background: transparent">
+    @for (m of partiteArchiviate(); track m.id) {
+    <ion-item-sliding #slidingItem>
+      <ion-item (click)="apriModalePartita(m)" lines="none" class="match-card-item">
+        <div class="match-card">
+          <div class="match-header">
+            <div class="match-date">
+              <ion-icon name="calendar-outline"></ion-icon>
+              {{ m.dataPartita | date:'dd/MM/yyyy' }}
+            </div>
+
+            <div class="status-badge" [ngClass]="badgeClass(m)">
+              <ion-icon [name]="badgeIcon(m)"></ion-icon>
+              {{ badgeLabel(m) }}
+            </div>
+          </div>
+
+          <div class="match-body">
+            <div class="scoreboard">
+              <div class="score-box">{{ m.scoreA }}</div>
+              <div class="score-divider">-</div>
+              <div class="score-box">{{ m.scoreB }}</div>
+            </div>
+          </div>
+
+          <div class="match-footer">
+            <div class="info-pill">
+              <ion-icon name="location-outline"></ion-icon>
+              {{ m.luogo }}
+            </div>
+            <div class="info-pill">
+              <ion-icon name="people-outline"></ion-icon>
+              {{ m.convocati?.length || 0 }} Giocatori
+            </div>
+          </div>
+        </div>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
+          <ion-icon name="trash" slot="icon-only"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+    }
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="success" (click)="apriModalePartita()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>

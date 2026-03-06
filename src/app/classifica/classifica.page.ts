@@ -22,11 +22,22 @@ import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
+import { Giocatore } from '../models/giocatore.model';
+
+// Definiamo un'interfaccia estesa per la classifica
+interface GiocatoreConPunti extends Giocatore {
+  puntiVal: number;
+  puntiDisplay: string;
+  golTotali: number;
+  mediaVotoVal: number;
+  mediaVotoDisplay: string;
+  partiteGiocate: number;
+}
 
 @Component({
-  selector: 'app-tab1',
-  templateUrl: 'tab1.page.html',
-  styleUrls: ['tab1.page.scss'],
+  selector: 'app-classifica',
+  templateUrl: 'classifica.page.html',
+  styleUrls: ['classifica.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -46,24 +57,24 @@ import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.co
     SchedaGiocatoreComponent,
   ],
 })
-export class Tab1Page {
+export class ClassificaPage {
   private firestore: Firestore = inject(Firestore);
 
-  classifica$: Observable<any[]>;
+  classifica$: Observable<GiocatoreConPunti[]>;
 
   isModalOpen = signal(false);
-  giocatoreSelezionato = signal<any>(null);
+  giocatoreSelezionato = signal<GiocatoreConPunti | null>(null);
 
   constructor() {
     const giocatori$ = collectionData(collection(this.firestore, 'giocatori'), {
       idField: 'id',
-    });
+    }) as Observable<Giocatore[]>;
     const partite$ = collectionData(collection(this.firestore, 'partite'), {
       idField: 'id',
-    });
+    }) as Observable<any[]>; // Manteniamo any qui per ora, non abbiamo un modello per Partita
 
     this.classifica$ = combineLatest([giocatori$, partite$]).pipe(
-      map(([giocatori, partite]) => {
+      map(([giocatori, partite]): GiocatoreConPunti[] => {
         const partiteValide = partite.filter(
           (p) => p['pagelleInserite'] === true,
         );
@@ -127,7 +138,7 @@ export class Tab1Page {
     );
   }
 
-  apriDettagliGiocatore(giocatore: any) {
+  apriDettagliGiocatore(giocatore: GiocatoreConPunti) {
     this.giocatoreSelezionato.set(giocatore);
     this.isModalOpen.set(true);
   }
