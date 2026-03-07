@@ -39,10 +39,10 @@ import {
   uploadBytes,
   getDownloadURL,
 } from '@angular/fire/storage';
-import { Giocatore } from '../../models/giocatore.model';
 import { addIcons } from 'ionicons';
 import { createOutline } from 'ionicons/icons';
-import { AuthService } from '../../services/auth.service';
+import { Giocatore } from 'src/app/models/giocatore.model';
+import { AuthService } from 'src/app/services/auth.service';
 
 const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
 

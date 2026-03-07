@@ -46,8 +46,8 @@ import {
   closeCircle,
 } from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
-import { Giocatore } from '../models/giocatore.model';
-import { AuthService } from '../services/auth.service';
+import { Giocatore } from 'src/app/models/giocatore.model';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-rosa',

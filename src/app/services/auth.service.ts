@@ -1,12 +1,17 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Auth, signInWithEmailAndPassword, signOut, authState } from '@angular/fire/auth';
+import {
+  Auth,
+  signInWithEmailAndPassword,
+  signOut,
+  authState,
+} from '@angular/fire/auth';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private auth = inject(Auth);
-  
+
   isAdmin = signal<boolean>(false);
 
   constructor() {
@@ -20,7 +25,7 @@ export class AuthService {
       await signInWithEmailAndPassword(this.auth, email, password);
       return true;
     } catch (error) {
-      console.error("Errore di login:", error);
+      console.error('Errore di login:', error);
       throw error;
     }
   }

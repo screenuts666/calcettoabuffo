@@ -1,4 +1,9 @@
-import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  ChangeDetectionStrategy,
+  computed,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -48,7 +53,7 @@ import {
   radioOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
-import { deriveMatchState, MatchState } from '../models/match-state.enum';
+import { deriveMatchState, MatchState } from 'src/app/models/match-state.enum';
 
 @Component({
   selector: 'app-partite',
@@ -105,23 +110,26 @@ export class PartitePage {
     { initialValue: [] },
   );
 
-  // derive lists per Gemini's UX suggestion
   partiteLive = computed(() =>
-    [...this.partite()
-      .filter((m: any) => !m.matchConcluso)]
-      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
+    [...this.partite().filter((m: any) => !m.matchConcluso)].sort(
+      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    ),
   );
 
   partiteDaVotare = computed(() =>
-    [...this.partite()
-      .filter((m: any) => m.matchConcluso && !m.pagelleInserite)]
-      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
+    [
+      ...this.partite().filter(
+        (m: any) => m.matchConcluso && !m.pagelleInserite,
+      ),
+    ].sort(
+      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    ),
   );
 
   partiteArchiviate = computed(() =>
-    [...this.partite()
-      .filter((m: any) => m.pagelleInserite)]
-      .sort((a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0)),
+    [...this.partite().filter((m: any) => m.pagelleInserite)].sort(
+      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    ),
   );
 
   giocatori = toSignal<any[], any[]>(
@@ -224,9 +232,6 @@ export class PartitePage {
     return await modal.present();
   }
 
-  /**
-   * Mostra l'alert di conferma prima di procedere con la pulizia del DB.
-   */
   async confermaEliminazione(match: any, slidingItem: IonItemSliding) {
     const alert = await this.alertController.create({
       header: 'Elimina Partita',

@@ -25,10 +25,10 @@ import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
-import { Giocatore } from '../models/giocatore.model';
-import { AuthService } from '../services/auth.service';
 import { addIcons } from 'ionicons';
 import { flame } from 'ionicons/icons';
+import { Giocatore } from 'src/app/models/giocatore.model';
+import { AuthService } from 'src/app/services/auth.service';
 
 // Definiamo un'interfaccia estesa per la classifica
 interface GiocatoreConPunti extends Giocatore {
