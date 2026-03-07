@@ -47,6 +47,7 @@ import {
 } from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
 import { Giocatore } from '../models/giocatore.model';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-rosa',
@@ -78,6 +79,7 @@ import { Giocatore } from '../models/giocatore.model';
 export class RosaPage {
   private firestore = inject(Firestore);
   private alertController = inject(AlertController);
+  private auth = inject(AuthService);
 
   readonly DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
 
@@ -85,7 +87,6 @@ export class RosaPage {
   isModalOpen = signal(false);
   giocatoreInModifica = signal<Giocatore | null>(null);
 
-  // Caricamento dati con Signal
   tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>(
     collectionData(
       query(collection(this.firestore, 'giocatori'), orderBy('nome')),
@@ -93,8 +94,6 @@ export class RosaPage {
     ) as Observable<Giocatore[]>,
     { initialValue: [] },
   );
-
-  // Ricerca reattiva
   giocatoriFiltrati = computed(() => {
     const f = this.filtro().toLowerCase().trim();
     const lista = this.tuttiIGiocatori();
@@ -117,7 +116,10 @@ export class RosaPage {
     addIcons({ add, trash, person, create, search, closeCircle });
   }
 
-  // Sincronizzato con l'HTML (sia FAB che click su Item)
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
   apriModale(g?: Giocatore) {
     this.giocatoreInModifica.set(g || null);
     this.isModalOpen.set(true);
@@ -127,7 +129,6 @@ export class RosaPage {
     this.isModalOpen.set(false);
   }
 
-  // Sincronizzato con ion-item-sliding dell'HTML
   async eliminaGiocatore(id: string, slidingItem: IonItemSliding) {
     const alert = await this.alertController.create({
       header: 'Elimina Giocatore?',

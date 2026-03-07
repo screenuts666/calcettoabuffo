@@ -6,7 +6,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 30px; /* 🔥 FIX: Stacca l'avatar dall'header per evitare che venga tagliato */
+  margin-top: 30px;
   margin-bottom: 30px;
 
   .editable-avatar {
@@ -39,7 +39,6 @@
   gap: 12px;
 }
 
-// 🖤 INPUT NERI STILE NUOVA PARTITA
 .custom-input-item {
   --background: #121212;
   --color: #fff;

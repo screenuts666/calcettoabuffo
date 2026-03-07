@@ -42,6 +42,7 @@ import {
 import { Giocatore } from '../../models/giocatore.model';
 import { addIcons } from 'ionicons';
 import { createOutline } from 'ionicons/icons';
+import { AuthService } from '../../services/auth.service';
 
 const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
 
@@ -74,6 +75,7 @@ export class FormGiocatoreComponent implements OnInit {
   private storage = inject(Storage);
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
+  private auth = inject(AuthService);
 
   @Input() giocatore: Giocatore | null = null;
   @Output() close = new EventEmitter<void>();
@@ -94,6 +96,10 @@ export class FormGiocatoreComponent implements OnInit {
     addIcons({ createOutline });
   }
 
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
   ngOnInit() {
     if (this.giocatore) {
       this.nome.set(this.giocatore.nome || '');
@@ -104,6 +110,14 @@ export class FormGiocatoreComponent implements OnInit {
       this.peso.set(this.giocatore.peso || '');
       this.anteprimaFoto.set(this.giocatore.fotoUrl || null);
     }
+  }
+
+  openFilePicker() {
+    if (!this.isAdmin) return;
+    const el = this.fileInput?.nativeElement;
+    if (!el) return;
+    el.value = '';
+    el.click();
   }
 
   onFileSelected(event: Event) {

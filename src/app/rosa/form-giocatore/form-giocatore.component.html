@@ -9,7 +9,7 @@
 
 <ion-content class="ion-padding deep-black-content">
   <div class="photo-container">
-    <ion-avatar class="editable-avatar" (click)="f.click()">
+    <ion-avatar class="editable-avatar" (click)="openFilePicker()">
       <img
         [src]="
           anteprimaFoto() ||
@@ -35,6 +35,7 @@
         placeholder="Es. Francesco Totti"
         [value]="nome()"
         (ionInput)="nome.set($event.detail.value || '')"
+        [readonly]="!isAdmin"
       ></ion-input>
     </ion-item>
 
@@ -45,6 +46,7 @@
         placeholder="Es. Er Pupone"
         [value]="soprannome()"
         (ionInput)="soprannome.set($event.detail.value || '')"
+        [readonly]="!isAdmin"
       ></ion-input>
     </ion-item>
 
@@ -57,16 +59,18 @@
           placeholder="1990"
           [value]="annoNascita()"
           (ionInput)="annoNascita.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
         ></ion-input>
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
         <ion-select
-            label="Piede"
-            labelPlacement="stacked"
-            [value]="piedePreferito()"
-            (ionChange)="piedePreferito.set($event.detail.value)"
-            interface="popover"
-          >
+          label="Piede"
+          labelPlacement="stacked"
+          [value]="piedePreferito()"
+          (ionChange)="piedePreferito.set($event.detail.value)"
+          interface="popover"
+          [disabled]="!isAdmin"
+        >
           <ion-select-option value="Destro">Destro</ion-select-option>
           <ion-select-option value="Sinistro">Sinistro</ion-select-option>
           <ion-select-option value="Ambidestro">Ambidestro</ion-select-option>
@@ -83,6 +87,7 @@
           placeholder="180"
           [value]="altezza()"
           (ionInput)="altezza.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
         ></ion-input>
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
@@ -93,12 +98,14 @@
           placeholder="75"
           [value]="peso()"
           (ionInput)="peso.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
         ></ion-input>
       </ion-item>
     </div>
   </div>
 
   <ion-button
+    *ngIf="isAdmin"
     expand="block"
     color="success"
     class="save-btn"
@@ -107,4 +114,10 @@
   >
     {{ giocatore ? "Aggiorna Dati" : "Salva Campione" }}
   </ion-button>
+
+  @if (isAdmin) {
+    <ion-button expand="block" color="medium" disabled>
+      Solo visualizzazione
+    </ion-button>
+  }
 </ion-content>

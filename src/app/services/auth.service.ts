@@ -11,7 +11,7 @@ export class AuthService {
 
   constructor() {
     authState(this.auth).subscribe((user) => {
-      this.isAdmin.set(!!user); // Se c'è un user, sei Admin (true), altrimenti false
+      this.isAdmin.set(!!user);
     });
   }
 

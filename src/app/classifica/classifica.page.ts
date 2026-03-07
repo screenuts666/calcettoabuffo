@@ -27,6 +27,8 @@ import { map } from 'rxjs/operators';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
 import { Giocatore } from '../models/giocatore.model';
 import { AuthService } from '../services/auth.service';
+import { addIcons } from 'ionicons';
+import { flame } from 'ionicons/icons';
 
 // Definiamo un'interfaccia estesa per la classifica
 interface GiocatoreConPunti extends Giocatore {
@@ -76,6 +78,7 @@ export class ClassificaPage {
   isAdmin = this.authService.isAdmin;
 
   constructor() {
+    addIcons({ flame });
     const giocatori$ = collectionData(collection(this.firestore, 'giocatori'), {
       idField: 'id',
     }) as Observable<Giocatore[]>;
@@ -158,7 +161,6 @@ export class ClassificaPage {
     this.isModalOpen.set(false);
   };
 
-  // --- EASTER EGG: TOCCO MAGICO ---
   private clickCount = 0;
 
   async secretTitleClick() {

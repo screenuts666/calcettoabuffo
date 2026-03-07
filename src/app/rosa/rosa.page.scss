@@ -11,22 +11,20 @@
   padding-bottom: 5px;
 }
 
-// 🔍 SEARCHBAR DEEP BLACK
 .custom-searchbar {
-  --background: #121212; // Nero profondo
+  --background: #121212; 
   --color: #fff;
   --placeholder-color: #666;
-  --icon-color: var(--ion-color-success); // Lente verde coordinata
+  --icon-color: var(--ion-color-success); 
   --border-radius: 12px;
   padding: 0;
-  border: 1px solid #333; // Bordo per definire l'area sul fondo nero
+  border: 1px solid #333;
 
   &::part(search-icon) {
     color: var(--ion-color-success);
   }
 }
 
-// STILE LISTA E AVATAR
 .player-item {
   --background: transparent;
   --padding-top: 10px;
@@ -35,7 +33,7 @@
   ion-avatar {
     width: 60px;
     height: 60px;
-    border: 2px solid var(--ion-color-success); // Cerchio verde stile "Nuova Partita"
+    border: 2px solid var(--ion-color-success);
   }
 
   .name-row {
