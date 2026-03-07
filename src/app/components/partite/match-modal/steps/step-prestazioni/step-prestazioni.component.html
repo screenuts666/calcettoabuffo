@@ -48,7 +48,7 @@
             <ion-textarea
               placeholder="Scrivi il commento tecnico..."
               [value]="g.note || ''"
-              [readonly]="state.pagelleInserite()"
+              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
               [autoGrow]="true"
               rows="1"
               (ionInput)="aggiornaNote(g, $event.detail.value || '')"
@@ -60,7 +60,7 @@
             <input
               type="number"
               [value]="g.voto"
-              [readonly]="state.pagelleInserite()"
+              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
               (ionInput)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
@@ -94,7 +94,7 @@
             <ion-textarea
               placeholder="Scrivi il commento tecnico..."
               [value]="g.note || ''"
-              [readonly]="state.pagelleInserite()"
+              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
               [autoGrow]="true"
               rows="1"
               (ionInput)="aggiornaNote(g, $event.detail.value || '')"
@@ -106,7 +106,7 @@
             <input
               type="number"
               [value]="g.voto"
-              [readonly]="state.pagelleInserite()"
+              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
               (ionInput)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
@@ -118,7 +118,7 @@
   </div>
 </div>
 
-@if (!state.pagelleInserite()) {
+@if (!state.pagelleInserite() && state.matchDataOriginale?.isAdmin) {
   <div class="fab-fixed-container">
     <button class="fab-round" (click)="concludiTutto()">
       <ion-icon name="checkmark-done"></ion-icon>

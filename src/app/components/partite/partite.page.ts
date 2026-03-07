@@ -54,6 +54,7 @@ import {
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
 import { deriveMatchState, MatchState } from 'src/app/models/match-state.enum';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-partite',
@@ -83,6 +84,7 @@ export class PartitePage {
   private firestore = inject(Firestore);
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
+  private auth = inject(AuthService);
 
   partite = toSignal<any[], any[]>(
     collectionData(
@@ -217,6 +219,8 @@ export class PartitePage {
           convocati: [],
         };
 
+    data.isAdmin = this.isAdmin;
+
     data.tuttiGiocatori = tutti.map((g: any) => ({
       ...g,
       selezionato: false,
@@ -253,5 +257,9 @@ export class PartitePage {
       ],
     });
     await alert.present();
+  }
+
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
   }
 }
