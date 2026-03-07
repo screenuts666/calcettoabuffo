@@ -16,6 +16,9 @@ import {
   IonNote,
   IonSpinner,
   IonModal,
+  ToastController,
+  AlertController,
+  IonIcon,
 } from '@ionic/angular/standalone';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
@@ -23,6 +26,7 @@ import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
 import { Giocatore } from '../models/giocatore.model';
+import { AuthService } from '../services/auth.service';
 
 // Definiamo un'interfaccia estesa per la classifica
 interface GiocatoreConPunti extends Giocatore {
@@ -55,15 +59,21 @@ interface GiocatoreConPunti extends Giocatore {
     IonSpinner,
     IonModal,
     SchedaGiocatoreComponent,
+    IonIcon,
   ],
 })
 export class ClassificaPage {
   private firestore: Firestore = inject(Firestore);
+  private authService = inject(AuthService);
+  private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
 
   classifica$: Observable<GiocatoreConPunti[]>;
 
   isModalOpen = signal(false);
   giocatoreSelezionato = signal<GiocatoreConPunti | null>(null);
+
+  isAdmin = this.authService.isAdmin;
 
   constructor() {
     const giocatori$ = collectionData(collection(this.firestore, 'giocatori'), {
@@ -92,10 +102,11 @@ export class ClassificaPage {
             if (inTeamA || inTeamB) {
               partiteGiocate++;
 
+              const scoreA = Number(p.scoreA);
+              const scoreB = Number(p.scoreB);
               const won =
-                (inTeamA && p.scoreA > p.scoreB) ||
-                (inTeamB && p.scoreB > p.scoreA);
-              const draw = p.scoreA === p.scoreB;
+                (inTeamA && scoreA > scoreB) || (inTeamB && scoreB > scoreA);
+              const draw = scoreA === scoreB;
               punti += won ? 3 : draw ? 2 : 1;
 
               const eventi = p.eventiGol || [];
@@ -146,4 +157,79 @@ export class ClassificaPage {
   chiudiModale = () => {
     this.isModalOpen.set(false);
   };
+
+  // --- EASTER EGG: TOCCO MAGICO ---
+  private clickCount = 0;
+
+  async secretTitleClick() {
+    this.clickCount++;
+    if (this.clickCount >= 5) {
+      this.clickCount = 0;
+      if (this.isAdmin()) {
+        await this.logoutAdmin();
+      } else {
+        await this.loginAdmin();
+      }
+    }
+  }
+
+  async loginAdmin() {
+    const alert = await this.alertController.create({
+      header: 'Admin Access',
+      inputs: [
+        { name: 'email', type: 'email', placeholder: 'Email' },
+        { name: 'password', type: 'password', placeholder: 'Password' },
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Entra',
+          handler: async (res) => {
+            try {
+              await this.authService.loginAdmin(res.email, res.password);
+              (
+                await this.toastController.create({
+                  message: 'Benvenuto Boss! 🕶️',
+                  duration: 2000,
+                  color: 'success',
+                })
+              ).present();
+            } catch (err) {
+              (
+                await this.toastController.create({
+                  message: 'Credenziali errate',
+                  duration: 2000,
+                  color: 'danger',
+                })
+              ).present();
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async logoutAdmin() {
+    const alert = await this.alertController.create({
+      header: 'Logout',
+      message: 'Vuoi tornare tra i comuni mortali?',
+      buttons: [
+        { text: 'Resta Admin', role: 'cancel' },
+        {
+          text: 'Esci',
+          handler: async () => {
+            await this.authService.logoutAdmin();
+            (
+              await this.toastController.create({
+                message: 'Logout effettuato',
+                duration: 2000,
+              })
+            ).present();
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
 }

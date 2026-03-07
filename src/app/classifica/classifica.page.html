@@ -1,6 +1,15 @@
 <ion-header>
   <ion-toolbar color="dark">
-    <ion-title>Classifica</ion-title>
+    <ion-title (click)="secretTitleClick()">
+      Classifica
+      @if (isAdmin()) {
+      <ion-icon
+        name="flame"
+        color="warning"
+        style="vertical-align: middle; margin-left: 5px"
+      ></ion-icon>
+      }
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 

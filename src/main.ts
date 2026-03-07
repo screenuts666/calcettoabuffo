@@ -18,6 +18,7 @@ import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 // 1. IMPORTA LO STORAGE QUI
 import { provideStorage, getStorage } from '@angular/fire/storage';
+import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from './environments/environment';
 
 import { provideZonelessChangeDetection } from '@angular/core';
@@ -33,6 +34,7 @@ bootstrapApplication(AppComponent, {
     provideFirestore(() => getFirestore()),
     // 2. AGGIUNGI IL PROVIDER DELLO STORAGE QUI
     provideStorage(() => getStorage()),
+    provideAuth(() => getAuth()),
     provideZonelessChangeDetection(),
   ],
 });
