@@ -7,7 +7,7 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { checkmarkDone, football } from 'ionicons/icons';
+import { checkmarkDone, football, stopwatchOutline } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 
 @Component({
@@ -22,7 +22,7 @@ export class StepPrestazioniComponent {
   private modalCtrl = inject(ModalController);
 
   constructor() {
-    addIcons({ checkmarkDone, football });
+    addIcons({ checkmarkDone, football, stopwatchOutline });
   }
 
   getRatingClass(voto: any): string {
