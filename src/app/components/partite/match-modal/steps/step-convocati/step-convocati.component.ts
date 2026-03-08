@@ -7,12 +7,10 @@ import {
   IonLabel,
   IonCheckbox,
   IonSearchbar,
-  IonFab,
-  IonFabButton,
   IonIcon,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { closeCircle, arrowForward, search } from 'ionicons/icons';
+import { closeCircle, search } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 
 @Component({
@@ -28,8 +26,6 @@ import { MatchStateService } from '../../match-state.service';
     IonLabel,
     IonCheckbox,
     IonSearchbar,
-    IonFab,
-    IonFabButton,
     IonIcon,
   ],
 })
@@ -37,7 +33,7 @@ export class StepConvocatiComponent {
   public state = inject(MatchStateService);
 
   constructor() {
-    addIcons({ closeCircle, arrowForward, search });
+    addIcons({ closeCircle, search });
   }
 
   toggleSelezione(giocatore: any) {

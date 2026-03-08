@@ -54,4 +54,12 @@
   @if (state.step() === "prestazioni") {
     <app-step-prestazioni></app-step-prestazioni>
   }
+
+  @if (state.step() === 'convocati' && state.totaleConvocati() >= 2) {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button color="success" (click)="state.step.set('dettagli')">
+        <ion-icon name="arrow-forward"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+  }
 </ion-content>

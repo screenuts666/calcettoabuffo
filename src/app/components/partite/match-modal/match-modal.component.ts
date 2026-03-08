@@ -8,10 +8,12 @@ import {
   IonButton,
   IonIcon,
   ModalController,
+  IonFab,
+  IonFabButton,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
-import { arrowBack, close } from 'ionicons/icons';
+import { arrowBack, close, arrowForward } from 'ionicons/icons';
 
 import { MatchStateService } from './match-state.service';
 import { StepConvocatiComponent } from './steps/step-convocati/step-convocati.component';
@@ -34,6 +36,8 @@ import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazi
     IonButtons,
     IonButton,
     IonIcon,
+    IonFab,
+    IonFabButton,
     StepConvocatiComponent,
     StepDettagliComponent,
     StepSquadreComponent,
@@ -49,7 +53,7 @@ export class MatchModalComponent implements OnInit, OnDestroy {
   @Input() matchData: any;
 
   constructor() {
-    addIcons({ arrowBack, close });
+    addIcons({ arrowBack, close, arrowForward });
   }
 
   ngOnInit() {

@@ -55,11 +55,3 @@
     }
   </ion-list>
 </div>
-
-@if (state.totaleConvocati() >= 2) {
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="success" (click)="state.step.set('dettagli')">
-      <ion-icon name="arrow-forward"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-}
