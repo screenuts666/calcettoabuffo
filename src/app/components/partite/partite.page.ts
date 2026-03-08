@@ -53,7 +53,6 @@ import {
   radioOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
-import { deriveMatchState, MatchState } from 'src/app/models/match-state.enum';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -112,8 +111,20 @@ export class PartitePage {
     { initialValue: [] },
   );
 
-  partiteLive = computed(() =>
-    [...this.partite().filter((m: any) => !m.matchConcluso)].sort(
+  partiteInCorso = computed(() =>
+    [
+      ...this.partite().filter((m: any) => m.status === 'in_corso'),
+    ].sort(
+      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    ),
+  );
+
+  partitePronte = computed(() =>
+    [
+      ...this.partite().filter(
+        (m: any) => m.status === 'pronta' || !m.status,
+      ),
+    ].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
     ),
   );
@@ -121,7 +132,7 @@ export class PartitePage {
   partiteDaVotare = computed(() =>
     [
       ...this.partite().filter(
-        (m: any) => m.matchConcluso && !m.pagelleInserite,
+        (m: any) => m.status === 'conclusa' && !m.pagelleInserite,
       ),
     ].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -129,7 +140,11 @@ export class PartitePage {
   );
 
   partiteArchiviate = computed(() =>
-    [...this.partite().filter((m: any) => m.pagelleInserite)].sort(
+    [
+      ...this.partite().filter(
+        (m: any) => m.status === 'conclusa' && m.pagelleInserite,
+      ),
+    ].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
     ),
   );
@@ -161,48 +176,39 @@ export class PartitePage {
     });
   }
 
-  public MatchState = MatchState;
-
-  getMatchState(m: any): MatchState {
-    return deriveMatchState(m);
-  }
-
-  badgeClass(m: any) {
-    const st = this.getMatchState(m);
-    switch (st) {
-      case MatchState.ARCHIVED:
-        return 'badge-success';
-      case MatchState.TO_VOTE:
-        return 'badge-warning';
-      case MatchState.LIVE:
-      default:
+  badgeClass(m: any): string {
+    switch (m.status) {
+      case 'in_corso':
         return 'badge-danger blink';
+      case 'conclusa':
+        return m.pagelleInserite ? 'badge-success' : 'badge-warning';
+      case 'pronta':
+      default:
+        return 'badge-primary';
     }
   }
 
-  badgeIcon(m: any) {
-    const st = this.getMatchState(m);
-    switch (st) {
-      case MatchState.ARCHIVED:
-        return 'checkmark-done-circle';
-      case MatchState.TO_VOTE:
-        return 'star-half';
-      case MatchState.LIVE:
-      default:
+  badgeIcon(m: any): string {
+    switch (m.status) {
+      case 'in_corso':
         return 'radio-outline';
+      case 'conclusa':
+        return m.pagelleInserite ? 'checkmark-done-circle' : 'star-half';
+      case 'pronta':
+      default:
+        return 'play-circle';
     }
   }
 
-  badgeLabel(m: any) {
-    const st = this.getMatchState(m);
-    switch (st) {
-      case MatchState.ARCHIVED:
-        return 'ARCHIVIATA';
-      case MatchState.TO_VOTE:
-        return 'DA VOTARE';
-      case MatchState.LIVE:
-      default:
+  badgeLabel(m: any): string {
+    switch (m.status) {
+      case 'in_corso':
         return 'LIVE';
+      case 'conclusa':
+        return m.pagelleInserite ? 'ARCHIVIATA' : 'DA VOTARE';
+      case 'pronta':
+      default:
+        return "Fischio d'inizio";
     }
   }
 
@@ -217,6 +223,7 @@ export class PartitePage {
           teamA: [],
           teamB: [],
           convocati: [],
+          status: 'pronta',
         };
 
     data.isAdmin = this.isAdmin;
@@ -224,7 +231,7 @@ export class PartitePage {
     data.tuttiGiocatori = tutti.map((g: any) => ({
       ...g,
       selezionato: false,
-      voto: 6,
+      voto: null,
       gol: 0,
       note: '',
     }));

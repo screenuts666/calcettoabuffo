@@ -41,6 +41,7 @@ export class StepSquadreComponent {
   }
 
   confermaSquadre() {
+    this.state.status.set('pronta');
     this.state.salvaInDatabase(false);
     this.state.step.set('match');
   }

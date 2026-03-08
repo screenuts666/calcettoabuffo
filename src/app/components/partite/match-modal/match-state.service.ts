@@ -9,6 +9,7 @@ import {
   docData,
 } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
+import { TMatchStatus } from '../../../models/match-status.type';
 
 @Injectable()
 export class MatchStateService {
@@ -21,6 +22,7 @@ export class MatchStateService {
   step = signal<'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'>(
     'convocati',
   );
+  status = signal<TMatchStatus>('da_definire');
   filtro = signal<string>('');
   luogo = signal<string>('');
   dataPartita = signal<string>('');
@@ -94,6 +96,7 @@ export class MatchStateService {
         this.isTimerRunning.set(data.isTimerRunning || false);
         this.accumulatedTime.set(data.accumulatedTime || 0);
         this.timerStartAt.set(data.timerStartAt || null);
+        this.status.set(data.status || 'da_definire');
       }
     });
   }
@@ -122,6 +125,7 @@ export class MatchStateService {
       accumulatedTime: this.accumulatedTime(),
       timerStartAt: this.timerStartAt(),
       isTimerRunning: this.isTimerRunning(),
+      status: this.status(),
     };
 
     if (this.matchId()) {
@@ -139,5 +143,15 @@ export class MatchStateService {
 
       this.avviaAscoltoReale();
     }
+  }
+
+  resetMatchState() {
+    this.scoreA.set(0);
+    this.scoreB.set(0);
+    this.eventiGol.set([]);
+    this.cronometro.set(0);
+    this.accumulatedTime.set(0);
+    this.timerStartAt.set(null);
+    this.isTimerRunning.set(false);
   }
 }

@@ -10,6 +10,7 @@ import {
   ModalController,
   IonFab,
   IonFabButton,
+  AlertController,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
@@ -49,6 +50,7 @@ import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazi
 export class MatchModalComponent implements OnInit, OnDestroy {
   private modalCtrl = inject(ModalController);
   public state = inject(MatchStateService);
+  private alertCtrl = inject(AlertController);
 
   @Input() matchData: any;
 
@@ -61,6 +63,7 @@ export class MatchModalComponent implements OnInit, OnDestroy {
     this.state.matchId.set(this.matchData.id || null);
     this.state.matchConcluso.set(this.matchData.matchConcluso || false);
     this.state.pagelleInserite.set(this.matchData.pagelleInserite || false);
+    this.state.status.set(this.matchData.status || 'da_definire');
 
     const baseGiocatori = (this.matchData.tuttiGiocatori || []).map(
       (g: any) => ({ ...g, selezionato: false }),
@@ -118,5 +121,28 @@ export class MatchModalComponent implements OnInit, OnDestroy {
 
   chiudi() {
     this.modalCtrl.dismiss();
+  }
+
+  async confermaTornaASquadre() {
+    const alert = await this.alertCtrl.create({
+      header: 'Sei sicuro?',
+      message:
+        'Tornando indietro resetterai il punteggio e il cronometro. I dati di questa partita andranno persi.',
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel',
+        },
+        {
+          text: 'Conferma',
+          handler: () => {
+            this.state.resetMatchState();
+            this.state.step.set('squadre');
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 }

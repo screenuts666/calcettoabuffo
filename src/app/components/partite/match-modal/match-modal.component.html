@@ -16,14 +16,18 @@
         !state.isTimerRunning() &&
         !state.matchConcluso()
       ) {
-        <ion-button color="light" (click)="state.step.set('squadre')"
+        <ion-button color="light" (click)="confermaTornaASquadre()"
           ><ion-icon name="arrow-back"></ion-icon
         ></ion-button>
       }
     </ion-buttons>
 
     <ion-title>{{
-      state.matchId() ? "Gestione Match" : "Nuova Partita"
+      state.step() === 'prestazioni'
+        ? 'Pagelle'
+        : state.matchId()
+          ? 'Gestione Match'
+          : 'Nuova Partita'
     }}</ion-title>
 
     <ion-buttons slot="end">

@@ -30,7 +30,7 @@
       <button
         class="goal-btn"
         (click)="chiediChiHaSegnato('A')"
-        [disabled]="state.cronometro() === 0"
+        [disabled]="state.cronometro() <= 0"
       >
         <ion-icon name="add"></ion-icon> GOL
       </button>
@@ -67,7 +67,7 @@
   </div>
 </div>
 
-@if (state.cronometro() > 0 || state.eventiGol().length > 0) {
+@if (state.cronometro() > 0 && state.eventiGol().length > 0) {
   <div class="events-log">
     <ion-list-header mode="ios"><ion-label>CRONACA</ion-label></ion-list-header>
     <div class="log-container">

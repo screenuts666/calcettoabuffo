@@ -107,6 +107,18 @@
   border: 1px solid rgba(235, 68, 90, 0.3);
 }
 
+.badge-primary {
+  background: rgba(56, 128, 255, 0.15);
+  color: var(--ion-color-primary);
+  border: 1px solid rgba(56, 128, 255, 0.3);
+}
+
+.badge-medium {
+  background: rgba(146, 146, 146, 0.15);
+  color: var(--ion-color-medium);
+  border: 1px solid rgba(146, 146, 146, 0.3);
+}
+
 // Animazione per il badge LIVE
 @keyframes blinker {
   50% {

@@ -85,12 +85,17 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         },
       );
     } else {
+      const payload: any = {
+        isTimerRunning: true,
+        timerStartAt: Date.now(),
+      };
+      const currentStatus = this.state.status();
+      if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
+        payload.status = 'in_corso';
+      }
       await updateDoc(
         doc(this.state.firestore, `partite/${this.state.matchId()}`),
-        {
-          isTimerRunning: true,
-          timerStartAt: Date.now(),
-        },
+        payload,
       );
     }
   }
@@ -207,6 +212,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           handler: () => {
             if (this.state.isTimerRunning()) this.toggleTimer();
             this.state.matchConcluso.set(true);
+            this.state.status.set('conclusa');
             this.state.salvaInDatabase(false, true);
             this.state.step.set('prestazioni');
           },

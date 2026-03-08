@@ -59,9 +59,12 @@
           <div class="rating-box">
             <input
               type="number"
+              min="0"
+              max="10"
+              step="0.5"
               [value]="g.voto"
               [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
-              (ionInput)="aggiornaVoto(g, $event)"
+              (change)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
             <span class="label">VOTO</span>
@@ -105,9 +108,12 @@
           <div class="rating-box">
             <input
               type="number"
+              min="0"
+              max="10"
+              step="0.5"
               [value]="g.voto"
               [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
-              (ionInput)="aggiornaVoto(g, $event)"
+              (change)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
             <span class="label">VOTO</span>

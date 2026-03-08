@@ -34,13 +34,10 @@ export class StepPrestazioniComponent {
   }
 
   aggiornaVoto(giocatore: any, event: any) {
-    const inputElement = event.target;
-    let v = parseFloat(inputElement.value.replace(',', '.'));
-    if (isNaN(v)) v = 0;
-    if (v > 10) v = 10;
-    if (v < 0) v = 0;
-    inputElement.value = v.toString();
-    this.salvaVotoNelloStato(giocatore.id, v);
+    const v = parseFloat(event.target.value);
+    if (!isNaN(v)) {
+      this.salvaVotoNelloStato(giocatore.id, v);
+    }
   }
 
   private salvaVotoNelloStato(id: string, voto: number) {

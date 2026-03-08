@@ -155,6 +155,7 @@ ion-avatar {
   .comment-area {
     --padding-start: 0;
     --padding-top: 0;
+    --highlight-color-focused: var(--ion-color-step-400, #666);
     font-size: 0.85rem;
     color: var(--ion-color-medium);
     font-style: italic;
