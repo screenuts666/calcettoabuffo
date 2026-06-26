@@ -47,6 +47,8 @@ import {
 } from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
 import { Giocatore } from 'src/app/models/giocatore.model';
+import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
+import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
 import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
@@ -102,12 +104,14 @@ export class RosaPage {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
-      const piede = (g.piedePreferito || '').toLowerCase();
+      const piede = (g.piedePreferito as string || '').toLowerCase();
+      const ruolo = (g.ruoloPreferito as string || '').toLowerCase();
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
         anno.includes(f) ||
-        piede.includes(f)
+        piede.includes(f) ||
+        ruolo.includes(f)
       );
     });
   });

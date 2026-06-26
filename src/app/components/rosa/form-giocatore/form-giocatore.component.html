@@ -71,12 +71,29 @@
           interface="popover"
           [disabled]="!isAdmin"
         >
-          <ion-select-option value="Destro">Destro</ion-select-option>
-          <ion-select-option value="Sinistro">Sinistro</ion-select-option>
-          <ion-select-option value="Ambidestro">Ambidestro</ion-select-option>
+          <ion-select-option [value]="PiedePreferito.Destro">Destro</ion-select-option>
+          <ion-select-option [value]="PiedePreferito.Sinistro">Sinistro</ion-select-option>
+          <ion-select-option [value]="PiedePreferito.Ambidestro">Ambidestro</ion-select-option>
         </ion-select>
       </ion-item>
     </div>
+
+    <ion-item lines="none" class="custom-input-item">
+      <ion-select
+        label="Ruolo Preferito"
+        labelPlacement="stacked"
+        [value]="ruoloPreferito()"
+        (ionChange)="ruoloPreferito.set($event.detail.value)"
+        interface="popover"
+        [disabled]="!isAdmin"
+        placeholder="Seleziona ruolo"
+      >
+        <ion-select-option [value]="RuoloPreferito.Portiere">🧤 Portiere</ion-select-option>
+        <ion-select-option [value]="RuoloPreferito.Difensore">🛡️ Difensore</ion-select-option>
+        <ion-select-option [value]="RuoloPreferito.Centrocampista">⚙️ Centrocampista</ion-select-option>
+        <ion-select-option [value]="RuoloPreferito.Attaccante">⚡ Attaccante</ion-select-option>
+      </ion-select>
+    </ion-item>
 
     <div class="grid-row">
       <ion-item lines="none" class="custom-input-item half">

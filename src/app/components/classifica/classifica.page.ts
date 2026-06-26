@@ -110,7 +110,10 @@ export class ClassificaPage {
               const won =
                 (inTeamA && scoreA > scoreB) || (inTeamB && scoreB > scoreA);
               const draw = scoreA === scoreB;
-              punti += won ? 3 : draw ? 2 : 1;
+              // Partecipazione: 2pt, Vittoria: +2pt, Pareggio: +1pt
+              punti += 2; // partecipazione
+              if (won) punti += 2;
+              else if (draw) punti += 1;
 
               const eventi = p.eventiGol || [];
               const golFatti = eventi.filter(
@@ -121,13 +124,13 @@ export class ClassificaPage {
               ).length;
 
               golTotali += golFatti;
-              punti += golFatti * 3;
-              punti += autogolFatti * -2;
+              punti += golFatti * 1;     // Goal: +1pt
+              punti += autogolFatti * -1; // Autogol: -1pt
 
               const playerObj = inTeamA || inTeamB;
               const voto = Number(playerObj.voto) || 0;
               sommaVoti += voto;
-              punti += voto;
+              punti += voto; // Voto addizionato ai punti
             }
           });
 
@@ -136,7 +139,7 @@ export class ClassificaPage {
           return {
             ...g,
             puntiVal: punti,
-            puntiDisplay: punti.toFixed(1),
+            puntiDisplay: punti.toString(),
             golTotali,
             mediaVotoVal: mediaVoto,
             mediaVotoDisplay: mediaVoto.toFixed(2),
