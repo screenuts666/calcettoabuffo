@@ -84,20 +84,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         const newCronometro = this.state.accumulatedTime() + diffSec;
         this.state.cronometro.set(newCronometro);
 
-        // ─── LOGICA SUONO CAMBIO ───────────────────────────────────────
+        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti) ───────────────
         if (this.isAdmin) {
-          // --- LOGICA ORIGINALE (OGNI 5 MINUTI) COMMENTATA PER TEST: ---
-          // const minutiGiocati = Math.floor(newCronometro / 60);
-          // const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
-          // if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
-          //   this.ultimoCambioMinuto = minutiGiocati;
-          //   this.attivaAlertCambio();
-          // }
+          const minutiGiocati = Math.floor(newCronometro / 60);
+          const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
 
-          // --- LOGICA TEST (OGNI 10 SECONDI): ---
-          const isTestCambio = newCronometro > 0 && newCronometro % 10 === 0;
-          if (isTestCambio && newCronometro !== this.ultimoCambioMinuto) {
-            this.ultimoCambioMinuto = newCronometro;
+          if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
+            this.ultimoCambioMinuto = minutiGiocati;
             this.attivaAlertCambio();
           }
         }
