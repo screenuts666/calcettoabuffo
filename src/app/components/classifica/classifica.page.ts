@@ -38,6 +38,9 @@ interface GiocatoreConPunti extends Giocatore {
   mediaVotoVal: number;
   mediaVotoDisplay: string;
   partiteGiocate: number;
+  wins: number;
+  draws: number;
+  losses: number;
 }
 
 @Component({
@@ -97,6 +100,9 @@ export class ClassificaPage {
           let golTotali = 0;
           let sommaVoti = 0;
           let partiteGiocate = 0;
+          let wins = 0;
+          let draws = 0;
+          let losses = 0;
 
           partiteValide.forEach((p: any) => {
             const inTeamA = p.teamA?.find((pl: any) => pl.id === g.id);
@@ -110,10 +116,12 @@ export class ClassificaPage {
               const won =
                 (inTeamA && scoreA > scoreB) || (inTeamB && scoreB > scoreA);
               const draw = scoreA === scoreB;
+              const lost = !won && !draw;
               // Partecipazione: 2pt, Vittoria: +2pt, Pareggio: +1pt
               punti += 2; // partecipazione
-              if (won) punti += 2;
-              else if (draw) punti += 1;
+              if (won) { punti += 2; wins++; }
+              else if (draw) { punti += 1; draws++; }
+              else if (lost) { losses++; }
 
               const eventi = p.eventiGol || [];
               const golFatti = eventi.filter(
@@ -144,6 +152,9 @@ export class ClassificaPage {
             mediaVotoVal: mediaVoto,
             mediaVotoDisplay: mediaVoto.toFixed(2),
             partiteGiocate,
+            wins,
+            draws,
+            losses,
           };
         });
 

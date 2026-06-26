@@ -133,3 +133,125 @@
 .text-normal {
   color: var(--ion-text-color);
 }
+
+// ===============================
+// SCHEDA PWDL (RENDIMENTO)
+// ===============================
+.pwdl-card {
+  background: var(--ion-color-step-50, #1c1c1e);
+  border: 1px solid var(--ion-color-step-150, #2c2c2e);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 15px 5px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  text-align: left;
+}
+
+.pwdl-title {
+  font-size: 1.1em;
+  font-weight: 800;
+  color: var(--ion-color-light);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pwdl-played-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.pwdl-letter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--ion-color-primary);
+  color: var(--ion-color-primary-contrast, #fff);
+  font-weight: 900;
+  font-size: 1.1em;
+  border-radius: 8px;
+  margin-right: 12px;
+}
+
+.pwdl-number {
+  font-size: 1.6em;
+  font-weight: 900;
+  color: var(--ion-color-light);
+  margin-right: 8px;
+}
+
+.pwdl-sublabel {
+  font-size: 0.85em;
+  color: var(--ion-color-medium);
+  font-weight: 500;
+}
+
+.pwdl-row {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.pwdl-pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+
+.pill-letter {
+  font-weight: 900;
+  font-size: 1em;
+  margin-bottom: 2px;
+}
+
+.pill-value {
+  font-size: 1.4em;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+
+.pill-label {
+  font-size: 0.7em;
+  font-weight: bold;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* Colori delle pillole */
+.pill-win {
+  background: rgba(45, 211, 111, 0.08);
+  border-color: rgba(45, 211, 111, 0.2);
+  .pill-letter, .pill-value, .pill-label {
+    color: var(--ion-color-success, #2dd36f);
+  }
+}
+
+.pill-draw {
+  background: rgba(255, 196, 9, 0.08);
+  border-color: rgba(255, 196, 9, 0.2);
+  .pill-letter, .pill-value, .pill-label {
+    color: var(--ion-color-warning, #ffc409);
+  }
+}
+
+.pill-loss {
+  background: rgba(235, 68, 90, 0.08);
+  border-color: rgba(235, 68, 90, 0.2);
+  .pill-letter, .pill-value, .pill-label {
+    color: var(--ion-color-danger, #eb445a);
+  }
+}
+

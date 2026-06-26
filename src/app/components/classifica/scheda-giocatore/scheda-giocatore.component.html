@@ -87,13 +87,35 @@
         <div class="stat-value text-warning">{{ prof?.golTotali }}</div>
       </div>
     </ion-col>
-
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-dark">
-        <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
-        <div class="stat-label">Presenze</div>
-        <div class="stat-value text-normal">{{ prof?.partiteGiocate }}</div>
-      </div>
-    </ion-col>
   </ion-row>
+
+  <!-- ─── CARD PWDL ─────────────────────────────────────── -->
+  <div class="pwdl-card">
+    <div class="pwdl-title">📊 Rendimento</div>
+
+    <div class="pwdl-played-row">
+      <span class="pwdl-letter">P</span>
+      <span class="pwdl-number">{{ prof?.partiteGiocate ?? 0 }}</span>
+      <span class="pwdl-sublabel">Partite Disputate</span>
+    </div>
+
+    <div class="pwdl-row">
+      <div class="pwdl-pill pill-win">
+        <span class="pill-letter">W</span>
+        <span class="pill-value">{{ prof?.wins ?? 0 }}</span>
+        <span class="pill-label">Vinte</span>
+      </div>
+      <div class="pwdl-pill pill-draw">
+        <span class="pill-letter">D</span>
+        <span class="pill-value">{{ prof?.draws ?? 0 }}</span>
+        <span class="pill-label">Pari</span>
+      </div>
+      <div class="pwdl-pill pill-loss">
+        <span class="pill-letter">L</span>
+        <span class="pill-value">{{ prof?.losses ?? 0 }}</span>
+        <span class="pill-label">Perse</span>
+      </div>
+    </div>
+  </div>
+
 </ion-content>
