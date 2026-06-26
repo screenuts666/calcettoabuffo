@@ -21,7 +21,8 @@ import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from './environments/environment';
 
-import { provideZonelessChangeDetection } from '@angular/core';
+import { provideZonelessChangeDetection, isDevMode } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -35,6 +36,9 @@ bootstrapApplication(AppComponent, {
     // 2. AGGIUNGI IL PROVIDER DELLO STORAGE QUI
     provideStorage(() => getStorage()),
     provideAuth(() => getAuth()),
-    provideZonelessChangeDetection(),
+    provideZonelessChangeDetection(), provideServiceWorker('ngsw-worker.js', {
+            enabled: !isDevMode(),
+            registrationStrategy: 'registerWhenStable:30000'
+          }),
   ],
 });

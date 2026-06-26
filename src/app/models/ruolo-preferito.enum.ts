@@ -1,6 +1,6 @@
 export enum RuoloPreferito {
   Portiere = 'Portiere',
   Difensore = 'Difensore',
-  Centrocampista = 'Centrocampista',
+  Fascia = 'Fascia',
   Attaccante = 'Attaccante',
 }
