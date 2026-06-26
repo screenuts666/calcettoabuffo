@@ -66,6 +66,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // ─── WAKE LOCK SEMPRE ATTIVO ───────────────────────────────────────
     this.attivaWakeLock();
+    if ('wakeLock' in navigator) {
+      document.addEventListener('visibilitychange', this.riattivaWakeLock);
+    }
 
     // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
@@ -112,11 +115,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────────────
 
   private async attivaWakeLock() {
+    if (this.wakeLock) return;
     if ('wakeLock' in navigator) {
       try {
         this.wakeLock = await (navigator as any).wakeLock.request('screen');
-        // Riattiva automaticamente se la pagina torna visibile dopo essere stata nascosta
-        document.addEventListener('visibilitychange', this.riattivaWakeLock);
+        this.wakeLock.addEventListener('release', () => {
+          this.wakeLock = null;
+        });
       } catch (err) {
         console.warn('WakeLock non disponibile:', err);
       }
@@ -130,7 +135,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   };
 
   private rilasciaWakeLock() {
-    document.removeEventListener('visibilitychange', this.riattivaWakeLock);
+    if ('wakeLock' in navigator) {
+      document.removeEventListener('visibilitychange', this.riattivaWakeLock);
+    }
     if (this.wakeLock) {
       this.wakeLock.release().catch(() => {});
       this.wakeLock = null;
