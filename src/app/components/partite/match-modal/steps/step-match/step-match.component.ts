@@ -70,6 +70,12 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.riattivaWakeLock);
     }
 
+    // ─── AUDIO PRE-LOAD E SBLOCCO USER GESTURE ─────────────────────────
+    this.audio = new Audio('/assets/sound/CAMBIO.wav');
+    this.audio.loop = true;
+    this.audio.load();
+    document.addEventListener('click', this.sbloccaAudioUserGesture, { once: true });
+
     // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
       if (this.state.isTimerRunning()) {
@@ -78,13 +84,20 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         const newCronometro = this.state.accumulatedTime() + diffSec;
         this.state.cronometro.set(newCronometro);
 
-        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti) ───────────────
+        // ─── LOGICA SUONO CAMBIO ───────────────────────────────────────
         if (this.isAdmin) {
-          const minutiGiocati = Math.floor(newCronometro / 60);
-          const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
+          // --- LOGICA ORIGINALE (OGNI 5 MINUTI) COMMENTATA PER TEST: ---
+          // const minutiGiocati = Math.floor(newCronometro / 60);
+          // const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
+          // if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
+          //   this.ultimoCambioMinuto = minutiGiocati;
+          //   this.attivaAlertCambio();
+          // }
 
-          if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
-            this.ultimoCambioMinuto = minutiGiocati;
+          // --- LOGICA TEST (OGNI 10 SECONDI): ---
+          const isTestCambio = newCronometro > 0 && newCronometro % 10 === 0;
+          if (isTestCambio && newCronometro !== this.ultimoCambioMinuto) {
+            this.ultimoCambioMinuto = newCronometro;
             this.attivaAlertCambio();
           }
         }
@@ -106,6 +119,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.timerRef) clearInterval(this.timerRef);
+    document.removeEventListener('click', this.sbloccaAudioUserGesture);
     this.rilasciaWakeLock();
     this.fermaAudio();
   }
@@ -165,9 +179,21 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.fermaAudio();
   }
 
+  private sbloccaAudioUserGesture = () => {
+    if (this.audio) {
+      this.audio.play()
+        .then(() => {
+          this.audio!.pause();
+          this.audio!.currentTime = 0;
+          console.log('Audio sbloccato con successo tramite interazione utente');
+        })
+        .catch((e) => console.warn('Impossibile sbloccare audio:', e));
+    }
+  };
+
   private avviaAudio() {
     if (!this.audio) {
-      this.audio = new Audio('assets/sound/CAMBIO.wav');
+      this.audio = new Audio('/assets/sound/CAMBIO.wav');
       this.audio.loop = true;
     }
     this.audio.currentTime = 0;
