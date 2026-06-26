@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
+import { PartitePage } from '../partite/partite.page';
 
 export const routes: Routes = [
   {
@@ -8,8 +9,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'partite',
-        loadComponent: () =>
-          import('../partite/partite.page').then((m) => m.PartitePage),
+        component: PartitePage,
       },
       {
         path: 'classifica',

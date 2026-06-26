@@ -21,6 +21,7 @@ import {
   IonItemOption,
   IonListHeader,
   IonLabel,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -77,6 +78,7 @@ import { AuthService } from 'src/app/services/auth.service';
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
+    IonSpinner,
   ],
 })
 export class PartitePage {
@@ -85,7 +87,7 @@ export class PartitePage {
   private alertController = inject(AlertController);
   private auth = inject(AuthService);
 
-  partite = toSignal<any[], any[]>(
+  partite = toSignal<any[]>(
     collectionData(
       query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
       { idField: 'id' },
@@ -107,47 +109,46 @@ export class PartitePage {
           return bt - at;
         });
       }),
-    ) as Observable<any[]>,
-    { initialValue: [] },
-  );
-
-  partiteInCorso = computed(() =>
-    [
-      ...this.partite().filter((m: any) => m.status === 'in_corso'),
-    ].sort(
-      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
     ),
   );
 
-  partitePronte = computed(() =>
-    [
-      ...this.partite().filter(
-        (m: any) => m.status === 'pronta' || !m.status,
-      ),
-    ].sort(
+  partiteInCorso = computed(() => {
+    const list = this.partite();
+    if (!list) return [];
+    return [...list.filter((m: any) => m.status === 'in_corso')].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
-    ),
-  );
+    );
+  });
 
-  partiteDaVotare = computed(() =>
-    [
-      ...this.partite().filter(
-        (m: any) => m.status === 'conclusa' && !m.pagelleInserite,
-      ),
+  partitePronte = computed(() => {
+    const list = this.partite();
+    if (!list) return [];
+    return [
+      ...list.filter((m: any) => m.status === 'pronta' || !m.status),
     ].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
-    ),
-  );
+    );
+  });
 
-  partiteArchiviate = computed(() =>
-    [
-      ...this.partite().filter(
-        (m: any) => m.status === 'conclusa' && m.pagelleInserite,
-      ),
+  partiteDaVotare = computed(() => {
+    const list = this.partite();
+    if (!list) return [];
+    return [
+      ...list.filter((m: any) => m.status === 'conclusa' && !m.pagelleInserite),
     ].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
-    ),
-  );
+    );
+  });
+
+  partiteArchiviate = computed(() => {
+    const list = this.partite();
+    if (!list) return [];
+    return [
+      ...list.filter((m: any) => m.status === 'conclusa' && m.pagelleInserite),
+    ].sort(
+      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    );
+  });
 
   giocatori = toSignal<any[], any[]>(
     collectionData(
