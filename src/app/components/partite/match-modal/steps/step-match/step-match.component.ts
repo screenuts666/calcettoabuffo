@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonButton,
@@ -19,6 +19,8 @@ import {
   stop,
   football, // Aggiunta per i badge gol
   trashOutline, // Aggiunta per il tasto rimuovi
+  musicalNotes,
+  volumeMute,
 } from 'ionicons/icons';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
@@ -35,7 +37,14 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
 
+  @Input() isAdmin: boolean = false;
+
   private timerRef: any;
+  private wakeLock: any = null;
+  private audio: HTMLAudioElement | null = null;
+
+  // Traccia l'ultimo minuto "multiplo di 5" già triggerato per evitare doppioni
+  private ultimoCambioMinuto: number = -1;
 
   constructor() {
     // Registriamo TUTTE le icone necessarie
@@ -49,24 +58,125 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       stop,
       football,
       trashOutline,
+      musicalNotes,
+      volumeMute,
     });
   }
 
   ngOnInit() {
+    // ─── WAKE LOCK SEMPRE ATTIVO ───────────────────────────────────────
+    this.attivaWakeLock();
+
+    // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
       if (this.state.isTimerRunning()) {
         const start = this.state.timerStartAt() || Date.now();
         const diffSec = Math.floor((Date.now() - start) / 1000);
-        this.state.cronometro.set(this.state.accumulatedTime() + diffSec);
+        const newCronometro = this.state.accumulatedTime() + diffSec;
+        this.state.cronometro.set(newCronometro);
+
+        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti) ───────────────
+        if (this.isAdmin) {
+          const minutiGiocati = Math.floor(newCronometro / 60);
+          const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
+
+          if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
+            this.ultimoCambioMinuto = minutiGiocati;
+            this.attivaAlertCambio();
+          }
+        }
       } else {
         this.state.cronometro.set(this.state.accumulatedTime());
+      }
+
+      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato Firestore) ──────
+      if (this.isAdmin) {
+        const cambioAttivo = this.state.cambioAttivo();
+        if (cambioAttivo && (!this.audio || this.audio.paused)) {
+          this.avviaAudio();
+        } else if (!cambioAttivo && this.audio && !this.audio.paused) {
+          this.fermaAudio();
+        }
       }
     }, 1000);
   }
 
   ngOnDestroy() {
     if (this.timerRef) clearInterval(this.timerRef);
+    this.rilasciaWakeLock();
+    this.fermaAudio();
   }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // WAKE LOCK
+  // ──────────────────────────────────────────────────────────────────────
+
+  private async attivaWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        this.wakeLock = await (navigator as any).wakeLock.request('screen');
+        // Riattiva automaticamente se la pagina torna visibile dopo essere stata nascosta
+        document.addEventListener('visibilitychange', this.riattivaWakeLock);
+      } catch (err) {
+        console.warn('WakeLock non disponibile:', err);
+      }
+    }
+  }
+
+  private riattivaWakeLock = async () => {
+    if (document.visibilityState === 'visible') {
+      await this.attivaWakeLock();
+    }
+  };
+
+  private rilasciaWakeLock() {
+    document.removeEventListener('visibilitychange', this.riattivaWakeLock);
+    if (this.wakeLock) {
+      this.wakeLock.release().catch(() => {});
+      this.wakeLock = null;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // SUONO CAMBIO
+  // ──────────────────────────────────────────────────────────────────────
+
+  private async attivaAlertCambio() {
+    if (!this.state.matchId()) return;
+    await updateDoc(
+      doc(this.state.firestore, `partite/${this.state.matchId()}`),
+      { cambioAttivo: true }
+    );
+  }
+
+  async fermaCambio() {
+    if (!this.state.matchId()) return;
+    await updateDoc(
+      doc(this.state.firestore, `partite/${this.state.matchId()}`),
+      { cambioAttivo: false }
+    );
+    this.fermaAudio();
+  }
+
+  private avviaAudio() {
+    if (!this.audio) {
+      this.audio = new Audio('assets/sound/CAMBIO.wav');
+      this.audio.loop = true;
+    }
+    this.audio.currentTime = 0;
+    this.audio.play().catch((err) => console.warn('Audio non riprodotto:', err));
+  }
+
+  private fermaAudio() {
+    if (this.audio) {
+      this.audio.pause();
+      this.audio.currentTime = 0;
+    }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // TIMER PARTITA
+  // ──────────────────────────────────────────────────────────────────────
 
   async toggleTimer() {
     if (!this.state.matchId()) return;
@@ -99,6 +209,10 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       );
     }
   }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // GOL
+  // ──────────────────────────────────────────────────────────────────────
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     const teamCheSegna =

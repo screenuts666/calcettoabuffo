@@ -53,6 +53,7 @@ export class MatchModalComponent implements OnInit, OnDestroy {
   private alertCtrl = inject(AlertController);
 
   @Input() matchData: any;
+  isAdmin: boolean = false;
 
   constructor() {
     addIcons({ arrowBack, close, arrowForward });
@@ -64,6 +65,7 @@ export class MatchModalComponent implements OnInit, OnDestroy {
     this.state.matchConcluso.set(this.matchData.matchConcluso || false);
     this.state.pagelleInserite.set(this.matchData.pagelleInserite || false);
     this.state.status.set(this.matchData.status || 'da_definire');
+    this.isAdmin = this.matchData.isAdmin || false;
 
     const baseGiocatori = (this.matchData.tuttiGiocatori || []).map(
       (g: any) => ({ ...g, selezionato: false }),

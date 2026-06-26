@@ -5,6 +5,21 @@
   </p>
 </div>
 
+<!-- ─── BANNER CAMBIO (solo admin, quando il suono è attivo) ─────────── -->
+@if (isAdmin && state.cambioAttivo()) {
+  <div class="cambio-banner">
+    <div class="cambio-pulse-ring"></div>
+    <div class="cambio-content">
+      <ion-icon name="musical-notes"></ion-icon>
+      <span>⏱️ CAMBIO!</span>
+    </div>
+    <button class="cambio-stop-btn" (click)="fermaCambio()">
+      <ion-icon name="volume-mute"></ion-icon>
+      STOP
+    </button>
+  </div>
+}
+
 <div class="timer-display-section ion-text-center">
   <h1 class="giant-timer">{{ state.formatTimer() }}</h1>
   <ion-button

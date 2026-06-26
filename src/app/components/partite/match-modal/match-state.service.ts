@@ -35,6 +35,7 @@ export class MatchStateService {
   eventiGol = signal<any[]>([]);
   matchConcluso = signal<boolean>(false);
   pagelleInserite = signal<boolean>(false);
+  cambioAttivo = signal<boolean>(false);
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -99,6 +100,7 @@ export class MatchStateService {
         this.accumulatedTime.set(data.accumulatedTime || 0);
         this.timerStartAt.set(data.timerStartAt || null);
         this.status.set(data.status || 'da_definire');
+        this.cambioAttivo.set(data.cambioAttivo || false);
       }
     });
   }

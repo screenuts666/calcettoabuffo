@@ -52,7 +52,7 @@
   }
 
   @if (state.step() === "match") {
-    <app-step-match></app-step-match>
+    <app-step-match [isAdmin]="isAdmin"></app-step-match>
   }
 
   @if (state.step() === "prestazioni") {
