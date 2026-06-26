@@ -7,7 +7,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:dev": "ng build --configuration development",
+    "build:dev": "ng build --configuration staging",
     "deploy:dev": "npm run build:dev && firebase deploy --only hosting --project default",
     "build:prod": "ng build --configuration production",
     "deploy:prod": "npm run build:prod && firebase deploy --only hosting --project prod",
