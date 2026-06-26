@@ -42,6 +42,8 @@ import {
 import { addIcons } from 'ionicons';
 import { createOutline } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
+import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
+import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
 import { AuthService } from 'src/app/services/auth.service';
 
 const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
@@ -80,10 +82,15 @@ export class FormGiocatoreComponent implements OnInit {
   @Input() giocatore: Giocatore | null = null;
   @Output() close = new EventEmitter<void>();
 
+  // Esponiamo gli enum al template
+  readonly PiedePreferito = PiedePreferito;
+  readonly RuoloPreferito = RuoloPreferito;
+
   nome = signal('');
   soprannome = signal('');
   annoNascita = signal('');
-  piedePreferito = signal<'Destro' | 'Sinistro' | 'Ambidestro'>('Destro');
+  piedePreferito = signal<PiedePreferito>(PiedePreferito.Destro);
+  ruoloPreferito = signal<RuoloPreferito | null>(null);
   altezza = signal('');
   peso = signal('');
 
@@ -105,7 +112,8 @@ export class FormGiocatoreComponent implements OnInit {
       this.nome.set(this.giocatore.nome || '');
       this.soprannome.set(this.giocatore.soprannome || '');
       this.annoNascita.set(this.giocatore.annoNascita || '');
-      this.piedePreferito.set(this.giocatore.piedePreferito || 'Destro');
+      this.piedePreferito.set(this.giocatore.piedePreferito ?? PiedePreferito.Destro);
+      this.ruoloPreferito.set(this.giocatore.ruoloPreferito ?? null);
       this.altezza.set(this.giocatore.altezza || '');
       this.peso.set(this.giocatore.peso || '');
       this.anteprimaFoto.set(this.giocatore.fotoUrl || null);
@@ -157,6 +165,7 @@ export class FormGiocatoreComponent implements OnInit {
         soprannome: this.soprannome(),
         annoNascita: this.annoNascita(),
         piedePreferito: this.piedePreferito(),
+        ruoloPreferito: this.ruoloPreferito() ?? undefined,
         altezza: this.altezza(),
         peso: this.peso(),
         fotoUrl: fotoUrl,

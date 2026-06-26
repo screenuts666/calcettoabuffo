@@ -52,12 +52,14 @@ export class MatchStateService {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
-      const piede = (g.piedePreferito || '').toLowerCase();
+      const piede = (g.piedePreferito as string || '').toLowerCase();
+      const ruolo = (g.ruoloPreferito as string || '').toLowerCase();
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
         anno.includes(f) ||
-        piede.includes(f)
+        piede.includes(f) ||
+        ruolo.includes(f)
       );
     });
   });
