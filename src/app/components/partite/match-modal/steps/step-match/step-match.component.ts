@@ -285,7 +285,11 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     const updateGol = (lista: any[]) =>
       lista.map((g) =>
         g.id === giocatore.id
-          ? { ...g, gol: (g.gol || 0) + (isAutogoal ? 0 : 1) }
+          ? {
+              ...g,
+              gol: (g.gol || 0) + (isAutogoal ? 0 : 1),
+              autogol: (g.autogol || 0) + (isAutogoal ? 1 : 0),
+            }
           : g,
       );
 
@@ -322,6 +326,10 @@ export class StepMatchComponent implements OnInit, OnDestroy {
               ? {
                   ...g,
                   gol: Math.max(0, (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)),
+                  autogol: Math.max(
+                    0,
+                    (g.autogol || 0) - (rimosso.isAutogoal ? 1 : 0),
+                  ),
                 }
               : g,
           );

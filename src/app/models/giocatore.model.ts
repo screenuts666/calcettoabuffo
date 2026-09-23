@@ -12,6 +12,7 @@ export interface Giocatore {
   peso?: string;
   fotoUrl?: string;
   gol: number;
+  autogol?: number;
   punti: number;
   mediaVoto: number;
   partiteGiocate: number;

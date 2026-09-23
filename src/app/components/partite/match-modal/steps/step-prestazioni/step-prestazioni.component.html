@@ -43,6 +43,11 @@
                   <ion-icon name="football"></ion-icon> {{ g.gol }}
                 </span>
               }
+              @if (getAutogolCount(g) > 0) {
+                <span class="autogol-tag" title="Autoreti">
+                  <ion-icon name="football"></ion-icon> {{ getAutogolCount(g) }} (AG)
+                </span>
+              }
             </div>
 
             <ion-textarea
@@ -90,6 +95,11 @@
               @if (g.gol > 0) {
                 <span class="goal-tag">
                   <ion-icon name="football"></ion-icon> {{ g.gol }}
+                </span>
+              }
+              @if (getAutogolCount(g) > 0) {
+                <span class="autogol-tag" title="Autoreti">
+                  <ion-icon name="football"></ion-icon> {{ getAutogolCount(g) }} (AG)
                 </span>
               }
             </div>

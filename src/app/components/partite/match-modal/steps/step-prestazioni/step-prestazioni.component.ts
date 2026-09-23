@@ -34,6 +34,24 @@ export class StepPrestazioniComponent {
     return 'voto-basso';
   }
 
+  getAutogolCount(giocatore: PlayerPerformance): number {
+    const eventi =
+      this.state.eventiGol() ||
+      this.state.matchDataOriginale?.eventiGol ||
+      [];
+    const fromEvents = eventi.filter(
+      (eg: any) =>
+        Boolean(eg.isAutogoal) &&
+        (eg.idAssegnato === giocatore.id || (eg.nome && eg.nome === giocatore.nome)),
+    ).length;
+
+    if (fromEvents > 0) {
+      return fromEvents;
+    }
+
+    return (giocatore as any)?.autogol || 0;
+  }
+
   aggiornaVoto(giocatore: PlayerPerformance, event: Event) {
     const input = event.target as HTMLInputElement | null;
     const v = input ? Number(input.value) : NaN;

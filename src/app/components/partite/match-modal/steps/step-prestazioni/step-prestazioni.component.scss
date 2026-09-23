@@ -130,6 +130,7 @@ ion-avatar {
     align-items: center;
     gap: 8px;
     margin-bottom: 4px;
+    flex-wrap: wrap;
   }
   .player-name {
     font-size: 1.1rem;
@@ -150,6 +151,20 @@ ion-avatar {
     align-items: center;
     gap: 4px;
     border: 1px solid rgba(45, 211, 111, 0.3);
+  }
+
+  // 🚨 BADGE AUTOGOL ROSSO
+  .autogol-tag {
+    background: rgba(235, 68, 90, 0.15);
+    color: var(--ion-color-danger, #eb445a);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(235, 68, 90, 0.3);
   }
 
   .comment-area {
