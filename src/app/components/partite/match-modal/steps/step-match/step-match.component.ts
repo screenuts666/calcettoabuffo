@@ -212,12 +212,18 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       const diffSec = Math.floor((Date.now() - start) / 1000);
       const nuovoAccumulo = this.state.accumulatedTime() + diffSec;
 
+      this.state.isTimerRunning.set(false);
+      this.state.accumulatedTime.set(nuovoAccumulo);
+      this.state.timerStartAt.set(null);
+      this.state.cronometro.set(nuovoAccumulo);
+
       await updateDoc(
         doc(this.state.firestore, `partite/${this.state.matchId()}`),
         {
           isTimerRunning: false,
           accumulatedTime: nuovoAccumulo,
           timerStartAt: null,
+          cronometro: nuovoAccumulo,
         },
       );
     } else {
@@ -357,11 +363,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         {
           text: 'Termina Partita',
           role: 'destructive',
-          handler: () => {
-            if (this.state.isTimerRunning()) this.toggleTimer();
+          handler: async () => {
+            if (this.state.isTimerRunning()) {
+              await this.toggleTimer();
+            }
             this.state.matchConcluso.set(true);
             this.state.status.set('conclusa');
-            this.state.salvaInDatabase(false, true);
+            await this.state.salvaInDatabase(false, true);
             this.state.step.set('prestazioni');
           },
         },

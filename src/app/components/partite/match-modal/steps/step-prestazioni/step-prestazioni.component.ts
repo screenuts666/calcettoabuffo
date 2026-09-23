@@ -76,7 +76,11 @@ export class StepPrestazioniComponent {
 
   aggiornaVoto(giocatore: PlayerPerformance, event: Event) {
     const input = event.target as HTMLInputElement | null;
-    const v = input ? Number(input.value) : NaN;
+    if (!input || input.value.trim() === '') {
+      this.salvaVotoNelloStato(giocatore.id, 0);
+      return;
+    }
+    const v = Number(input.value);
     if (!isNaN(v)) {
       this.salvaVotoNelloStato(giocatore.id, v);
     }

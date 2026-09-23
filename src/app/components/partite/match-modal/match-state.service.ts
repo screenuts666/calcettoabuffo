@@ -132,6 +132,9 @@ export class MatchStateService {
       status: this.status(),
     };
 
+    this.pagelleInserite.set(pagelleInseriteFlag);
+    this.matchConcluso.set(matchConclusoFlag || this.matchConcluso());
+
     if (this.matchId()) {
       await updateDoc(
         doc(this.firestore, `partite/${this.matchId()}`),
