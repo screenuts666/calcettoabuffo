@@ -2,7 +2,7 @@
 // CONTENITORE E SCOREBOARD
 // ==========================================
 .prestazioni-container {
-  padding-bottom: 110px; // Spazio per il pulsante flottante
+  padding-bottom: calc(115px + env(safe-area-inset-bottom, 0px)); // Spazio sicuro per il pulsante flottante
   background: var(--ion-background-color);
 }
 
@@ -58,16 +58,19 @@
     background: rgba(255, 196, 9, 0.12);
     border: 1px solid rgba(255, 196, 9, 0.4);
     color: #ffc409;
-    padding: 5px 12px;
+    padding: 6px 14px;
+    min-height: 34px;
     border-radius: 20px;
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     font-weight: 700;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: all 0.2s ease;
     margin-bottom: 2px;
 
     ion-icon {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
     }
 
     &:hover {
@@ -184,6 +187,7 @@ ion-avatar {
 
 .player-info {
   flex: 1;
+  min-width: 0; // Previene overflow su schermi compatti
   .name-row {
     display: flex;
     align-items: center;
@@ -196,6 +200,7 @@ ion-avatar {
     font-weight: 700;
     margin: 0;
     color: #fff;
+    word-break: break-word;
   }
 
   // ⚽ BADGE GOL VISIBILE
@@ -206,9 +211,10 @@ ion-avatar {
     border-radius: 10px;
     font-size: 0.75rem;
     font-weight: 800;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
     border: 1px solid rgba(45, 211, 111, 0.3);
   }
 
@@ -220,9 +226,10 @@ ion-avatar {
     border-radius: 10px;
     font-size: 0.75rem;
     font-weight: 800;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
     border: 1px solid rgba(235, 68, 90, 0.3);
   }
 
@@ -278,8 +285,8 @@ ion-avatar {
 
 .fab-fixed-container {
   position: fixed;
-  bottom: 25px;
-  right: 20px;
+  bottom: calc(25px + env(safe-area-inset-bottom, 0px));
+  right: calc(20px + env(safe-area-inset-right, 0px));
   z-index: 1000;
   .fab-round {
     width: 62px;
