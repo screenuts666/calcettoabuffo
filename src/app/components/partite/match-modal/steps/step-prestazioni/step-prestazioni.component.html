@@ -1,12 +1,26 @@
 <div class="prestazioni-container">
   <div class="result-summary">
-    <div class="team-res white">
-      BIANCHI <span>{{ state.scoreA() }}</span>
+    <div class="scoreboard-row">
+      <div class="team-res white">
+        BIANCHI <span>{{ state.scoreA() }}</span>
+      </div>
+      <div class="res-divider">:</div>
+      <div class="team-res black">
+        <span>{{ state.scoreB() }}</span> NERI
+      </div>
     </div>
-    <div class="res-divider">:</div>
-    <div class="team-res black">
-      <span>{{ state.scoreB() }}</span> NERI
-    </div>
+
+    @if (state.matchDataOriginale?.isAdmin) {
+      <button
+        class="edit-score-btn"
+        (click)="apriModificaRisultato()"
+        type="button"
+        title="Modifica manuale risultato"
+      >
+        <ion-icon name="create-outline"></ion-icon>
+        <span>Modifica Risultato</span>
+      </button>
+    }
 
     <div class="mini-duration">
       <ion-icon name="stopwatch-outline"></ion-icon>
@@ -17,11 +31,16 @@
   <div class="page-header ion-padding">
     <h2>Voti e Pagelle</h2>
     <p class="subtitle">
-      {{
-        state.pagelleInserite()
-          ? "Sessione Archiviata"
-          : "Inserisci i giudizi della partita"
-      }}
+      @if (state.pagelleInserite()) {
+        <span>Sessione Archiviata</span>
+        @if (state.matchDataOriginale?.isAdmin) {
+          <span class="admin-badge">
+            <ion-icon name="create-outline"></ion-icon> Modifica Admin
+          </span>
+        }
+      } @else {
+        <span>Inserisci i giudizi della partita</span>
+      }
     </p>
   </div>
 
@@ -53,7 +72,7 @@
             <ion-textarea
               placeholder="Scrivi il commento tecnico..."
               [value]="g.note || ''"
-              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
+              [readonly]="!state.matchDataOriginale?.isAdmin"
               [autoGrow]="true"
               rows="1"
               (ionInput)="aggiornaNote(g, $event.detail.value || '')"
@@ -68,7 +87,7 @@
               max="10"
               step="0.5"
               [value]="g.voto"
-              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
+              [readonly]="!state.matchDataOriginale?.isAdmin"
               (change)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
@@ -107,7 +126,7 @@
             <ion-textarea
               placeholder="Scrivi il commento tecnico..."
               [value]="g.note || ''"
-              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
+              [readonly]="!state.matchDataOriginale?.isAdmin"
               [autoGrow]="true"
               rows="1"
               (ionInput)="aggiornaNote(g, $event.detail.value || '')"
@@ -122,7 +141,7 @@
               max="10"
               step="0.5"
               [value]="g.voto"
-              [readonly]="state.pagelleInserite() || !state.matchDataOriginale?.isAdmin"
+              [readonly]="!state.matchDataOriginale?.isAdmin"
               (change)="aggiornaVoto(g, $event)"
               [class]="getRatingClass(g.voto)"
             />
@@ -134,10 +153,15 @@
   </div>
 </div>
 
-@if (!state.pagelleInserite() && state.matchDataOriginale?.isAdmin) {
+@if (state.matchDataOriginale?.isAdmin) {
   <div class="fab-fixed-container">
-    <button class="fab-round" (click)="concludiTutto()">
-      <ion-icon name="checkmark-done"></ion-icon>
+    <button
+      class="fab-round"
+      [class.is-archived]="state.pagelleInserite()"
+      (click)="salvaModifiche()"
+      [title]="state.pagelleInserite() ? 'Salva Modifiche' : 'Concludi e Archivia'"
+    >
+      <ion-icon [name]="state.pagelleInserite() ? 'save-outline' : 'checkmark-done'"></ion-icon>
     </button>
   </div>
 }

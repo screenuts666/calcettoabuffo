@@ -9,12 +9,20 @@
 .result-summary {
   position: relative; // Necessario per posizionare la durata al fondo
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
   background: #1a1a1a;
-  padding: 15px 15px 30px 15px; // Padding extra sotto per far spazio alla durata
+  padding: 15px 15px 32px 15px; // Padding extra sotto per far spazio alla durata
   border-bottom: 1px solid #333;
+
+  .scoreboard-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+  }
 
   .team-res {
     font-weight: 900;
@@ -40,6 +48,36 @@
   .res-divider {
     font-weight: 900;
     opacity: 0.5;
+  }
+
+  // ✏️ PULSANTE MODIFICA MANUALE RISULTATO
+  .edit-score-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 196, 9, 0.12);
+    border: 1px solid rgba(255, 196, 9, 0.4);
+    color: #ffc409;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 2px;
+
+    ion-icon {
+      font-size: 0.85rem;
+    }
+
+    &:hover {
+      background: rgba(255, 196, 9, 0.22);
+      border-color: #ffc409;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
   }
 
   // ⏳ DURATA PICCOLA SOPRA LA LINEA
@@ -77,6 +115,27 @@
     color: var(--ion-color-medium);
     margin: 0;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .admin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255, 196, 9, 0.15);
+      color: #ffc409;
+      border: 1px solid rgba(255, 196, 9, 0.35);
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+
+      ion-icon {
+        font-size: 0.8rem;
+      }
+    }
   }
 }
 
@@ -234,6 +293,13 @@ ion-avatar {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 16px rgba(45, 211, 111, 0.5);
+
+    &.is-archived {
+      background: #ffc409;
+      color: #000;
+      box-shadow: 0 4px 16px rgba(255, 196, 9, 0.4);
+    }
+
     &:active {
       transform: scale(0.92);
     }
