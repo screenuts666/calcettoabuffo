@@ -172,9 +172,9 @@ export class StepPrestazioniComponent {
     } catch (err: any) {
       console.error(err);
       const toast = await this.toastCtrl.create({
-        message: 'Errore generazione pronostico: ' + (err.message || err),
-        duration: 3500,
-        color: 'danger',
+        message: this.geminiService.formatUserError(err),
+        duration: 4000,
+        color: 'warning',
         position: 'bottom',
       });
       await toast.present();
@@ -215,9 +215,9 @@ export class StepPrestazioniComponent {
     } catch (err: any) {
       console.error(err);
       const toast = await this.toastCtrl.create({
-        message: 'Errore generazione cronaca: ' + (err.message || err),
-        duration: 3500,
-        color: 'danger',
+        message: this.geminiService.formatUserError(err),
+        duration: 4000,
+        color: 'warning',
         position: 'bottom',
       });
       await toast.present();

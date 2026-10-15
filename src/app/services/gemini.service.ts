@@ -20,7 +20,14 @@ export class GeminiService {
 
   // Cache in-memory della chiave API per evitare letture ripetute su Firestore
   private cachedApiKey: string | null = null;
-  private readonly GEMINI_MODEL = 'gemini-2.5-flash';
+  // Modelli supportati con fallback automatico a cascata
+  // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
+  private readonly MODELS = [
+    'gemini-3-flash-preview',
+    'gemini-2.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-3.1-flash-lite-preview',
+  ];
 
   /**
    * Recupera a runtime la chiave API da Firestore dal nodo sicuro `_config/ai`.
@@ -52,11 +59,10 @@ export class GeminiService {
   }
 
   /**
-   * Chiamata generica alle REST API di Gemini 2.5 Flash
+   * Chiamata generica alle REST API di Gemini con fallback automatico tra modelli
    */
   async callGemini(prompt: string, systemPrompt?: string): Promise<string> {
     const key = await this.getApiKey();
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.GEMINI_MODEL}:generateContent?key=${key}`;
 
     const body: any = {
       contents: [
@@ -79,29 +85,62 @@ export class GeminiService {
       };
     }
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    let lastError: any = null;
 
-    if (!response.ok) {
-      const errTxt = await response.text();
-      console.error('Errore chiamata Gemini API:', response.status, errTxt);
-      throw new Error(`Errore API Gemini (${response.status}): ${errTxt}`);
+    // Tentativo sequenziale sui modelli con fallback automatico su 429 / 503
+    for (const model of this.MODELS) {
+      try {
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (response.ok) {
+          const json = await response.json();
+          const candidate = json.candidates?.[0];
+          const text = candidate?.content?.parts?.[0]?.text;
+          if (text && text.trim().length > 0) {
+            return text.trim();
+          }
+        } else {
+          const errTxt = await response.text();
+          console.warn(`Modello ${model} ha risposto con codice ${response.status}:`, errTxt);
+          lastError = new Error(`Errore API Gemini (${response.status}): ${errTxt}`);
+          // Continua il loop e tenta il modello successivo di fallback
+        }
+      } catch (err: any) {
+        console.warn(`Errore chiamata modello ${model}:`, err);
+        lastError = err;
+      }
     }
 
-    const json = await response.json();
-    const candidate = json.candidates?.[0];
-    const text = candidate?.content?.parts?.[0]?.text;
+    throw lastError || new Error('Nessun modello Gemini ha risposto con successo.');
+  }
 
-    if (!text) {
-      throw new Error('Nessun testo generato da Gemini.');
+  /**
+   * Pulisce e trasforma gli errori tecnici (es. 429 Quota Exceeded) in messaggi chiari
+   */
+  formatUserError(err: any): string {
+    const msg = (err?.message || String(err)).toLowerCase();
+    if (
+      msg.includes('429') ||
+      msg.includes('quota') ||
+      msg.includes('resource_exhausted')
+    ) {
+      return '⚠️ Limite richieste AI raggiunto per oggi. Il Mister sta ricaricando le pile, riprova tra qualche ora!';
     }
-
-    return text.trim();
+    if (
+      msg.includes('503') ||
+      msg.includes('high demand') ||
+      msg.includes('overloaded')
+    ) {
+      return '⚠️ I server Google AI sono al momento occupati. Riprova tra un minuto!';
+    }
+    return '⚠️ Errore temporaneo durante la generazione AI. Riprova tra poco!';
   }
 
   // =========================================================================

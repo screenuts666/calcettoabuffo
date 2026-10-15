@@ -241,9 +241,9 @@ export class ConfrontoPage implements OnInit {
     } catch (err: any) {
       console.error(err);
       const toast = await this.toastController.create({
-        message: 'Errore generazione verdetto: ' + (err.message || err),
-        duration: 3500,
-        color: 'danger',
+        message: this.geminiService.formatUserError(err),
+        duration: 4000,
+        color: 'warning',
         position: 'bottom',
       });
       await toast.present();
