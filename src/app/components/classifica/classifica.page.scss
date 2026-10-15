@@ -13,10 +13,10 @@
 // ==========================================
 .season-bar {
   display: flex;
-  background: var(--ion-color-step-50, #181818);
+  background: var(--app-surface-subtle);
   padding: 6px 10px;
   gap: 8px;
-  border-bottom: 1px solid var(--ion-color-step-150, #2c2c2c);
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .season-btn {
@@ -27,23 +27,24 @@
   gap: 6px;
   padding: 7px 10px;
   border-radius: 20px;
-  background: var(--ion-color-step-100, #222);
-  border: 1px solid var(--ion-color-step-200, #333);
-  color: var(--ion-color-medium, #8e8e93);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   ion-icon {
     font-size: 0.95rem;
   }
 
   &.active {
-    background: rgba(45, 211, 111, 0.16);
-    border-color: var(--ion-color-success, #2dd36f);
-    color: var(--ion-color-success, #2dd36f);
-    box-shadow: 0 2px 8px rgba(45, 211, 111, 0.2);
+    background: rgba(37, 211, 102, 0.16);
+    border-color: var(--ion-color-success);
+    color: var(--ion-color-success);
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
   }
 
   &:active {
@@ -57,10 +58,10 @@
 .sort-bar {
   display: flex;
   align-items: center;
-  background: var(--ion-color-step-100, #202020);
+  background: var(--app-surface-subtle);
   padding: 8px 10px;
   gap: 8px;
-  border-bottom: 1px solid var(--ion-color-step-150, #2c2c2c);
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .sort-hint {
@@ -68,7 +69,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--ion-color-medium, #8e8e93);
+  color: var(--app-text-muted);
   white-space: nowrap;
 }
 
@@ -90,9 +91,9 @@
   gap: 5px;
   padding: 5px 11px;
   border-radius: 16px;
-  background: var(--ion-color-step-150, #2a2a2a);
-  border: 1px solid var(--ion-color-step-250, #3a3a3a);
-  color: var(--ion-color-medium, #a0a0a0);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
   font-size: 0.75rem;
   font-weight: 600;
   white-space: nowrap;
@@ -104,11 +105,11 @@
   }
 
   &.active {
-    background: #fff;
+    background: var(--ion-color-success);
     color: #000;
-    border-color: #fff;
+    border-color: var(--ion-color-success);
     font-weight: 800;
-    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.25);
+    box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
 
     ion-icon {
       color: #000;
@@ -149,13 +150,13 @@
 .stats-sub-row {
   white-space: nowrap;
   font-size: 0.8rem;
-  color: var(--ion-color-medium, #888);
+  color: var(--app-text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0;
 
   b {
-    color: var(--ion-text-color, #fff);
+    color: var(--app-text-primary);
   }
 }
 

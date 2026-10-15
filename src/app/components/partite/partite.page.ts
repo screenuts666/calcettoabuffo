@@ -26,10 +26,12 @@ import {
   IonListHeader,
   IonLabel,
   IonSpinner,
+  IonButtons,
 } from '@ionic/angular/standalone';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
   Firestore,
   collection,
@@ -103,6 +105,8 @@ import {
     IonItemOptions,
     IonItemOption,
     IonSpinner,
+    IonButtons,
+    ThemeToggleComponent,
   ],
 })
 export class PartitePage {

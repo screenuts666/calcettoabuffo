@@ -13,9 +13,9 @@
   justify-content: center;
   align-items: center;
   gap: 10px;
-  background: #1a1a1a;
+  background: var(--app-surface-subtle);
   padding: 15px 15px 32px 15px; // Padding extra sotto per far spazio alla durata
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--app-border-color);
 
   .scoreboard-row {
     display: flex;
@@ -113,6 +113,7 @@
     font-weight: 900;
     font-size: 1.8rem;
     margin: 0;
+    color: var(--app-text-primary);
   }
   .subtitle {
     color: var(--ion-color-medium);
@@ -166,11 +167,11 @@
 // ==========================================
 .player-card {
   margin: 12px 15px;
-  background: #121212;
+  background: var(--app-card-bg);
   border-radius: 20px;
   padding: 14px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: var(--app-card-shadow);
+  border: 1px solid var(--app-card-border);
 
   .card-main {
     display: flex;
@@ -182,7 +183,7 @@
 ion-avatar {
   width: 56px;
   height: 56px;
-  border: 2px solid #333;
+  border: 2px solid var(--app-border-color);
 }
 
 .player-info {
@@ -199,7 +200,7 @@ ion-avatar {
     font-size: 1.1rem;
     font-weight: 700;
     margin: 0;
-    color: #fff;
+    color: var(--app-text-primary);
     word-break: break-word;
   }
 
@@ -255,12 +256,12 @@ ion-avatar {
     width: 50px;
     height: 50px;
     border-radius: 14px;
-    border: 2px solid #333;
+    border: 2px solid var(--app-border-color);
     text-align: center;
     font-size: 1.3rem;
     font-weight: 900;
-    background: #1a1a1a;
-    color: #fff;
+    background: var(--app-surface-subtle);
+    color: var(--app-text-primary);
     outline: none;
     &.voto-alto {
       border-color: #2dd36f;

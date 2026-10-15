@@ -23,9 +23,11 @@ import {
   IonFab,
   IonModal,
   IonFabButton,
+  IonButtons,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
   Firestore,
   collection,
@@ -76,6 +78,8 @@ import { AuthService } from 'src/app/services/auth.service';
     IonFabButton,
     IonModal,
     FormGiocatoreComponent,
+    IonButtons,
+    ThemeToggleComponent,
   ],
 })
 export class RosaPage {

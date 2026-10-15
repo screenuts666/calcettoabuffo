@@ -1,6 +1,9 @@
-<ion-header>
-  <ion-toolbar color="dark">
+<ion-header class="ion-no-border">
+  <ion-toolbar>
     <ion-title>Partite</ion-title>
+    <ion-buttons slot="end">
+      <app-theme-toggle></app-theme-toggle>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -8,44 +11,58 @@
   <!-- SELETTORE STAGIONE -->
   <div class="season-filter-bar">
     @for (stg of stagioniList(); track stg.id) {
-      <button
-        type="button"
-        class="season-filter-chip"
-        [class.active]="stagioneSelezionata() === stg.id"
-        (click)="selezionaStagione(stg.id)"
-      >
-        <ion-icon [name]="stg.icon"></ion-icon>
-        <span class="season-name">{{ stg.label }}</span>
-        <span class="season-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
-      </button>
+    <button
+      type="button"
+      class="season-filter-chip"
+      [class.active]="stagioneSelezionata() === stg.id"
+      (click)="selezionaStagione(stg.id)"
+    >
+      <ion-icon [name]="stg.icon"></ion-icon>
+      <span class="season-name">{{ stg.label }}</span>
+      <span class="season-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
+    </button>
     }
   </div>
 
   @if (stagioneSelezionata() === PREVIOUS_SEASON) {
-    <div class="archive-season-banner">
-      <ion-icon name="time-outline"></ion-icon>
-      <div class="banner-content">
-        <span class="banner-title">Archivio Stagione {{ PREVIOUS_SEASON }}</span>
-        <span class="banner-sub">Stagione conclusa • Solo consultazione storica</span>
-      </div>
+  <div class="archive-season-banner">
+    <ion-icon name="time-outline"></ion-icon>
+    <div class="banner-content">
+      <span class="banner-title">Archivio Stagione {{ PREVIOUS_SEASON }}</span>
+      <span class="banner-sub"
+        >Stagione conclusa • Solo consultazione storica</span
+      >
     </div>
-  }
-
-  @if (partite() === undefined) {
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-      <ion-spinner name="crescent" color="success"></ion-spinner>
-      <p style="color: var(--ion-color-medium); margin-top: 10px;">Caricamento partite in corso...</p>
-    </div>
-  } @else if ((partiteInCorso().length + partitePronte().length + partiteDaVotare().length + partiteArchiviate().length) === 0) {
-    <div class="ion-padding ion-text-center empty-season-box">
-      <ion-icon name="calendar-clear-outline" style="font-size: 2.5rem; color: var(--ion-color-medium);"></ion-icon>
-      <p style="margin-top: 8px; color: var(--ion-color-medium);">
-        Nessuna partita trovata per questa selezione.
-        @if (isAdmin && stagioneSelezionata() !== PREVIOUS_SEASON) {
-          <br />Crea una nuova partita con il <b>+</b> in basso a destra.
-        }
-      </p>
-    </div>
+  </div>
+  } @if (partite() === undefined) {
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      width: 100%;
+    "
+  >
+    <ion-spinner name="crescent" color="success"></ion-spinner>
+    <p style="color: var(--ion-color-medium); margin-top: 10px">
+      Caricamento partite in corso...
+    </p>
+  </div>
+  } @else if ((partiteInCorso().length + partitePronte().length +
+  partiteDaVotare().length + partiteArchiviate().length) === 0) {
+  <div class="ion-padding ion-text-center empty-season-box">
+    <ion-icon
+      name="calendar-clear-outline"
+      style="font-size: 2.5rem; color: var(--ion-color-medium)"
+    ></ion-icon>
+    <p style="margin-top: 8px; color: var(--ion-color-medium)">
+      Nessuna partita trovata per questa selezione. @if (isAdmin &&
+      stagioneSelezionata() !== PREVIOUS_SEASON) {
+      <br />Crea una nuova partita con il <b>+</b> in basso a destra. }
+    </p>
+  </div>
   } @if (partiteInCorso().length > 0) {
   <ion-list-header>
     <ion-label>In Corso</ion-label>
@@ -76,15 +93,6 @@
             </div>
 
             <div class="match-header-right">
-              <button
-                class="share-icon-btn"
-                type="button"
-                (click)="$event.stopPropagation(); apriCondivisione(m)"
-                title="Condividi su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-              </button>
-
               <div class="status-badge" [ngClass]="badgeClass(m)">
                 <ion-icon [name]="badgeIcon(m)"></ion-icon>
                 {{ badgeLabel(m) }}
@@ -101,21 +109,21 @@
           </div>
 
           @if (m.fotoUrl) {
-            <div
-              class="match-photo-banner"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
-              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
-              <div class="photo-banner-overlay">
-                <div class="photo-pill-badge">
-                  <ion-icon name="image"></ion-icon>
-                  <span>Foto di Gruppo</span>
-                </div>
-                <div class="expand-circle">
-                  <ion-icon name="expand-outline"></ion-icon>
-                </div>
+          <div
+            class="match-photo-banner"
+            (click)="$event.stopPropagation(); apriFotoViewer(m)"
+          >
+            <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+            <div class="photo-banner-overlay">
+              <div class="photo-pill-badge">
+                <ion-icon name="image"></ion-icon>
+                <span>Foto di Gruppo</span>
+              </div>
+              <div class="expand-circle">
+                <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
           }
 
           <div class="match-footer">
@@ -128,13 +136,13 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.fotoUrl) {
-              <div
-                class="info-pill photo-pill"
-                (click)="$event.stopPropagation(); apriFotoViewer(m)"
-              >
-                <ion-icon name="image-outline"></ion-icon>
-                <span>Foto</span>
-              </div>
+            <div
+              class="info-pill photo-pill"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Foto</span>
+            </div>
             }
             <div
               class="info-pill share-pill"
@@ -190,15 +198,6 @@
             </div>
 
             <div class="match-header-right">
-              <button
-                class="share-icon-btn"
-                type="button"
-                (click)="$event.stopPropagation(); apriCondivisione(m)"
-                title="Condividi su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-              </button>
-
               <div class="status-badge" [ngClass]="badgeClass(m)">
                 <ion-icon [name]="badgeIcon(m)"></ion-icon>
                 {{ badgeLabel(m) }}
@@ -215,21 +214,21 @@
           </div>
 
           @if (m.fotoUrl) {
-            <div
-              class="match-photo-banner"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
-              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
-              <div class="photo-banner-overlay">
-                <div class="photo-pill-badge">
-                  <ion-icon name="image"></ion-icon>
-                  <span>Foto di Gruppo</span>
-                </div>
-                <div class="expand-circle">
-                  <ion-icon name="expand-outline"></ion-icon>
-                </div>
+          <div
+            class="match-photo-banner"
+            (click)="$event.stopPropagation(); apriFotoViewer(m)"
+          >
+            <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+            <div class="photo-banner-overlay">
+              <div class="photo-pill-badge">
+                <ion-icon name="image"></ion-icon>
+                <span>Foto di Gruppo</span>
+              </div>
+              <div class="expand-circle">
+                <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
           }
 
           <div class="match-footer">
@@ -242,13 +241,13 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.fotoUrl) {
-              <div
-                class="info-pill photo-pill"
-                (click)="$event.stopPropagation(); apriFotoViewer(m)"
-              >
-                <ion-icon name="image-outline"></ion-icon>
-                <span>Foto</span>
-              </div>
+            <div
+              class="info-pill photo-pill"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Foto</span>
+            </div>
             }
             <div
               class="info-pill share-pill"
@@ -304,15 +303,6 @@
             </div>
 
             <div class="match-header-right">
-              <button
-                class="share-icon-btn"
-                type="button"
-                (click)="$event.stopPropagation(); apriCondivisione(m)"
-                title="Condividi su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-              </button>
-
               <div class="status-badge" [ngClass]="badgeClass(m)">
                 <ion-icon [name]="badgeIcon(m)"></ion-icon>
                 {{ badgeLabel(m) }}
@@ -329,21 +319,21 @@
           </div>
 
           @if (m.fotoUrl) {
-            <div
-              class="match-photo-banner"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
-              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
-              <div class="photo-banner-overlay">
-                <div class="photo-pill-badge">
-                  <ion-icon name="image"></ion-icon>
-                  <span>Foto di Gruppo</span>
-                </div>
-                <div class="expand-circle">
-                  <ion-icon name="expand-outline"></ion-icon>
-                </div>
+          <div
+            class="match-photo-banner"
+            (click)="$event.stopPropagation(); apriFotoViewer(m)"
+          >
+            <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+            <div class="photo-banner-overlay">
+              <div class="photo-pill-badge">
+                <ion-icon name="image"></ion-icon>
+                <span>Foto di Gruppo</span>
+              </div>
+              <div class="expand-circle">
+                <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
           }
 
           <div class="match-footer">
@@ -356,13 +346,13 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.fotoUrl) {
-              <div
-                class="info-pill photo-pill"
-                (click)="$event.stopPropagation(); apriFotoViewer(m)"
-              >
-                <ion-icon name="image-outline"></ion-icon>
-                <span>Foto</span>
-              </div>
+            <div
+              class="info-pill photo-pill"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Foto</span>
+            </div>
             }
             <div
               class="info-pill share-pill"
@@ -419,15 +409,6 @@
             </div>
 
             <div class="match-header-right">
-              <button
-                class="share-icon-btn"
-                type="button"
-                (click)="$event.stopPropagation(); apriCondivisione(m)"
-                title="Condividi su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-              </button>
-
               <div class="status-badge" [ngClass]="badgeClass(m)">
                 <ion-icon [name]="badgeIcon(m)"></ion-icon>
                 {{ badgeLabel(m) }}
@@ -444,21 +425,21 @@
           </div>
 
           @if (m.fotoUrl) {
-            <div
-              class="match-photo-banner"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
-              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
-              <div class="photo-banner-overlay">
-                <div class="photo-pill-badge">
-                  <ion-icon name="image"></ion-icon>
-                  <span>Foto di Gruppo</span>
-                </div>
-                <div class="expand-circle">
-                  <ion-icon name="expand-outline"></ion-icon>
-                </div>
+          <div
+            class="match-photo-banner"
+            (click)="$event.stopPropagation(); apriFotoViewer(m)"
+          >
+            <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+            <div class="photo-banner-overlay">
+              <div class="photo-pill-badge">
+                <ion-icon name="image"></ion-icon>
+                <span>Foto di Gruppo</span>
+              </div>
+              <div class="expand-circle">
+                <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
           }
 
           <div class="match-footer">
@@ -471,13 +452,13 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.fotoUrl) {
-              <div
-                class="info-pill photo-pill"
-                (click)="$event.stopPropagation(); apriFotoViewer(m)"
-              >
-                <ion-icon name="image-outline"></ion-icon>
-                <span>Foto</span>
-              </div>
+            <div
+              class="info-pill photo-pill"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Foto</span>
+            </div>
             }
             <div
               class="info-pill share-pill"

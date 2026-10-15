@@ -1,5 +1,5 @@
-<ion-header>
-  <ion-toolbar color="dark">
+<ion-header class="ion-no-border">
+  <ion-toolbar>
     <ion-title (click)="secretTitleClick()">
       Classifica
       @if (isAdmin()) {
@@ -12,6 +12,7 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <app-theme-toggle></app-theme-toggle>
       <ion-button
         class="whatsapp-btn"
         (click)="condividiSuWhatsApp()"

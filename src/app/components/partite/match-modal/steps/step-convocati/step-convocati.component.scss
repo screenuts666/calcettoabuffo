@@ -13,7 +13,7 @@
       margin: 0;
       font-weight: 800;
       font-size: 1.5rem;
-      color: #fff;
+      color: var(--app-text-primary);
     }
   }
 }
@@ -29,19 +29,19 @@
   box-shadow: 0 4px 12px rgba(45, 211, 111, 0.3);
 }
 
-// 🔍 SEARCHBAR NERA PROFONDO
+// 🔍 SEARCHBAR ADATTIVA
 .custom-searchbar {
-  --background: #121212; // Nero quasi totale
-  --color: #fff;
-  --placeholder-color: #666;
+  --background: var(--app-surface-subtle);
+  --color: var(--app-text-primary);
+  --placeholder-color: var(--app-text-muted);
   --icon-color: var(--ion-color-success);
   --border-radius: 12px;
   padding: 0;
   margin-top: 5px;
-  border: 1px solid #333; // Un sottile bordo per non farla sparire
+  border: 1px solid var(--app-card-border);
 
   &::part(search-icon) {
-    transform: scale(1.1); // Ingrandisce un filo la lente
+    transform: scale(1.1);
   }
 }
 
@@ -49,7 +49,7 @@
 .green-check {
   --checkbox-background-checked: var(--ion-color-success);
   --border-color-checked: var(--ion-color-success);
-  --checkmark-color: #000; // Segno di spunta nero su fondo verde
+  --checkmark-color: #000;
 }
 
 // Chips Orizzontali
@@ -58,8 +58,8 @@
   overflow-x: auto;
   padding: 15px;
   gap: 15px;
-  background: #0a0a0a; // Più scuro della lista
-  border-bottom: 1px solid #222;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-border-color);
   &::-webkit-scrollbar {
     display: none;
   }
@@ -94,7 +94,7 @@
     }
     .chip-name {
       font-size: 0.7rem;
-      color: #aaa;
+      color: var(--app-text-secondary);
       margin-top: 4px;
       font-weight: 600;
     }
@@ -105,13 +105,13 @@
   background: transparent;
   .player-item {
     --background: transparent;
-    --border-color: #222;
+    --border-color: var(--app-border-color);
     h3 {
       font-weight: 700;
-      color: #fff;
+      color: var(--app-text-primary);
     }
     p {
-      color: #666;
+      color: var(--app-text-secondary);
       font-style: italic;
     }
   }

@@ -41,11 +41,12 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: var(--ion-color-step-50, #1e1e1e);
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
   border-radius: 12px;
   padding: 10px 5px;
   margin-bottom: 20px;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .info-block {
@@ -69,7 +70,7 @@
 .info-divider {
   width: 1px;
   height: 30px;
-  background: var(--ion-color-step-150, #333);
+  background: var(--app-border-color);
 }
 
 // ===============================
@@ -127,11 +128,11 @@
 }
 
 .card-dark {
-  background: var(--ion-color-step-100, #222);
-  border: 1px solid var(--ion-color-step-200, #444);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
 }
 .text-normal {
-  color: var(--ion-text-color);
+  color: var(--app-text-primary);
 }
 
 

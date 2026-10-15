@@ -1,2 +1,96 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+// =============================================================================
+// CALCETTO A BUFFONE - DESIGN SYSTEM TOKENS (LIGHT & DARK THEMES)
+// =============================================================================
+
+:root {
+  // --- Colori Primari e Accenti ---
+  --ion-color-success: #25d366;
+  --ion-color-success-rgb: 37, 211, 102;
+  --ion-color-success-contrast: #000000;
+  --ion-color-success-contrast-rgb: 0, 0, 0;
+  --ion-color-success-shade: #20bd5a;
+  --ion-color-success-tint: #3bd775;
+
+  // --- Modalità Chiara (Default / Light Mode) ---
+  --app-bg: #f4f6fa;
+  --app-card-bg: #ffffff;
+  --app-card-border: rgba(0, 0, 0, 0.08);
+  --app-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --app-surface-subtle: #edf1f7;
+  --app-surface-hover: #e4e9f2;
+  --app-text-primary: #121826;
+  --app-text-secondary: #586174;
+  --app-text-muted: #8a94a6;
+  --app-border-color: rgba(0, 0, 0, 0.09);
+  --app-divider: rgba(0, 0, 0, 0.06);
+  --app-toolbar-bg: #ffffff;
+  --app-toolbar-border: rgba(0, 0, 0, 0.08);
+
+  --ion-background-color: #f4f6fa;
+  --ion-background-color-rgb: 244, 246, 250;
+  --ion-text-color: #121826;
+  --ion-text-color-rgb: 18, 24, 38;
+  --ion-item-background: transparent;
+  --ion-toolbar-background: #ffffff;
+  --ion-tab-bar-background: #ffffff;
+  --ion-card-background: #ffffff;
+}
+
+// --- Modalità Scura (Dark Mode via .ion-palette-dark, .dark o prefers-color-scheme) ---
+.ion-palette-dark,
+:root.ion-palette-dark,
+body.ion-palette-dark,
+.dark,
+:root.dark,
+body.dark,
+[data-theme="dark"] {
+  --app-bg: #0d0f14;
+  --app-card-bg: #151821;
+  --app-card-border: rgba(255, 255, 255, 0.08);
+  --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+  --app-surface-subtle: #1a1e2a;
+  --app-surface-hover: #222736;
+  --app-text-primary: #ffffff;
+  --app-text-secondary: #9ea5b8;
+  --app-text-muted: #6b7385;
+  --app-border-color: rgba(255, 255, 255, 0.08);
+  --app-divider: rgba(255, 255, 255, 0.06);
+  --app-toolbar-bg: #141720;
+  --app-toolbar-border: rgba(255, 255, 255, 0.06);
+
+  --ion-background-color: #0d0f14;
+  --ion-background-color-rgb: 13, 15, 20;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+  --ion-item-background: transparent;
+  --ion-toolbar-background: #141720;
+  --ion-tab-bar-background: #141720;
+  --ion-card-background: #151821;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light):not([data-theme="light"]):not(.ion-palette-light) {
+    --app-bg: #0d0f14;
+    --app-card-bg: #151821;
+    --app-card-border: rgba(255, 255, 255, 0.08);
+    --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    --app-surface-subtle: #1a1e2a;
+    --app-surface-hover: #222736;
+    --app-text-primary: #ffffff;
+    --app-text-secondary: #9ea5b8;
+    --app-text-muted: #6b7385;
+    --app-border-color: rgba(255, 255, 255, 0.08);
+    --app-divider: rgba(255, 255, 255, 0.06);
+    --app-toolbar-bg: #141720;
+    --app-toolbar-border: rgba(255, 255, 255, 0.06);
+
+    --ion-background-color: #0d0f14;
+    --ion-background-color-rgb: 13, 15, 20;
+    --ion-text-color: #ffffff;
+    --ion-text-color-rgb: 255, 255, 255;
+    --ion-item-background: transparent;
+    --ion-toolbar-background: #141720;
+    --ion-tab-bar-background: #141720;
+    --ion-card-background: #151821;
+  }
+}

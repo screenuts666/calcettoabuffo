@@ -1,3 +1,18 @@
+ion-header ion-toolbar {
+  --background: #0f1117;
+  --color: #ffffff;
+  --border-color: rgba(255, 255, 255, 0.08);
+
+  ion-title {
+    color: #ffffff;
+    font-weight: 700;
+  }
+
+  ion-button {
+    --color: #dce0ed;
+  }
+}
+
 .viewer-content {
   --background: #000;
   display: flex;

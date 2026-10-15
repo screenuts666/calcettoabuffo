@@ -1,8 +1,8 @@
-<ion-header>
-  <ion-toolbar color="dark">
+<ion-header class="ion-no-border">
+  <ion-toolbar>
     <ion-title>{{ giocatore ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
     <ion-buttons slot="end">
-      <ion-button color="light" (click)="close.emit()">Annulla</ion-button>
+      <ion-button (click)="close.emit()">Annulla</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -24,7 +24,9 @@
       hidden
       accept="image/*"
     />
-    <p class="photo-hint">Tocca l'avatar per cambiare foto</p>
+    @if (isAdmin) {
+      <p class="photo-hint">Tocca l'avatar per cambiare foto</p>
+    }
   </div>
 
   <div class="form-list">
@@ -132,7 +134,7 @@
     {{ giocatore ? "Aggiorna Dati" : "Salva Campione" }}
   </ion-button>
 
-  @if (isAdmin) {
+  @if (!isAdmin) {
     <ion-button expand="block" color="medium" disabled>
       Solo visualizzazione
     </ion-button>

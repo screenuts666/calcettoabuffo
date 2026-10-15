@@ -27,6 +27,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
+import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { addIcons } from 'ionicons';
 import {
   flame,
@@ -107,6 +108,7 @@ export interface GiocatoreConPunti extends Giocatore {
     IonButton,
     SchedaGiocatoreComponent,
     IonIcon,
+    ThemeToggleComponent,
   ],
 })
 export class ClassificaPage {

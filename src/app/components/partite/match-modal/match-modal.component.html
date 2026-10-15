@@ -1,13 +1,13 @@
-<ion-header>
-  <ion-toolbar color="dark">
+<ion-header class="ion-no-border">
+  <ion-toolbar>
     <ion-buttons slot="start">
       @if (state.step() === "dettagli" && !state.matchConcluso()) {
-        <ion-button color="light" (click)="state.step.set('convocati')"
+        <ion-button (click)="state.step.set('convocati')"
           ><ion-icon name="arrow-back"></ion-icon
         ></ion-button>
       }
       @if (state.step() === "squadre" && !state.matchConcluso()) {
-        <ion-button color="light" (click)="state.step.set('dettagli')"
+        <ion-button (click)="state.step.set('dettagli')"
           ><ion-icon name="arrow-back"></ion-icon
         ></ion-button>
       }
@@ -16,7 +16,7 @@
         !state.isTimerRunning() &&
         !state.matchConcluso()
       ) {
-        <ion-button color="light" (click)="confermaTornaASquadre()"
+        <ion-button (click)="confermaTornaASquadre()"
           ><ion-icon name="arrow-back"></ion-icon
         ></ion-button>
       }
@@ -31,7 +31,7 @@
     }}</ion-title>
 
     <ion-buttons slot="end">
-      <ion-button color="light" (click)="chiudi()"
+      <ion-button (click)="chiudi()"
         ><ion-icon name="close"></ion-icon
       ></ion-button>
     </ion-buttons>

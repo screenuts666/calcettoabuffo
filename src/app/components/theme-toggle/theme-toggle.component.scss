@@ -1,0 +1,18 @@
+.theme-toggle-btn {
+  --color: var(--app-text-primary);
+  font-size: 1.25rem;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  margin-right: 4px;
+
+  &:hover {
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  ion-icon {
+    font-size: 1.35rem;
+  }
+}

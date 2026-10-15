@@ -3,11 +3,11 @@
 }
 
 .photo-card {
-  background: var(--ion-color-step-100, #1e1e1e);
+  background: var(--app-card-bg);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid var(--ion-color-step-200, #333);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
@@ -88,8 +88,8 @@
   display: flex;
   padding: 10px 14px;
   gap: 10px;
-  background: var(--ion-color-step-100, #1e1e1e);
-  border-top: 1px solid var(--ion-color-step-150, #2c2c2c);
+  background: var(--app-surface-subtle);
+  border-top: 1px solid var(--app-border-color);
 }
 
 .action-btn {
@@ -107,11 +107,11 @@
   transition: all 0.2s ease;
 
   &.change-btn {
-    background: var(--ion-color-step-200, #333);
-    color: #fff;
+    background: var(--app-card-border);
+    color: var(--app-text-primary);
 
     &:active {
-      background: var(--ion-color-step-300, #444);
+      background: var(--app-border-color);
     }
 
     ion-icon {
@@ -187,7 +187,7 @@
   margin: 0 0 4px 0;
   font-size: 0.98rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--app-text-primary);
 }
 
 .upload-desc {

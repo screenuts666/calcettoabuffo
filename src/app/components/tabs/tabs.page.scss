@@ -1,6 +1,8 @@
 ion-tab-bar {
   --color-selected: var(--ion-color-success);
-  --color: var(--ion-color-medium);
-  border-top: 1px solid #111;
-  --background: var(--ion-color-dark);
+  --color: var(--app-text-muted);
+  border-top: 1px solid var(--app-toolbar-border);
+  --background: var(--app-toolbar-bg);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }

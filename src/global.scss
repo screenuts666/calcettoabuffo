@@ -1,12 +1,6 @@
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
 /* Core CSS required for Ionic components to work properly */
@@ -25,13 +19,68 @@
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* Ionic Dark Mode (Class-based per pieno controllo con selettore) */
+@import '@ionic/angular/css/palettes/dark.class.css';
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* Custom Theme Tokens */
+@import './theme/variables.scss';
+
+/* =============================================================================
+ * UNIFORM THEME OVERRIDES (No Color Clashing in Any Mode)
+ * ============================================================================= */
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--app-bg) !important;
+  color: var(--app-text-primary) !important;
+}
+
+ion-content {
+  --background: var(--app-bg) !important;
+  --color: var(--app-text-primary) !important;
+  background: var(--app-bg) !important;
+}
+
+ion-toolbar {
+  --background: var(--app-toolbar-bg);
+  --color: var(--app-text-primary);
+  --border-color: var(--app-toolbar-border);
+
+  ion-title {
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: var(--app-text-primary);
+  }
+}
+
+ion-tab-bar {
+  --background: var(--app-toolbar-bg);
+  --border-color: var(--app-toolbar-border);
+}
+
+ion-list {
+  background: transparent !important;
+  --background: transparent !important;
+}
+
+ion-list-header {
+  --background: transparent !important;
+  background: transparent !important;
+
+  ion-label {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--app-text-secondary) !important;
+  }
+}
+
+ion-item {
+  --background: transparent !important;
+  --color: var(--app-text-primary);
+}
+
+/* Modali con bordi arrotondati e sfondi uniformi */
+ion-modal {
+  --background: var(--app-bg);
+}

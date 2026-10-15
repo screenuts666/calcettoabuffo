@@ -2,10 +2,12 @@
 // INPUT ELEGANTI (STILE CARD)
 // ==========================================
 .elegant-input-item {
-  --background: var(--ion-color-step-100, #222222);
+  --background: var(--app-card-bg);
+  --color: var(--app-text-primary);
   --border-radius: 12px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
   padding-top: 5px;
   padding-bottom: 5px;
 
@@ -28,7 +30,7 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 15px 5px;
   padding: 15px 5px;
-  border-bottom: 1px solid var(--ion-color-step-150, #333);
+  border-bottom: 1px solid var(--app-border-color);
   justify-items: center;
 
   .avatar-item {
@@ -71,7 +73,7 @@
     small {
       font-size: 10px;
       font-weight: bold;
-      color: var(--ion-color-step-600, #999);
+      color: var(--app-text-secondary);
       display: block;
       margin-top: 6px;
       white-space: nowrap;
@@ -117,7 +119,7 @@
     p {
       margin: 0;
       font-size: 0.8rem;
-      color: #e0e0e0;
+      color: var(--app-text-primary);
       line-height: 1.35;
     }
   }
