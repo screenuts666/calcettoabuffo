@@ -394,31 +394,8 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- 8. FOTO DI GRUPPO DELLA PARTITA                                          -->
+  <!-- 8. FOTO DI GRUPPO DELLA PARTITA (GESTIONE & ANTEPRIMA)                    -->
   <!-- ========================================================================= -->
-  @if (state.fotoUrl()) {
-    <div class="match-photo-showcase">
-      <div class="photo-banner-header">
-        <div class="photo-header-left">
-          <ion-icon name="image"></ion-icon>
-          <span>Foto di Gruppo Ufficiale</span>
-        </div>
-        <button type="button" class="expand-btn" (click)="apriFotoViewer()">
-          <ion-icon name="expand-outline"></ion-icon>
-          <span>Ingrandisci</span>
-        </button>
-      </div>
-
-      <div class="photo-banner-frame" (click)="apriFotoViewer()">
-        <img [src]="state.fotoUrl()!" alt="Foto della partita" loading="lazy" />
-        <div class="photo-zoom-overlay">
-          <ion-icon name="expand-outline"></ion-icon>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Componente di caricamento foto (se admin o se non c'è ancora foto) -->
   <app-match-photo></app-match-photo>
 
   <!-- ========================================================================= -->

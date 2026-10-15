@@ -51,7 +51,6 @@ import { MatchStateService } from '../../match-state.service';
 import { MatchPhotoComponent } from '../../../match-photo/match-photo.component';
 import { StatsEngineService } from '../../../../../services/stats-engine.service';
 import { MatchShareModalComponent } from '../../../match-share-modal/match-share-modal.component';
-import { FotoViewerModalComponent } from '../../../foto-viewer-modal/foto-viewer-modal.component';
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
 import { formatAiMarkdown } from '../../../../../utils/ai-format.utils';
@@ -280,21 +279,6 @@ export class StepPrestazioniComponent {
     await modal.present();
   }
 
-  async apriFotoViewer() {
-    const fotoUrl = this.state.fotoUrl();
-    if (!fotoUrl) return;
-
-    const modal = await this.modalCtrl.create({
-      component: FotoViewerModalComponent,
-      componentProps: {
-        fotoUrl,
-        luogo: this.state.luogo(),
-        dataPartita: this.state.dataPartita(),
-        risultato: `Bianchi ${this.state.scoreA()} - ${this.state.scoreB()} Neri`,
-      },
-    });
-    await modal.present();
-  }
 
   aggiornaVoto(giocatore: any, event: Event) {
     const input = event.target as HTMLInputElement | null;
