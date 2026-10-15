@@ -171,53 +171,68 @@ export class MatchShareModalComponent implements OnInit {
 
   /**
    * Scarica il file dell'immagine da Firebase Storage (usando getBlob dell'SDK per evitare CORS)
-   * o con fallback su fetch HTTP.
+   * con timeout di sicurezza di 4.5s per evitare blocchi della UI.
    */
   private async ottieniFileFoto(): Promise<File | null> {
     if (!this.partita.fotoUrl && !this.partita.fotoPath) return null;
 
-    try {
-      const storageRef = ref(
-        this.storage,
-        this.partita.fotoPath || this.partita.fotoUrl!,
-      );
-      const blob = await getBlob(storageRef);
-      return new File(
-        [blob],
-        `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
-        {
-          type: blob.type || 'image/jpeg',
-        },
-      );
-    } catch (err) {
-      console.warn('getBlob fallito, provo fallback fetch:', err);
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), 4500),
+    );
+
+    const downloadPromise = (async (): Promise<File | null> => {
       try {
-        if (this.partita.fotoUrl) {
-          const resp = await fetch(this.partita.fotoUrl);
-          const blob = await resp.blob();
-          return new File(
-            [blob],
-            `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
-            {
-              type: blob.type || 'image/jpeg',
-            },
-          );
+        const storageRef = ref(
+          this.storage,
+          this.partita.fotoPath || this.partita.fotoUrl!,
+        );
+        const blob = await getBlob(storageRef);
+        return new File(
+          [blob],
+          `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
+          {
+            type: blob.type || 'image/jpeg',
+          },
+        );
+      } catch (err) {
+        console.warn('getBlob fallito, provo fallback fetch:', err);
+        try {
+          if (this.partita.fotoUrl) {
+            const resp = await fetch(this.partita.fotoUrl);
+            if (!resp.ok) return null;
+            const blob = await resp.blob();
+            return new File(
+              [blob],
+              `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
+              {
+                type: blob.type || 'image/jpeg',
+              },
+            );
+          }
+        } catch (e2) {
+          console.warn('Fallback fetch fallito:', e2);
         }
-      } catch (e2) {
-        console.warn('Fallback fetch fallito:', e2);
       }
-    }
-    return null;
+      return null;
+    })();
+
+    return Promise.race([downloadPromise, timeoutPromise]);
   }
 
   /**
    * Invia su WhatsApp:
-   * Su mobile con foto inclusa, apre il selettore di condivisione nativo (Web Share API)
-   * allegando il file dell'immagine e impostando il report come didascalia (caption).
-   * Altrimenti apre wa.me/?text= con il report e il link diretto alla foto.
+   * - Su Mobile con foto inclusa e Web Share API: apre lo share nativo per allegare
+   *   il file immagine reale con didascalia (caption).
+   * - Su Desktop o senza foto: apre direttamente WhatsApp Web / App via URL con il testo
+   *   formattato (e link diretto alla foto se attiva).
    */
   async inviaWhatsApp() {
+    const isMobile =
+      typeof navigator !== 'undefined' &&
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
     if (
+      isMobile &&
       this.includeFoto() &&
       (this.partita.fotoUrl || this.partita.fotoPath) &&
       typeof navigator !== 'undefined' &&
