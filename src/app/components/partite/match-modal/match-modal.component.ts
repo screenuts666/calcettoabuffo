@@ -78,6 +78,8 @@ export class MatchModalComponent implements OnInit, OnDestroy {
       this.state.orario.set(this.matchData.orario || '');
       this.state.fotoUrl.set(this.matchData.fotoUrl || null);
       this.state.fotoPath.set(this.matchData.fotoPath || null);
+      this.state.pronosticoAi.set(this.matchData.pronosticoAi || null);
+      this.state.cronacaAi.set(this.matchData.cronacaAi || null);
 
       this.state.scoreA.set(this.matchData.scoreA || 0);
       this.state.scoreB.set(this.matchData.scoreB || 0);

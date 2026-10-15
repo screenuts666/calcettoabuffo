@@ -25,4 +25,6 @@ export interface Partita {
   fotoUrl?: string | null;
   fotoPath?: string | null;
   stagione?: string;
+  pronosticoAi?: string | null;
+  cronacaAi?: string | null;
 }

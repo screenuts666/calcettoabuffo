@@ -104,6 +104,28 @@
           ></ion-icon>
           <ion-label>Link App</ion-label>
         </ion-chip>
+
+        @if (hasCronacaDisponibile()) {
+          <ion-chip
+            [class.chip-active]="includeCronacaAi()"
+            (click)="toggleOption('cronaca')"
+            class="ai-chip"
+          >
+            <ion-icon
+              [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"
+              [color]="includeCronacaAi() ? 'success' : 'medium'"
+            ></ion-icon>
+            <ion-label>🎙️ Cronaca AI</ion-label>
+          </ion-chip>
+        } @else {
+          <ion-chip
+            (click)="generaCronaca()"
+            class="ai-chip generate-chip"
+          >
+            <ion-icon name="sparkles" color="warning"></ion-icon>
+            <ion-label>{{ isGeneratingCronaca() ? 'Generazione...' : '🎙️ + Cronaca AI' }}</ion-label>
+          </ion-chip>
+        }
       </div>
     </div>
 
@@ -154,7 +176,7 @@
         (click)="condividiNativo()"
       >
         <ion-icon name="share-social-outline" slot="start"></ion-icon>
-        <span>Condividi...</span>
+        <span>{{ includeFoto() && (partita.fotoUrl || partita.fotoPath) ? 'Condividi con Foto' : 'Condividi' }}</span>
       </ion-button>
 
       <ion-button

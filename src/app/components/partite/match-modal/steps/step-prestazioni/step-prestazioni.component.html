@@ -1,12 +1,58 @@
 <div class="prestazioni-container">
-  <div class="result-summary">
-    <div class="scoreboard-row">
-      <div class="team-res white">
-        BIANCHI <span>{{ state.scoreA() }}</span>
+
+  <!-- ========================================================================= -->
+  <!-- 1. TOP BAR / AZIONI RAPIDE                                                -->
+  <!-- ========================================================================= -->
+  <div class="report-top-bar">
+    <div class="match-meta-info">
+      <div class="meta-item">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>{{ state.dataPartita() | date:'dd/MM/yyyy' }}</span>
       </div>
-      <div class="res-divider">:</div>
-      <div class="team-res black">
-        <span>{{ state.scoreB() }}</span> NERI
+      <div class="meta-item">
+        <ion-icon name="location-outline"></ion-icon>
+        <span>{{ state.luogo() }}</span>
+      </div>
+      <div class="meta-item duration-item">
+        <ion-icon name="stopwatch-outline"></ion-icon>
+        <span>{{ state.formatTimer() }}</span>
+      </div>
+    </div>
+
+    <!-- Bottone Rapido Condividi WhatsApp -->
+    <button
+      type="button"
+      class="quick-whatsapp-btn"
+      (click)="apriCondivisione()"
+      title="Condividi Report su WhatsApp"
+    >
+      <ion-icon name="logo-whatsapp"></ion-icon>
+      <span>Condividi</span>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 2. SCOREBOARD HERO                                                        -->
+  <!-- ========================================================================= -->
+  <div class="scoreboard-hero">
+    <div class="scoreboard-main">
+      <div class="team-side white-side">
+        <div class="team-badge-circle white">⚪</div>
+        <div class="team-title">BIANCHI</div>
+        <div class="team-score-num">{{ state.scoreA() }}</div>
+      </div>
+
+      <div class="score-vs-divider">
+        <span class="vs-text">VS</span>
+        <div class="status-pill-small" [class.archived]="state.pagelleInserite()">
+          {{ state.pagelleInserite() ? 'ARCHIVIATA' : 'DA VOTARE' }}
+        </div>
+      </div>
+
+      <div class="team-side black-side">
+        <div class="team-score-num">{{ state.scoreB() }}</div>
+        <div class="team-title">NERI</div>
+        <div class="team-badge-circle black">⚫</div>
       </div>
     </div>
 
@@ -21,140 +67,687 @@
         <span>Modifica Risultato</span>
       </button>
     }
+  </div>
 
-    <div class="mini-duration">
-      <ion-icon name="stopwatch-outline"></ion-icon>
-      Durata: {{ state.formatTimer() }}
+  <!-- ========================================================================= -->
+  <!-- 3. 🔥 BADGE SPECIALE "UPSET!"                                            -->
+  <!-- ========================================================================= -->
+  @if (report().isUpset) {
+    <div class="upset-banner-wrapper">
+      <div class="upset-card">
+        <div class="upset-flame-icon">🔥</div>
+        <div class="upset-content">
+          <div class="upset-title">UPSET CLAMOROSO!</div>
+          <div class="upset-desc">{{ report().upsetDescription }}</div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 4. BARRA SQUADRA FAVORITA PRE-MATCH                                      -->
+  <!-- ========================================================================= -->
+  <div class="report-section-card odds-section-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon name="trending-up-outline" class="section-icon odds-icon"></ion-icon>
+        <span class="section-title">Pronostico Pre-Match</span>
+      </div>
+      <div class="favorite-pill" [class.white-fav]="report().odds.favoriteTeam === 'A'" [class.black-fav]="report().odds.favoriteTeam === 'B'">
+        @if (report().odds.favoriteTeam === 'A') {
+          <span>⚪ Favoriti Bianchi (+{{ report().odds.favoriteMargin }}%)</span>
+        } @else if (report().odds.favoriteTeam === 'B') {
+          <span>⚫ Favoriti Neri (+{{ report().odds.favoriteMargin }}%)</span>
+        } @else {
+          <span>⚖️ Partita Equilibrata</span>
+        }
+      </div>
+    </div>
+
+    <!-- Barra Percentuale Pre-Match -->
+    <div class="odds-bar-container">
+      <div class="odds-labels-row">
+        <span class="odds-label white-label">
+          ⚪ Bianchi <strong>{{ report().odds.probAPercent }}%</strong>
+        </span>
+        <span class="odds-label black-label">
+          <strong>{{ report().odds.probBPercent }}%</strong> Neri ⚫
+        </span>
+      </div>
+
+      <div class="odds-progress-track">
+        <div
+          class="odds-progress-fill white-fill"
+          [style.width.%]="report().odds.probAPercent"
+        ></div>
+        <div
+          class="odds-progress-fill black-fill"
+          [style.width.%]="report().odds.probBPercent"
+        ></div>
+      </div>
+
+      <div class="odds-mmr-sub">
+        <span>MMR medio iniziale: {{ report().odds.mmrA }}</span>
+        <span>MMR medio iniziale: {{ report().odds.mmrB }}</span>
+      </div>
+    </div>
+
+    <!-- PRONOSTICO DEL MISTER (GEMINI AI) -->
+    <div class="ai-pronostico-card">
+      <div class="ai-pronostico-header">
+        <div class="ai-header-tag">
+          <span class="ai-magic-badge">✨ GEMINI AI</span>
+          <span class="ai-title">🧙‍♂️ Il Pronostico del Mister</span>
+        </div>
+        @if (state.pronosticoAi()) {
+          <button
+            type="button"
+            class="ai-refresh-btn"
+            (click)="generaPronostico(true)"
+            [disabled]="isGeneratingPronostico()"
+            title="Rigenera il pronostico con Gemini"
+          >
+            <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico()"></ion-icon>
+            <span>{{ isGeneratingPronostico() ? 'Ricalcolo...' : '🔄 Rigenera AI' }}</span>
+          </button>
+        }
+      </div>
+
+      @if (state.pronosticoAi()) {
+        <div class="ai-pronostico-body">
+          <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(state.pronosticoAi())"></div>
+        </div>
+      } @else {
+        <div class="ai-empty-prompt">
+          <p>Scopri l'analisi del Mister su questa sfida tra Bianchi e Neri!</p>
+          <button
+            type="button"
+            class="ai-generate-main-btn"
+            (click)="generaPronostico(false)"
+            [disabled]="isGeneratingPronostico()"
+          >
+            @if (isGeneratingPronostico()) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Il Mister sta analizzando le rose...</span>
+            } @else {
+              <ion-icon name="sparkles"></ion-icon>
+              <span>🔮 Chiedi il Pronostico al Mister</span>
+            }
+          </button>
+        </div>
+      }
     </div>
   </div>
 
+  <!-- ========================================================================= -->
+  <!-- 5. SPOSTAMENTO PUNTI MMR E PUNTI LEGACY DEL MATCH                        -->
+  <!-- ========================================================================= -->
+  <div class="report-section-card shifts-section-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon name="flash" class="section-icon flash-icon"></ion-icon>
+        <span class="section-title">Impatto Classifica & Valori</span>
+      </div>
+    </div>
+
+    <div class="shifts-grid">
+      <!-- Colonna Bianchi -->
+      <div class="team-shift-box white-shift">
+        <div class="shift-team-name">⚪ TEAM BIANCHI</div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Spostamento MMR</span>
+          <span
+            class="stat-val mmr-val"
+            [class.val-positive]="report().teamAvgMmrDeltaA > 0"
+            [class.val-negative]="report().teamAvgMmrDeltaA < 0"
+          >
+            {{ report().teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ report().teamAvgMmrDeltaA }} MMR
+          </span>
+        </div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Media Punti Legacy</span>
+          <span class="stat-val legacy-val text-success">
+            +{{ report().teamLegacyDeltaA }} pt
+          </span>
+        </div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Voto Medio</span>
+          <span class="stat-val vote-val">
+            ⭐ {{ report().votoMedioA > 0 ? report().votoMedioA : '-' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Colonna Neri -->
+      <div class="team-shift-box black-shift">
+        <div class="shift-team-name">⚫ TEAM NERI</div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Spostamento MMR</span>
+          <span
+            class="stat-val mmr-val"
+            [class.val-positive]="report().teamAvgMmrDeltaB > 0"
+            [class.val-negative]="report().teamAvgMmrDeltaB < 0"
+          >
+            {{ report().teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ report().teamAvgMmrDeltaB }} MMR
+          </span>
+        </div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Media Punti Legacy</span>
+          <span class="stat-val legacy-val text-success">
+            +{{ report().teamLegacyDeltaB }} pt
+          </span>
+        </div>
+        <div class="shift-stat-item">
+          <span class="stat-name">Voto Medio</span>
+          <span class="stat-val vote-val">
+            ⭐ {{ report().votoMedioB > 0 ? report().votoMedioB : '-' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 6. CARD CELEBRATIVA MVP DEL MATCH & BADGE GOLIARDICO                     -->
+  <!-- ========================================================================= -->
+  <div class="spotlight-awards-container">
+
+    <!-- MVP DEL MATCH 👑 -->
+    @if (report().mvp) {
+      <div class="award-card mvp-award-card">
+        <div class="award-glow-bg"></div>
+        <div class="award-badge-ribbon mvp-ribbon">
+          <ion-icon name="trophy"></ion-icon>
+          <span>MVP DELLA PARTITA</span>
+        </div>
+
+        <div class="award-player-body">
+          <div class="award-avatar-wrap">
+            <ion-avatar class="award-avatar mvp-avatar">
+              <img [src]="report().mvp?.fotoUrl || 'assets/default-avatar.svg'" [alt]="report().mvp?.nome" />
+            </ion-avatar>
+            <div class="mvp-crown-badge">👑</div>
+          </div>
+
+          <div class="award-details">
+            <div class="award-player-name">{{ report().mvp?.nome }}</div>
+            <div class="award-team-tag" [class.white]="report().mvp?.team === 'A'" [class.black]="report().mvp?.team === 'B'">
+              {{ report().mvp?.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+            </div>
+
+            <div class="award-metrics-row">
+              <span class="award-rating-pill">
+                ⭐ Voto <strong>{{ report().mvp?.voto }}</strong>
+              </span>
+              @if ((report().mvp?.gol || 0) > 0) {
+                <span class="award-goals-pill">
+                  ⚽ {{ report().mvp?.gol }} Gol
+                </span>
+              }
+              <span class="award-mmr-pill">
+                {{ (report().mvp?.mmrDelta || 0) >= 0 ? '+' : '' }}{{ report().mvp?.mmrDelta }} MMR
+              </span>
+            </div>
+
+            @if (report().mvp?.note) {
+              <div class="award-quote-box">
+                <span class="quote-mark">“</span>
+                <span class="quote-text">{{ report().mvp?.note }}</span>
+                <span class="quote-mark">”</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- BADGE GOLIARDICO: PEGGIOR GIOCATORE / BIDONE D'ORO 🩴 -->
+    @if (report().worst) {
+      <div class="award-card worst-award-card">
+        <div class="award-badge-ribbon worst-ribbon">
+          <span>🩴 BIDONE DELLA SERATA</span>
+        </div>
+
+        <div class="award-player-body">
+          <div class="award-avatar-wrap">
+            <ion-avatar class="award-avatar worst-avatar">
+              <img [src]="report().worst?.fotoUrl || 'assets/default-avatar.svg'" [alt]="report().worst?.nome" />
+            </ion-avatar>
+            <div class="worst-flipflop-badge">🩴</div>
+          </div>
+
+          <div class="award-details">
+            <div class="award-player-name">{{ report().worst?.nome }}</div>
+            <div class="award-team-tag" [class.white]="report().worst?.team === 'A'" [class.black]="report().worst?.team === 'B'">
+              {{ report().worst?.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+            </div>
+
+            <div class="award-metrics-row">
+              <span class="worst-rating-pill">
+                Voto <strong>{{ report().worst?.voto }}</strong>
+              </span>
+              <span class="worst-humor-pill">🍕 Serata No</span>
+            </div>
+
+            @if (report().worst?.note) {
+              <div class="award-quote-box worst-quote">
+                <span class="quote-mark">“</span>
+                <span class="quote-text">{{ report().worst?.note }}</span>
+                <span class="quote-mark">”</span>
+              </div>
+            } @else {
+              <div class="worst-comfort-note">
+                Tanti lisci e passaggi agli avversari... ci si rifà alla prossima birra! 🍻
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. MOVIMENTI STATO ON FIRE 🔥 / ❄️                                       -->
+  <!-- ========================================================================= -->
+  @if (report().onFireEntered.length > 0 || report().onFireExited.length > 0 || report().onFireMaintained.length > 0) {
+    <div class="report-section-card onfire-section-card">
+      <div class="section-card-header">
+        <div class="header-left">
+          <ion-icon name="flame" class="section-icon fire-icon"></ion-icon>
+          <span class="section-title">Radar On Fire</span>
+        </div>
+      </div>
+
+      <div class="onfire-tags-container">
+        <!-- Entrati in On Fire -->
+        @for (p of report().onFireEntered; track p.id) {
+          <div class="onfire-chip entered">
+            <span class="chip-emoji">🔥</span>
+            <span class="chip-text">
+              <strong>{{ p.nome }}</strong> ENTRA ON FIRE! ({{ p.streakAfter }}V di fila)
+            </span>
+          </div>
+        }
+
+        <!-- Usciti da On Fire (Striscia interrotta) -->
+        @for (p of report().onFireExited; track p.id) {
+          <div class="onfire-chip exited">
+            <span class="chip-emoji">❄️</span>
+            <span class="chip-text">
+              <strong>{{ p.nome }}</strong> Striscia interrotta! (Esce da On Fire)
+            </span>
+          </div>
+        }
+
+        <!-- Mantiene On Fire -->
+        @for (p of report().onFireMaintained; track p.id) {
+          <div class="onfire-chip maintained">
+            <span class="chip-emoji">🔥</span>
+            <span class="chip-text">
+              <strong>{{ p.nome }}</strong> Inarrestabile! ({{ p.streakAfter }}V consecutive)
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 8. FOTO DI GRUPPO DELLA PARTITA                                          -->
+  <!-- ========================================================================= -->
+  @if (state.fotoUrl()) {
+    <div class="match-photo-showcase">
+      <div class="photo-banner-header">
+        <div class="photo-header-left">
+          <ion-icon name="image"></ion-icon>
+          <span>Foto di Gruppo Ufficiale</span>
+        </div>
+        <button type="button" class="expand-btn" (click)="apriFotoViewer()">
+          <ion-icon name="expand-outline"></ion-icon>
+          <span>Ingrandisci</span>
+        </button>
+      </div>
+
+      <div class="photo-banner-frame" (click)="apriFotoViewer()">
+        <img [src]="state.fotoUrl()!" alt="Foto della partita" loading="lazy" />
+        <div class="photo-zoom-overlay">
+          <ion-icon name="expand-outline"></ion-icon>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Componente di caricamento foto (se admin o se non c'è ancora foto) -->
   <app-match-photo></app-match-photo>
 
-  <div class="page-header ion-padding">
-    <h2>Voti e Pagelle</h2>
-    <p class="subtitle">
-      @if (state.pagelleInserite()) {
-        <span>Sessione Archiviata</span>
-        @if (state.matchDataOriginale?.isAdmin) {
-          <span class="admin-badge">
-            <ion-icon name="create-outline"></ion-icon> Modifica Admin
-          </span>
+  <!-- ========================================================================= -->
+  <!-- 9. NOTE SULLA CHIMICA DELLE COPPIE IN CAMPO                              -->
+  <!-- ========================================================================= -->
+  @if (report().chemistryNotes.length > 0) {
+    <div class="report-section-card chemistry-section-card">
+      <div class="section-card-header">
+        <div class="header-left">
+          <ion-icon name="sparkles" class="section-icon chemistry-icon"></ion-icon>
+          <span class="section-title">Chimica & Duelli in Campo</span>
+        </div>
+      </div>
+
+      <div class="chemistry-notes-list">
+        @for (chem of report().chemistryNotes; track chem.title) {
+          <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
+            <div class="chem-badge-pill">{{ chem.badge }}</div>
+            <div class="chem-note-title">{{ chem.title }}</div>
+            <div class="chem-note-desc">{{ chem.description }}</div>
+          </div>
         }
-      } @else {
-        <span>Inserisci i giudizi della partita</span>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 9. 🎙️ CRONACA SPORTIVA IGNORANTE (GEMINI 2.5 FLASH)                      -->
+  <!-- ========================================================================= -->
+  <div class="report-section-card cronaca-section-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon name="mic-outline" class="section-icon mic-icon"></ion-icon>
+        <span class="section-title">Cronaca Sportiva Ignorante</span>
+      </div>
+      @if (state.cronacaAi()) {
+        <button
+          type="button"
+          class="ai-refresh-btn"
+          (click)="generaCronaca(true)"
+          [disabled]="isGeneratingCronaca()"
+          title="Rigenera la cronaca con Gemini"
+        >
+          <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca()"></ion-icon>
+          <span>{{ isGeneratingCronaca() ? 'Riscrivo...' : '🔄 Rigenera AI' }}</span>
+        </button>
       }
-    </p>
-  </div>
+    </div>
 
-  <div class="team-section">
-    <div class="team-divider white">TEAM BIANCHI</div>
-
-    @for (g of state.teamA(); track g.id) {
-      <div class="player-card">
-        <div class="card-main">
-          <ion-avatar>
-            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
-          </ion-avatar>
-
-          <div class="player-info">
-            <div class="name-row">
-              <h3 class="player-name">{{ g.nome }}</h3>
-              @if (g.gol > 0) {
-                <span class="goal-tag">
-                  <ion-icon name="football"></ion-icon> {{ g.gol }}
-                </span>
-              }
-              @if (getAutogolCount(g) > 0) {
-                <span class="autogol-tag" title="Autoreti">
-                  <ion-icon name="football"></ion-icon> {{ getAutogolCount(g) }} (AG)
-                </span>
-              }
-            </div>
-
-            <ion-textarea
-              placeholder="Scrivi il commento tecnico..."
-              [value]="g.note || ''"
-              [readonly]="!state.matchDataOriginale?.isAdmin"
-              [autoGrow]="true"
-              rows="1"
-              (ionInput)="aggiornaNote(g, $event.detail.value || '')"
-              class="comment-area"
-            ></ion-textarea>
-          </div>
-
-          <div class="rating-box">
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.5"
-              [value]="g.voto"
-              [readonly]="!state.matchDataOriginale?.isAdmin"
-              (change)="aggiornaVoto(g, $event)"
-              [class]="getRatingClass(g.voto)"
-            />
-            <span class="label">VOTO</span>
-          </div>
+    @if (state.cronacaAi()) {
+      <div class="cronaca-content-box">
+        <div class="cronaca-bubble">
+          <div class="cronaca-text" [innerHTML]="formatAiMarkdown(state.cronacaAi())"></div>
         </div>
+        <div class="cronaca-footer">
+          <span class="cronaca-hint">💾 Salvata nel DB · Inclusa nel report WhatsApp</span>
+        </div>
+      </div>
+    } @else {
+      <div class="ai-empty-cronaca">
+        <div class="empty-icon">📢</div>
+        <div class="empty-info">
+          <h4>Nessuna telecronaca ancora generata</h4>
+          <p>Lascia che Gemini commenti marcatori, voti, lisci e il Bidone della serata con stile ignorante da spogliatoio!</p>
+        </div>
+        <button
+          type="button"
+          class="ai-generate-cronaca-btn"
+          (click)="generaCronaca(false)"
+          [disabled]="isGeneratingCronaca()"
+        >
+          @if (isGeneratingCronaca()) {
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Generazione telecronaca in corso...</span>
+          } @else {
+            <ion-icon name="sparkles"></ion-icon>
+            <span>🎙️ Genera Cronaca Ignorante AI</span>
+          }
+        </button>
       </div>
     }
   </div>
 
-  <div class="team-section">
-    <div class="team-divider black">TEAM NERI</div>
+  <!-- ========================================================================= -->
+  <!-- 10. TABELLINO COMPLETO: FORMAZIONI, VOTI, GOL E PAGELLE                  -->
+  <!-- ========================================================================= -->
+  <div class="tabellino-container">
+    <div class="tabellino-header">
+      <h2>Tabellino e Pagelle</h2>
+      <p class="tabellino-sub">
+        @if (state.pagelleInserite()) {
+          <span>Sessione Archiviata</span>
+          @if (state.matchDataOriginale?.isAdmin) {
+            <span class="admin-edit-badge">
+              <ion-icon name="create-outline"></ion-icon> Modifica Admin Abilitata
+            </span>
+          }
+        } @else {
+          <span>Inserisci o consulta i voti e le note dei convocati</span>
+        }
+      </p>
+    </div>
 
-    @for (g of state.teamB(); track g.id) {
-      <div class="player-card">
-        <div class="card-main">
-          <ion-avatar>
-            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
-          </ion-avatar>
-
-          <div class="player-info">
-            <div class="name-row">
-              <h3 class="player-name">{{ g.nome }}</h3>
-              @if (g.gol > 0) {
-                <span class="goal-tag">
-                  <ion-icon name="football"></ion-icon> {{ g.gol }}
-                </span>
-              }
-              @if (getAutogolCount(g) > 0) {
-                <span class="autogol-tag" title="Autoreti">
-                  <ion-icon name="football"></ion-icon> {{ getAutogolCount(g) }} (AG)
-                </span>
-              }
-            </div>
-
-            <ion-textarea
-              placeholder="Scrivi il commento tecnico..."
-              [value]="g.note || ''"
-              [readonly]="!state.matchDataOriginale?.isAdmin"
-              [autoGrow]="true"
-              rows="1"
-              (ionInput)="aggiornaNote(g, $event.detail.value || '')"
-              class="comment-area"
-            ></ion-textarea>
-          </div>
-
-          <div class="rating-box">
-            <input
-              type="number"
-              min="0"
-              max="10"
-              step="0.5"
-              [value]="g.voto"
-              [readonly]="!state.matchDataOriginale?.isAdmin"
-              (change)="aggiornaVoto(g, $event)"
-              [class]="getRatingClass(g.voto)"
-            />
-            <span class="label">VOTO</span>
-          </div>
+    <!-- SQUADRA A: BIANCHI -->
+    <div class="roster-team-section white-team-section">
+      <div class="team-roster-banner white-banner">
+        <div class="roster-banner-left">
+          <div class="roster-team-dot white-dot"></div>
+          <span class="roster-team-name">TEAM BIANCHI</span>
+        </div>
+        <div class="roster-banner-stats">
+          <span class="stat-chip">⭐ Media {{ report().votoMedioA > 0 ? report().votoMedioA : '-' }}</span>
+          <span class="stat-chip">⚽ {{ state.scoreA() }} Gol</span>
+          <span class="stat-chip mmr-chip">
+            {{ report().teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ report().teamAvgMmrDeltaA }} MMR
+          </span>
         </div>
       </div>
-    }
+
+      <div class="players-cards-list">
+        @for (g of report().playersA; track g.id) {
+          <div class="player-roster-card">
+            <div class="card-top-row">
+              <ion-avatar class="player-avatar">
+                <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" [alt]="g.nome" />
+              </ion-avatar>
+
+              <div class="player-identity">
+                <div class="identity-name-row">
+                  <h4 class="player-name">{{ g.nome }}</h4>
+                  @if (g.gol > 0) {
+                    <span class="goal-pill">
+                      <ion-icon name="football"></ion-icon> {{ g.gol }}
+                    </span>
+                  }
+                  @if (g.autogol > 0) {
+                    <span class="autogol-pill">
+                      (AG x{{ g.autogol }})
+                    </span>
+                  }
+                  @if (report().mvp?.id === g.id) {
+                    <span class="crown-mini-badge">👑 MVP</span>
+                  }
+                </div>
+
+                <div class="player-deltas-row">
+                  <span
+                    class="player-delta-badge mmr-badge"
+                    [class.positive]="g.mmrDelta > 0"
+                    [class.negative]="g.mmrDelta < 0"
+                  >
+                    {{ g.mmrDelta >= 0 ? '+' : '' }}{{ g.mmrDelta }} MMR
+                  </span>
+                  <span class="player-delta-badge legacy-badge">
+                    +{{ g.legacyDelta }} pt
+                  </span>
+                </div>
+              </div>
+
+              <!-- Box Voto -->
+              <div class="player-rating-display">
+                @if (state.matchDataOriginale?.isAdmin) {
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    [value]="g.voto"
+                    (change)="aggiornaVoto(g, $event)"
+                    [class]="getRatingClass(g.voto)"
+                    class="rating-input"
+                  />
+                } @else {
+                  <div class="rating-badge-box" [class]="getRatingClass(g.voto)">
+                    {{ g.voto && g.voto > 0 ? g.voto : '-' }}
+                  </div>
+                }
+                <span class="rating-sub-label">VOTO</span>
+              </div>
+            </div>
+
+            <!-- Commento Pagella -->
+            <div class="card-comment-row">
+              @if (state.matchDataOriginale?.isAdmin) {
+                <ion-textarea
+                  placeholder="Scrivi il commento tecnico della pagella..."
+                  [value]="g.note || ''"
+                  [autoGrow]="true"
+                  rows="1"
+                  (ionInput)="aggiornaNote(g, $event.detail.value || '')"
+                  class="comment-textarea"
+                ></ion-textarea>
+              } @else {
+                <div class="comment-view-box" [class.empty]="!g.note">
+                  {{ g.note ? '“' + g.note + '”' : 'Nessun commento registrato per questo giocatore.' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- SQUADRA B: NERI -->
+    <div class="roster-team-section black-team-section">
+      <div class="team-roster-banner black-banner">
+        <div class="roster-banner-left">
+          <div class="roster-team-dot black-dot"></div>
+          <span class="roster-team-name">TEAM NERI</span>
+        </div>
+        <div class="roster-banner-stats">
+          <span class="stat-chip">⭐ Media {{ report().votoMedioB > 0 ? report().votoMedioB : '-' }}</span>
+          <span class="stat-chip">⚽ {{ state.scoreB() }} Gol</span>
+          <span class="stat-chip mmr-chip">
+            {{ report().teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ report().teamAvgMmrDeltaB }} MMR
+          </span>
+        </div>
+      </div>
+
+      <div class="players-cards-list">
+        @for (g of report().playersB; track g.id) {
+          <div class="player-roster-card">
+            <div class="card-top-row">
+              <ion-avatar class="player-avatar">
+                <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" [alt]="g.nome" />
+              </ion-avatar>
+
+              <div class="player-identity">
+                <div class="identity-name-row">
+                  <h4 class="player-name">{{ g.nome }}</h4>
+                  @if (g.gol > 0) {
+                    <span class="goal-pill">
+                      <ion-icon name="football"></ion-icon> {{ g.gol }}
+                    </span>
+                  }
+                  @if (g.autogol > 0) {
+                    <span class="autogol-pill">
+                      (AG x{{ g.autogol }})
+                    </span>
+                  }
+                  @if (report().mvp?.id === g.id) {
+                    <span class="crown-mini-badge">👑 MVP</span>
+                  }
+                </div>
+
+                <div class="player-deltas-row">
+                  <span
+                    class="player-delta-badge mmr-badge"
+                    [class.positive]="g.mmrDelta > 0"
+                    [class.negative]="g.mmrDelta < 0"
+                  >
+                    {{ g.mmrDelta >= 0 ? '+' : '' }}{{ g.mmrDelta }} MMR
+                  </span>
+                  <span class="player-delta-badge legacy-badge">
+                    +{{ g.legacyDelta }} pt
+                  </span>
+                </div>
+              </div>
+
+              <!-- Box Voto -->
+              <div class="player-rating-display">
+                @if (state.matchDataOriginale?.isAdmin) {
+                  <input
+                    type="number"
+                    min="0"
+                    max="10"
+                    step="0.5"
+                    [value]="g.voto"
+                    (change)="aggiornaVoto(g, $event)"
+                    [class]="getRatingClass(g.voto)"
+                    class="rating-input"
+                  />
+                } @else {
+                  <div class="rating-badge-box" [class]="getRatingClass(g.voto)">
+                    {{ g.voto && g.voto > 0 ? g.voto : '-' }}
+                  </div>
+                }
+                <span class="rating-sub-label">VOTO</span>
+              </div>
+            </div>
+
+            <!-- Commento Pagella -->
+            <div class="card-comment-row">
+              @if (state.matchDataOriginale?.isAdmin) {
+                <ion-textarea
+                  placeholder="Scrivi il commento tecnico della pagella..."
+                  [value]="g.note || ''"
+                  [autoGrow]="true"
+                  rows="1"
+                  (ionInput)="aggiornaNote(g, $event.detail.value || '')"
+                  class="comment-textarea"
+                ></ion-textarea>
+              } @else {
+                <div class="comment-view-box" [class.empty]="!g.note">
+                  {{ g.note ? '“' + g.note + '”' : 'Nessun commento registrato per questo giocatore.' }}
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
   </div>
+
+  <!-- ========================================================================= -->
+  <!-- 11. BANNER CONDIVISIONE WHATSAPP IN FONDO AL REPORT                       -->
+  <!-- ========================================================================= -->
+  <div class="report-share-cta-card">
+    <div class="cta-text-content">
+      <div class="cta-title">Condividi con il Gruppo</div>
+      <div class="cta-subtitle">Invia tabellino, pagelle, MVP e link diretto su WhatsApp</div>
+    </div>
+
+    <button
+      type="button"
+      class="whatsapp-full-share-btn"
+      (click)="apriCondivisione()"
+    >
+      <ion-icon name="logo-whatsapp"></ion-icon>
+      <span>Condividi su WhatsApp</span>
+    </button>
+  </div>
+
 </div>
 
+<!-- ========================================================================= -->
+<!-- 12. PULSANTE FLOTTANTE ADMIN PER SALVATAGGIO                              -->
+<!-- ========================================================================= -->
 @if (state.matchDataOriginale?.isAdmin) {
   <div class="fab-fixed-container">
     <button

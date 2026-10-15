@@ -1,5 +1,6 @@
 import { Partita } from '../models/partita.model';
 import { PlayerPerformance } from '../models/player-performance.model';
+import { MatchReportData } from '../models/mmr.model';
 
 export interface WhatsAppShareOptions {
   includeRisultato: boolean;
@@ -7,6 +8,7 @@ export interface WhatsAppShareOptions {
   includePagelle: boolean;
   includeLink: boolean;
   includeFoto: boolean;
+  includeCronacaAi?: boolean;
 }
 
 /**
@@ -89,6 +91,7 @@ export function formatMatchForWhatsApp(
     includeLink: true,
     includeFoto: true,
   },
+  reportData?: MatchReportData,
 ): string {
   const parts: string[] = [];
 
@@ -108,14 +111,27 @@ export function formatMatchForWhatsApp(
     parts.push(dettagli.join(' | '));
   }
 
+  // Upset & Odds se presenti
+  if (reportData?.isUpset) {
+    parts.push('');
+    parts.push(`🔥 *UPSET!* ${reportData.upsetDescription}`);
+  } else if (reportData?.odds && (reportData.odds.probAPercent > 0 || reportData.odds.probBPercent > 0)) {
+    parts.push(`⚖️ *Quote Pre-Match:* Bianchi ${reportData.odds.probAPercent}% vs ${reportData.odds.probBPercent}% Neri`);
+  }
+
   // Risultato e Presenze
   if (options.includeRisultato) {
     parts.push('');
-    if (partita.status === 'conclusa') {
+    if (partita.status === 'conclusa' || partita.matchConcluso) {
       parts.push('🔥 *RISULTATO FINALE*');
       parts.push(
         `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
       );
+      if (reportData && (reportData.teamAvgMmrDeltaA !== 0 || reportData.teamAvgMmrDeltaB !== 0)) {
+        const signA = reportData.teamAvgMmrDeltaA >= 0 ? '+' : '';
+        const signB = reportData.teamAvgMmrDeltaB >= 0 ? '+' : '';
+        parts.push(`📈 *Spostamento MMR:* Bianchi ${signA}${reportData.teamAvgMmrDeltaA} | Neri ${signB}${reportData.teamAvgMmrDeltaB}`);
+      }
     } else if (partita.status === 'in_corso') {
       parts.push('⚡ *PARZIALE LIVE*');
       parts.push(
@@ -136,7 +152,15 @@ export function formatMatchForWhatsApp(
     );
   }
 
-  // Pagelle, MVP e Commenti
+  // Cronaca Sportiva Ignorante (Gemini AI)
+  if (options.includeCronacaAi && (partita.cronacaAi || reportData?.cronacaAi)) {
+    const cronaca = (partita.cronacaAi || reportData?.cronacaAi)!.trim();
+    parts.push('');
+    parts.push('🎙️ *CRONACA IGNORANTE DEL MATCH (by Gemini AI)*');
+    parts.push(`"${cronaca}"`);
+  }
+
+  // MVP, Goliardico e Pagelle
   if (options.includePagelle) {
     const tuttiGiocatori: PlayerPerformance[] = [
       ...(partita.teamA || []),
@@ -158,19 +182,37 @@ export function formatMatchForWhatsApp(
       });
 
     if (giocatoriConVoto.length > 0) {
-      // Calcolo MVP (voto massimo)
-      const maxVoto = Number(giocatoriConVoto[0].voto);
-      const mvpList = giocatoriConVoto.filter(
-        (g) => Number(g.voto) === maxVoto,
-      );
-
+      // Calcolo MVP
       parts.push('');
-      if (mvpList.length === 1) {
-        const nomeMvp = (mvpList[0].nome || '').trim();
-        parts.push(`🏆 *MVP:* *${nomeMvp}* (${maxVoto})`);
+      if (reportData?.mvp) {
+        const mvpNote = reportData.mvp.note ? ` — _"${reportData.mvp.note}"_` : '';
+        parts.push(`🏆 *MVP DELLA SERATA:* *${reportData.mvp.nome}* (${reportData.mvp.voto})${mvpNote}`);
       } else {
-        const nomiMvp = mvpList.map((m) => (m.nome || '').trim()).join(', ');
-        parts.push(`🏆 *MVP (pari merito - voto ${maxVoto}):* ${nomiMvp}`);
+        const maxVoto = Number(giocatoriConVoto[0].voto);
+        const mvpList = giocatoriConVoto.filter(
+          (g) => Number(g.voto) === maxVoto,
+        );
+        if (mvpList.length === 1) {
+          const nomeMvp = (mvpList[0].nome || '').trim();
+          parts.push(`🏆 *MVP:* *${nomeMvp}* (${maxVoto})`);
+        } else {
+          const nomiMvp = mvpList.map((m) => (m.nome || '').trim()).join(', ');
+          parts.push(`🏆 *MVP (pari merito - voto ${maxVoto}):* ${nomiMvp}`);
+        }
+      }
+
+      // Peggiore Goliardico
+      if (reportData?.worst) {
+        const worstNote = reportData.worst.note ? ` — _"${reportData.worst.note}"_` : '';
+        parts.push(`🩴 *Premio "Bidone d'Oro":* *${reportData.worst.nome}* (${reportData.worst.voto})${worstNote} 🍕`);
+      }
+
+      // Movimenti On Fire
+      if (reportData?.onFireEntered && reportData.onFireEntered.length > 0) {
+        parts.push(`🔥 *Entrati On Fire:* ${reportData.onFireEntered.map((p) => p.nome).join(', ')}`);
+      }
+      if (reportData?.onFireExited && reportData.onFireExited.length > 0) {
+        parts.push(`❄️ *Striscia Interrotta:* ${reportData.onFireExited.map((p) => p.nome).join(', ')}`);
       }
 
       parts.push('');
@@ -193,7 +235,7 @@ export function formatMatchForWhatsApp(
   if (options.includeLink && partita.id) {
     const link = getMatchDeepLink(partita.id);
     parts.push('');
-    parts.push("🔗 *Vedi tabellino, foto e pagelle sull'app:*");
+    parts.push("🔗 *Vedi tabellino completo, foto e chimica sull'app:*");
     parts.push(link);
   }
 

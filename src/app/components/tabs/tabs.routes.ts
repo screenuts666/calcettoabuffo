@@ -21,6 +21,11 @@ export const routes: Routes = [
           import('../classifica/classifica.page').then((m) => m.ClassificaPage),
       },
       {
+        path: 'confronto',
+        loadComponent: () =>
+          import('../confronto/confronto.page').then((m) => m.ConfrontoPage),
+      },
+      {
         path: 'rosa',
         loadComponent: () =>
           import('../rosa/rosa.page').then((m) => m.RosaPage),

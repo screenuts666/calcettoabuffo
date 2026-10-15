@@ -24,7 +24,7 @@
 
     <ion-title>{{
       state.step() === 'prestazioni'
-        ? 'Pagelle'
+        ? (state.matchConcluso() ? 'Report Partita' : 'Pagelle')
         : state.matchId()
           ? 'Gestione Match'
           : 'Nuova Partita'

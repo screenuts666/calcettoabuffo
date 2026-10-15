@@ -1,0 +1,312 @@
+<ion-modal [isOpen]="isOpen" (didDismiss)="chiudi()" class="matchmaking-modal">
+  <ng-template>
+    <ion-header class="ion-no-border modal-header">
+      <ion-toolbar class="modal-toolbar">
+        <ion-title>
+          <div class="header-title-box">
+            <span class="emoji-icon">⚖️</span>
+            <div>
+              <h2>Matchmaking Intelligente</h2>
+              <span class="header-sub">Algoritmo AI · MMR & Chimica</span>
+            </div>
+          </div>
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="chiudi()" class="close-btn">
+            <ion-icon name="close"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+
+      <!-- SELETTORE PROPOSTE -->
+      @if (proposals.length > 1) {
+        <div class="proposals-tabs">
+          @for (p of proposals; track p.id; let idx = $index) {
+            <button
+              class="tab-btn"
+              [class.active]="selectedIndex() === idx"
+              (click)="selezionaProposta(idx)"
+            >
+              <div class="tab-badge">{{ p.badge }}</div>
+              <div class="tab-title">{{ p.title }}</div>
+              <div class="tab-balance">{{ p.balancePercentageText }}</div>
+            </button>
+          }
+        </div>
+      }
+    </ion-header>
+
+    <ion-content class="modal-content ion-padding">
+      @if (activeProposal(); as p) {
+        <!-- CARD EQUILIBRIO MATCH -->
+        <div class="balance-card">
+          <div class="balance-card-header">
+            <div class="header-tag">
+              <ion-icon name="sparkles"></ion-icon>
+              <span>{{ p.subtitle }}</span>
+            </div>
+            <div class="quality-badge" [class.perfect]="p.balanceScore >= 90">
+              <span>Equilibrio {{ p.balanceScore }}%</span>
+            </div>
+          </div>
+
+          <!-- CONFRONTO MMR MEDIO SQUADRE -->
+          <div class="teams-comparison">
+            <div class="team-metric metric-bianchi">
+              <span class="team-label">BIANCHI</span>
+              <span class="team-mmr">{{ p.avgMmrA }}</span>
+              <span class="mmr-sub">MMR MEDIO</span>
+              <span class="legacy-sub">Legacy: {{ p.legacyAvgA }} pt</span>
+            </div>
+
+            <div class="vs-divider">
+              <div class="vs-circle">VS</div>
+              <small class="diff-badge">Δ {{ p.diffMmr }} MMR</small>
+            </div>
+
+            <div class="team-metric metric-neri">
+              <span class="team-label">NERI</span>
+              <span class="team-mmr">{{ p.avgMmrB }}</span>
+              <span class="mmr-sub">MMR MEDIO</span>
+              <span class="legacy-sub">Legacy: {{ p.legacyAvgB }} pt</span>
+            </div>
+          </div>
+
+          <!-- BARRA PERCENTUALE PROBABILITÀ / EQUILIBRIO -->
+          <div class="odds-bar-container">
+            <div class="odds-bar-labels">
+              <span class="label-bianchi">Bianchi {{ p.probA }}%</span>
+              <span class="label-center">⚖️ {{ p.balancePercentageText }}</span>
+              <span class="label-neri">{{ p.probB }}% Neri</span>
+            </div>
+            <div class="odds-bar-track">
+              <div class="odds-fill-a" [style.width.%]="p.probA"></div>
+              <div class="odds-fill-b" [style.width.%]="p.probB"></div>
+            </div>
+          </div>
+
+          <!-- SINTESI RUOLI -->
+          <div class="roles-summary-bar">
+            <div class="role-team">
+              <span class="dot-bianchi"></span>
+              <small>
+                🧤 {{ p.rolesA.portieri }} · 🛡️ {{ p.rolesA.difensori }} · ⚡ {{ p.rolesA.fasce }} · 🎯 {{ p.rolesA.attaccanti }}
+              </small>
+            </div>
+            <div class="role-team">
+              <span class="dot-neri"></span>
+              <small>
+                🧤 {{ p.rolesB.portieri }} · 🛡️ {{ p.rolesB.difensori }} · ⚡ {{ p.rolesB.fasce }} · 🎯 {{ p.rolesB.attaccanti }}
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- DISAMINA TATTICA AI -->
+        <div class="tactical-analysis-box">
+          <div class="tactical-header">
+            <div class="tactical-badge">
+              <span class="sparkle-pill">✨ GEMINI AI</span>
+              <span class="tactical-title">🎙️ Disamina Tattica</span>
+            </div>
+            @if (activeTacticalAnalysis()) {
+              <button
+                type="button"
+                class="tactical-refresh-btn"
+                (click)="generaDisaminaTattica()"
+                [disabled]="isGeneratingTactical()"
+                title="Rigenera disamina tattica"
+              >
+                <ion-icon name="refresh-outline" [class.spin]="isGeneratingTactical()"></ion-icon>
+                <span>{{ isGeneratingTactical() ? 'Analisi...' : 'Rigenera AI' }}</span>
+              </button>
+            }
+          </div>
+
+          @if (activeTacticalAnalysis(); as analysis) {
+            <div class="tactical-bubble">
+              <p class="tactical-text">{{ analysis }}</p>
+            </div>
+          } @else {
+            <div class="tactical-prompt">
+              <button
+                type="button"
+                class="tactical-call-btn"
+                (click)="generaDisaminaTattica()"
+                [disabled]="isGeneratingTactical()"
+              >
+                @if (isGeneratingTactical()) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Analisi tattica in corso...</span>
+                } @else {
+                  <ion-icon name="sparkles"></ion-icon>
+                  <span>🎙️ Chiedi la Disamina Tattica al Mister</span>
+                }
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- SEZIONE QUINTETTI IN CAMPO -->
+        <div class="rosters-container">
+          <!-- QUINTETTO BIANCHI -->
+          <div class="roster-column roster-bianchi">
+            <div class="roster-header header-bianchi">
+              <div class="title-with-count">
+                <span class="team-name">BIANCHI</span>
+                <span class="count-tag">{{ p.teamA.length }} Giocatori</span>
+              </div>
+              <div class="header-mmr-badge">{{ p.avgMmrA }} MMR</div>
+            </div>
+
+            <div class="players-list">
+              @for (g of p.teamA; track g.id) {
+                <div class="player-row">
+                  <div class="player-avatar-box">
+                    <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" class="avatar-img" />
+                    @if (g.ruoloPreferito) {
+                      <span class="role-mini-badge" [title]="g.ruoloPreferito">
+                        {{ getRuoloIcon(g.ruoloPreferito) }}
+                      </span>
+                    }
+                  </div>
+                  <div class="player-info">
+                    <div class="player-name-line">
+                      <span class="player-name">{{ g.nome }}</span>
+                      @if (g.streak > 1) {
+                        <span class="streak-badge on-fire" title="In striscia positiva!">
+                          🔥 +{{ g.streak }}
+                        </span>
+                      } @else if (g.streak < -1) {
+                        <span class="streak-badge in-crisis" title="In crisi">
+                          ❄️ {{ g.streak }}
+                        </span>
+                      }
+                    </div>
+                    <div class="player-meta-line">
+                      <span
+                        class="mmr-tier-pill"
+                        [style.color]="getTierColor(g.mmr)"
+                      >
+                        {{ g.mmr || 1000 }} MMR
+                      </span>
+                      @if (g.ruoloPreferito) {
+                        <span class="ruolo-text">{{ g.ruoloPreferito }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- QUINTETTO NERI -->
+          <div class="roster-column roster-neri">
+            <div class="roster-header header-neri">
+              <div class="title-with-count">
+                <span class="team-name">NERI</span>
+                <span class="count-tag">{{ p.teamB.length }} Giocatori</span>
+              </div>
+              <div class="header-mmr-badge">{{ p.avgMmrB }} MMR</div>
+            </div>
+
+            <div class="players-list">
+              @for (g of p.teamB; track g.id) {
+                <div class="player-row">
+                  <div class="player-avatar-box">
+                    <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" class="avatar-img" />
+                    @if (g.ruoloPreferito) {
+                      <span class="role-mini-badge" [title]="g.ruoloPreferito">
+                        {{ getRuoloIcon(g.ruoloPreferito) }}
+                      </span>
+                    }
+                  </div>
+                  <div class="player-info">
+                    <div class="player-name-line">
+                      <span class="player-name">{{ g.nome }}</span>
+                      @if (g.streak > 1) {
+                        <span class="streak-badge on-fire" title="In striscia positiva!">
+                          🔥 +{{ g.streak }}
+                        </span>
+                      } @else if (g.streak < -1) {
+                        <span class="streak-badge in-crisis" title="In crisi">
+                          ❄️ {{ g.streak }}
+                        </span>
+                      }
+                    </div>
+                    <div class="player-meta-line">
+                      <span
+                        class="mmr-tier-pill"
+                        [style.color]="getTierColor(g.mmr)"
+                      >
+                        {{ g.mmr || 1000 }} MMR
+                      </span>
+                      @if (g.ruoloPreferito) {
+                        <span class="ruolo-text">{{ g.ruoloPreferito }}</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- SEZIONE CHIMICA DI COPPIA / SINERGIE RILEVATE -->
+        <div class="synergies-section">
+          <div class="section-title">
+            <span class="title-icon">🤝</span>
+            <span>Chimica di Coppia Rilevata</span>
+          </div>
+
+          @if (p.synergies && p.synergies.length > 0) {
+            <div class="synergies-grid">
+              @for (syn of p.synergies; track syn.player1Name + syn.player2Name) {
+                <div class="synergy-card" [class.synergy-bianchi]="syn.team === 'A'" [class.synergy-neri]="syn.team === 'B'">
+                  <div class="synergy-header">
+                    <span class="team-pill" [class.pill-bianchi]="syn.team === 'A'" [class.pill-neri]="syn.team === 'B'">
+                      {{ syn.teamName }}
+                    </span>
+                    <span class="synergy-winrate">
+                      {{ syn.winRateTogether }}% Vittorie
+                    </span>
+                  </div>
+                  <div class="synergy-duo">
+                    <div class="duo-avatars">
+                      <img [src]="syn.player1Foto || 'assets/default-avatar.svg'" class="duo-avatar" />
+                      <span class="duo-join">🤝</span>
+                      <img [src]="syn.player2Foto || 'assets/default-avatar.svg'" class="duo-avatar" />
+                    </div>
+                    <div class="duo-names">
+                      <strong>{{ syn.player1Name }} & {{ syn.player2Name }}</strong>
+                      <small>{{ syn.description }}</small>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-synergies">
+              <span class="empty-icon">⚖️</span>
+              <p>Forze distribuite: le affinità storiche di coppia risultano bilanciate tra i due quintetti.</p>
+            </div>
+          }
+        </div>
+      }
+    </ion-content>
+
+    <!-- FOOTER AZIONE PRINCIPALE: APPLICA QUESTE SQUADRE -->
+    <div class="modal-footer ion-padding">
+      <button class="apply-teams-btn" (click)="applica()">
+        <div class="btn-glow"></div>
+        <div class="btn-content">
+          <ion-icon name="checkmark-circle" class="btn-icon"></ion-icon>
+          <div class="btn-labels">
+            <span class="btn-main">Applica queste squadre</span>
+            <small class="btn-sub">Assegna automaticamente i quintetti al campo</small>
+          </div>
+        </div>
+      </button>
+    </div>
+  </ng-template>
+</ion-modal>

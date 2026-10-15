@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="50%" stop-color="#141829"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+
+    <!-- Gold Border Gradient -->
+    <linearGradient id="goldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#fde047"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+
+    <!-- Ball 3D Lighting -->
+    <radialGradient id="ballShading" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#94a3b8"/>
+    </radialGradient>
+
+    <!-- Field Glow -->
+    <radialGradient id="fieldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Crown Gold -->
+    <linearGradient id="crownGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <!-- Filter for subtle drop shadow -->
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Squircle App Icon Base -->
+  <rect x="16" y="16" width="480" height="480" rx="108" ry="108" fill="url(#bgGrad)" stroke="url(#goldBorder)" stroke-width="10"/>
+
+  <!-- Field Glow in center -->
+  <circle cx="256" cy="275" r="190" fill="url(#fieldGlow)"/>
+
+  <!-- Golden Stars on sides -->
+  <path d="M 100 130 Q 100 145 85 145 Q 100 145 100 160 Q 100 145 115 145 Q 100 145 100 130 Z" fill="#fbbf24"/>
+  <path d="M 412 130 Q 412 145 397 145 Q 412 145 412 160 Q 412 145 427 145 Q 412 145 412 130 Z" fill="#fbbf24"/>
+
+  <!-- Ball Group with Shadow -->
+  <g filter="url(#shadow)">
+    <!-- Ball Sphere -->
+    <circle cx="256" cy="275" r="145" fill="url(#ballShading)" stroke="#0f172a" stroke-width="5"/>
+
+    <!-- Center Black Pentagon -->
+    <!-- Center (256, 275), radius ~60 -->
+    <polygon points="
+      256.0, 215.0
+      313.1, 256.5
+      291.3, 323.5
+      220.7, 323.5
+      198.9, 256.5
+    " fill="#0f172a" stroke="#334155" stroke-width="3"/>
+
+    <!-- Seam Lines radiating out from the 5 vertices -->
+    <!-- Point 0: (256, 215) -> top edge (256, 131) -->
+    <line x1="256" y1="215" x2="256" y2="131" stroke="#334155" stroke-width="5"/>
+    <!-- Point 1: (313.1, 256.5) -> top-right edge (394, 230) -->
+    <line x1="313" y1="256" x2="394" y2="230" stroke="#334155" stroke-width="5"/>
+    <!-- Point 2: (291.3, 323.5) -> bottom-right edge (341, 392) -->
+    <line x1="291" y1="324" x2="341" y2="392" stroke="#334155" stroke-width="5"/>
+    <!-- Point 3: (220.7, 323.5) -> bottom-left edge (171, 392) -->
+    <line x1="221" y1="324" x2="171" y2="392" stroke="#334155" stroke-width="5"/>
+    <!-- Point 4: (198.9, 256.5) -> top-left edge (118, 230) -->
+    <line x1="199" y1="256" x2="118" y2="230" stroke="#334155" stroke-width="5"/>
+
+    <!-- Outer Pentagon Patches on edges -->
+    <!-- Top Patch -->
+    <polygon points="256, 131 220, 137 230, 170 282, 170 292, 137" fill="#0f172a"/>
+    <!-- Top Right Patch -->
+    <polygon points="394, 230 380, 195 350, 210 355, 260 388, 268" fill="#0f172a"/>
+    <!-- Bottom Right Patch -->
+    <polygon points="341, 392 370, 365 352, 332 315, 345 315, 385" fill="#0f172a"/>
+    <!-- Bottom Left Patch -->
+    <polygon points="171, 392 197, 385 197, 345 160, 332 142, 365" fill="#0f172a"/>
+    <!-- Top Left Patch -->
+    <polygon points="118, 230 124, 268 157, 260 162, 210 132, 195" fill="#0f172a"/>
+  </g>
+
+  <!-- Golden Champion Crown -->
+  <g filter="url(#shadow)">
+    <!-- Crown Body -->
+    <polygon points="
+      180, 145
+      180, 100
+      218, 122
+      256, 75
+      294, 122
+      332, 100
+      332, 145
+    " fill="url(#crownGrad)" stroke="#78350f" stroke-width="3"/>
+    
+    <!-- Crown Base Band -->
+    <rect x="176" y="140" width="160" height="14" rx="4" fill="#d97706" stroke="#78350f" stroke-width="2"/>
+    <circle cx="216" cy="147" r="4" fill="#38bdf8"/>
+    <circle cx="256" cy="147" r="5" fill="#f43f5e"/>
+    <circle cx="296" cy="147" r="4" fill="#10b981"/>
+
+    <!-- Crown Jewels on Tips -->
+    <circle cx="180" cy="100" r="7" fill="#f43f5e" stroke="#fff" stroke-width="1.5"/>
+    <circle cx="256" cy="75" r="9" fill="#f43f5e" stroke="#fff" stroke-width="2"/>
+    <circle cx="332" cy="100" r="7" fill="#f43f5e" stroke="#fff" stroke-width="1.5"/>
+  </g>
+</svg>

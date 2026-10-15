@@ -412,15 +412,18 @@ export class PartitePage {
       note: '',
     }));
 
+    if (partita?.id) {
+      this.location.replaceState(`/partite/${partita.id}`);
+    }
+
     const modal = await this.modalCtrl.create({
       component: MatchModalComponent,
       componentProps: { matchData: data },
     });
     await modal.present();
     await modal.onDidDismiss();
-    if (this.route.snapshot.paramMap.get('id')) {
-      this.location.replaceState('/partite');
-    }
+    this.location.replaceState('/partite');
+    this.currentRouteId.set(null);
     return;
   }
 
