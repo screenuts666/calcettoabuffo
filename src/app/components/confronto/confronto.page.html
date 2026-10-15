@@ -153,16 +153,23 @@
           <span class="verdetto-title">🎙️ Verdetto del Match</span>
         </div>
         @if (verdettoAi()) {
-          <button
-            type="button"
-            class="ai-refresh-btn"
-            (click)="generaVerdetto(true)"
-            [disabled]="isGeneratingVerdetto()"
-            title="Rigenera il verdetto AI"
-          >
-            <ion-icon name="refresh-outline" [class.spin]="isGeneratingVerdetto()"></ion-icon>
-            <span>{{ isGeneratingVerdetto() ? 'Analisi...' : '🔄 Rigenera AI' }}</span>
-          </button>
+          <div class="verdetto-header-actions">
+            <app-ai-tts-button
+              [text]="verdettoAi()!"
+              [id]="'verdetto-' + playerAId() + '-' + playerBId()"
+              label="Ascolta Verdetto"
+            ></app-ai-tts-button>
+            <button
+              type="button"
+              class="ai-refresh-btn"
+              (click)="generaVerdetto(true)"
+              [disabled]="isGeneratingVerdetto()"
+              title="Rigenera il verdetto AI"
+            >
+              <ion-icon name="refresh-outline" [class.spin]="isGeneratingVerdetto()"></ion-icon>
+              <span>{{ isGeneratingVerdetto() ? 'Analisi...' : '🔄 Rigenera AI' }}</span>
+            </button>
+          </div>
         }
       </div>
 

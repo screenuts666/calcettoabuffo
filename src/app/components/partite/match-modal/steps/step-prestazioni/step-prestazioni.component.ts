@@ -54,6 +54,7 @@ import { MatchShareModalComponent } from '../../../match-share-modal/match-share
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
 import { formatAiMarkdown } from '../../../../../utils/ai-format.utils';
+import { AiTtsButtonComponent } from '../../../../ai-tts-button/ai-tts-button.component';
 
 @Component({
   selector: 'app-step-prestazioni',
@@ -67,6 +68,7 @@ import { formatAiMarkdown } from '../../../../../utils/ai-format.utils';
     IonIcon,
     IonSpinner,
     MatchPhotoComponent,
+    AiTtsButtonComponent,
   ],
 })
 export class StepPrestazioniComponent {

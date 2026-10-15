@@ -53,11 +53,13 @@ import { GiocatoreConPunti } from '../classifica.page';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
+import { AiTtsButtonComponent } from '../../ai-tts-button/ai-tts-button.component';
 
 @Component({
   selector: 'app-scheda-giocatore',
   templateUrl: './scheda-giocatore.component.html',
   styleUrls: ['./scheda-giocatore.component.scss'],
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
@@ -71,6 +73,7 @@ import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
     IonRow,
     IonCol,
     IonSpinner,
+    AiTtsButtonComponent,
   ],
 })
 export class SchedaGiocatoreComponent {

@@ -1,0 +1,33 @@
+<button
+  type="button"
+  class="ai-tts-btn"
+  [class.is-playing]="isThisPlaying()"
+  [class.is-loading]="isThisLoading()"
+  [class.is-compact]="compact"
+  [disabled]="!text || !text.trim()"
+  (click)="togglePlayback($event)"
+  [attr.aria-label]="isThisPlaying() ? stopLabel : (isThisLoading() ? 'Microfono acceso...' : label)"
+  [title]="isThisPlaying() ? 'Ferma telecronaca' : (isThisLoading() ? 'Generazione audio in corso...' : 'Ascolta la telecronaca AI ad alta voce')"
+>
+  @if (isThisLoading()) {
+    <ion-spinner name="crescent" class="tts-spinner"></ion-spinner>
+    @if (!compact) {
+      <span class="tts-label">Microfono acceso...</span>
+    }
+  } @else if (isThisPlaying()) {
+    <ion-icon name="stop-circle-outline" class="tts-icon stop-icon"></ion-icon>
+    <div class="sound-wave" aria-hidden="true">
+      <span class="bar bar-1"></span>
+      <span class="bar bar-2"></span>
+      <span class="bar bar-3"></span>
+    </div>
+    @if (!compact) {
+      <span class="tts-label">{{ stopLabel }}</span>
+    }
+  } @else {
+    <ion-icon name="volume-high-outline" class="tts-icon play-icon"></ion-icon>
+    @if (!compact) {
+      <span class="tts-label">🎧 {{ label }}</span>
+    }
+  }
+</button>

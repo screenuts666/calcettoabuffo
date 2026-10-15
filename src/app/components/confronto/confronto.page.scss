@@ -998,6 +998,13 @@
       }
     }
 
+    .verdetto-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
     .ai-refresh-btn {
       background: var(--app-surface-subtle);
       border: 1px solid rgba(255, 255, 255, 0.15);

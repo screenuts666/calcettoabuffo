@@ -110,16 +110,23 @@
               <span class="tactical-title">🎙️ Disamina Tattica</span>
             </div>
             @if (activeTacticalAnalysis()) {
-              <button
-                type="button"
-                class="tactical-refresh-btn"
-                (click)="generaDisaminaTattica()"
-                [disabled]="isGeneratingTactical()"
-                title="Rigenera disamina tattica"
-              >
-                <ion-icon name="refresh-outline" [class.spin]="isGeneratingTactical()"></ion-icon>
-                <span>{{ isGeneratingTactical() ? 'Analisi...' : 'Rigenera AI' }}</span>
-              </button>
+              <div class="tactical-actions">
+                <app-ai-tts-button
+                  [text]="activeTacticalAnalysis()!"
+                  [id]="'tactical-' + activeProposal().id"
+                  label="Ascolta Tattica"
+                ></app-ai-tts-button>
+                <button
+                  type="button"
+                  class="tactical-refresh-btn"
+                  (click)="generaDisaminaTattica()"
+                  [disabled]="isGeneratingTactical()"
+                  title="Rigenera disamina tattica"
+                >
+                  <ion-icon name="refresh-outline" [class.spin]="isGeneratingTactical()"></ion-icon>
+                  <span>{{ isGeneratingTactical() ? 'Analisi...' : 'Rigenera AI' }}</span>
+                </button>
+              </div>
             }
           </div>
 
