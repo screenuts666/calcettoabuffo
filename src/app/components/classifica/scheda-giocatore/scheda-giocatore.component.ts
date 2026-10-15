@@ -52,6 +52,7 @@ import {
 import { GiocatoreConPunti } from '../classifica.page';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 
 @Component({
   selector: 'app-scheda-giocatore',
@@ -77,6 +78,8 @@ export class SchedaGiocatoreComponent {
   private geminiService = inject(GeminiService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
+
+  readonly formatAiMarkdown = formatAiMarkdown;
 
   @Input() prof: GiocatoreConPunti | any = null;
   @Input() chiudiModale!: () => void;

@@ -94,7 +94,7 @@
 
     @if (prof?.scoutingReportAi) {
       <div class="scouting-body">
-        <p class="scouting-text">“{{ prof.scoutingReportAi }}”</p>
+        <div class="scouting-text" [innerHTML]="formatAiMarkdown(prof.scoutingReportAi)"></div>
         <div class="scouting-footer">
           <small>💾 Memorizzato nel profilo del giocatore</small>
         </div>

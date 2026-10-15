@@ -169,10 +169,19 @@
       @if (verdettoAi()) {
         <div class="verdetto-body">
           <div class="verdetto-bubble">
-            <p class="verdetto-text">{{ verdettoAi() }}</p>
+            <div class="verdetto-text" [innerHTML]="formatAiMarkdown(verdettoAi())"></div>
           </div>
           <div class="verdetto-footer">
-            <span>💾 Memorizzato su Firestore · Condivisibile su WhatsApp</span>
+            <button
+              type="button"
+              class="verdetto-share-btn"
+              (click)="condividiConfronto()"
+              title="Condividi verdetto su WhatsApp"
+            >
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Condividi Verdetto</span>
+            </button>
+            <span class="verdetto-hint">💾 Memorizzato su Firestore</span>
           </div>
         </div>
       } @else {

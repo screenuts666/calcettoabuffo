@@ -961,36 +961,38 @@
 // 🎙️ VERDETTO AI CARD STYLES
 // ========================================================
 .verdetto-ai-card {
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(30, 27, 75, 0.3) 100%);
-  border: 1px solid rgba(168, 85, 247, 0.35);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.12) 0%, rgba(30, 27, 75, 0.45) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 18px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+  transition: all 0.25s ease;
 
   .verdetto-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 
     .verdetto-title-tag {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
 
       .ai-sparkle-pill {
-        font-size: 0.65rem;
+        font-size: 0.68rem;
         font-weight: 900;
         letter-spacing: 0.5px;
         background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
         color: #ffffff;
-        padding: 2px 7px;
-        border-radius: 6px;
+        padding: 3px 8px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
       }
 
       .verdetto-title {
-        font-size: 0.88rem;
+        font-size: 0.95rem;
         font-weight: 800;
         color: var(--app-text-primary);
       }
@@ -998,17 +1000,22 @@
 
     .ai-refresh-btn {
       background: var(--app-surface-subtle);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: var(--app-text-secondary);
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 0.72rem;
+      border-radius: 10px;
+      padding: 5px 12px;
+      font-size: 0.76rem;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       cursor: pointer;
       transition: all 0.2s ease;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--app-text-primary);
+      }
 
       &:active { transform: scale(0.96); }
 
@@ -1020,27 +1027,90 @@
 
   .verdetto-body {
     .verdetto-bubble {
-      background: rgba(0, 0, 0, 0.25);
-      border-left: 3px solid #a855f7;
-      border-radius: 0 10px 10px 0;
-      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border-left: 4px solid #a855f7;
+      border-radius: 0 14px 14px 0;
+      padding: 16px 18px;
+      box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
 
       .verdetto-text {
         margin: 0;
-        font-size: 0.86rem;
-        line-height: 1.5;
-        color: var(--app-text-primary);
-        white-space: pre-line;
+        font-size: 0.94rem;
+        line-height: 1.65;
+        color: #f8fafc;
+        word-break: break-word;
+
+        .ai-p {
+          margin: 0 0 12px 0;
+          &:last-child { margin-bottom: 0; }
+        }
+
+        .ai-h3, .ai-h4 {
+          margin: 16px 0 8px 0;
+          font-weight: 800;
+          color: #e9d5ff;
+        }
+
+        strong {
+          color: #ffffff;
+          font-weight: 750;
+        }
+
+        em {
+          color: #cbd5e1;
+          font-style: italic;
+        }
+
+        .ai-ul {
+          margin: 8px 0 12px 0;
+          padding-left: 20px;
+        }
+
+        .ai-li {
+          margin-bottom: 6px;
+        }
       }
     }
 
     .verdetto-footer {
-      margin-top: 8px;
+      margin-top: 12px;
       display: flex;
-      justify-content: flex-end;
-      font-size: 0.68rem;
-      color: var(--app-text-muted);
-      font-weight: 600;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      .verdetto-share-btn {
+        background: rgba(37, 211, 102, 0.12);
+        color: #25d366;
+        border: 1px solid rgba(37, 211, 102, 0.3);
+        border-radius: 8px;
+        padding: 6px 12px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(37, 211, 102, 0.2);
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+      }
+
+      .verdetto-hint {
+        font-size: 0.7rem;
+        color: var(--app-text-muted);
+        font-weight: 600;
+      }
     }
   }
 
@@ -1049,29 +1119,29 @@
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 8px 4px 4px;
+    padding: 14px 8px 8px;
 
     .empty-prompt-text {
-      margin: 0 0 12px 0;
-      font-size: 0.82rem;
+      margin: 0 0 14px 0;
+      font-size: 0.88rem;
       color: var(--app-text-secondary);
-      line-height: 1.4;
-      max-width: 420px;
+      line-height: 1.5;
+      max-width: 480px;
     }
 
     .verdetto-call-btn {
       background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
       color: #ffffff;
       border: none;
-      border-radius: 12px;
-      padding: 10px 22px;
-      font-size: 0.88rem;
+      border-radius: 14px;
+      padding: 12px 26px;
+      font-size: 0.92rem;
       font-weight: 800;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(168, 85, 247, 0.35);
+      box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
       transition: all 0.2s ease;
 
       &:active { transform: scale(0.97); }

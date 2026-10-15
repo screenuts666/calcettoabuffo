@@ -54,6 +54,7 @@ import { MatchShareModalComponent } from '../../../match-share-modal/match-share
 import { FotoViewerModalComponent } from '../../../foto-viewer-modal/foto-viewer-modal.component';
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
+import { formatAiMarkdown } from '../../../../../utils/ai-format.utils';
 
 @Component({
   selector: 'app-step-prestazioni',
@@ -76,6 +77,8 @@ export class StepPrestazioniComponent {
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
+
+  readonly formatAiMarkdown = formatAiMarkdown;
 
   isGeneratingPronostico = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);

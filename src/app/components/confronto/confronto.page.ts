@@ -64,6 +64,7 @@ import {
   getStagioniDisponibili,
 } from 'src/app/utils/season-utils';
 import { Giocatore } from 'src/app/models/giocatore.model';
+import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 
 @Component({
   selector: 'app-confronto',
@@ -93,6 +94,8 @@ export class ConfrontoPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private toastController = inject(ToastController);
+
+  readonly formatAiMarkdown = formatAiMarkdown;
 
   readonly ALL_SEASONS = ALL_SEASONS;
   readonly CURRENT_SEASON = CURRENT_SEASON;

@@ -66,7 +66,10 @@ export class GeminiService {
       ],
       generationConfig: {
         temperature: 0.85,
-        maxOutputTokens: 1000,
+        maxOutputTokens: 2500,
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
       },
     };
 

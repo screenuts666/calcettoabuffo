@@ -155,7 +155,7 @@
 
       @if (state.pronosticoAi()) {
         <div class="ai-pronostico-body">
-          <p class="ai-quote-text">“{{ state.pronosticoAi() }}”</p>
+          <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(state.pronosticoAi())"></div>
         </div>
       } @else {
         <div class="ai-empty-prompt">
@@ -471,7 +471,7 @@
     @if (state.cronacaAi()) {
       <div class="cronaca-content-box">
         <div class="cronaca-bubble">
-          <p class="cronaca-text">{{ state.cronacaAi() }}</p>
+          <div class="cronaca-text" [innerHTML]="formatAiMarkdown(state.cronacaAi())"></div>
         </div>
         <div class="cronaca-footer">
           <span class="cronaca-hint">💾 Salvata nel DB · Inclusa nel report WhatsApp</span>
