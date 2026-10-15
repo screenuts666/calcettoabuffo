@@ -1,0 +1,168 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.ai-tts-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: rgba(56, 128, 255, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled) {
+    background: rgba(56, 128, 255, 0.22);
+    border-color: rgba(56, 189, 248, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
+  }
+
+  .tts-icon {
+    font-size: 0.95rem;
+    flex-shrink: 0;
+
+    &.play-icon {
+      color: #38bdf8;
+    }
+  }
+
+  .tts-label {
+    display: inline-block;
+    line-height: 1;
+  }
+
+  // ==========================================
+  // STATO: CARICAMENTO (GENERAZIONE AI AUDIO)
+  // ==========================================
+  &.is-loading {
+    background: rgba(245, 158, 11, 0.16);
+    border-color: rgba(245, 158, 11, 0.55);
+    color: #fbbf24;
+    cursor: wait;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+    animation: pulseBorder 1.5s ease-in-out infinite;
+
+    .tts-spinner {
+      width: 14px;
+      height: 14px;
+      color: #fbbf24;
+    }
+  }
+
+  // ==========================================
+  // STATO: IN RIPRODUZIONE (PLAYING)
+  // ==========================================
+  &.is-playing {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(244, 63, 94, 0.22) 100%);
+    border-color: rgba(244, 63, 94, 0.7);
+    color: #fda4af;
+    box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+    animation: playingGlow 2s ease-in-out infinite alternate;
+
+    .stop-icon {
+      font-size: 1rem;
+      color: #f43f5e;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(244, 63, 94, 0.35) 100%);
+      border-color: #f43f5e;
+    }
+  }
+
+  // ==========================================
+  // ONDE SONORE ANTIMATE IN CSS (SOUND WAVES)
+  // ==========================================
+  .sound-wave {
+    display: inline-flex;
+    align-items: center;
+    gap: 2.5px;
+    height: 12px;
+    padding: 0 1px;
+
+    .bar {
+      width: 2.5px;
+      border-radius: 2px;
+      background: #f43f5e;
+      animation: soundBars 0.75s ease-in-out infinite alternate;
+
+      &.bar-1 {
+        height: 5px;
+        animation-delay: 0s;
+      }
+      &.bar-2 {
+        height: 12px;
+        animation-delay: 0.22s;
+      }
+      &.bar-3 {
+        height: 7px;
+        animation-delay: 0.44s;
+      }
+    }
+  }
+
+  // ==========================================
+  // VARIANTE COMPATTA (SOLO ICONA / MINIMA)
+  // ==========================================
+  &.is-compact {
+    padding: 4px 6px;
+    border-radius: 8px;
+
+    .tts-icon {
+      font-size: 1.05rem;
+    }
+  }
+}
+
+@keyframes soundBars {
+  0% {
+    height: 3px;
+    opacity: 0.5;
+  }
+  100% {
+    height: 12px;
+    opacity: 1;
+  }
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+  50% {
+    border-color: rgba(245, 158, 11, 0.85);
+  }
+}
+
+@keyframes playingGlow {
+  0% {
+    box-shadow: 0 0 8px rgba(244, 63, 94, 0.25);
+  }
+  100% {
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.55);
+  }
+}

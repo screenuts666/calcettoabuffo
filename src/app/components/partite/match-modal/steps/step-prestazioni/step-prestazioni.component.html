@@ -140,16 +140,23 @@
           <span class="ai-title">🧙‍♂️ Il Pronostico del Mister</span>
         </div>
         @if (state.pronosticoAi()) {
-          <button
-            type="button"
-            class="ai-refresh-btn"
-            (click)="generaPronostico(true)"
-            [disabled]="isGeneratingPronostico()"
-            title="Rigenera il pronostico con Gemini"
-          >
-            <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico()"></ion-icon>
-            <span>{{ isGeneratingPronostico() ? 'Ricalcolo...' : '🔄 Rigenera AI' }}</span>
-          </button>
+          <div class="ai-header-actions">
+            <app-ai-tts-button
+              [text]="state.pronosticoAi()!"
+              [id]="'pronostico-' + (state.matchId() || 'temp')"
+              label="Ascolta Pronostico"
+            ></app-ai-tts-button>
+            <button
+              type="button"
+              class="ai-refresh-btn"
+              (click)="generaPronostico(true)"
+              [disabled]="isGeneratingPronostico()"
+              title="Rigenera il pronostico con Gemini"
+            >
+              <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico()"></ion-icon>
+              <span>{{ isGeneratingPronostico() ? 'Ricalcolo...' : '🔄 Rigenera AI' }}</span>
+            </button>
+          </div>
         }
       </div>
 
@@ -432,16 +439,23 @@
         <span class="section-title">Cronaca Sportiva Ignorante</span>
       </div>
       @if (state.cronacaAi()) {
-        <button
-          type="button"
-          class="ai-refresh-btn"
-          (click)="generaCronaca(true)"
-          [disabled]="isGeneratingCronaca()"
-          title="Rigenera la cronaca con Gemini"
-        >
-          <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca()"></ion-icon>
-          <span>{{ isGeneratingCronaca() ? 'Riscrivo...' : '🔄 Rigenera AI' }}</span>
-        </button>
+        <div class="header-actions">
+          <app-ai-tts-button
+            [text]="state.cronacaAi()!"
+            [id]="'cronaca-' + (state.matchId() || 'temp')"
+            label="Ascolta Telecronaca"
+          ></app-ai-tts-button>
+          <button
+            type="button"
+            class="ai-refresh-btn"
+            (click)="generaCronaca(true)"
+            [disabled]="isGeneratingCronaca()"
+            title="Rigenera la cronaca con Gemini"
+          >
+            <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca()"></ion-icon>
+            <span>{{ isGeneratingCronaca() ? 'Riscrivo...' : '🔄 Rigenera AI' }}</span>
+          </button>
+        </div>
       }
     </div>
 

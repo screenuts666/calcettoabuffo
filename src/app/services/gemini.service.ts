@@ -12,14 +12,22 @@ import { MatchReportData } from '../models/mmr.model';
 import { HeadToHeadComparison } from '../models/confronto.model';
 import { MatchmakingProposal } from './matchmaking.service';
 
+export interface AiConfig {
+  geminiApiKey: string;
+  elevenLabsApiKey: string;
+  elevenLabsVoiceId: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class GeminiService {
   private firestore = inject(Firestore);
 
-  // Cache in-memory della chiave API per evitare letture ripetute su Firestore
+  // Cache in-memory della configurazione AI e della chiave API per evitare letture ripetute su Firestore
   private cachedApiKey: string | null = null;
+  private cachedConfig: AiConfig | null = null;
+
   // Modelli supportati con fallback automatico a cascata
   // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
   private readonly MODELS = [
@@ -30,12 +38,12 @@ export class GeminiService {
   ];
 
   /**
-   * Recupera a runtime la chiave API da Firestore dal nodo sicuro `_config/ai`.
-   * Mai hardcodata nel codice sorgente.
+   * Recupera a runtime la configurazione AI completa dal nodo sicuro Firestore `_config/ai`.
+   * Include supporto per ElevenLabs API key, ElevenLabs Voice ID e Gemini API key.
    */
-  async getApiKey(): Promise<string> {
-    if (this.cachedApiKey) {
-      return this.cachedApiKey;
+  async getAiConfig(): Promise<AiConfig> {
+    if (this.cachedConfig) {
+      return this.cachedConfig;
     }
 
     try {
@@ -43,14 +51,40 @@ export class GeminiService {
       const snap = await getDoc(configRef);
       if (snap.exists()) {
         const data = snap.data();
-        const key = data?.['geminiApiKey'] || data?.['apiKey'] || '';
-        if (key) {
-          this.cachedApiKey = key;
-          return key;
-        }
+        const geminiApiKey = data?.['geminiApiKey'] || data?.['apiKey'] || '';
+        const rawElevenKey = (data?.['elevenLabsApiKey'] || '').trim();
+        const elevenLabsVoiceId = (data?.['elevenLabsVoiceId'] || 'pNInz6obpgDQGcFmaJgB').trim();
+
+        this.cachedApiKey = geminiApiKey;
+        this.cachedConfig = {
+          geminiApiKey,
+          elevenLabsApiKey: rawElevenKey,
+          elevenLabsVoiceId,
+        };
+        return this.cachedConfig;
       }
     } catch (err) {
-      console.error('Errore nel recupero della chiave API da Firestore:', err);
+      console.error('Errore nel recupero della configurazione AI da Firestore:', err);
+    }
+
+    return {
+      geminiApiKey: this.cachedApiKey || '',
+      elevenLabsApiKey: '',
+      elevenLabsVoiceId: 'pNInz6obpgDQGcFmaJgB',
+    };
+  }
+
+  /**
+   * Recupera a runtime la chiave API da Firestore dal nodo sicuro `_config/ai`.
+   * Mai hardcodata nel codice sorgente.
+   */
+  async getApiKey(): Promise<string> {
+    if (this.cachedApiKey) {
+      return this.cachedApiKey;
+    }
+    const config = await this.getAiConfig();
+    if (config.geminiApiKey) {
+      return config.geminiApiKey;
     }
 
     throw new Error(

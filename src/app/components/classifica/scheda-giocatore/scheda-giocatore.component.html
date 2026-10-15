@@ -79,16 +79,23 @@
         <span class="scouting-title">Relazione Segreta del Mister</span>
       </div>
       @if (prof?.scoutingReportAi) {
-        <button
-          type="button"
-          class="scouting-refresh-btn"
-          (click)="generaScouting(true)"
-          [disabled]="isGeneratingScouting()"
-          title="Rigenera Scouting Report con Gemini"
-        >
-          <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
-          <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
-        </button>
+        <div class="scouting-header-actions">
+          <app-ai-tts-button
+            [text]="prof!.scoutingReportAi!"
+            [id]="'scouting-' + prof!.id"
+            label="Ascolta Scouting"
+          ></app-ai-tts-button>
+          <button
+            type="button"
+            class="scouting-refresh-btn"
+            (click)="generaScouting(true)"
+            [disabled]="isGeneratingScouting()"
+            title="Rigenera Scouting Report con Gemini"
+          >
+            <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
+            <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
+          </button>
+        </div>
       }
     </div>
 

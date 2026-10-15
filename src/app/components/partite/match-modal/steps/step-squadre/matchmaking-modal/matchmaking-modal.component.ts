@@ -43,6 +43,7 @@ import {
 } from 'src/app/services/matchmaking.service';
 import { getMmrTier } from 'src/app/models/mmr.model';
 import { GeminiService } from 'src/app/services/gemini.service';
+import { AiTtsButtonComponent } from '../../../../../ai-tts-button/ai-tts-button.component';
 
 @Component({
   selector: 'app-matchmaking-modal',
@@ -61,6 +62,7 @@ import { GeminiService } from 'src/app/services/gemini.service';
     IonIcon,
     IonModal,
     IonSpinner,
+    AiTtsButtonComponent,
   ],
 })
 export class MatchmakingModalComponent {

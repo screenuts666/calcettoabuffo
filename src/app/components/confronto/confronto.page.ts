@@ -65,6 +65,7 @@ import {
 } from 'src/app/utils/season-utils';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
+import { AiTtsButtonComponent } from '../ai-tts-button/ai-tts-button.component';
 
 @Component({
   selector: 'app-confronto',
@@ -86,6 +87,7 @@ import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
     IonAvatar,
     IonSpinner,
     ThemeToggleComponent,
+    AiTtsButtonComponent,
   ],
 })
 export class ConfrontoPage implements OnInit {
