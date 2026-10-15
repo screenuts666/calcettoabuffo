@@ -58,7 +58,12 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card" [ngClass]="stagioneCardClass(m)">
+        <div
+          class="match-card"
+          [ngClass]="stagioneCardClass(m)"
+          [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id"
+        >
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -70,9 +75,20 @@
               </div>
             </div>
 
-            <div class="status-badge" [ngClass]="badgeClass(m)">
-              <ion-icon [name]="badgeIcon(m)"></ion-icon>
-              {{ badgeLabel(m) }}
+            <div class="match-header-right">
+              <button
+                class="share-icon-btn"
+                type="button"
+                (click)="$event.stopPropagation(); apriCondivisione(m)"
+                title="Condividi su WhatsApp"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+              </button>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
             </div>
           </div>
 
@@ -120,6 +136,13 @@
                 <span>Foto</span>
               </div>
             }
+            <div
+              class="info-pill share-pill"
+              (click)="$event.stopPropagation(); apriCondivisione(m)"
+            >
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Condividi</span>
+            </div>
           </div>
         </div>
       </ion-item>
@@ -149,7 +172,12 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card" [ngClass]="stagioneCardClass(m)">
+        <div
+          class="match-card"
+          [ngClass]="stagioneCardClass(m)"
+          [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id"
+        >
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -161,9 +189,20 @@
               </div>
             </div>
 
-            <div class="status-badge" [ngClass]="badgeClass(m)">
-              <ion-icon [name]="badgeIcon(m)"></ion-icon>
-              {{ badgeLabel(m) }}
+            <div class="match-header-right">
+              <button
+                class="share-icon-btn"
+                type="button"
+                (click)="$event.stopPropagation(); apriCondivisione(m)"
+                title="Condividi su WhatsApp"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+              </button>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
             </div>
           </div>
 
@@ -211,6 +250,13 @@
                 <span>Foto</span>
               </div>
             }
+            <div
+              class="info-pill share-pill"
+              (click)="$event.stopPropagation(); apriCondivisione(m)"
+            >
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Condividi</span>
+            </div>
           </div>
         </div>
       </ion-item>
@@ -240,7 +286,12 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card" [ngClass]="stagioneCardClass(m)">
+        <div
+          class="match-card"
+          [ngClass]="stagioneCardClass(m)"
+          [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id"
+        >
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -252,9 +303,20 @@
               </div>
             </div>
 
-            <div class="status-badge" [ngClass]="badgeClass(m)">
-              <ion-icon [name]="badgeIcon(m)"></ion-icon>
-              {{ badgeLabel(m) }}
+            <div class="match-header-right">
+              <button
+                class="share-icon-btn"
+                type="button"
+                (click)="$event.stopPropagation(); apriCondivisione(m)"
+                title="Condividi su WhatsApp"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+              </button>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
             </div>
           </div>
 
@@ -302,6 +364,13 @@
                 <span>Foto</span>
               </div>
             }
+            <div
+              class="info-pill share-pill"
+              (click)="$event.stopPropagation(); apriCondivisione(m)"
+            >
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Condividi</span>
+            </div>
           </div>
         </div>
       </ion-item>
@@ -332,7 +401,12 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card" [ngClass]="stagioneCardClass(m)">
+        <div
+          class="match-card"
+          [ngClass]="stagioneCardClass(m)"
+          [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id"
+        >
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -344,9 +418,20 @@
               </div>
             </div>
 
-            <div class="status-badge" [ngClass]="badgeClass(m)">
-              <ion-icon [name]="badgeIcon(m)"></ion-icon>
-              {{ badgeLabel(m) }}
+            <div class="match-header-right">
+              <button
+                class="share-icon-btn"
+                type="button"
+                (click)="$event.stopPropagation(); apriCondivisione(m)"
+                title="Condividi su WhatsApp"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+              </button>
+
+              <div class="status-badge" [ngClass]="badgeClass(m)">
+                <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                {{ badgeLabel(m) }}
+              </div>
             </div>
           </div>
 
@@ -394,6 +479,13 @@
                 <span>Foto</span>
               </div>
             }
+            <div
+              class="info-pill share-pill"
+              (click)="$event.stopPropagation(); apriCondivisione(m)"
+            >
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Condividi</span>
+            </div>
           </div>
         </div>
       </ion-item>

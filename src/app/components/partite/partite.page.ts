@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   computed,
   signal,
+  effect,
 } from '@angular/core';
 import {
   IonHeader,
@@ -15,6 +16,8 @@ import {
   IonFabButton,
   ModalController,
   AlertController,
+  ToastController,
+  IonButton,
   IonList,
   IonItem,
   IonItemSliding,
@@ -24,7 +27,8 @@ import {
   IonLabel,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   Firestore,
@@ -59,9 +63,12 @@ import {
   expandOutline,
   sparkles,
   globeOutline,
+  logoWhatsapp,
+  shareSocialOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
+import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
 import {
   CURRENT_SEASON,
@@ -103,7 +110,14 @@ export class PartitePage {
   private storage = inject(Storage);
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
   private auth = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private location = inject(Location);
+
+  highlightMatchId = signal<string | null>(null);
+  currentRouteId = signal<string | null>(null);
+  private deepLinkHandled = false;
 
   partite = toSignal<any[]>(
     collectionData(
@@ -229,7 +243,77 @@ export class PartitePage {
       expandOutline,
       sparkles,
       globeOutline,
+      logoWhatsapp,
+      shareSocialOutline,
     });
+
+    this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (id && id !== this.currentRouteId()) {
+        this.currentRouteId.set(id);
+        this.deepLinkHandled = false;
+      }
+    });
+
+    effect(() => {
+      const list = this.partite();
+      const targetId =
+        this.currentRouteId() || this.route.snapshot.paramMap.get('id');
+      if (!list || !targetId || this.deepLinkHandled) return;
+
+      const match = list.find((m: any) => m.id === targetId);
+      if (match) {
+        this.deepLinkHandled = true;
+        const s = getStagionePartita(match);
+        if (
+          this.stagioneSelezionata() !== s &&
+          this.stagioneSelezionata() !== this.ALL_SEASONS
+        ) {
+          this.stagioneSelezionata.set(s);
+        }
+        this.highlightMatchId.set(match.id);
+
+        setTimeout(() => {
+          const el = document.getElementById(`match-card-${match.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          this.apriModalePartita(match);
+        }, 350);
+
+        setTimeout(() => {
+          if (this.highlightMatchId() === match.id) {
+            this.highlightMatchId.set(null);
+          }
+        }, 3500);
+      } else if (list.length > 0) {
+        this.deepLinkHandled = true;
+        this.mostraToastPartitaNonTrovata();
+      }
+    });
+  }
+
+  async apriCondivisione(partita: any) {
+    const modal = await this.modalCtrl.create({
+      component: MatchShareModalComponent,
+      componentProps: { partita },
+      breakpoints: [0, 0.65, 0.95],
+      initialBreakpoint: 0.65,
+      handle: true,
+    });
+    await modal.present();
+  }
+
+  async mostraToastPartitaNonTrovata() {
+    const toast = await this.toastController.create({
+      message: 'Partita non trovata',
+      duration: 3000,
+      position: 'bottom',
+      color: 'warning',
+      mode: 'ios',
+      buttons: [{ text: 'OK', role: 'cancel' }],
+    });
+    await toast.present();
   }
 
   stagioneBadgeClass(m: any): string {
@@ -328,7 +412,12 @@ export class PartitePage {
       component: MatchModalComponent,
       componentProps: { matchData: data },
     });
-    return await modal.present();
+    await modal.present();
+    await modal.onDidDismiss();
+    if (this.route.snapshot.paramMap.get('id')) {
+      this.location.replaceState('/partite');
+    }
+    return;
   }
 
   async confermaEliminazione(match: any, slidingItem: IonItemSliding) {

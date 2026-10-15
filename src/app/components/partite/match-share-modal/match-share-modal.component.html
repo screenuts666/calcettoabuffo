@@ -1,0 +1,120 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="dark">
+    <ion-title>Condividi Partita</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="chiudi()" color="light">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="share-modal-content">
+  <div class="share-container">
+    <!-- Sezione Selettori / Chip -->
+    <div class="options-header">
+      <span class="section-label">Personalizza messaggio:</span>
+    </div>
+
+    <div class="chips-row">
+      <ion-chip
+        [class.chip-active]="includeRisultato()"
+        (click)="toggleOption('risultato')"
+      >
+        <ion-icon
+          [name]="includeRisultato() ? 'checkmark-circle' : 'trophy-outline'"
+          [color]="includeRisultato() ? 'success' : 'medium'"
+        ></ion-icon>
+        <ion-label>Risultato</ion-label>
+      </ion-chip>
+
+      <ion-chip
+        [class.chip-active]="includeMarcatori()"
+        (click)="toggleOption('marcatori')"
+      >
+        <ion-icon
+          [name]="includeMarcatori() ? 'checkmark-circle' : 'football-outline'"
+          [color]="includeMarcatori() ? 'success' : 'medium'"
+        ></ion-icon>
+        <ion-label>Marcatori</ion-label>
+      </ion-chip>
+
+      @if (hasVotiDisponibili()) {
+        <ion-chip
+          [class.chip-active]="includePagelle()"
+          (click)="toggleOption('pagelle')"
+        >
+          <ion-icon
+            [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
+            [color]="includePagelle() ? 'success' : 'medium'"
+          ></ion-icon>
+          <ion-label>Pagelle & MVP</ion-label>
+        </ion-chip>
+      }
+
+      <ion-chip
+        [class.chip-active]="includeLink()"
+        (click)="toggleOption('link')"
+      >
+        <ion-icon
+          [name]="includeLink() ? 'checkmark-circle' : 'link-outline'"
+          [color]="includeLink() ? 'success' : 'medium'"
+        ></ion-icon>
+        <ion-label>Link App</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Anteprima Box WhatsApp -->
+    <div class="preview-box-wrapper">
+      <div class="preview-header">
+        <div class="whatsapp-badge">
+          <ion-icon name="logo-whatsapp"></ion-icon>
+          <span>Anteprima Messaggio</span>
+        </div>
+        <span class="preview-hint">Formattato per WhatsApp</span>
+      </div>
+
+      <div class="preview-text-box">
+        <pre>{{ testoWhatsApp() }}</pre>
+      </div>
+    </div>
+
+    <!-- Pulsanti Azione -->
+    <div class="action-buttons-group">
+      <ion-button
+        expand="block"
+        color="success"
+        class="whatsapp-primary-btn"
+        (click)="inviaWhatsApp()"
+      >
+        <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+        <span>Invia su WhatsApp</span>
+      </ion-button>
+
+      <div class="secondary-actions-row">
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="light"
+          class="sub-action-btn"
+          [disabled]="isSharingNative()"
+          (click)="condividiNativo()"
+        >
+          <ion-icon name="share-social-outline" slot="start"></ion-icon>
+          <span>Condividi...</span>
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          color="light"
+          class="sub-action-btn"
+          (click)="copiaTesto()"
+        >
+          <ion-icon name="copy-outline" slot="start"></ion-icon>
+          <span>Copia Testo</span>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

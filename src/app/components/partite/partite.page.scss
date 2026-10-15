@@ -102,7 +102,7 @@
   padding: 15px;
   margin: 8px 0; // I famosi 8px di margine verticale
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
   &.card-season-current {
     border-left: 4px solid var(--ion-color-success, #2dd36f);
@@ -113,9 +113,25 @@
     opacity: 0.95;
   }
 
+  &.highlight-active {
+    animation: card-glow 1s ease-in-out infinite alternate;
+    border-color: #25d366 !important;
+  }
+
   &:active {
     transform: scale(0.98);
     background: var(--ion-color-step-100, #222);
+  }
+}
+
+@keyframes card-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(37, 211, 102, 0.35);
+    border-color: rgba(37, 211, 102, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 24px rgba(37, 211, 102, 0.85);
+    border-color: #25d366;
   }
 }
 
@@ -133,6 +149,41 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.match-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-icon-btn {
+  background: rgba(37, 211, 102, 0.12);
+  color: #25d366;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+
+  ion-icon {
+    font-size: 1.15rem;
+    color: #25d366;
+  }
+
+  &:hover {
+    background: rgba(37, 211, 102, 0.25);
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
 }
 
 .match-date {
@@ -265,7 +316,9 @@
 // ==========================================
 .match-footer {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .info-pill {
@@ -279,6 +332,28 @@
   ion-icon {
     margin-right: 5px;
     font-size: 1.1em;
+  }
+}
+
+.share-pill {
+  background: rgba(37, 211, 102, 0.12) !important;
+  color: #25d366 !important;
+  border: 1px solid rgba(37, 211, 102, 0.35) !important;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    color: #25d366 !important;
+  }
+
+  &:hover {
+    background: rgba(37, 211, 102, 0.22) !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
