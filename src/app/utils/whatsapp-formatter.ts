@@ -6,6 +6,7 @@ export interface WhatsAppShareOptions {
   includeMarcatori: boolean;
   includePagelle: boolean;
   includeLink: boolean;
+  includeFoto: boolean;
 }
 
 /**
@@ -53,7 +54,7 @@ function formatTeamRoster(
 
   return giocatori
     .map((g) => {
-      let riga = g.nome || 'Sconosciuto';
+      let nome = (g.nome || 'Sconosciuto').trim();
       if (includeMarcatori) {
         const gol = g.gol || 0;
         const autogol = g.autogol || 0;
@@ -67,10 +68,10 @@ function formatTeamRoster(
         }
 
         if (indicatori.length > 0) {
-          riga += ` ${indicatori.join(' ')}`;
+          nome += ` ${indicatori.join(' ')}`;
         }
       }
-      return riga;
+      return nome;
     })
     .join(', ');
 }
@@ -85,6 +86,7 @@ export function formatMatchForWhatsApp(
     includeMarcatori: true,
     includePagelle: true,
     includeLink: true,
+    includeFoto: true,
   },
 ): string {
   const parts: string[] = [];
@@ -96,10 +98,12 @@ export function formatMatchForWhatsApp(
   if (dataFmt) {
     parts.push(`📅 *${dataFmt}*`);
   }
-  if (partita.luogo || partita.orario) {
+  const luogo = (partita.luogo || '').trim();
+  const orario = (partita.orario || '').trim();
+  if (luogo || orario) {
     const dettagli: string[] = [];
-    if (partita.luogo) dettagli.push(`📍 *${partita.luogo}*`);
-    if (partita.orario) dettagli.push(`⏰ *${partita.orario}*`);
+    if (luogo) dettagli.push(`📍 *${luogo}*`);
+    if (orario) dettagli.push(`⏰ *${orario}*`);
     parts.push(dettagli.join(' | '));
   }
 
@@ -139,7 +143,13 @@ export function formatMatchForWhatsApp(
     ];
 
     const giocatoriConVoto = tuttiGiocatori
-      .filter((g) => g.voto !== undefined && g.voto !== null && !isNaN(Number(g.voto)) && Number(g.voto) > 0)
+      .filter(
+        (g) =>
+          g.voto !== undefined &&
+          g.voto !== null &&
+          !isNaN(Number(g.voto)) &&
+          Number(g.voto) > 0,
+      )
       .sort((a, b) => {
         const diff = Number(b.voto) - Number(a.voto);
         if (diff !== 0) return diff;
@@ -155,22 +165,31 @@ export function formatMatchForWhatsApp(
 
       parts.push('');
       if (mvpList.length === 1) {
-        parts.push(`🏆 *MVP:* *${mvpList[0].nome}* (${mvpList[0].voto})`);
+        const nomeMvp = (mvpList[0].nome || '').trim();
+        parts.push(`🏆 *MVP:* *${nomeMvp}* (${maxVoto})`);
       } else {
-        const nomiMvp = mvpList.map((m) => `*${m.nome}*`).join(', ');
-        parts.push(`🏆 *MVP (pari merito):* ${nomiMvp} (${maxVoto})`);
+        const nomiMvp = mvpList.map((m) => (m.nome || '').trim()).join(', ');
+        parts.push(`🏆 *MVP (pari merito - voto ${maxVoto}):* ${nomiMvp}`);
       }
 
       parts.push('');
       parts.push('📊 *PAGELLE E COMMENTI*');
       for (const g of giocatoriConVoto) {
-        let riga = `• *${g.nome}*: *${g.voto}*`;
+        const nome = (g.nome || 'Sconosciuto').trim();
+        let riga = `• *${nome}*: *${g.voto}*`;
         if (g.note && g.note.trim().length > 0) {
           riga += ` — _"${g.note.trim()}"_`;
         }
         parts.push(riga);
       }
     }
+  }
+
+  // Foto di gruppo della partita
+  if (options.includeFoto && partita.fotoUrl) {
+    parts.push('');
+    parts.push('📸 *Foto di gruppo della partita:*');
+    parts.push(partita.fotoUrl);
   }
 
   // Link diretto alla partita

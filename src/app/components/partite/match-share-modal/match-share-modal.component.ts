@@ -18,10 +18,11 @@ import {
   IonIcon,
   IonChip,
   IonLabel,
-  IonToast,
   ModalController,
   ToastController,
+  LoadingController,
 } from '@ionic/angular/standalone';
+import { Storage, ref, getBlob } from '@angular/fire/storage';
 import { addIcons } from 'ionicons';
 import {
   logoWhatsapp,
@@ -34,6 +35,9 @@ import {
   trophyOutline,
   linkOutline,
   documentTextOutline,
+  imageOutline,
+  image,
+  downloadOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
@@ -64,6 +68,8 @@ import {
 export class MatchShareModalComponent implements OnInit {
   private modalCtrl = inject(ModalController);
   private toastCtrl = inject(ToastController);
+  private loadingCtrl = inject(LoadingController);
+  private storage = inject(Storage);
 
   @Input({ required: true }) partita!: Partita;
 
@@ -72,6 +78,7 @@ export class MatchShareModalComponent implements OnInit {
   includeMarcatori = signal<boolean>(true);
   includePagelle = signal<boolean>(true);
   includeLink = signal<boolean>(true);
+  includeFoto = signal<boolean>(true);
 
   isSharingNative = signal<boolean>(false);
 
@@ -87,6 +94,9 @@ export class MatchShareModalComponent implements OnInit {
       trophyOutline,
       linkOutline,
       documentTextOutline,
+      imageOutline,
+      image,
+      downloadOutline,
     });
   }
 
@@ -99,6 +109,10 @@ export class MatchShareModalComponent implements OnInit {
 
     if (!this.partita.pagelleInserite && !hasVoti) {
       this.includePagelle.set(false);
+    }
+
+    if (!this.partita.fotoUrl) {
+      this.includeFoto.set(false);
     }
   }
 
@@ -120,11 +134,12 @@ export class MatchShareModalComponent implements OnInit {
       includeMarcatori: this.includeMarcatori(),
       includePagelle: this.includePagelle(),
       includeLink: this.includeLink(),
+      includeFoto: this.includeFoto(),
     };
     return formatMatchForWhatsApp(this.partita, options);
   });
 
-  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link') {
+  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto') {
     switch (key) {
       case 'risultato':
         this.includeRisultato.update((v) => !v);
@@ -138,6 +153,9 @@ export class MatchShareModalComponent implements OnInit {
       case 'link':
         this.includeLink.update((v) => !v);
         break;
+      case 'foto':
+        this.includeFoto.update((v) => !v);
+        break;
     }
   }
 
@@ -145,49 +163,125 @@ export class MatchShareModalComponent implements OnInit {
     this.modalCtrl.dismiss();
   }
 
-  inviaWhatsApp() {
+  /**
+   * Scarica il file dell'immagine da Firebase Storage (usando getBlob dell'SDK per evitare CORS)
+   * o con fallback su fetch HTTP.
+   */
+  private async ottieniFileFoto(): Promise<File | null> {
+    if (!this.partita.fotoUrl && !this.partita.fotoPath) return null;
+
+    try {
+      const storageRef = ref(
+        this.storage,
+        this.partita.fotoPath || this.partita.fotoUrl!,
+      );
+      const blob = await getBlob(storageRef);
+      return new File(
+        [blob],
+        `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
+        {
+          type: blob.type || 'image/jpeg',
+        },
+      );
+    } catch (err) {
+      console.warn('getBlob fallito, provo fallback fetch:', err);
+      try {
+        if (this.partita.fotoUrl) {
+          const resp = await fetch(this.partita.fotoUrl);
+          const blob = await resp.blob();
+          return new File(
+            [blob],
+            `calcetto-partita-${this.partita.dataPartita || 'foto'}.jpg`,
+            {
+              type: blob.type || 'image/jpeg',
+            },
+          );
+        }
+      } catch (e2) {
+        console.warn('Fallback fetch fallito:', e2);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Invia su WhatsApp:
+   * Su mobile con foto inclusa, apre il selettore di condivisione nativo (Web Share API)
+   * allegando il file dell'immagine e impostando il report come didascalia (caption).
+   * Altrimenti apre wa.me/?text= con il report e il link diretto alla foto.
+   */
+  async inviaWhatsApp() {
+    if (
+      this.includeFoto() &&
+      (this.partita.fotoUrl || this.partita.fotoPath) &&
+      typeof navigator !== 'undefined' &&
+      'share' in navigator
+    ) {
+      await this.condividiNativo();
+      return;
+    }
+
+    this.inviaWhatsAppWeb();
+  }
+
+  inviaWhatsAppWeb() {
     const testo = this.testoWhatsApp();
-    const url = `https://wa.me/?text=${encodeURIComponent(testo)}`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(testo)}`;
     window.open(url, '_blank');
   }
 
   async condividiNativo() {
     this.isSharingNative.set(true);
-    const testo = this.testoWhatsApp();
-    const deepLink = this.deepLink();
+    const loading = await this.loadingCtrl.create({
+      message: 'Preparazione foto e report...',
+      mode: 'ios',
+      duration: 6000,
+    });
+    await loading.present();
 
     try {
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        const shareData: ShareData = {
-          title: 'Calcetto a Buffone - Report Partita',
-          text: testo,
-          url: deepLink,
-        };
+      const testo = this.testoWhatsApp();
+      let fileFoto: File | null = null;
 
-        // Se presente una foto di gruppo, proviamo ad allegarla come File
-        if (this.partita.fotoUrl && navigator.canShare) {
-          try {
-            const resp = await fetch(this.partita.fotoUrl);
-            const blob = await resp.blob();
-            const file = new File([blob], 'foto-partita.jpg', {
-              type: blob.type || 'image/jpeg',
-            });
-            if (navigator.canShare({ files: [file] })) {
-              shareData.files = [file];
-            }
-          } catch (e) {
-            console.warn('Impossibile convertire foto per WebShare:', e);
-          }
+      if (this.includeFoto() && (this.partita.fotoUrl || this.partita.fotoPath)) {
+        fileFoto = await this.ottieniFileFoto();
+      }
+
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
+        // Se c'è il file foto ed è supportato da canShare, condividiamo con file e testo
+        // IMPORTANTE: non passare 'url' contemporaneamente a 'files' su iOS Safari, altrimenti viene rifiutato
+        if (
+          fileFoto &&
+          'canShare' in navigator &&
+          (navigator as any).canShare({ files: [fileFoto] })
+        ) {
+          await loading.dismiss();
+          await navigator.share({
+            title: 'Calcetto a Buffone - Report Match',
+            text: testo,
+            files: [fileFoto],
+          });
+          return;
+        } else {
+          // Solo testo e url
+          await loading.dismiss();
+          await navigator.share({
+            title: 'Calcetto a Buffone - Report Match',
+            text: testo,
+            url: this.deepLink(),
+          });
+          return;
         }
-
-        await navigator.share(shareData);
       } else {
-        // Fallback per browser senza Web Share API
-        await this.copiaTesto();
+        // Se Web Share non è supportato (es. desktop), apriamo WhatsApp via URL wa.me
+        await loading.dismiss();
+        this.inviaWhatsAppWeb();
       }
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
+      await loading.dismiss();
+      if (err?.name !== 'AbortError') {
         console.warn('Errore condivisione nativa:', err);
+        this.inviaWhatsAppWeb();
       }
     } finally {
       this.isSharingNative.set(false);
@@ -208,7 +302,6 @@ export class MatchShareModalComponent implements OnInit {
     }
 
     if (!copiato) {
-      // Fallback classico con textarea temporanea
       try {
         const el = document.createElement('textarea');
         el.value = testo;
@@ -234,5 +327,47 @@ export class MatchShareModalComponent implements OnInit {
       mode: 'ios',
     });
     await toast.present();
+  }
+
+  async scaricaFoto() {
+    if (!this.partita.fotoUrl && !this.partita.fotoPath) return;
+
+    const loading = await this.loadingCtrl.create({
+      message: 'Download foto in corso...',
+      mode: 'ios',
+      duration: 5000,
+    });
+    await loading.present();
+
+    try {
+      const file = await this.ottieniFileFoto();
+      await loading.dismiss();
+
+      if (file) {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `calcetto-${this.partita.dataPartita || 'partita'}.jpg`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        const toast = await this.toastCtrl.create({
+          message: 'Foto scaricata sul dispositivo!',
+          duration: 2500,
+          color: 'success',
+          mode: 'ios',
+        });
+        await toast.present();
+      } else if (this.partita.fotoUrl) {
+        window.open(this.partita.fotoUrl, '_blank');
+      }
+    } catch (e) {
+      await loading.dismiss();
+      if (this.partita.fotoUrl) {
+        window.open(this.partita.fotoUrl, '_blank');
+      }
+    }
   }
 }

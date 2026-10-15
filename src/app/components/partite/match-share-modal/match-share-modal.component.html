@@ -52,6 +52,19 @@
         </ion-chip>
       }
 
+      @if (partita.fotoUrl) {
+        <ion-chip
+          [class.chip-active]="includeFoto()"
+          (click)="toggleOption('foto')"
+        >
+          <ion-icon
+            [name]="includeFoto() ? 'checkmark-circle' : 'image-outline'"
+            [color]="includeFoto() ? 'success' : 'medium'"
+          ></ion-icon>
+          <ion-label>Foto Partita</ion-label>
+        </ion-chip>
+      }
+
       <ion-chip
         [class.chip-active]="includeLink()"
         (click)="toggleOption('link')"
@@ -74,6 +87,16 @@
         <span class="preview-hint">Formattato per WhatsApp</span>
       </div>
 
+      @if (includeFoto() && partita.fotoUrl) {
+        <div class="preview-photo-banner">
+          <img [src]="partita.fotoUrl" alt="Foto partita" />
+          <div class="photo-banner-badge">
+            <ion-icon name="image"></ion-icon>
+            <span>Foto allegata alla condivisione</span>
+          </div>
+        </div>
+      }
+
       <div class="preview-text-box">
         <pre>{{ testoWhatsApp() }}</pre>
       </div>
@@ -85,10 +108,11 @@
         expand="block"
         color="success"
         class="whatsapp-primary-btn"
+        [disabled]="isSharingNative()"
         (click)="inviaWhatsApp()"
       >
         <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-        <span>Invia su WhatsApp</span>
+        <span>{{ includeFoto() && partita.fotoUrl ? 'Invia Foto + Report su WhatsApp' : 'Invia su WhatsApp' }}</span>
       </ion-button>
 
       <div class="secondary-actions-row">
@@ -114,6 +138,34 @@
           <ion-icon name="copy-outline" slot="start"></ion-icon>
           <span>Copia Testo</span>
         </ion-button>
+      </div>
+
+      <div class="tertiary-actions-row">
+        @if (includeFoto() && partita.fotoUrl) {
+          <ion-button
+            expand="block"
+            fill="clear"
+            color="success"
+            size="small"
+            class="link-only-btn"
+            (click)="inviaWhatsAppWeb()"
+          >
+            <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+            <span>Invia solo link su WhatsApp Web</span>
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="clear"
+            color="medium"
+            size="small"
+            class="save-photo-btn"
+            (click)="scaricaFoto()"
+          >
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            <span>Salva foto sul dispositivo</span>
+          </ion-button>
+        }
       </div>
     </div>
   </div>

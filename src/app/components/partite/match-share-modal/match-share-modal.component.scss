@@ -88,8 +88,46 @@
     }
   }
 
+  .preview-photo-banner {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    background: #000;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0.9;
+    }
+
+    .photo-banner-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #25d366;
+      border: 1px solid rgba(37, 211, 102, 0.35);
+
+      ion-icon {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
   .preview-text-box {
-    max-height: 220px;
+    max-height: 200px;
     overflow-y: auto;
     padding: 12px 14px;
     background: #0f1117;
@@ -144,6 +182,38 @@
 
       ion-icon {
         font-size: 1.1rem;
+        margin-right: 4px;
+      }
+    }
+  }
+
+  .tertiary-actions-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .link-only-btn {
+      --color: #25d366;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin: 0;
+      height: 32px;
+
+      ion-icon {
+        font-size: 1rem;
+        margin-right: 4px;
+      }
+    }
+
+    .save-photo-btn {
+      --color: #9ea0b5;
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin: 0;
+      height: 30px;
+
+      ion-icon {
+        font-size: 0.95rem;
         margin-right: 4px;
       }
     }
