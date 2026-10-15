@@ -266,16 +266,24 @@
 // ===============================
 .chemistry-duo-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 12px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 
 .chem-card {
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 16px;
-  padding: 12px 10px;
+  padding: 12px 14px;
   text-align: left;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
   display: flex;
@@ -562,10 +570,6 @@
 // RESPONSIVE TWEAKS (< 360px)
 // ===============================
 @media (max-width: 360px) {
-  .chemistry-duo-cards {
-    grid-template-columns: 1fr;
-  }
-
   .stat-box-num {
     font-size: 1.25rem;
   }
@@ -621,18 +625,18 @@
   justify-content: center;
   gap: 6px;
   width: 100%;
-  padding: 7px 10px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: 1px solid var(--app-border-color);
   background: var(--app-surface-subtle);
   color: var(--app-text-primary);
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 
   ion-icon {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
   }
 
   &.partner-btn {
