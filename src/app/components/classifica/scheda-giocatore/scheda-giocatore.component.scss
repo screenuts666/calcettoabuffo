@@ -265,18 +265,22 @@
 // SEZIONE CHIMICA (PARTNER & NEMESI)
 // ===============================
 .chemistry-duo-cards {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 14px;
+  width: 100%;
 
-  @media (min-width: 600px) {
+  @media (min-width: 640px) {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
   }
 }
 
 .chem-card {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
   box-sizing: border-box;
