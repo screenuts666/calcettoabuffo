@@ -111,7 +111,9 @@ export class MatchShareModalComponent implements OnInit {
     const hasVoti = [
       ...(this.partita.teamA || []),
       ...(this.partita.teamB || []),
-    ].some((g) => g.voto !== undefined && g.voto !== null && Number(g.voto) > 0);
+    ].some(
+      (g) => g.voto !== undefined && g.voto !== null && Number(g.voto) > 0,
+    );
 
     if (!this.partita.pagelleInserite && !hasVoti) {
       this.includePagelle.set(false);
@@ -126,7 +128,9 @@ export class MatchShareModalComponent implements OnInit {
     return [
       ...(this.partita?.teamA || []),
       ...(this.partita?.teamB || []),
-    ].some((g) => g.voto !== undefined && g.voto !== null && Number(g.voto) > 0);
+    ].some(
+      (g) => g.voto !== undefined && g.voto !== null && Number(g.voto) > 0,
+    );
   });
 
   deepLink = computed(() => {
@@ -272,7 +276,10 @@ export class MatchShareModalComponent implements OnInit {
       const testo = this.testoWhatsApp();
       let fileFoto: File | null = null;
 
-      if (this.includeFoto() && (this.partita.fotoUrl || this.partita.fotoPath)) {
+      if (
+        this.includeFoto() &&
+        (this.partita.fotoUrl || this.partita.fotoPath)
+      ) {
         fileFoto = await this.ottieniFileFoto();
       }
 
@@ -286,7 +293,7 @@ export class MatchShareModalComponent implements OnInit {
         ) {
           await loading.dismiss();
           await navigator.share({
-            title: 'Calcetto a Buffone - Report Match',
+            title: 'Report Match',
             text: testo,
             files: [fileFoto],
           });
@@ -295,7 +302,7 @@ export class MatchShareModalComponent implements OnInit {
           // Solo testo e url
           await loading.dismiss();
           await navigator.share({
-            title: 'Calcetto a Buffone - Report Match',
+            title: 'Report Match',
             text: testo,
             url: this.deepLink(),
           });

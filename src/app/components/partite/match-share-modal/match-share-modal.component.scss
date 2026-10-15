@@ -1,4 +1,16 @@
+:host {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  width: 100% !important;
+  contain: content;
+  overflow: hidden !important;
+  background: #0f1117;
+}
+
 .share-modal-header {
+  flex-shrink: 0;
+
   ion-toolbar {
     --background: #141720;
     --color: #ffffff;
@@ -18,32 +30,33 @@
 }
 
 .share-modal-content {
+  flex: 1 1 auto !important;
   --background: #0f1117;
   --color: #ffffff;
 }
 
 .share-container {
-  padding: 12px 14px 16px 14px;
+  padding: 10px 14px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* Mini Card Riepilogo Partita */
 .match-summary-card {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 14px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 8px 10px;
 
   .summary-thumb {
     position: relative;
-    width: 52px;
-    height: 52px;
-    border-radius: 10px;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
     overflow: hidden;
     flex-shrink: 0;
     border: 1.5px solid rgba(255, 255, 255, 0.15);
@@ -61,15 +74,15 @@
       position: absolute;
       bottom: 2px;
       right: 2px;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: rgba(0, 0, 0, 0.7);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #7a7d90;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       transition: all 0.2s ease;
 
       &.badge-active {
@@ -92,7 +105,7 @@
   .summary-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     min-width: 0;
     flex: 1;
 
@@ -100,7 +113,7 @@
       display: flex;
       align-items: center;
       gap: 5px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: #9ba0b4;
       font-weight: 500;
       white-space: nowrap;
@@ -119,11 +132,11 @@
       align-items: center;
 
       .score-pill {
-        font-size: 0.88rem;
+        font-size: 0.84rem;
         font-weight: 600;
         color: #ffffff;
         background: rgba(255, 255, 255, 0.08);
-        padding: 2px 8px;
+        padding: 2px 7px;
         border-radius: 6px;
         border: 1px solid rgba(255, 255, 255, 0.1);
 
@@ -134,7 +147,7 @@
       }
 
       .status-pill {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.5px;
         color: #25d366;
@@ -143,14 +156,14 @@
   }
 }
 
-/* Barra Opzioni con Scroll Orizzontale Fluido */
+/* Barra Opzioni con Scroll Orizzontale */
 .options-bar {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 
   .options-hint {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #7e8399;
     text-transform: uppercase;
@@ -161,7 +174,7 @@
   .chips-scroll-track {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 2px;
@@ -175,26 +188,26 @@
       --background: rgba(255, 255, 255, 0.05);
       --color: #b0b4c8;
       border: 1px solid rgba(255, 255, 255, 0.09);
-      border-radius: 18px;
-      font-size: 0.78rem;
+      border-radius: 16px;
+      font-size: 0.76rem;
       font-weight: 600;
-      height: 32px;
+      height: 30px;
       margin: 0;
-      padding: 0 10px;
+      padding: 0 9px;
       flex-shrink: 0;
       cursor: pointer;
       transition: all 0.18s ease;
 
       ion-icon {
-        font-size: 0.95rem;
-        margin-right: 4px;
+        font-size: 0.9rem;
+        margin-right: 3px;
       }
 
       &.chip-active {
         --background: rgba(37, 211, 102, 0.15);
         --color: #25d366;
         border-color: rgba(37, 211, 102, 0.45);
-        box-shadow: 0 0 10px rgba(37, 211, 102, 0.15);
+        box-shadow: 0 0 8px rgba(37, 211, 102, 0.15);
       }
 
       &:active {
@@ -207,29 +220,29 @@
 /* Anteprima Box WhatsApp */
 .preview-box-wrapper {
   background: #141824;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 
   .preview-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 7px 11px;
     background: rgba(255, 255, 255, 0.025);
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
     .whatsapp-badge {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       color: #25d366;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 700;
 
       ion-icon {
-        font-size: 1.05rem;
+        font-size: 1rem;
       }
     }
 
@@ -237,24 +250,24 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
       color: #25d366;
       background: rgba(37, 211, 102, 0.12);
-      padding: 2px 7px;
-      border-radius: 10px;
+      padding: 1px 6px;
+      border-radius: 8px;
       border: 1px solid rgba(37, 211, 102, 0.25);
 
       ion-icon {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
       }
     }
   }
 
   .preview-text-box {
-    max-height: 180px;
+    max-height: 125px;
     overflow-y: auto;
-    padding: 10px 12px;
+    padding: 8px 11px;
     background: #0d0f15;
     -webkit-overflow-scrolling: touch;
 
@@ -271,57 +284,26 @@
       white-space: pre-wrap;
       word-break: break-word;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      font-size: 0.82rem;
-      line-height: 1.42;
+      font-size: 0.8rem;
+      line-height: 1.4;
       color: #dce0ed;
-    }
-  }
-}
-
-/* Link secondari discreti */
-.sub-links-container {
-  display: flex;
-  justify-content: space-around;
-  gap: 8px;
-  padding: 2px 4px;
-
-  .sub-link-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: transparent;
-    border: none;
-    color: #8b90a4;
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 6px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    ion-icon {
-      font-size: 0.95rem;
-      color: #25d366;
-    }
-
-    &:active {
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffffff;
     }
   }
 }
 
 /* FOOTER FISSO ANCORATO IN BASSO */
 .share-modal-footer {
+  flex-shrink: 0 !important;
+  width: 100% !important;
   background: #141720;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.45);
 
   .footer-actions-container {
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)) 14px;
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 
     .whatsapp-primary-btn {
       --background: #25d366;
@@ -330,14 +312,14 @@
       --color: #ffffff;
       --border-radius: 12px;
       font-weight: 700;
-      font-size: 0.92rem;
-      height: 48px;
+      font-size: 0.9rem;
+      height: 44px;
       margin: 0;
       box-shadow: 0 4px 14px rgba(37, 211, 102, 0.28);
       letter-spacing: 0.1px;
 
       ion-icon {
-        font-size: 1.25rem;
+        font-size: 1.2rem;
         margin-right: 6px;
       }
     }
@@ -352,12 +334,12 @@
         --border-color: rgba(255, 255, 255, 0.14);
         --color: #dce0ed;
         font-weight: 600;
-        font-size: 0.82rem;
-        height: 38px;
+        font-size: 0.8rem;
+        height: 36px;
         margin: 0;
 
         ion-icon {
-          font-size: 1rem;
+          font-size: 0.95rem;
           margin-right: 4px;
         }
 

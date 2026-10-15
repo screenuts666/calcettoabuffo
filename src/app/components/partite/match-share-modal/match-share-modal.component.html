@@ -12,7 +12,7 @@
 <ion-content class="share-modal-content" [scrollY]="true">
   <div class="share-container">
 
-    <!-- Mini Match Header Card (Sottile, informativo, zero spazio sprecato) -->
+    <!-- Mini Match Header Card -->
     <div class="match-summary-card">
       @if (partita.fotoUrl) {
         <div
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <!-- Barra Opzioni Orizzontale a Scorrimento Fluido (Single Line, no wrap) -->
+    <!-- Barra Opzioni Orizzontale a Scorrimento Fluido -->
     <div class="options-bar">
       <div class="options-hint">Personalizza contenuto:</div>
       <div class="chips-scroll-track">
@@ -70,18 +70,16 @@
           <ion-label>Marcatori</ion-label>
         </ion-chip>
 
-        @if (hasVotiDisponibili()) {
-          <ion-chip
-            [class.chip-active]="includePagelle()"
-            (click)="toggleOption('pagelle')"
-          >
-            <ion-icon
-              [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
-              [color]="includePagelle() ? 'success' : 'medium'"
-            ></ion-icon>
-            <ion-label>Pagelle & MVP</ion-label>
-          </ion-chip>
-        }
+        <ion-chip
+          [class.chip-active]="includePagelle()"
+          (click)="toggleOption('pagelle')"
+        >
+          <ion-icon
+            [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
+            [color]="includePagelle() ? 'success' : 'medium'"
+          ></ion-icon>
+          <ion-label>Pagelle</ion-label>
+        </ion-chip>
 
         @if (partita.fotoUrl) {
           <ion-chip
@@ -114,12 +112,12 @@
       <div class="preview-header">
         <div class="whatsapp-badge">
           <ion-icon name="logo-whatsapp"></ion-icon>
-          <span>Anteprima WhatsApp</span>
+          <span>Anteprima Messaggio</span>
         </div>
         @if (includeFoto() && partita.fotoUrl) {
           <span class="preview-photo-tag">
             <ion-icon name="image"></ion-icon>
-            Foto inclusa
+            Foto allegata
           </span>
         }
       </div>
@@ -129,19 +127,6 @@
       </div>
     </div>
 
-    <!-- Link secondari utili -->
-    @if (includeFoto() && partita.fotoUrl) {
-      <div class="sub-links-container">
-        <button type="button" class="sub-link-btn" (click)="scaricaFoto()">
-          <ion-icon name="download-outline"></ion-icon>
-          <span>Salva foto nella galleria</span>
-        </button>
-        <button type="button" class="sub-link-btn" (click)="inviaWhatsAppWeb()">
-          <ion-icon name="globe-outline"></ion-icon>
-          <span>Invia solo link testuale</span>
-        </button>
-      </div>
-    }
   </div>
 </ion-content>
 

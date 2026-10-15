@@ -50,7 +50,8 @@ function formatTeamRoster(
   giocatori: PlayerPerformance[] = [],
   includeMarcatori: boolean,
 ): string {
-  if (!giocatori || giocatori.length === 0) return '_Nessun convocato registrato_';
+  if (!giocatori || giocatori.length === 0)
+    return '_Nessun convocato registrato_';
 
   return giocatori
     .map((g) => {
@@ -92,7 +93,7 @@ export function formatMatchForWhatsApp(
   const parts: string[] = [];
 
   // Intestazione
-  parts.push('⚽ *CALCETTO A BUFFONE - REPORT MATCH* ⚽');
+  parts.push('⚽ *REPORT MATCH* ⚽');
 
   const dataFmt = formatDataItaliana(partita.dataPartita);
   if (dataFmt) {
@@ -182,21 +183,17 @@ export function formatMatchForWhatsApp(
         }
         parts.push(riga);
       }
+    } else {
+      parts.push('');
+      parts.push('📊 *PAGELLE:* _Non ancora inserite_');
     }
-  }
-
-  // Foto di gruppo della partita
-  if (options.includeFoto && partita.fotoUrl) {
-    parts.push('');
-    parts.push('📸 *Foto di gruppo della partita:*');
-    parts.push(partita.fotoUrl);
   }
 
   // Link diretto alla partita
   if (options.includeLink && partita.id) {
     const link = getMatchDeepLink(partita.id);
     parts.push('');
-    parts.push('🔗 *Vedi tabellino, foto e pagelle sull\'app:*');
+    parts.push("🔗 *Vedi tabellino, foto e pagelle sull'app:*");
     parts.push(link);
   }
 
