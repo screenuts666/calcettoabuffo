@@ -45,6 +45,8 @@ export class MatchStateService {
   fotoUrl = signal<string | null>(null);
   fotoPath = signal<string | null>(null);
   stagione = signal<string>(CURRENT_SEASON);
+  pronosticoAi = signal<string | null>(null);
+  cronacaAi = signal<string | null>(null);
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -122,6 +124,8 @@ export class MatchStateService {
         this.cambioAttivo.set(data.cambioAttivo || false);
         this.fotoUrl.set(data.fotoUrl || null);
         this.fotoPath.set(data.fotoPath || null);
+        this.pronosticoAi.set(data.pronosticoAi || null);
+        this.cronacaAi.set(data.cronacaAi || null);
       }
     });
   }
@@ -160,6 +164,8 @@ export class MatchStateService {
       fotoUrl: this.fotoUrl() || null,
       fotoPath: this.fotoPath() || null,
       stagione: getStagionePartita({ dataPartita: this.dataPartita() }),
+      pronosticoAi: this.pronosticoAi() || null,
+      cronacaAi: this.cronacaAi() || null,
     };
 
     this.pagelleInserite.set(pagelleInseriteFlag);

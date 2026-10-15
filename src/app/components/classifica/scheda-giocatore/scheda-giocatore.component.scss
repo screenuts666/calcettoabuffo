@@ -1,37 +1,452 @@
-// Forziamo il contenitore a prendere tutto lo spazio (il fix della foto tagliata)
 :host {
   display: block;
   height: 100%;
 }
 
+.player-profile-content {
+  --background: var(--app-bg);
+  color: var(--app-text-primary);
+}
+
 // ===============================
 // HEADER & AVATAR
 // ===============================
-.avatar-img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid var(--ion-color-success);
+.profile-avatar-wrapper {
+  position: relative;
+  display: inline-block;
   margin-top: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-img {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: 3.5px solid var(--tier-color, var(--ion-color-success));
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   object-fit: cover;
+  background: var(--app-card-bg);
+}
+
+.avatar-form-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--app-card-bg);
+  border: 2px solid var(--app-card-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .player-name {
   font-weight: 900;
-  margin: 5px 0 0 0;
-  font-size: 1.6em;
+  margin: 8px 0 0 0;
+  font-size: 1.55rem;
+  color: var(--app-text-primary);
 }
 
 .player-nickname {
-  color: var(--ion-color-medium);
-  margin: 0 0 15px 0;
-  font-size: 1em;
+  color: var(--app-text-muted);
+  margin: 0 0 10px 0;
+  font-size: 0.95rem;
   font-style: italic;
 }
 
-.spacer-15 {
-  height: 15px;
+.spacer-8 {
+  height: 8px;
+}
+
+// ===============================
+// HERO BADGES (TIER & FORMA)
+// ===============================
+.hero-badges-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tier-badge-large {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+.form-badge-large {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+
+  &.on-fire {
+    background: rgba(255, 87, 34, 0.15);
+    color: #ff5722;
+    border: 1px solid rgba(255, 87, 34, 0.4);
+  }
+
+  &.in-crisis {
+    background: rgba(0, 176, 255, 0.15);
+    color: #00b0ff;
+    border: 1px solid rgba(0, 176, 255, 0.4);
+  }
+
+  &.neutral {
+    background: var(--app-surface-subtle);
+    color: var(--app-text-secondary);
+    border: 1px solid var(--app-card-border);
+  }
+}
+
+// ===============================
+// FORMA RECENTE (STRISCIA ULTIME 5)
+// ===============================
+.recent-form-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.recent-form-label {
+  font-size: 0.75rem;
+  color: var(--app-text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.recent-balls {
+  display: flex;
+  gap: 5px;
+}
+
+.form-ball {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+  &.win {
+    background: #2dd36f;
+  }
+
+  &.draw {
+    background: #ffc409;
+    color: #000000;
+  }
+
+  &.loss {
+    background: #eb445a;
+  }
+}
+
+// ===============================
+// SECTION HEADERS
+// ===============================
+.section-badge-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--app-text-secondary);
+  margin: 16px 0 10px;
+
+  .sec-icon {
+    font-size: 1.05rem;
+  }
+
+  .mmr-icon {
+    color: var(--ion-color-success);
+  }
+
+  .chem-icon {
+    color: #ff9800;
+  }
+
+  .legacy-icon {
+    color: #ffd700;
+  }
+}
+
+// ===============================
+// MMR STATS GRID
+// ===============================
+.mmr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 14px;
+  padding: 10px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stat-box-title {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--app-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
+}
+
+.stat-box-num {
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--app-text-primary);
+}
+
+.peak-num {
+  color: #ffb300;
+  text-shadow: 0 0 10px rgba(255, 179, 0, 0.3);
+}
+
+.stat-box-sub {
+  font-size: 0.65rem;
+  color: var(--app-text-muted);
+  margin-top: 4px;
+
+  &.trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: 800;
+
+    &.up {
+      color: #2dd36f;
+    }
+
+    &.down {
+      color: #eb445a;
+    }
+  }
+}
+
+// ===============================
+// SEZIONE CHIMICA (PARTNER & NEMESI)
+// ===============================
+.chemistry-duo-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.chem-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 16px;
+  padding: 12px 10px;
+  text-align: left;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+
+  &.partner-highlight {
+    border-top: 3.5px solid #2dd36f;
+    background: linear-gradient(
+      180deg,
+      rgba(45, 211, 111, 0.06) 0%,
+      var(--app-card-bg) 60%
+    );
+  }
+
+  &.nemesis-highlight {
+    border-top: 3.5px solid #ff4500;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 69, 0, 0.06) 0%,
+      var(--app-card-bg) 60%
+    );
+  }
+}
+
+.chem-card-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+
+  .chem-icon-tag {
+    font-size: 1.3rem;
+  }
+
+  .chem-role-title {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--app-text-primary);
+  }
+
+  .chem-role-subtitle {
+    font-size: 0.65rem;
+    color: var(--app-text-muted);
+    font-weight: 600;
+  }
+}
+
+.chem-player-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 10px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: var(--app-surface-hover);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.chem-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #2dd36f;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+
+  &.nemesis-avatar {
+    border-color: #ff4500;
+  }
+}
+
+.chem-player-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.chem-player-name {
+  font-size: 0.86rem;
+  color: var(--app-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  span {
+    font-size: 0.75rem;
+    font-weight: normal;
+    color: var(--app-text-muted);
+    font-style: italic;
+    margin-left: 2px;
+  }
+}
+
+.chem-percent {
+  font-size: 0.82rem;
+  font-weight: 900;
+  margin-top: 1px;
+
+  &.win {
+    color: #2dd36f;
+  }
+
+  &.loss {
+    color: #ff4500;
+  }
+}
+
+.chem-record-detail {
+  font-size: 0.65rem;
+  color: var(--app-text-muted);
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.chem-tap-hint {
+  font-size: 0.62rem;
+  color: var(--app-text-muted);
+  text-align: center;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.chem-empty-state {
+  padding: 14px 6px;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+// Extra synergy pills
+.chem-extra-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.chem-extra-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &.victim {
+    background: rgba(255, 193, 7, 0.12);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: var(--app-text-primary);
+  }
+
+  &.struggle {
+    background: rgba(156, 39, 176, 0.1);
+    border: 1px solid rgba(156, 39, 176, 0.3);
+    color: var(--app-text-primary);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 // ===============================
@@ -45,8 +460,8 @@
   border: 1px solid var(--app-card-border);
   border-radius: 12px;
   padding: 10px 5px;
-  margin-bottom: 20px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin: 16px 0;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .info-block {
@@ -54,13 +469,14 @@
 }
 
 .info-emoji {
-  font-size: 1.1em;
+  font-size: 1.05rem;
   margin-bottom: 2px;
 }
 
 .info-value {
   font-weight: bold;
-  font-size: 0.9em;
+  font-size: 0.85rem;
+  color: var(--app-text-primary);
 }
 
 .capitalize {
@@ -69,12 +485,12 @@
 
 .info-divider {
   width: 1px;
-  height: 30px;
+  height: 28px;
   background: var(--app-border-color);
 }
 
 // ===============================
-// GRIGLIA STATISTICHE
+// GRIGLIA STATISTICHE LEGACY
 // ===============================
 .stat-col {
   padding: 5px;
@@ -82,27 +498,26 @@
 
 .stat-card {
   border-radius: 16px;
-  padding: 15px 5px;
+  padding: 14px 6px;
 }
 
 .stat-icon {
-  font-size: 1.8em;
-  margin-bottom: 5px;
+  font-size: 1.6rem;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.75em;
+  font-size: 0.72rem;
   font-weight: bold;
-  color: var(--ion-color-medium);
+  color: var(--app-text-muted);
   text-transform: uppercase;
 }
 
 .stat-value {
   font-weight: 900;
-  font-size: 1.6em;
+  font-size: 1.45rem;
 }
 
-// --- Colori specifici delle carte ---
 .card-success {
   background: rgba(45, 211, 111, 0.1);
   border: 1px solid var(--ion-color-success);
@@ -135,5 +550,240 @@
   color: var(--app-text-primary);
 }
 
+.legend-note {
+  font-size: 0.72rem;
+  color: var(--app-text-muted);
+  margin: 14px 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
+// ===============================
+// RESPONSIVE TWEAKS (< 360px)
+// ===============================
+@media (max-width: 360px) {
+  .chemistry-duo-cards {
+    grid-template-columns: 1fr;
+  }
 
+  .stat-box-num {
+    font-size: 1.25rem;
+  }
+}
+
+// ===============================
+// CONFRONTO 1v1 HEAD-TO-HEAD BTNS
+// ===============================
+.h2h-btn-wrapper {
+  margin: 12px auto 16px;
+  max-width: 300px;
+}
+
+.h2h-compare-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--app-border-color);
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.15), rgba(247, 37, 133, 0.15));
+  color: var(--app-text-primary);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1.15rem;
+    color: #00b4d8;
+  }
+
+  &:hover,
+  &:active {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, rgba(0, 180, 216, 0.25), rgba(247, 37, 133, 0.25));
+  }
+}
+
+.chem-actions-row {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.chem-h2h-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--app-border-color);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  ion-icon {
+    font-size: 0.9rem;
+  }
+
+  &.partner-btn {
+    border-color: rgba(45, 211, 111, 0.3);
+    background: rgba(45, 211, 111, 0.08);
+    color: #2dd36f;
+  }
+
+  &.nemesis-btn {
+    border-color: rgba(235, 68, 90, 0.3);
+    background: rgba(235, 68, 90, 0.08);
+    color: #eb445a;
+  }
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+// ==============================================
+// 📋 SCOUTING REPORT AI CARD
+// ==============================================
+.player-nickname {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+
+  .ai-nick-tag {
+    font-size: 0.62rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    color: #ffffff;
+    padding: 1px 5px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+}
+
+.ai-scouting-card {
+  margin: 12px auto 14px;
+  max-width: 440px;
+  text-align: left;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(30, 27, 75, 0.25) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+
+  .ai-scouting-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .scouting-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .scouting-badge {
+        font-size: 0.62rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+        color: #ffffff;
+        padding: 2px 6px;
+        border-radius: 5px;
+        letter-spacing: 0.5px;
+      }
+
+      .scouting-title {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .scouting-refresh-btn {
+      background: var(--app-surface-subtle);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--app-text-secondary);
+      border-radius: 6px;
+      padding: 3px 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+
+      &:active { transform: scale(0.96); }
+
+      ion-icon.spin {
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+
+  .scouting-body {
+    .scouting-text {
+      margin: 0;
+      font-size: 0.82rem;
+      font-style: italic;
+      color: var(--app-text-primary);
+      line-height: 1.45;
+    }
+
+    .scouting-footer {
+      margin-top: 6px;
+      text-align: right;
+      color: var(--app-text-muted);
+      font-size: 0.65rem;
+    }
+  }
+
+  .scouting-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 6px 2px;
+
+    .scouting-empty-desc {
+      margin: 0 0 10px 0;
+      font-size: 0.76rem;
+      color: var(--app-text-muted);
+    }
+
+    .scouting-generate-btn {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+
+      &:active { transform: scale(0.97); }
+
+      ion-spinner { width: 16px; height: 16px; }
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

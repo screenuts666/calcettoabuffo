@@ -16,4 +16,7 @@ export interface Giocatore {
   punti: number;
   mediaVoto: number;
   partiteGiocate: number;
+  soprannomeAi?: string;
+  scoutingReportAi?: string;
+  aiUpdatedAt?: string;
 }

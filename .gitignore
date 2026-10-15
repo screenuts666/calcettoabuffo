@@ -12,6 +12,22 @@ $RECYCLE.BIN/
 *.log
 log.txt
 
+# Environment & Secrets
+.env
+.env.*
+*.env
+*.secret*
+*.key*
+service-account*.json
+firebase-admin*.json
+
+# Temporary scripts & tools
+/scripts/temp_*
+temp_*
+/temp
+/.tmp
+
+
 
 /.sourcemaps
 /.versions

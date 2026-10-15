@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonAvatar,
@@ -7,6 +7,7 @@ import {
   ModalController,
   AlertController,
   ToastController,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -16,6 +17,30 @@ import {
   createOutline,
   saveOutline,
   warningOutline,
+  flame,
+  snowOutline,
+  trophy,
+  trophyOutline,
+  star,
+  ribbon,
+  trendingUpOutline,
+  trendingDownOutline,
+  logoWhatsapp,
+  shareSocialOutline,
+  calendarOutline,
+  locationOutline,
+  peopleOutline,
+  sparkles,
+  expandOutline,
+  image,
+  imageOutline,
+  heart,
+  skull,
+  flash,
+  ribbonOutline,
+  refreshOutline,
+  micOutline,
+  bulbOutline,
 } from 'ionicons/icons';
 import {
   PlayerPerformance,
@@ -24,19 +49,36 @@ import {
 } from '../../../../../models/player-performance.model';
 import { MatchStateService } from '../../match-state.service';
 import { MatchPhotoComponent } from '../../../match-photo/match-photo.component';
+import { StatsEngineService } from '../../../../../services/stats-engine.service';
+import { MatchShareModalComponent } from '../../../match-share-modal/match-share-modal.component';
+import { FotoViewerModalComponent } from '../../../foto-viewer-modal/foto-viewer-modal.component';
+import { MatchReportData } from '../../../../../models/mmr.model';
+import { GeminiService } from '../../../../../services/gemini.service';
 
 @Component({
   selector: 'app-step-prestazioni',
   templateUrl: './step-prestazioni.component.html',
   styleUrls: ['./step-prestazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonAvatar, IonTextarea, IonIcon, MatchPhotoComponent],
+  imports: [
+    CommonModule,
+    IonAvatar,
+    IonTextarea,
+    IonIcon,
+    IonSpinner,
+    MatchPhotoComponent,
+  ],
 })
 export class StepPrestazioniComponent {
   public state = inject(MatchStateService);
+  public statsEngine = inject(StatsEngineService);
+  public geminiService = inject(GeminiService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
+
+  isGeneratingPronostico = signal<boolean>(false);
+  isGeneratingCronaca = signal<boolean>(false);
 
   constructor() {
     addIcons({
@@ -46,7 +88,139 @@ export class StepPrestazioniComponent {
       createOutline,
       saveOutline,
       warningOutline,
+      flame,
+      snowOutline,
+      trophy,
+      trophyOutline,
+      star,
+      ribbon,
+      ribbonOutline,
+      trendingUpOutline,
+      trendingDownOutline,
+      logoWhatsapp,
+      shareSocialOutline,
+      calendarOutline,
+      locationOutline,
+      peopleOutline,
+      sparkles,
+      expandOutline,
+      image,
+      imageOutline,
+      heart,
+      skull,
+      flash,
+      refreshOutline,
+      micOutline,
+      bulbOutline,
     });
+  }
+
+  /**
+   * Report iperdettagliato calcolato in maniera reattiva dai dati di stato della partita
+   */
+  report = computed<MatchReportData>(() => {
+    const currentMatch = {
+      id: this.state.matchId() || '',
+      dataPartita: this.state.dataPartita(),
+      luogo: this.state.luogo(),
+      orario: this.state.orario(),
+      scoreA: this.state.scoreA(),
+      scoreB: this.state.scoreB(),
+      teamA: this.state.teamA(),
+      teamB: this.state.teamB(),
+      eventiGol: this.state.eventiGol(),
+      matchConcluso: this.state.matchConcluso(),
+      pagelleInserite: this.state.pagelleInserite(),
+      fotoUrl: this.state.fotoUrl(),
+      fotoPath: this.state.fotoPath(),
+      status: this.state.status(),
+      pronosticoAi: this.state.pronosticoAi(),
+      cronacaAi: this.state.cronacaAi(),
+    };
+    return this.statsEngine.getMatchReport(currentMatch);
+  });
+
+  async generaPronostico(force = false) {
+    if (this.isGeneratingPronostico()) return;
+    this.isGeneratingPronostico.set(true);
+    try {
+      const currentMatch: any = {
+        id: this.state.matchId() || '',
+        dataPartita: this.state.dataPartita(),
+        luogo: this.state.luogo(),
+        orario: this.state.orario(),
+        teamA: this.state.teamA(),
+        teamB: this.state.teamB(),
+        pronosticoAi: this.state.pronosticoAi(),
+      };
+      const text = await this.geminiService.getOrGeneratePronostico(
+        currentMatch,
+        this.report().odds,
+        force,
+      );
+      this.state.pronosticoAi.set(text);
+      const toast = await this.toastCtrl.create({
+        message: '🔮 Pronostico del Mister generato e salvato!',
+        duration: 2500,
+        color: 'success',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: 'Errore generazione pronostico: ' + (err.message || err),
+        duration: 3500,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } finally {
+      this.isGeneratingPronostico.set(false);
+    }
+  }
+
+  async generaCronaca(force = false) {
+    if (this.isGeneratingCronaca()) return;
+    this.isGeneratingCronaca.set(true);
+    try {
+      const currentMatch: any = {
+        id: this.state.matchId() || '',
+        dataPartita: this.state.dataPartita(),
+        luogo: this.state.luogo(),
+        orario: this.state.orario(),
+        scoreA: this.state.scoreA(),
+        scoreB: this.state.scoreB(),
+        teamA: this.state.teamA(),
+        teamB: this.state.teamB(),
+        eventiGol: this.state.eventiGol(),
+        cronacaAi: this.state.cronacaAi(),
+      };
+      const text = await this.geminiService.getOrGenerateCronaca(
+        currentMatch,
+        this.report(),
+        force,
+      );
+      this.state.cronacaAi.set(text);
+      const toast = await this.toastCtrl.create({
+        message: '🎙️ Cronaca Ignorante AI generata e salvata!',
+        duration: 2500,
+        color: 'success',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: 'Errore generazione cronaca: ' + (err.message || err),
+        duration: 3500,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } finally {
+      this.isGeneratingCronaca.set(false);
+    }
   }
 
   getRatingClass(voto: number | undefined): RatingClass {
@@ -75,7 +249,51 @@ export class StepPrestazioniComponent {
     return (giocatore as any)?.autogol || 0;
   }
 
-  aggiornaVoto(giocatore: PlayerPerformance, event: Event) {
+  async apriCondivisione() {
+    const currentMatch: any = {
+      id: this.state.matchId() || '',
+      dataPartita: this.state.dataPartita(),
+      luogo: this.state.luogo(),
+      orario: this.state.orario(),
+      scoreA: this.state.scoreA(),
+      scoreB: this.state.scoreB(),
+      teamA: this.state.teamA(),
+      teamB: this.state.teamB(),
+      eventiGol: this.state.eventiGol(),
+      matchConcluso: this.state.matchConcluso(),
+      pagelleInserite: this.state.pagelleInserite(),
+      fotoUrl: this.state.fotoUrl(),
+      fotoPath: this.state.fotoPath(),
+      status: this.state.status(),
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: MatchShareModalComponent,
+      componentProps: { partita: currentMatch },
+      breakpoints: [0, 0.95, 1],
+      initialBreakpoint: 0.95,
+      handle: true,
+    });
+    await modal.present();
+  }
+
+  async apriFotoViewer() {
+    const fotoUrl = this.state.fotoUrl();
+    if (!fotoUrl) return;
+
+    const modal = await this.modalCtrl.create({
+      component: FotoViewerModalComponent,
+      componentProps: {
+        fotoUrl,
+        luogo: this.state.luogo(),
+        dataPartita: this.state.dataPartita(),
+        risultato: `Bianchi ${this.state.scoreA()} - ${this.state.scoreB()} Neri`,
+      },
+    });
+    await modal.present();
+  }
+
+  aggiornaVoto(giocatore: any, event: Event) {
     const input = event.target as HTMLInputElement | null;
     if (!input || input.value.trim() === '') {
       this.salvaVotoNelloStato(giocatore.id, 0);
@@ -95,7 +313,7 @@ export class StepPrestazioniComponent {
       : this.state.teamB.update(updateFn);
   }
 
-  aggiornaNote(giocatore: PlayerPerformance, testo: string) {
+  aggiornaNote(giocatore: any, testo: string) {
     const updateFn = (list: PlayerPerformance[]) =>
       list.map((g) => (g.id === giocatore.id ? { ...g, note: testo } : g));
     this.state.teamA().some((g: PlayerPerformance) => g.id === giocatore.id)
@@ -106,12 +324,11 @@ export class StepPrestazioniComponent {
   async apriModificaRisultato() {
     if (!this.state.matchDataOriginale?.isAdmin) return;
 
-    // STEP 1: Warning Preventivo Critico Impatto Classifica
     const alertWarning = await this.alertCtrl.create({
       header: 'Modifica Risultato',
       subHeader: '⚠️ Operazione Critica',
       message:
-        'La modifica manuale del risultato altererà direttamente le statistiche di vittoria, pareggio, sconfitta (PWDL) e la classifica generale di tutti i giocatori coinvolti.\n\nVuoi procedere?',
+        'La modifica manuale del risultato altererà direttamente le statistiche e la classifica generale. Vuoi procedere?',
       buttons: [
         { text: 'Annulla', role: 'cancel' },
         {
@@ -130,7 +347,6 @@ export class StepPrestazioniComponent {
     const scoreAttualeA = this.state.scoreA();
     const scoreAttualeB = this.state.scoreB();
 
-    // STEP 2: Input punteggi numerici
     const alertInput = await this.alertCtrl.create({
       header: 'Inserisci Risultato',
       subHeader: 'Modifica punteggi Bianchi e Neri',
@@ -174,7 +390,6 @@ export class StepPrestazioniComponent {
   }
 
   private async confermaNuovoRisultato(nuovoScoreA: number, nuovoScoreB: number) {
-    // STEP 3: Riepilogo e Conferma Definitiva
     const alertConfirm = await this.alertCtrl.create({
       header: 'Conferma Nuovo Risultato',
       message: `Stai per registrare il seguente risultato:\n\n⚪ TEAM BIANCHI: ${nuovoScoreA}\n⚫ TEAM NERI: ${nuovoScoreB}\n\nConfermi l'aggiornamento immediato?`,

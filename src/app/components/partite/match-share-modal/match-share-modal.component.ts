@@ -41,6 +41,9 @@ import {
   downloadOutline,
   calendarOutline,
   globeOutline,
+  sparkles,
+  refreshOutline,
+  micOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
@@ -48,6 +51,8 @@ import {
   getMatchDeepLink,
   WhatsAppShareOptions,
 } from '../../../utils/whatsapp-formatter';
+import { StatsEngineService } from '../../../services/stats-engine.service';
+import { GeminiService } from '../../../services/gemini.service';
 
 @Component({
   selector: 'app-match-share-modal',
@@ -74,8 +79,14 @@ export class MatchShareModalComponent implements OnInit {
   private toastCtrl = inject(ToastController);
   private loadingCtrl = inject(LoadingController);
   private storage = inject(Storage);
+  private statsEngine = inject(StatsEngineService);
+  private geminiService = inject(GeminiService);
 
   @Input({ required: true }) partita!: Partita;
+
+  reportData = computed(() => {
+    return this.statsEngine.getMatchReport(this.partita);
+  });
 
   // Opzioni selezionabili
   includeRisultato = signal<boolean>(true);
@@ -83,8 +94,10 @@ export class MatchShareModalComponent implements OnInit {
   includePagelle = signal<boolean>(true);
   includeLink = signal<boolean>(true);
   includeFoto = signal<boolean>(true);
+  includeCronacaAi = signal<boolean>(true);
 
   isSharingNative = signal<boolean>(false);
+  isGeneratingCronaca = signal<boolean>(false);
 
   constructor() {
     addIcons({
@@ -103,6 +116,9 @@ export class MatchShareModalComponent implements OnInit {
       downloadOutline,
       calendarOutline,
       globeOutline,
+      sparkles,
+      refreshOutline,
+      micOutline,
     });
   }
 
@@ -119,10 +135,17 @@ export class MatchShareModalComponent implements OnInit {
       this.includePagelle.set(false);
     }
 
+    const hasCronaca = Boolean(this.partita.cronacaAi || this.reportData()?.cronacaAi);
+    this.includeCronacaAi.set(hasCronaca);
+
     if (!this.partita.fotoUrl) {
       this.includeFoto.set(false);
     }
   }
+
+  hasCronacaDisponibile = computed(() => {
+    return Boolean(this.partita?.cronacaAi || this.reportData()?.cronacaAi);
+  });
 
   hasVotiDisponibili = computed(() => {
     return [
@@ -145,11 +168,12 @@ export class MatchShareModalComponent implements OnInit {
       includePagelle: this.includePagelle(),
       includeLink: this.includeLink(),
       includeFoto: this.includeFoto(),
+      includeCronacaAi: this.includeCronacaAi(),
     };
-    return formatMatchForWhatsApp(this.partita, options);
+    return formatMatchForWhatsApp(this.partita, options, this.reportData());
   });
 
-  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto') {
+  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca') {
     switch (key) {
       case 'risultato':
         this.includeRisultato.update((v) => !v);
@@ -166,6 +190,40 @@ export class MatchShareModalComponent implements OnInit {
       case 'foto':
         this.includeFoto.update((v) => !v);
         break;
+      case 'cronaca':
+        this.includeCronacaAi.update((v) => !v);
+        break;
+    }
+  }
+
+  async generaCronaca() {
+    this.isGeneratingCronaca.set(true);
+    try {
+      const text = await this.geminiService.getOrGenerateCronaca(
+        this.partita,
+        this.reportData(),
+        true,
+      );
+      this.partita.cronacaAi = text;
+      this.includeCronacaAi.set(true);
+      const toast = await this.toastCtrl.create({
+        message: '🎙️ Cronaca Ignorante AI generata e salvata!',
+        duration: 2500,
+        color: 'success',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: 'Errore generazione cronaca AI: ' + (err.message || err),
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } finally {
+      this.isGeneratingCronaca.set(false);
     }
   }
 

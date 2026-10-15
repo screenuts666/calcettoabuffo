@@ -1,315 +1,1110 @@
-// ==========================================
-// CONTENITORE E SCOREBOARD
-// ==========================================
 .prestazioni-container {
-  padding-bottom: calc(115px + env(safe-area-inset-bottom, 0px)); // Spazio sicuro per il pulsante flottante
-  background: var(--ion-background-color);
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
+  background: var(--ion-background-color, #0f111a);
+  color: var(--app-text-primary, #ffffff);
 }
 
-.result-summary {
-  position: relative; // Necessario per posizionare la durata al fondo
+// 1. TOP BAR
+.report-top-bar {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.03));
+  border-bottom: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
   gap: 10px;
-  background: var(--app-surface-subtle);
-  padding: 15px 15px 32px 15px; // Padding extra sotto per far spazio alla durata
-  border-bottom: 1px solid var(--app-border-color);
 
-  .scoreboard-row {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-  }
-
-  .team-res {
-    font-weight: 900;
-    font-size: 0.9rem;
+  .match-meta-info {
     display: flex;
     align-items: center;
-    gap: 8px;
-    span {
-      font-size: 1.4rem;
-      padding: 2px 10px;
-      border-radius: 8px;
-    }
-  }
-  .white span {
-    background: #fff;
-    color: #000;
-  }
-  .black span {
-    background: #333;
-    color: #fff;
-    border: 1px solid #444;
-  }
-  .res-divider {
-    font-weight: 900;
-    opacity: 0.5;
-  }
-
-  // ✏️ PULSANTE MODIFICA MANUALE RISULTATO
-  .edit-score-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 196, 9, 0.12);
-    border: 1px solid rgba(255, 196, 9, 0.4);
-    color: #ffc409;
-    padding: 6px 14px;
-    min-height: 34px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    transition: all 0.2s ease;
-    margin-bottom: 2px;
-
-    ion-icon {
-      font-size: 0.9rem;
-    }
-
-    &:hover {
-      background: rgba(255, 196, 9, 0.22);
-      border-color: #ffc409;
-    }
-
-    &:active {
-      transform: scale(0.96);
-    }
-  }
-
-  // ⏳ DURATA PICCOLA SOPRA LA LINEA
-  .mini-duration {
-    position: absolute;
-    bottom: 6px; // Centrata orizzontalmente e vicina al bordo inferiore
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--ion-color-medium);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    opacity: 0.8;
-
-    ion-icon {
-      font-size: 0.75rem;
-    }
-  }
-}
-
-// ==========================================
-// INTESTAZIONE E DIVISORI
-// ==========================================
-.page-header {
-  h2 {
-    font-weight: 900;
-    font-size: 1.8rem;
-    margin: 0;
-    color: var(--app-text-primary);
-  }
-  .subtitle {
-    color: var(--ion-color-medium);
-    margin: 0;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
+    gap: 10px;
     flex-wrap: wrap;
-    gap: 8px;
 
-    .admin-badge {
+    .meta-item {
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      background: rgba(255, 196, 9, 0.15);
-      color: #ffc409;
-      border: 1px solid rgba(255, 196, 9, 0.35);
-      padding: 2px 8px;
-      border-radius: 8px;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       font-weight: 700;
+      color: var(--app-text-secondary, #94a3b8);
 
       ion-icon {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
+        color: var(--ion-color-success, #2dd36f);
+      }
+
+      &.duration-item {
+        color: var(--ion-color-warning, #ffc409);
+        ion-icon { color: var(--ion-color-warning, #ffc409); }
+      }
+    }
+  }
+
+  .quick-whatsapp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(37, 211, 102, 0.16);
+    color: #25d366;
+    border: 1px solid rgba(37, 211, 102, 0.4);
+    padding: 5px 12px;
+    border-radius: 18px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+
+    &:active { transform: scale(0.95); }
+  }
+}
+
+// 2. SCOREBOARD HERO
+.scoreboard-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 14px 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
+  border-bottom: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
+
+  .scoreboard-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
+    max-width: 440px;
+  }
+
+  .team-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+
+    &.white-side { justify-content: flex-end; text-align: right; }
+    &.black-side { justify-content: flex-start; text-align: left; }
+
+    .team-title {
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+    }
+
+    .team-score-num {
+      font-size: 2.3rem;
+      font-weight: 900;
+      line-height: 1;
+      padding: 3px 12px;
+      border-radius: 10px;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    &.white-side .team-score-num {
+      background: #ffffff;
+      color: #0b0c10;
+      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+    }
+
+    &.black-side .team-score-num {
+      background: #1e2230;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .score-vs-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    .vs-text {
+      font-size: 1rem;
+      font-weight: 900;
+      color: var(--app-text-secondary, #64748b);
+    }
+
+    .status-pill-small {
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: rgba(255, 196, 9, 0.15);
+      color: #ffc409;
+      border: 1px solid rgba(255, 196, 9, 0.3);
+
+      &.archived {
+        background: rgba(45, 211, 111, 0.15);
+        color: #2dd36f;
+        border-color: rgba(45, 211, 111, 0.3);
+      }
+    }
+  }
+
+  .edit-score-btn {
+    margin-top: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 196, 9, 0.12);
+    border: 1px solid rgba(255, 196, 9, 0.35);
+    color: #ffc409;
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+}
+
+// 3. UPSET
+.upset-banner-wrapper {
+  margin: 12px 14px 2px;
+
+  .upset-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(255, 65, 108, 0.22) 0%, rgba(255, 75, 43, 0.28) 100%);
+    border: 1px solid #ff4b2b;
+    border-radius: 12px;
+    padding: 10px 14px;
+    box-shadow: 0 4px 16px rgba(255, 75, 43, 0.25);
+    animation: upsetGlow 2.5s infinite;
+
+    .upset-flame-icon {
+      font-size: 1.8rem;
+    }
+
+    .upset-title {
+      font-size: 0.88rem;
+      font-weight: 900;
+      color: #ff4b2b;
+      letter-spacing: 0.5px;
+    }
+
+    .upset-desc {
+      font-size: 0.78rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+  }
+}
+
+@keyframes upsetGlow {
+  0%, 100% { box-shadow: 0 4px 16px rgba(255, 75, 43, 0.25); }
+  50% { box-shadow: 0 4px 26px rgba(255, 75, 43, 0.5); }
+}
+
+// CARDS DI SEZIONE
+.report-section-card {
+  margin: 12px 14px;
+  background: var(--app-surface, #141721);
+  border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  padding: 12px 14px;
+
+  .section-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 6px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .section-icon {
+        font-size: 1.1rem;
+        &.odds-icon { color: #3880ff; }
+        &.flash-icon { color: #ffc409; }
+        &.fire-icon { color: #ff4500; }
+        &.chemistry-icon { color: #a855f7; }
+      }
+
+      .section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+    }
+
+    .favorite-pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+
+      &.white-fav {
+        background: rgba(255, 255, 255, 0.18);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+      }
+
+      &.black-fav {
+        background: rgba(0, 229, 255, 0.15);
+        color: #00e5ff;
+        border: 1px solid rgba(0, 229, 255, 0.35);
       }
     }
   }
 }
 
-.team-divider {
-  margin: 20px 0 10px 0;
-  padding: 10px 15px;
-  font-weight: 900;
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  &.white {
-    background: #fff;
-    color: #000;
-  }
-  &.black {
-    background: #1a1a1a;
-    color: #fff;
-    border-top: 1px solid #333;
-    border-bottom: 1px solid #333;
-  }
-}
-
-// ==========================================
-// CARD GIOCATORE E GOL
-// ==========================================
-.player-card {
-  margin: 12px 15px;
-  background: var(--app-card-bg);
-  border-radius: 20px;
-  padding: 14px;
-  box-shadow: var(--app-card-shadow);
-  border: 1px solid var(--app-card-border);
-
-  .card-main {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-}
-
-ion-avatar {
-  width: 56px;
-  height: 56px;
-  border: 2px solid var(--app-border-color);
-}
-
-.player-info {
-  flex: 1;
-  min-width: 0; // Previene overflow su schermi compatti
-  .name-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
-  }
-  .player-name {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin: 0;
-    color: var(--app-text-primary);
-    word-break: break-word;
-  }
-
-  // ⚽ BADGE GOL VISIBILE
-  .goal-tag {
-    background: rgba(45, 211, 111, 0.15);
-    color: #2dd36f;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    border: 1px solid rgba(45, 211, 111, 0.3);
-  }
-
-  // 🚨 BADGE AUTOGOL ROSSO
-  .autogol-tag {
-    background: rgba(235, 68, 90, 0.15);
-    color: var(--ion-color-danger, #eb445a);
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 0.75rem;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    border: 1px solid rgba(235, 68, 90, 0.3);
-  }
-
-  .comment-area {
-    --padding-start: 0;
-    --padding-top: 0;
-    --highlight-color-focused: var(--ion-color-step-400, #666);
-    font-size: 0.85rem;
-    color: var(--ion-color-medium);
-    font-style: italic;
-  }
-}
-
-// ==========================================
-// INPUT VOTO E FAB
-// ==========================================
-.rating-box {
+// 4. ODDS
+.odds-bar-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-width: 55px;
-  input {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    border: 2px solid var(--app-border-color);
-    text-align: center;
-    font-size: 1.3rem;
-    font-weight: 900;
-    background: var(--app-surface-subtle);
-    color: var(--app-text-primary);
-    outline: none;
-    &.voto-alto {
-      border-color: #2dd36f;
-      color: #2dd36f;
-    }
-    &.voto-medio {
-      border-color: #ffc409;
-      color: #ffc409;
-    }
-    &.voto-basso {
-      border-color: #eb445a;
-      color: #eb445a;
+  gap: 5px;
+
+  .odds-labels-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    strong { font-size: 0.92rem; }
+  }
+
+  .odds-progress-track {
+    display: flex;
+    height: 12px;
+    background: #1e2230;
+    border-radius: 6px;
+    overflow: hidden;
+
+    .odds-progress-fill {
+      height: 100%;
+      &.white-fill { background: linear-gradient(90deg, #cbd5e1, #ffffff); }
+      &.black-fill { background: linear-gradient(90deg, #334155, #1e293b); }
     }
   }
-  .label {
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: var(--ion-color-medium);
-    margin-top: 5px;
+
+  .odds-mmr-sub {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--app-text-secondary, #64748b);
   }
 }
 
-.fab-fixed-container {
-  position: fixed;
-  bottom: calc(25px + env(safe-area-inset-bottom, 0px));
-  right: calc(20px + env(safe-area-inset-right, 0px));
-  z-index: 1000;
-  .fab-round {
-    width: 62px;
-    height: 62px;
-    border-radius: 50%;
-    background: #2dd36f;
-    color: #000;
-    border: none;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(45, 211, 111, 0.5);
+// 5. SHIFTS
+.shifts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 
-    &.is-archived {
-      background: #ffc409;
-      color: #000;
-      box-shadow: 0 4px 16px rgba(255, 196, 9, 0.4);
+  .team-shift-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.06));
+
+    &.white-shift { border-left: 3px solid #ffffff; }
+    &.black-shift { border-left: 3px solid #64748b; }
+
+    .shift-team-name {
+      font-size: 0.75rem;
+      font-weight: 900;
     }
 
-    &:active {
-      transform: scale(0.92);
+    .shift-stat-item {
+      display: flex;
+      flex-direction: column;
+
+      .stat-name {
+        font-size: 0.65rem;
+        color: var(--app-text-secondary, #94a3b8);
+        font-weight: 600;
+      }
+
+      .stat-val {
+        font-size: 0.85rem;
+        font-weight: 800;
+
+        &.val-positive { color: #2dd36f; }
+        &.val-negative { color: #eb445a; }
+        &.legacy-val { color: #38bdf8; }
+        &.vote-val { color: #facc15; }
+      }
     }
   }
+}
+
+// 6. SPOTLIGHT AWARDS (MVP & WORST)
+.spotlight-awards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 14px;
+}
+
+.award-card {
+  position: relative;
+  background: var(--app-surface, #141721);
+  border-radius: 16px;
+  padding: 14px;
+  overflow: hidden;
+
+  .award-badge-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.68rem;
+    font-weight: 900;
+    padding: 3px 9px;
+    border-radius: 16px;
+    margin-bottom: 10px;
+
+    &.mvp-ribbon {
+      background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+      color: #0b0c10;
+    }
+
+    &.worst-ribbon {
+      background: rgba(148, 163, 184, 0.18);
+      color: #cbd5e1;
+    }
+  }
+
+  &.mvp-award-card {
+    border: 1px solid rgba(255, 215, 0, 0.4);
+    background: radial-gradient(circle at 10% 10%, rgba(255, 215, 0, 0.08) 0%, rgba(20, 23, 33, 0.98) 70%);
+
+    .award-glow-bg {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  &.worst-award-card {
+    border: 1px solid rgba(148, 163, 184, 0.2);
+  }
+
+  .award-player-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    .award-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+
+      .award-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        overflow: hidden;
+
+        &.mvp-avatar {
+          border: 2px solid #ffd700;
+          box-shadow: 0 0 10px rgba(255, 215, 0, 0.35);
+        }
+
+        &.worst-avatar { border: 2px solid #64748b; }
+
+        img { width: 100%; height: 100%; object-fit: cover; }
+      }
+
+      .mvp-crown-badge, .worst-flipflop-badge {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        font-size: 1rem;
+        background: rgba(0, 0, 0, 0.85);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .award-details {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+
+      .award-player-name {
+        font-size: 1rem;
+        font-weight: 900;
+      }
+
+      .award-team-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--app-text-secondary, #94a3b8);
+      }
+
+      .award-metrics-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 3px;
+        flex-wrap: wrap;
+
+        span {
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 5px;
+        }
+
+        .award-rating-pill { background: rgba(250, 204, 21, 0.18); color: #facc15; }
+        .award-goals-pill { background: rgba(45, 211, 111, 0.18); color: #2dd36f; }
+        .award-mmr-pill { background: rgba(56, 189, 248, 0.18); color: #38bdf8; }
+        .worst-rating-pill { background: rgba(235, 68, 90, 0.18); color: #eb445a; }
+        .worst-humor-pill { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+      }
+
+      .award-quote-box {
+        margin-top: 6px;
+        font-size: 0.8rem;
+        font-style: italic;
+        line-height: 1.35;
+        background: rgba(255, 255, 255, 0.04);
+        padding: 5px 8px;
+        border-radius: 6px;
+        border-left: 2px solid #ffd700;
+
+        &.worst-quote { border-left-color: #64748b; color: #94a3b8; }
+        .quote-mark { color: #ffd700; font-weight: bold; }
+      }
+
+      .worst-comfort-note {
+        margin-top: 4px;
+        font-size: 0.72rem;
+        color: #94a3b8;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// 7. ON FIRE RADAR
+.onfire-tags-container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .onfire-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+
+    &.entered {
+      background: rgba(255, 69, 0, 0.16);
+      border: 1px solid rgba(255, 69, 0, 0.35);
+      strong { color: #ff5722; }
+    }
+
+    &.exited {
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      strong { color: #38bdf8; }
+    }
+
+    &.maintained {
+      background: rgba(250, 204, 21, 0.14);
+      border: 1px solid rgba(250, 204, 21, 0.3);
+      strong { color: #facc15; }
+    }
+  }
+}
+
+// 8. FOTO BANNER
+.match-photo-showcase {
+  margin: 12px 14px;
+  background: var(--app-surface, #141721);
+  border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  overflow: hidden;
+
+  .photo-banner-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.03);
+
+    .photo-header-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      ion-icon { color: #2dd36f; }
+    }
+
+    .expand-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(45, 211, 111, 0.14);
+      color: #2dd36f;
+      border: 1px solid rgba(45, 211, 111, 0.3);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+  }
+
+  .photo-banner-frame {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    cursor: pointer;
+    background: #000;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+
+    .photo-zoom-overlay {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+  }
+}
+
+// 9. CHIMICA
+.chemistry-notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .chem-note-card {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+
+    .chem-badge-pill { font-size: 0.65rem; font-weight: 900; }
+    .chem-note-title { font-size: 0.8rem; font-weight: 800; }
+    .chem-note-desc { font-size: 0.72rem; color: #94a3b8; line-height: 1.3; }
+
+    &.chem-synergy { border-left: 3px solid #10b981; .chem-badge-pill { color: #10b981; } }
+    &.chem-nemesis { border-left: 3px solid #a855f7; .chem-badge-pill { color: #a855f7; } }
+    &.chem-crisis { border-left: 3px solid #ef4444; .chem-badge-pill { color: #ef4444; } }
+  }
+}
+
+// 10. TABELLINO & PAGELLE
+.tabellino-container {
+  margin: 16px 14px 10px;
+
+  .tabellino-header {
+    margin-bottom: 12px;
+    h2 { font-size: 1.15rem; font-weight: 900; margin: 0; }
+    .tabellino-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+  }
+
+  .roster-team-section {
+    margin-bottom: 18px;
+
+    .team-roster-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      gap: 6px;
+
+      &.white-banner {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+      }
+
+      &.black-banner {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .roster-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        .roster-team-name { font-size: 0.8rem; font-weight: 900; }
+      }
+
+      .roster-banner-stats {
+        display: flex;
+        gap: 5px;
+        .stat-chip {
+          font-size: 0.68rem;
+          font-weight: 800;
+          padding: 2px 6px;
+          border-radius: 5px;
+          background: rgba(255, 255, 255, 0.08);
+          &.mmr-chip { background: rgba(56, 189, 248, 0.16); color: #38bdf8; }
+        }
+      }
+    }
+
+    .players-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+
+      .player-roster-card {
+        background: var(--app-surface, #141721);
+        border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.07));
+        border-radius: 12px;
+        padding: 10px;
+
+        .card-top-row {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .player-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            img { width: 100%; height: 100%; object-fit: cover; }
+          }
+
+          .player-identity {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+
+            .identity-name-row {
+              display: flex;
+              align-items: center;
+              gap: 5px;
+              flex-wrap: wrap;
+
+              .player-name {
+                margin: 0;
+                font-size: 0.88rem;
+                font-weight: 800;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+
+              .goal-pill {
+                background: rgba(45, 211, 111, 0.18);
+                color: #2dd36f;
+                padding: 1px 5px;
+                border-radius: 5px;
+                font-size: 0.68rem;
+                font-weight: 800;
+              }
+
+              .autogol-pill {
+                background: rgba(235, 68, 90, 0.18);
+                color: #eb445a;
+                padding: 1px 5px;
+                border-radius: 5px;
+                font-size: 0.68rem;
+                font-weight: 800;
+              }
+
+              .crown-mini-badge {
+                font-size: 0.65rem;
+                font-weight: 900;
+                color: #ffd700;
+                background: rgba(255, 215, 0, 0.16);
+                padding: 1px 5px;
+                border-radius: 5px;
+              }
+            }
+
+            .player-deltas-row {
+              display: flex;
+              gap: 5px;
+
+              .player-delta-badge {
+                font-size: 0.65rem;
+                font-weight: 700;
+                padding: 1px 5px;
+                border-radius: 4px;
+
+                &.mmr-badge {
+                  background: rgba(255, 255, 255, 0.06);
+                  color: #94a3b8;
+                  &.positive { background: rgba(45, 211, 111, 0.15); color: #2dd36f; }
+                  &.negative { background: rgba(235, 68, 90, 0.15); color: #eb445a; }
+                }
+
+                &.legacy-badge {
+                  background: rgba(56, 189, 248, 0.12);
+                  color: #38bdf8;
+                }
+              }
+            }
+          }
+
+          .player-rating-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            width: 42px;
+
+            .rating-input, .rating-badge-box {
+              width: 40px;
+              height: 32px;
+              font-size: 1.05rem;
+              font-weight: 900;
+              text-align: center;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              background: #0f111a;
+              color: #ffffff;
+
+              &.voto-alto { background: rgba(45, 211, 111, 0.2); color: #2dd36f; border-color: #2dd36f; }
+              &.voto-medio { background: rgba(255, 196, 9, 0.2); color: #ffc409; border-color: #ffc409; }
+              &.voto-basso { background: rgba(235, 68, 90, 0.2); color: #eb445a; border-color: #eb445a; }
+            }
+
+            .rating-sub-label {
+              font-size: 0.58rem;
+              font-weight: 800;
+              color: #64748b;
+              margin-top: 1px;
+            }
+          }
+        }
+
+        .card-comment-row {
+          margin-top: 8px;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+          padding-top: 6px;
+
+          .comment-textarea {
+            --background: rgba(255, 255, 255, 0.04);
+            --color: #ffffff;
+            font-size: 0.78rem;
+            border-radius: 6px;
+            padding: 3px 6px;
+          }
+
+          .comment-view-box {
+            font-size: 0.78rem;
+            font-style: italic;
+            color: #e2e8f0;
+            line-height: 1.35;
+            &.empty { color: #64748b; font-style: normal; font-size: 0.7rem; }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 11. CTA WHATSAPP
+.report-share-cta-card {
+  margin: 14px 14px 20px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(37, 211, 102, 0.15) 0%, rgba(37, 211, 102, 0.04) 100%);
+  border: 1px solid rgba(37, 211, 102, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  text-align: center;
+
+  .cta-title { font-size: 0.95rem; font-weight: 900; color: #25d366; }
+  .cta-subtitle { font-size: 0.75rem; color: #94a3b8; }
+
+  .whatsapp-full-share-btn {
+    width: 100%;
+    max-width: 360px;
+    background: #25d366;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.35);
+
+    &:active { transform: scale(0.97); }
+  }
+}
+
+// 12. ADMIN FAB
+.fab-fixed-container {
+  position: fixed;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: 20px;
+  z-index: 9999;
+}
+
+.fab-round {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #2dd36f;
+  color: #000;
+  border: none;
+  box-shadow: 0 4px 14px rgba(45, 211, 111, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.7rem;
+  cursor: pointer;
+
+  &.is-archived {
+    background: #3880ff;
+    color: #fff;
+  }
+}
+
+// =========================================================================
+// AI STYLES: PRONOSTICO DEL MISTER & CRONACA IGNORANTE
+// =========================================================================
+
+.ai-pronostico-card {
+  margin-top: 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.12) 0%, rgba(30, 27, 75, 0.25) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 12px;
+  padding: 12px;
+  backdrop-filter: blur(8px);
+
+  .ai-pronostico-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .ai-header-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .ai-magic-badge {
+        font-size: 0.65rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        color: #ffffff;
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      .ai-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #f1f5f9;
+      }
+    }
+  }
+
+  .ai-pronostico-body {
+    .ai-quote-text {
+      margin: 0;
+      font-size: 0.85rem;
+      font-style: italic;
+      color: #e2e8f0;
+      line-height: 1.45;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .ai-empty-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 6px 0;
+
+    p {
+      margin: 0 0 10px 0;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+  }
+}
+
+.ai-refresh-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #cbd5e1;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  ion-icon.spin {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.ai-generate-main-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.35);
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  ion-spinner {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+// CRONACA SPORTIVA IGNORANTE SECTION
+.cronaca-section-card {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(20, 20, 28, 0.95) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+
+  .mic-icon {
+    color: #f59e0b;
+  }
+
+  .cronaca-content-box {
+    margin-top: 8px;
+
+    .cronaca-bubble {
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 14px;
+
+      .cronaca-text {
+        margin: 0;
+        font-size: 0.88rem;
+        line-height: 1.55;
+        color: #f8fafc;
+        white-space: pre-line;
+      }
+    }
+
+    .cronaca-footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+
+      .cronaca-hint {
+        font-size: 0.68rem;
+        color: #94a3b8;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .ai-empty-cronaca {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 12px 4px 6px;
+
+    .empty-icon {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+    }
+
+    .empty-info {
+      h4 {
+        margin: 0 0 4px 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #f1f5f9;
+      }
+
+      p {
+        margin: 0 0 14px 0;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        max-width: 380px;
+        line-height: 1.4;
+      }
+    }
+
+    .ai-generate-cronaca-btn {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #000000;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+
+      &:active {
+        transform: scale(0.97);
+      }
+
+      ion-spinner {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

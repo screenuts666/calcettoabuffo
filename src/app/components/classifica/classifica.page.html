@@ -14,6 +14,13 @@
     <ion-buttons slot="end">
       <app-theme-toggle></app-theme-toggle>
       <ion-button
+        class="confronto-nav-btn"
+        (click)="apriConfronto()"
+        title="⚔️ Confronto 1v1 Head-to-Head"
+      >
+        <ion-icon name="swap-horizontal" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button
         class="whatsapp-btn"
         (click)="condividiSuWhatsApp()"
         title="Condividi su WhatsApp"
@@ -23,112 +30,401 @@
     </ion-buttons>
   </ion-toolbar>
 
-  <!-- SELETTORE STAGIONE -->
-  <div class="season-bar">
-    @for (stg of stagioniList(); track stg.id) {
-      <button
-        type="button"
-        class="season-btn"
-        [class.active]="stagioneSelezionata() === stg.id"
-        (click)="selezionaStagione(stg.id)"
-      >
-        <ion-icon [name]="stg.icon"></ion-icon>
-        <span>{{ stg.shortLabel }}</span>
-      </button>
-    }
+  <!-- SWITCH VISTA: CLASSIFICA GIOCATORI vs CHIMICA & RIVALITÀ -->
+  <div class="view-switch-bar">
+    <button
+      type="button"
+      class="view-switch-btn"
+      [class.active]="vistaSelezionata() === 'classifica'"
+      (click)="selezionaVista('classifica')"
+    >
+      <ion-icon name="trophy"></ion-icon>
+      <span>Classifica</span>
+    </button>
+    <button
+      type="button"
+      class="view-switch-btn"
+      [class.active]="vistaSelezionata() === 'chimica'"
+      (click)="selezionaVista('chimica')"
+    >
+      <ion-icon name="swap-horizontal"></ion-icon>
+      <span>Chimica & Rivalità 🤝</span>
+    </button>
   </div>
 
-  <!-- SELETTORE ORDINAMENTO (CRITERIO) -->
-  <div class="sort-bar">
-    <span class="sort-hint">Ordina:</span>
-    <div class="sort-scroll">
-      @for (c of CRITERI_ORDINAMENTO; track c.id) {
+  @if (vistaSelezionata() === 'classifica') {
+    <!-- SELETTORE STAGIONE (All-Time + Singole Stagioni) -->
+    <div class="season-bar">
+      @for (stg of stagioniList(); track stg.id) {
         <button
           type="button"
-          class="sort-chip"
-          [class.active]="criterioOrdinamento() === c.id"
-          (click)="selezionaCriterio(c.id)"
+          class="season-btn"
+          [class.active]="stagioneSelezionata() === stg.id"
+          (click)="selezionaStagione(stg.id)"
         >
-          <ion-icon [name]="c.icon"></ion-icon>
-          <span>{{ c.label }}</span>
+          <ion-icon [name]="stg.icon"></ion-icon>
+          <span>{{ stg.shortLabel }}</span>
         </button>
       }
     </div>
-  </div>
+
+    <!-- SELETTORE CRITERIO ORDINAMENTO -->
+    <div class="sort-bar">
+      <span class="sort-hint">Ordina:</span>
+      <div class="sort-scroll">
+        @for (c of CRITERI_ORDINAMENTO; track c.id) {
+          <button
+            type="button"
+            class="sort-chip"
+            [class.active]="criterioOrdinamento() === c.id"
+            (click)="selezionaCriterio(c.id)"
+          >
+            <ion-icon [name]="c.icon"></ion-icon>
+            <span>{{ c.label }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- FILTRO RAPIDO (Tutti / On Fire / In Crisi / Tier) -->
+    <div class="filter-bar">
+      <div class="filter-scroll">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtroTierOForma() === 'all'"
+          (click)="selezionaFiltro('all')"
+        >
+          Tutti
+        </button>
+        <button
+          type="button"
+          class="filter-chip on-fire"
+          [class.active]="filtroTierOForma() === 'on_fire'"
+          (click)="selezionaFiltro('on_fire')"
+        >
+          🔥 On Fire
+        </button>
+        <button
+          type="button"
+          class="filter-chip in-crisis"
+          [class.active]="filtroTierOForma() === 'in_crisis'"
+          (click)="selezionaFiltro('in_crisis')"
+        >
+          ❄️ In Crisi
+        </button>
+        @for (t of MMR_TIERS; track t.id) {
+          <button
+            type="button"
+            class="filter-chip tier-chip"
+            [class.active]="filtroTierOForma() === t.id"
+            [style.--t-color]="t.color"
+            (click)="selezionaFiltro(t.id)"
+          >
+            <span class="tier-dot" [style.background]="t.color"></span>
+            {{ t.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
 </ion-header>
 
 <ion-content>
-  <ion-list lines="full">
-    @for (g of classificaCalcolata(); track g.id; let i = $index) {
-      <ion-item button="true" detail="false" (click)="apriDettagliGiocatore(g)">
-        <ion-note
-          slot="start"
-          [style.color]="
-            i === 0
-              ? '#ffd700'
-              : i === 1
-                ? '#c0c0c0'
-                : i === 2
-                  ? '#cd7f32'
-                  : '#888'
-          "
-          class="rank-note"
+  <!-- VISTA 1: CLASSIFICA GENERALE CON MMR E PUNTEGGIO LEGACY AFFIANCATI -->
+  @if (vistaSelezionata() === 'classifica') {
+    <ion-list lines="full" class="classifica-list">
+      @for (g of classificaCalcolata(); track g.id; let i = $index) {
+        <ion-item
+          button="true"
+          detail="false"
+          (click)="apriDettagliGiocatore(g)"
+          class="player-rank-item"
         >
-          {{ i + 1 }}°
-        </ion-note>
+          <!-- Posizione in classifica con medaglia -->
+          <div slot="start" class="rank-col">
+            <span
+              class="rank-badge"
+              [class.rank-gold]="g.rankAssoluto === 1"
+              [class.rank-silver]="g.rankAssoluto === 2"
+              [class.rank-bronze]="g.rankAssoluto === 3"
+            >
+              {{ g.rankAssoluto }}°
+            </span>
+          </div>
 
-        <ion-avatar slot="start">
-          <img
-            [src]="
-              g.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
-            "
-            loading="lazy"
-          />
-        </ion-avatar>
+          <!-- Avatar con anello Tier e badge Forma -->
+          <div slot="start" class="avatar-col">
+            <div class="avatar-ring" [style.border-color]="g.tier.color">
+              <ion-avatar>
+                <img
+                  [src]="
+                    g.fotoUrl ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+              </ion-avatar>
+            </div>
+            @if (g.form.status === 'on_fire') {
+              <span class="floating-badge on-fire" title="On Fire 🔥">🔥</span>
+            } @else if (g.form.status === 'in_crisis') {
+              <span class="floating-badge in-crisis" title="In Crisi ❄️">❄️</span>
+            }
+          </div>
 
-        <ion-label class="ion-text-wrap">
-          <h2 class="player-name-row">
-            <b>{{ g.nome }}</b>
-            @if (g.soprannome) {
-              <span class="nickname-span">"{{ g.soprannome }}"</span>
-            }
-          </h2>
+          <!-- Dettagli Giocatore -->
+          <ion-label class="ion-text-wrap player-info-label">
+            <!-- Riga 1: Nome, Soprannome e Badge Tier -->
+            <div class="name-tier-row">
+              <span class="player-name">{{ g.nome }}</span>
+              @if (g.soprannomeAi || g.soprannome) {
+                <span class="nickname-span">"{{ g.soprannomeAi || g.soprannome }}"</span>
+              }
 
-          <p class="stats-sub-row">
-            @if (criterioOrdinamento() !== 'punti') {
-              <span>Pt: <b>{{ g.puntiDisplay }}</b> | </span>
-            }
-            @if (criterioOrdinamento() !== 'mediaVoto') {
-              <span>Media: <b>{{ g.mediaVotoDisplay }}</b> | </span>
-            }
-            @if (criterioOrdinamento() !== 'gol') {
-              <span>Gol: <b>{{ g.golTotali }}</b> | </span>
-            }
-            @if (criterioOrdinamento() !== 'presenze') {
-              <span>Match: <b>{{ g.partiteGiocate }}</b></span>
-            }
-            @if (criterioOrdinamento() === 'wins') {
-              <span> | ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
-            }
-          </p>
-        </ion-label>
+              <!-- Badge Tier MMR -->
+              <span
+                class="tier-pill"
+                [style.background]="g.tier.color + '1a'"
+                [style.border-color]="g.tier.color"
+                [style.color]="g.tier.color"
+              >
+                <ion-icon [name]="g.tier.icon"></ion-icon>
+                <span>{{ g.tier.label }}</span>
+              </span>
 
-        <div slot="end" class="stat-highlight-box">
-          <span class="stat-highlight-val">
-            {{ getValorePrincipale(g).valore }}
-          </span>
-          <span class="stat-highlight-label">
-            {{ getValorePrincipale(g).etichetta }}
-          </span>
+              <!-- Badge Stato di Forma -->
+              @if (g.form.status === 'on_fire') {
+                <span class="form-pill on-fire" title="Striscia di vittorie consecutive">
+                  🔥 +{{ g.form.currentStreak }}
+                </span>
+              } @else if (g.form.status === 'in_crisis') {
+                <span class="form-pill in-crisis" title="Striscia di sconfitte consecutive">
+                  ❄️ {{ g.form.currentStreak }}
+                </span>
+              }
+            </div>
+
+            <!-- Riga 2: MMR e Punteggio Legacy affiancati con Trend -->
+            <div class="scores-duo-row">
+              <div class="score-chip mmr-chip" [style.border-color]="g.tier.color">
+                <span class="score-chip-label">MMR</span>
+                <span class="score-chip-val" [style.color]="g.tier.color">
+                  {{ g.mmrVal }}
+                </span>
+
+                <!-- Trend ultima partita con freccia e delta -->
+                @if (g.lastDeltaDisplay) {
+                  <span
+                    class="trend-tag"
+                    [class.trend-up]="g.trendDirection === 'up'"
+                    [class.trend-down]="g.trendDirection === 'down'"
+                    [class.trend-neutral]="g.trendDirection === 'neutral'"
+                  >
+                    @if (g.trendDirection === 'up') {
+                      <ion-icon name="arrow-up"></ion-icon>
+                    } @else if (g.trendDirection === 'down') {
+                      <ion-icon name="arrow-down"></ion-icon>
+                    } @else {
+                      <ion-icon name="remove"></ion-icon>
+                    }
+                    {{ g.lastDeltaDisplay }}
+                  </span>
+                }
+              </div>
+
+              <div class="score-chip legacy-chip">
+                <span class="score-chip-label">CLASSICO</span>
+                <span class="score-chip-val">{{ g.puntiDisplay }} pt</span>
+              </div>
+            </div>
+
+            <!-- Riga 3: Statistiche di contorno (Media, Gol, Match) -->
+            <p class="stats-sub-row">
+              <span>⭐ {{ g.mediaVotoDisplay }} media</span>
+              <span class="dot-sep">•</span>
+              <span>⚽ {{ g.golTotali }} gol</span>
+              <span class="dot-sep">•</span>
+              <span>👥 {{ g.partiteGiocate }} match ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
+            </p>
+          </ion-label>
+
+          <!-- Box Evidenziato sulla destra in base al criterio attivo -->
+          <div slot="end" class="stat-highlight-box">
+            <span
+              class="stat-highlight-val"
+              [style.color]="
+                criterioOrdinamento() === 'mmr' ? g.tier.color : ''
+              "
+            >
+              {{ getValorePrincipale(g).valore }}
+            </span>
+            <span class="stat-highlight-label">
+              {{ getValorePrincipale(g).etichetta }}
+            </span>
+            @if (criterioOrdinamento() === 'mmr' && g.lastDeltaDisplay) {
+              <span
+                class="highlight-sub-trend"
+                [class.up]="g.trendDirection === 'up'"
+                [class.down]="g.trendDirection === 'down'"
+              >
+                {{ g.lastDeltaDisplay }}
+              </span>
+            }
+          </div>
+        </ion-item>
+      } @empty {
+        <div class="ion-padding ion-text-center empty-state">
+          <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
         </div>
-      </ion-item>
-    } @empty {
-      <div class="ion-padding ion-text-center">
-        <p>Nessun giocatore registrato.</p>
-      </div>
-    }
-  </ion-list>
+      }
+    </ion-list>
+  }
 
+  <!-- VISTA 2: SEZIONE DEDICATA CHIMICA & RIVALITÀ -->
+  @if (vistaSelezionata() === 'chimica') {
+    <div class="chemistry-container ion-padding">
+      <div class="chemistry-hero-card">
+        <div class="hero-icon">⚡</div>
+        <div class="hero-text">
+          <h3>Chimica di Coppia & Rivalità</h3>
+          <p>
+            Scopri le coppie più vincenti (I Gemelli del Gol 🤝) e le rivalità
+            più accese (Le Bestie Nere 😈) calcolate dallo storico partite.
+          </p>
+        </div>
+      </div>
+
+      <!-- I GEMELLI DEL GOL (TOP DUOS) -->
+      <div class="section-title-bar">
+        <ion-icon name="heart" class="icon-partner"></ion-icon>
+        <h4>I Gemelli del Gol 🤝 (Migliori Coppie)</h4>
+      </div>
+
+      <div class="duo-grid">
+        @for (duo of topDuos(); track duo.p1Id + duo.p2Id; let i = $index) {
+          <div class="duo-card partner-card">
+            <div class="duo-rank">#{{ i + 1 }}</div>
+            <div class="duo-players">
+              <div
+                class="player-mini"
+                (click)="apriDettagliPerId(duo.p1Id)"
+                title="Vedi scheda {{ duo.p1Nome }}"
+              >
+                <img
+                  [src]="
+                    duo.p1Foto ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+                <span class="mini-name">{{ duo.p1Nome }}</span>
+              </div>
+
+              <div class="duo-link-icon">🤝</div>
+
+              <div
+                class="player-mini"
+                (click)="apriDettagliPerId(duo.p2Id)"
+                title="Vedi scheda {{ duo.p2Nome }}"
+              >
+                <img
+                  [src]="
+                    duo.p2Foto ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+                <span class="mini-name">{{ duo.p2Nome }}</span>
+              </div>
+            </div>
+
+            <div class="duo-stats">
+              <div class="duo-rate">{{ duo.winRate }}% Vittorie</div>
+              <div class="duo-record">
+                {{ duo.wins }}V - {{ duo.draws }}P - {{ duo.losses }}S ({{ duo.matches }} partite insieme)
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-duo-msg">
+            <p>Servono almeno 2 partite insieme tra due giocatori per calcolare le coppie sinergiche.</p>
+          </div>
+        }
+      </div>
+
+      <!-- LE BESTIE NERE & RIVALITÀ (TOP NEMESIS) -->
+      <div class="section-title-bar rivalry-title-bar">
+        <ion-icon name="skull" class="icon-nemesis"></ion-icon>
+        <h4>Le Bestie Nere & Derby 😈 (Rivalità Accese)</h4>
+      </div>
+
+      <div class="duo-grid">
+        @for (riv of topRivalries(); track riv.p1Id + riv.p2Id; let i = $index) {
+          <div class="duo-card nemesis-card">
+            <div class="duo-rank">#{{ i + 1 }}</div>
+            <div class="duo-players">
+              <div
+                class="player-mini"
+                (click)="apriDettagliPerId(riv.p1Id)"
+                title="Vedi scheda {{ riv.p1Nome }}"
+              >
+                <img
+                  [src]="
+                    riv.p1Foto ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+                <span class="mini-name">{{ riv.p1Nome }}</span>
+              </div>
+
+              <div class="duo-link-icon vs-icon">VS</div>
+
+              <div
+                class="player-mini"
+                (click)="apriDettagliPerId(riv.p2Id)"
+                title="Vedi scheda {{ riv.p2Nome }}"
+              >
+                <img
+                  [src]="
+                    riv.p2Foto ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+                <span class="mini-name">{{ riv.p2Nome }}</span>
+              </div>
+            </div>
+
+            <div class="duo-stats">
+              <div class="duo-rate dominance">
+                {{ riv.dominatorNome }} domina ({{ riv.dominancePercent }}%)
+              </div>
+              <div class="duo-record">
+                Bilancio: {{ riv.p1Wins }}V ({{ riv.p1Nome }}) - {{ riv.draws }}P - {{ riv.p2Wins }}V ({{ riv.p2Nome }}) in {{ riv.matches }} scontri
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="rivalry-h2h-btn"
+              (click)="apriConfronto(riv.p1Id, riv.p2Id); $event.stopPropagation()"
+            >
+              <ion-icon name="swap-horizontal"></ion-icon>
+              <span>⚔️ Confronto 1v1</span>
+            </button>
+          </div>
+        } @empty {
+          <div class="empty-duo-msg">
+            <p>Servono almeno 2 scontri diretti tra due avversari per calcolare le rivalità.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- MODALE DETTAGLIO SCHEDA GIOCATORE CON MMR, CHIMICA E STATISTICHE -->
   <ion-modal
     [isOpen]="isModalOpen()"
     (didDismiss)="chiudiModale()"
@@ -137,7 +433,11 @@
   >
     <ng-template>
       @if (giocatoreSelezionato(); as prof) {
-        <app-scheda-giocatore [prof]="prof" [chiudiModale]="chiudiModale">
+        <app-scheda-giocatore
+          [prof]="prof"
+          [chiudiModale]="chiudiModale"
+          (selezionaAltroGiocatore)="apriDettagliPerId($event)"
+        >
         </app-scheda-giocatore>
       }
     </ng-template>

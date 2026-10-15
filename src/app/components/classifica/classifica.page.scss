@@ -9,9 +9,9 @@
 }
 
 // ==========================================
-// SELETTORE STAGIONE
+// SWITCH VISTA: CLASSIFICA vs CHIMICA
 // ==========================================
-.season-bar {
+.view-switch-bar {
   display: flex;
   background: var(--app-surface-subtle);
   padding: 6px 10px;
@@ -19,25 +19,80 @@
   border-bottom: 1px solid var(--app-border-color);
 }
 
-.season-btn {
+.view-switch-btn {
   flex: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 7px 10px;
-  border-radius: 20px;
+  padding: 8px 12px;
+  border-radius: 12px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
   ion-icon {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
+  }
+
+  &.active {
+    background: var(--ion-color-success);
+    color: #000;
+    border-color: var(--ion-color-success);
+    font-weight: 800;
+    box-shadow: 0 2px 10px rgba(37, 211, 102, 0.28);
+
+    ion-icon {
+      color: #000;
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+// ==========================================
+// SELETTORE STAGIONE
+// ==========================================
+.season-bar {
+  display: flex;
+  background: var(--app-surface-subtle);
+  padding: 4px 10px 6px;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.season-btn {
+  flex: 1;
+  min-width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 16px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 0.9rem;
   }
 
   &.active {
@@ -45,10 +100,6 @@
     border-color: var(--ion-color-success);
     color: var(--ion-color-success);
     box-shadow: 0 2px 8px rgba(37, 211, 102, 0.2);
-  }
-
-  &:active {
-    transform: scale(0.97);
   }
 }
 
@@ -59,13 +110,13 @@
   display: flex;
   align-items: center;
   background: var(--app-surface-subtle);
-  padding: 8px 10px;
+  padding: 6px 10px;
   gap: 8px;
-  border-bottom: 1px solid var(--app-border-color);
+  border-top: 1px solid var(--app-divider);
 }
 
 .sort-hint {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -88,13 +139,13 @@
 .sort-chip {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 11px;
-  border-radius: 16px;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 14px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -122,63 +173,639 @@
 }
 
 // ==========================================
-// ELEMENTI LISTA CLASSIFICA
+// FILTRO RAPIDO (TIER / FORMA)
 // ==========================================
-.rank-note {
-  font-weight: 900;
-  font-size: 1.35em;
-  min-width: 36px;
-  text-align: center;
-  white-space: nowrap;
+.filter-bar {
+  background: var(--app-surface-subtle);
+  padding: 4px 10px 8px;
+  border-bottom: 1px solid var(--app-border-color);
 }
 
-.player-name-row {
-  white-space: normal;
-  line-height: 1.25;
-  margin-bottom: 3px;
-  font-size: 0.98rem;
-}
+.filter-scroll {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 
-.nickname-span {
-  color: var(--ion-color-medium, #888);
-  font-size: 0.82em;
-  margin-left: 4px;
-  font-weight: 400;
-  display: inline-block;
-}
-
-.stats-sub-row {
-  white-space: nowrap;
-  font-size: 0.8rem;
-  color: var(--app-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0;
-
-  b {
-    color: var(--app-text-primary);
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: var(--app-text-primary);
+    color: var(--app-card-bg);
+    border-color: var(--app-text-primary);
+    font-weight: 700;
+  }
+
+  &.on-fire.active {
+    background: #ff5722;
+    color: #ffffff;
+    border-color: #ff5722;
+  }
+
+  &.in-crisis.active {
+    background: #00b0ff;
+    color: #ffffff;
+    border-color: #00b0ff;
+  }
+
+  &.tier-chip.active {
+    background: var(--t-color);
+    color: #000000;
+    border-color: var(--t-color);
+  }
+}
+
+.tier-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+// ==========================================
+// LISTA CLASSIFICA GIOCATORI
+// ==========================================
+.classifica-list {
+  background: transparent;
+  padding: 0;
+}
+
+.player-rank-item {
+  --padding-start: 8px;
+  --padding-end: 10px;
+  --inner-padding-end: 0;
+  --min-height: 74px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    --background: var(--app-surface-hover);
+  }
+}
+
+// Posizione in classifica
+.rank-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  margin-right: 2px;
+}
+
+.rank-badge {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--app-text-muted);
+  white-space: nowrap;
+
+  &.rank-gold {
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.45);
+    font-size: 1.3rem;
+  }
+
+  &.rank-silver {
+    color: #c0c0c0;
+    text-shadow: 0 0 8px rgba(192, 192, 192, 0.4);
+    font-size: 1.25rem;
+  }
+
+  &.rank-bronze {
+    color: #cd7f32;
+    text-shadow: 0 0 8px rgba(205, 127, 50, 0.4);
+    font-size: 1.2rem;
+  }
+}
+
+// Avatar con anello Tier
+.avatar-col {
+  position: relative;
+  margin-right: 8px;
+}
+
+.avatar-ring {
+  padding: 2px;
+  border: 2px solid #888888;
+  border-radius: 50%;
+  display: inline-flex;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+  ion-avatar {
+    width: 44px;
+    height: 44px;
+
+    img {
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+}
+
+.floating-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+}
+
+// Label del Giocatore
+.player-info-label {
+  margin: 6px 0;
+}
+
+.name-tier-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.player-name {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: var(--app-text-primary);
+}
+
+.nickname-span {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--app-text-muted);
+}
+
+// Pill del Tier
+.tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+
+  ion-icon {
+    font-size: 0.75rem;
+  }
+}
+
+// Pill Forma (On Fire / In Crisi)
+.form-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.66rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 8px;
+
+  &.on-fire {
+    background: rgba(255, 87, 34, 0.15);
+    color: #ff5722;
+    border: 1px solid rgba(255, 87, 34, 0.35);
+  }
+
+  &.in-crisis {
+    background: rgba(0, 176, 255, 0.15);
+    color: #00b0ff;
+    border: 1px solid rgba(0, 176, 255, 0.35);
+  }
+}
+
+// Riga punteggi affiancati: MMR e Punti Legacy
+.scores-duo-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.score-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.score-chip-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: var(--app-text-muted);
+  letter-spacing: 0.3px;
+}
+
+.score-chip-val {
+  font-weight: 800;
+  color: var(--app-text-primary);
+}
+
+.mmr-chip {
+  border-width: 1.5px;
+}
+
+// Trend tag
+.trend-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 6px;
+  margin-left: 2px;
+
+  ion-icon {
+    font-size: 0.65rem;
+  }
+
+  &.trend-up {
+    background: rgba(45, 211, 111, 0.18);
+    color: #2dd36f;
+  }
+
+  &.trend-down {
+    background: rgba(235, 68, 90, 0.18);
+    color: #eb445a;
+  }
+
+  &.trend-neutral {
+    background: rgba(142, 142, 147, 0.15);
+    color: #8e8e93;
+  }
+}
+
+// Riga statistiche secondarie
+.stats-sub-row {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--app-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot-sep {
+  color: var(--app-text-muted);
+  font-size: 0.7rem;
+}
+
+// Box Highlight sulla destra
 .stat-highlight-box {
   text-align: right;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  min-width: 58px;
+  min-width: 56px;
+  padding-left: 6px;
 }
 
 .stat-highlight-val {
-  font-size: 1.55em;
+  font-size: 1.45rem;
   font-weight: 900;
   color: var(--ion-color-success, #2dd36f);
-  line-height: 1.1;
+  line-height: 1.05;
 }
 
 .stat-highlight-label {
-  font-size: 0.72em;
-  color: var(--ion-color-medium, #8e8e93);
+  font-size: 0.68rem;
+  color: var(--app-text-muted);
   font-weight: 800;
   letter-spacing: 0.5px;
   margin-top: 1px;
+}
+
+.highlight-sub-trend {
+  font-size: 0.65rem;
+  font-weight: 800;
+  margin-top: 2px;
+
+  &.up {
+    color: #2dd36f;
+  }
+
+  &.down {
+    color: #eb445a;
+  }
+}
+
+.empty-state {
+  color: var(--app-text-muted);
+  padding: 40px 20px;
+}
+
+// ==========================================
+// SEZIONE CHIMICA & RIVALITÀ
+// ==========================================
+.chemistry-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.chemistry-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(
+    135deg,
+    rgba(37, 211, 102, 0.12) 0%,
+    rgba(0, 229, 255, 0.08) 100%
+  );
+  border: 1px solid var(--app-card-border);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+
+  .hero-icon {
+    font-size: 2rem;
+  }
+
+  .hero-text {
+    h3 {
+      margin: 0 0 3px 0;
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--app-text-primary);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--app-text-secondary);
+      line-height: 1.35;
+    }
+  }
+}
+
+.section-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+
+  h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--app-text-primary);
+  }
+
+  .icon-partner {
+    color: #e91e63;
+    font-size: 1.25rem;
+  }
+
+  .icon-nemesis {
+    color: #9c27b0;
+    font-size: 1.25rem;
+  }
+}
+
+.rivalry-title-bar {
+  margin-top: 26px;
+}
+
+.duo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+}
+
+.duo-card {
+  position: relative;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: var(--app-card-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  &.partner-card {
+    border-left: 4px solid var(--ion-color-success);
+  }
+
+  &.nemesis-card {
+    border-left: 4px solid #ff4500;
+  }
+}
+
+.duo-rank {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: var(--app-text-muted);
+}
+
+.duo-players {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 6px 0 10px;
+}
+
+.player-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.94);
+  }
+
+  img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--app-card-border);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+
+  .mini-name {
+    margin-top: 4px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--app-text-primary);
+    max-width: 95px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.duo-link-icon {
+  font-size: 1.4rem;
+
+  &.vs-icon {
+    font-size: 0.78rem;
+    font-weight: 900;
+    background: #ff4500;
+    color: #ffffff;
+    padding: 3px 6px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+  }
+}
+
+.duo-stats {
+  text-align: center;
+  border-top: 1px solid var(--app-divider);
+  padding-top: 8px;
+}
+
+.duo-rate {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--ion-color-success);
+
+  &.dominance {
+    color: #ff4500;
+  }
+}
+
+.duo-record {
+  font-size: 0.72rem;
+  color: var(--app-text-secondary);
+  margin-top: 2px;
+}
+
+.empty-duo-msg {
+  padding: 20px;
+  text-align: center;
+  color: var(--app-text-muted);
+  font-size: 0.85rem;
+  background: var(--app-surface-subtle);
+  border-radius: 12px;
+}
+
+// ==========================================
+// RESPONSIVE MOBILE TWEAKS (< 400px)
+// ==========================================
+@media (max-width: 400px) {
+  .player-rank-item {
+    --padding-start: 4px;
+    --padding-end: 6px;
+  }
+
+  .rank-badge {
+    font-size: 1.05rem;
+  }
+
+  .avatar-ring ion-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .player-name {
+    font-size: 0.88rem;
+  }
+
+  .tier-pill {
+    font-size: 0.62rem;
+    padding: 1px 4px;
+  }
+
+  .scores-duo-row {
+    gap: 4px;
+  }
+
+  .score-chip {
+    padding: 1px 5px;
+    font-size: 0.68rem;
+  }
+
+  .stat-highlight-val {
+    font-size: 1.25rem;
+  }
+
+  .stat-highlight-box {
+    min-width: 48px;
+  }
+
+  .duo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ==========================================
+// CONFRONTO 1v1 BUTTONS IN CLASSIFICA
+// ==========================================
+.confronto-nav-btn {
+  --color: #00b4d8;
+  font-size: 1.25rem;
+  margin-right: -4px;
+}
+
+.rivalry-h2h-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 180, 216, 0.3);
+  background: rgba(0, 180, 216, 0.08);
+  color: #00b4d8;
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+
+  &:hover,
+  &:active {
+    background: rgba(0, 180, 216, 0.2);
+    transform: scale(0.98);
+  }
 }

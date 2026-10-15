@@ -14,7 +14,6 @@ import {
   IonItem,
   IonAvatar,
   IonLabel,
-  IonNote,
   IonModal,
   ToastController,
   AlertController,
@@ -23,6 +22,7 @@ import {
   IonButton,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
@@ -40,19 +40,44 @@ import {
   timeOutline,
   globeOutline,
   shareSocialOutline,
+  shield,
+  shieldOutline,
+  medal,
+  ribbon,
+  diamond,
+  arrowUp,
+  arrowDown,
+  remove,
+  snow,
+  heart,
+  skull,
+  flash,
+  trendingUp,
+  trendingDown,
+  swapHorizontal,
+  chevronForward,
+  filter,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
+import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import {
+  MmrTier,
+  PlayerChemistryProfile,
+  PlayerFormStreak,
+  getMmrTier,
+  MMR_TIERS,
+} from 'src/app/models/mmr.model';
 import {
   CURRENT_SEASON,
   PREVIOUS_SEASON,
   ALL_SEASONS,
-  STAGIONI,
   getStagionePartita,
   getStagioniDisponibili,
 } from 'src/app/utils/season-utils';
 
 export type CriterioOrdinamento =
+  | 'mmr'
   | 'punti'
   | 'presenze'
   | 'gol'
@@ -67,7 +92,8 @@ export interface CriterioOption {
 }
 
 export const CRITERI_ORDINAMENTO: CriterioOption[] = [
-  { id: 'punti', label: 'Punti', icon: 'trophy', unit: 'PUNTI' },
+  { id: 'mmr', label: 'MMR Elo', icon: 'shield-outline', unit: 'MMR' },
+  { id: 'punti', label: 'Punti Classici', icon: 'trophy', unit: 'PUNTI' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'MATCH' },
   { id: 'gol', label: 'Gol', icon: 'football', unit: 'GOL' },
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
@@ -75,6 +101,7 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
 ];
 
 export interface GiocatoreConPunti extends Giocatore {
+  // Punteggio Legacy
   puntiVal: number;
   puntiDisplay: string;
   golTotali: number;
@@ -84,6 +111,21 @@ export interface GiocatoreConPunti extends Giocatore {
   wins: number;
   draws: number;
   losses: number;
+
+  // Nuovo Motore MMR & Statistiche
+  mmrVal: number;
+  mmrDisplay: string;
+  tier: MmrTier;
+  peakMmr: number;
+  lastDelta: number | null;
+  lastDeltaDisplay: string | null;
+  trendDirection: 'up' | 'down' | 'neutral' | 'none';
+  form: PlayerFormStreak;
+  winRate: number;
+  rankAssoluto: number;
+
+  // Profilo Chimica di Coppia
+  chemistry?: PlayerChemistryProfile;
 }
 
 @Component({
@@ -102,7 +144,6 @@ export interface GiocatoreConPunti extends Giocatore {
     IonItem,
     IonAvatar,
     IonLabel,
-    IonNote,
     IonModal,
     IonButtons,
     IonButton,
@@ -114,16 +155,26 @@ export interface GiocatoreConPunti extends Giocatore {
 export class ClassificaPage {
   private firestore: Firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private statsEngine = inject(StatsEngineService);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
+  private router = inject(Router);
 
   readonly CURRENT_SEASON = CURRENT_SEASON;
   readonly PREVIOUS_SEASON = PREVIOUS_SEASON;
   readonly ALL_SEASONS = ALL_SEASONS;
   readonly CRITERI_ORDINAMENTO = CRITERI_ORDINAMENTO;
+  readonly MMR_TIERS = MMR_TIERS;
 
+  // Vista attiva: classifica principale o sezione dedicata chimica & rivalità
+  vistaSelezionata = signal<'classifica' | 'chimica'>('classifica');
+
+  // Stagione e Criterio di ordinamento
   stagioneSelezionata = signal<string>(CURRENT_SEASON);
-  criterioOrdinamento = signal<CriterioOrdinamento>('punti');
+  criterioOrdinamento = signal<CriterioOrdinamento>('mmr');
+
+  // Filtro rapido per Tier o Stato di Forma
+  filtroTierOForma = signal<string>('all');
 
   stagioniList = computed(() => {
     return getStagioniDisponibili(this.partiteRaw());
@@ -148,18 +199,23 @@ export class ClassificaPage {
     { initialValue: [] },
   );
 
+  /**
+   * Classifica completa con Punti Legacy affiancati al nuovo MMR, Tier, Trend e Forma
+   */
   classificaCalcolata = computed<GiocatoreConPunti[]>(() => {
     const giocatori = this.giocatoriRaw() || [];
     const partite = this.partiteRaw() || [];
+    const statsRes = this.statsEngine.statsResult();
+    const stagione = this.stagioneSelezionata();
 
     const partiteValide = partite.filter((p) => p['pagelleInserite'] === true);
-    const stagione = this.stagioneSelezionata();
 
     const partiteStagione =
       stagione === ALL_SEASONS
         ? partiteValide
         : partiteValide.filter((p) => getStagionePartita(p) === stagione);
 
+    // Mappa calcolo per ciascun giocatore
     const calcolata = giocatori.map((g) => {
       let punti = 0;
       let golTotali = 0;
@@ -169,6 +225,7 @@ export class ClassificaPage {
       let draws = 0;
       let losses = 0;
 
+      // 1. Calcolo Punteggio Legacy (100% inalterato)
       partiteStagione.forEach((p: any) => {
         const inTeamA = p.teamA?.find((pl: any) => pl.id === g.id);
         const inTeamB = p.teamB?.find((pl: any) => pl.id === g.id);
@@ -183,7 +240,7 @@ export class ClassificaPage {
           const draw = scoreA === scoreB;
           const lost = !won && !draw;
 
-          punti += 2; // Partecipazione
+          punti += 2; // Presenza
           if (won) {
             punti += 2;
             wins++;
@@ -215,6 +272,53 @@ export class ClassificaPage {
 
       const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
 
+      // 2. Dati del Nuovo Motore MMR & Statistiche
+      const playerMmr =
+        stagione === ALL_SEASONS
+          ? statsRes.allTime.get(g.id)
+          : statsRes.bySeason.get(stagione)?.get(g.id);
+
+      const allTimeMmr = statsRes.allTime.get(g.id);
+      const peakMmr = allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? 1000);
+      const mmrVal = playerMmr ? Math.round(playerMmr.currentMmr) : 1000;
+      const tier = playerMmr ? playerMmr.tier : getMmrTier(1000);
+      const form = playerMmr?.form || {
+        currentStreak: 0,
+        status: 'neutral' as const,
+        statusLabel: 'Costante',
+        emoji: '➖',
+        multiplier: 1.0,
+        bestWinStreak: 0,
+        worstLossStreak: 0,
+        recentForm: [],
+      };
+
+      // Trend dall'ultima partita giocata (delta punti con segno)
+      const history = playerMmr?.history || [];
+      const lastMatch =
+        history.length > 0 ? history[history.length - 1] : null;
+      const lastDelta = lastMatch ? lastMatch.delta : null;
+      const lastDeltaDisplay =
+        lastDelta !== null
+          ? lastDelta > 0
+            ? `+${lastDelta}`
+            : `${lastDelta}`
+          : null;
+      const trendDirection: 'up' | 'down' | 'neutral' | 'none' =
+        lastDelta === null
+          ? 'none'
+          : lastDelta > 0
+            ? 'up'
+            : lastDelta < 0
+              ? 'down'
+              : 'neutral';
+
+      const chemistry = statsRes.chemistry.get(g.id);
+      const winRate =
+        partiteGiocate > 0
+          ? Math.round((wins / partiteGiocate) * 1000) / 10
+          : 0;
+
       return {
         ...g,
         puntiVal: punti,
@@ -226,64 +330,221 @@ export class ClassificaPage {
         wins,
         draws,
         losses,
+        mmrVal,
+        mmrDisplay: mmrVal.toString(),
+        tier,
+        peakMmr,
+        lastDelta,
+        lastDeltaDisplay,
+        trendDirection,
+        form,
+        winRate,
+        rankAssoluto: 1,
+        chemistry,
       };
     });
 
+    // 3. Ordinamento dinamico in base al criterio selezionato
     const crit = this.criterioOrdinamento();
 
-    return calcolata.sort((a, b) => {
+    const ordinata = calcolata.sort((a, b) => {
       switch (crit) {
-        case 'presenze':
-          if (b.partiteGiocate !== a.partiteGiocate) {
-            return b.partiteGiocate - a.partiteGiocate;
+        case 'mmr':
+          // Chi ha giocato viene prima di chi ha 0 presenze
+          if ((b.partiteGiocate > 0) !== (a.partiteGiocate > 0)) {
+            return b.partiteGiocate > 0 ? 1 : -1;
+          }
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
           }
           if (b.puntiVal !== a.puntiVal) {
             return b.puntiVal - a.puntiVal;
           }
           return b.mediaVotoVal - a.mediaVotoVal;
+
+        case 'punti':
+          if (b.puntiVal !== a.puntiVal) {
+            return b.puntiVal - a.puntiVal;
+          }
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
+          }
+          if (b.mediaVotoVal !== a.mediaVotoVal) {
+            return b.mediaVotoVal - a.mediaVotoVal;
+          }
+          return b.golTotali - a.golTotali;
+
+        case 'presenze':
+          if (b.partiteGiocate !== a.partiteGiocate) {
+            return b.partiteGiocate - a.partiteGiocate;
+          }
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
+          }
+          return b.puntiVal - a.puntiVal;
 
         case 'gol':
           if (b.golTotali !== a.golTotali) {
             return b.golTotali - a.golTotali;
           }
-          if (b.puntiVal !== a.puntiVal) {
-            return b.puntiVal - a.puntiVal;
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
           }
-          return b.mediaVotoVal - a.mediaVotoVal;
+          return b.puntiVal - a.puntiVal;
 
         case 'mediaVoto':
-          // Chi ha giocato viene prima di chi ha 0 presenze
           if ((b.partiteGiocate > 0) !== (a.partiteGiocate > 0)) {
             return b.partiteGiocate > 0 ? 1 : -1;
           }
           if (b.mediaVotoVal !== a.mediaVotoVal) {
             return b.mediaVotoVal - a.mediaVotoVal;
           }
-          if (b.partiteGiocate !== a.partiteGiocate) {
-            return b.partiteGiocate - a.partiteGiocate;
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
           }
-          return b.puntiVal - a.puntiVal;
+          return b.partiteGiocate - a.partiteGiocate;
 
         case 'wins':
           if (b.wins !== a.wins) {
             return b.wins - a.wins;
           }
-          if (b.puntiVal !== a.puntiVal) {
-            return b.puntiVal - a.puntiVal;
+          if (b.mmrVal !== a.mmrVal) {
+            return b.mmrVal - a.mmrVal;
           }
-          return b.partiteGiocate - a.partiteGiocate;
+          return b.puntiVal - a.puntiVal;
 
-        case 'punti':
         default:
-          if (b.puntiVal !== a.puntiVal) {
-            return b.puntiVal - a.puntiVal;
-          }
-          if (b.mediaVotoVal !== a.mediaVotoVal) {
-            return b.mediaVotoVal - a.mediaVotoVal;
-          }
-          return b.golTotali - a.golTotali;
+          return b.mmrVal - a.mmrVal;
       }
     });
+
+    // Assegna la posizione reale in classifica prima di eventuali filtri visivi
+    ordinata.forEach((item, index) => {
+      item.rankAssoluto = index + 1;
+    });
+
+    // 4. Filtro opzionale per Tier o Stato di Forma
+    const filtro = this.filtroTierOForma();
+    if (filtro === 'on_fire') {
+      return ordinata.filter((p) => p.form.status === 'on_fire');
+    }
+    if (filtro === 'in_crisis') {
+      return ordinata.filter((p) => p.form.status === 'in_crisis');
+    }
+    if (filtro !== 'all') {
+      return ordinata.filter((p) => p.tier.id === filtro);
+    }
+
+    return ordinata;
+  });
+
+  /**
+   * Top Duo Sinergici della lega (I Gemelli del Gol)
+   */
+  topDuos = computed(() => {
+    const chemMap = this.statsEngine.statsResult().chemistry;
+    const seenPairs = new Set<string>();
+    const duos: {
+      p1Id: string;
+      p1Nome: string;
+      p1Foto?: string;
+      p2Id: string;
+      p2Nome: string;
+      p2Foto?: string;
+      matches: number;
+      wins: number;
+      draws: number;
+      losses: number;
+      winRate: number;
+    }[] = [];
+
+    for (const [p1Id, prof] of chemMap.entries()) {
+      for (const s of prof.allSynergies) {
+        if (s.matchesTogether < 2) continue;
+        const pairKey = [p1Id, s.partnerId].sort().join('___');
+        if (seenPairs.has(pairKey)) continue;
+        seenPairs.add(pairKey);
+
+        const p1 = this.giocatoriRaw().find((g) => g.id === p1Id);
+        duos.push({
+          p1Id,
+          p1Nome: p1?.nome || prof.nome,
+          p1Foto: p1?.fotoUrl,
+          p2Id: s.partnerId,
+          p2Nome: s.partnerNome,
+          p2Foto: s.partnerFotoUrl,
+          matches: s.matchesTogether,
+          wins: s.winsTogether,
+          draws: s.drawsTogether,
+          losses: s.lossesTogether,
+          winRate: s.winRateTogether,
+        });
+      }
+    }
+
+    return duos
+      .sort((a, b) => b.winRate - a.winRate || b.matches - a.matches)
+      .slice(0, 10);
+  });
+
+  /**
+   * Top Rivalità della lega (Bestie Nere & Derby)
+   */
+  topRivalries = computed(() => {
+    const chemMap = this.statsEngine.statsResult().chemistry;
+    const seenRivals = new Set<string>();
+    const rivalries: {
+      p1Id: string;
+      p1Nome: string;
+      p1Foto?: string;
+      p2Id: string;
+      p2Nome: string;
+      p2Foto?: string;
+      matches: number;
+      p1Wins: number;
+      draws: number;
+      p2Wins: number;
+      dominancePercent: number;
+      dominatorNome: string;
+    }[] = [];
+
+    for (const [p1Id, prof] of chemMap.entries()) {
+      for (const n of prof.allNemesis) {
+        if (n.matchesAgainst < 2) continue;
+        const pairKey = [p1Id, n.opponentId].sort().join('___');
+        if (seenRivals.has(pairKey)) continue;
+        seenRivals.add(pairKey);
+
+        const p1 = this.giocatoriRaw().find((g) => g.id === p1Id);
+        const p1Wins = n.winsAgainst;
+        const p2Wins = n.lossesAgainst;
+        const domPercent = Math.max(n.winRateAgainst, n.opponentWinRate);
+        const dominatorNome =
+          p1Wins >= p2Wins ? (p1?.nome || prof.nome) : n.opponentNome;
+
+        rivalries.push({
+          p1Id,
+          p1Nome: p1?.nome || prof.nome,
+          p1Foto: p1?.fotoUrl,
+          p2Id: n.opponentId,
+          p2Nome: n.opponentNome,
+          p2Foto: n.opponentFotoUrl,
+          matches: n.matchesAgainst,
+          p1Wins,
+          draws: n.drawsAgainst,
+          p2Wins,
+          dominancePercent: domPercent,
+          dominatorNome,
+        });
+      }
+    }
+
+    return rivalries
+      .sort(
+        (a, b) =>
+          b.matches - a.matches || b.dominancePercent - a.dominancePercent,
+      )
+      .slice(0, 10);
   });
 
   constructor() {
@@ -298,7 +559,28 @@ export class ClassificaPage {
       timeOutline,
       globeOutline,
       shareSocialOutline,
+      shield,
+      shieldOutline,
+      medal,
+      ribbon,
+      diamond,
+      arrowUp,
+      arrowDown,
+      remove,
+      snow,
+      heart,
+      skull,
+      flash,
+      trendingUp,
+      trendingDown,
+      swapHorizontal,
+      chevronForward,
+      filter,
     });
+  }
+
+  selezionaVista(v: 'classifica' | 'chimica') {
+    this.vistaSelezionata.set(v);
   }
 
   selezionaStagione(id: string) {
@@ -309,11 +591,17 @@ export class ClassificaPage {
     this.criterioOrdinamento.set(crit);
   }
 
+  selezionaFiltro(f: string) {
+    this.filtroTierOForma.set(f);
+  }
+
   getValorePrincipale(g: GiocatoreConPunti): {
     valore: string | number;
     etichetta: string;
   } {
     switch (this.criterioOrdinamento()) {
+      case 'mmr':
+        return { valore: g.mmrVal, etichetta: 'MMR' };
       case 'presenze':
         return { valore: g.partiteGiocate, etichetta: 'MATCH' };
       case 'gol':
@@ -333,9 +621,27 @@ export class ClassificaPage {
     this.isModalOpen.set(true);
   }
 
+  apriDettagliPerId(giocatoreId: string) {
+    const g = this.classificaCalcolata().find((p) => p.id === giocatoreId);
+    if (g) {
+      this.giocatoreSelezionato.set(g);
+      this.isModalOpen.set(true);
+    }
+  }
+
   chiudiModale = () => {
     this.isModalOpen.set(false);
   };
+
+  apriConfronto(playerAId?: string, playerBId?: string) {
+    if (this.isModalOpen()) {
+      this.chiudiModale();
+    }
+    const queryParams: any = {};
+    if (playerAId) queryParams.playerA = playerAId;
+    if (playerBId) queryParams.playerB = playerBId;
+    this.router.navigate(['/confronto'], { queryParams });
+  }
 
   async condividiSuWhatsApp() {
     const lista = this.classificaCalcolata();
@@ -349,19 +655,22 @@ export class ClassificaPage {
       return;
     }
 
-    const stg = this.stagioniList().find((s) => s.id === this.stagioneSelezionata());
+    const stg = this.stagioniList().find(
+      (s) => s.id === this.stagioneSelezionata(),
+    );
     const stagioneNome = stg ? stg.label : 'Classifica Generale';
 
     const crit = this.CRITERI_ORDINAMENTO.find(
       (c) => c.id === this.criterioOrdinamento(),
     );
-    const criterioNome = crit ? crit.label : 'Punti';
+    const criterioNome = crit ? crit.label : 'MMR Elo';
 
     let msg = `⚽ *CALCETTO ABBUFFO* ⚽\n`;
     msg += `🏆 *${stagioneNome.toUpperCase()}*\n`;
-    msg += `📊 *Classifica ordinata per:* ${criterioNome}\n\n`;
+    msg += `📊 *Classifica per:* ${criterioNome}\n\n`;
 
-    lista.forEach((g, idx) => {
+    lista.forEach((g) => {
+      const idx = g.rankAssoluto - 1;
       const medaglia =
         idx === 0
           ? '🥇'
@@ -372,23 +681,33 @@ export class ClassificaPage {
               : `${idx + 1}°`;
 
       const soprannome = g.soprannome ? ` ("${g.soprannome}")` : '';
-      msg += `${medaglia} *${g.nome}*${soprannome}\n`;
+      const formIcon =
+        g.form.status === 'on_fire'
+          ? ' 🔥'
+          : g.form.status === 'in_crisis'
+            ? ' ❄️'
+            : '';
+      const trendStr = g.lastDeltaDisplay ? ` [${g.lastDeltaDisplay}]` : '';
 
-      if (this.criterioOrdinamento() === 'gol') {
-        msg += `   └ ⚽ *${g.golTotali} Gol* | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match | ⭐ ${g.mediaVotoDisplay}\n`;
+      msg += `${medaglia} *${g.nome}*${soprannome} - ${g.tier.badge}${formIcon}\n`;
+
+      if (this.criterioOrdinamento() === 'mmr') {
+        msg += `   └ 🛡️ *${g.mmrVal} MMR*${trendStr} | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match | ⭐ ${g.mediaVotoDisplay}\n`;
+      } else if (this.criterioOrdinamento() === 'gol') {
+        msg += `   └ ⚽ *${g.golTotali} Gol* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
       } else if (this.criterioOrdinamento() === 'presenze') {
-        msg += `   └ 👥 *${g.partiteGiocate} Match* | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol | ⭐ ${g.mediaVotoDisplay}\n`;
+        msg += `   └ 👥 *${g.partiteGiocate} Match* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
       } else if (this.criterioOrdinamento() === 'mediaVoto') {
-        msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match | ⚽ ${g.golTotali} gol\n`;
+        msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
       } else if (this.criterioOrdinamento() === 'wins') {
-        msg += `   └ 🔥 *${g.wins} Vittorie* (V${g.wins}-P${g.draws}-S${g.losses}) | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
+        msg += `   └ 🔥 *${g.wins} Vittorie* (V${g.wins}-P${g.draws}-S${g.losses}) | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
       } else {
-        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 👥 ${g.partiteGiocate} match | ⚽ ${g.golTotali} gol | ⭐ ${g.mediaVotoDisplay}\n`;
+        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 🛡️ ${g.mmrVal} MMR${trendStr} | 👥 ${g.partiteGiocate} match | ⚽ ${g.golTotali} gol\n`;
       }
     });
 
     const oggi = new Date().toLocaleDateString('it-IT');
-    msg += `\n📅 _Aggiornato al ${oggi}_\n`;
+    msg += `\n📅 _Aggiornato al ${oggi} col nuovo motore MMR_\n`;
 
     if (navigator.share) {
       try {
@@ -398,7 +717,7 @@ export class ClassificaPage {
         });
         return;
       } catch {
-        // Fallback se annullato o errore share nativo
+        // Fallback se annullato o non supportato
       }
     }
 

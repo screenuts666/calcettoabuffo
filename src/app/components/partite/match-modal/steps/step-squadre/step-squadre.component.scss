@@ -1,25 +1,226 @@
 // ==========================================
+// CONTENITORE PULSANTE MATCHMAKING
+// ==========================================
+.matchmaking-container {
+  padding: 12px 14px 6px;
+  background: transparent;
+
+  .matchmaking-cta-btn {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1.5px solid rgba(56, 189, 248, 0.45);
+    border-radius: 16px;
+    padding: 12px 14px;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 4px 18px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      border-color: #38bdf8;
+      box-shadow: 0 6px 24px rgba(14, 165, 233, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      .cta-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+
+        .cta-emoji {
+          font-size: 1.8rem;
+          line-height: 1;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .cta-text {
+          .cta-title {
+            display: block;
+            font-size: 0.96rem;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.2px;
+            line-height: 1.2;
+          }
+
+          .cta-sub {
+            display: block;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .cta-right {
+        .sparkle-icon {
+          font-size: 1.4rem;
+          color: #38bdf8;
+          filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+          animation: pulse-sparkle 2.5s infinite ease-in-out;
+        }
+      }
+    }
+  }
+
+  // LIVE BALANCE CHIP
+  .live-balance-chip {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .chip-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .chip-label {
+        color: #94a3b8;
+      }
+
+      .chip-val {
+        font-weight: 700;
+      }
+    }
+
+    .chip-details {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    &.balanced {
+      border-color: rgba(52, 211, 153, 0.3);
+      .chip-dot {
+        background: #34d399;
+        box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+      }
+      .chip-val {
+        color: #34d399;
+      }
+    }
+
+    &.unbalanced {
+      border-color: rgba(245, 158, 11, 0.3);
+      .chip-dot {
+        background: #f59e0b;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+      }
+      .chip-val {
+        color: #f59e0b;
+      }
+    }
+  }
+}
+
+@keyframes pulse-sparkle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15) rotate(10deg);
+    opacity: 1;
+  }
+}
+
+// ==========================================
 // BARRE SQUADRE CUSTOM
 // ==========================================
 .team-header {
-  padding: 10px 15px;
-  font-size: 1.1em;
-  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
   border-top: 1px solid var(--app-border-color);
   border-bottom: 1px solid var(--app-border-color);
-  margin-top: 5px;
+  margin-top: 6px;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .count-tag {
+      font-size: 0.72rem;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+  }
+
+  .team-mmr-sub {
+    font-size: 0.74rem;
+    font-weight: 700;
+    opacity: 0.9;
+  }
 }
 
 .team-bianchi {
   background-color: #ffffff;
-  color: #000000;
+  color: #0f172a;
+
+  .count-tag {
+    background: #0f172a;
+    color: #ffffff;
+  }
+
+  .team-mmr-sub {
+    color: #0f172a;
+  }
 }
 
 .team-neri {
-  background-color: #111111;
+  background-color: #0f172a;
   color: #ffffff;
-  border-top: 1px solid #333;
-  border-bottom: 1px solid #333;
+  border-top: 1px solid #334155;
+  border-bottom: 1px solid #334155;
+
+  .count-tag {
+    background: #334155;
+    color: #f8fafc;
+  }
+
+  .team-mmr-sub {
+    color: #fbbf24;
+  }
 }
 
 // ==========================================
@@ -28,9 +229,10 @@
 .selected-avatars-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 15px 5px;
-  padding: 15px 5px;
+  gap: 14px 6px;
+  padding: 14px 6px;
   justify-items: center;
+  position: relative;
 
   .avatar-item {
     text-align: center;
@@ -39,7 +241,7 @@
     width: 100%;
 
     &:active {
-      transform: scale(0.85);
+      transform: scale(0.88);
     }
 
     .avatar-wrapper {
@@ -47,26 +249,57 @@
       display: inline-block;
 
       ion-avatar {
-        width: 50px;
-        height: 50px;
+        width: 48px;
+        height: 48px;
         margin: 0 auto;
         border: 2px solid var(--ion-color-success);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+      }
+
+      .swap-hint {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #0f172a;
+        color: #38bdf8;
+        font-size: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
     }
 
     small {
       font-size: 10px;
-      font-weight: bold;
+      font-weight: 700;
       color: var(--app-text-secondary);
       display: block;
-      margin-top: 6px;
+      margin-top: 5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 55px;
+      max-width: 58px;
       margin-left: auto;
       margin-right: auto;
     }
+  }
+
+  .empty-team-placeholder {
+    grid-column: 1 / -1;
+    padding: 24px 10px;
+    color: #64748b;
+    font-size: 0.82rem;
+    font-style: italic;
+    text-align: center;
   }
 }

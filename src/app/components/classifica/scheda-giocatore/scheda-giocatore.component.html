@@ -9,23 +9,364 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding ion-text-center">
-  <img
-    class="avatar-img"
-    [src]="
-      prof?.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
-    "
-    loading="lazy"
-  />
+<ion-content class="ion-padding ion-text-center player-profile-content">
+  <!-- AVATAR & HEADER PROFILO -->
+  <div
+    class="profile-avatar-wrapper"
+    [style.--tier-color]="prof?.tier?.color || '#888'"
+  >
+    <img
+      class="avatar-img"
+      [src]="
+        prof?.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
+      "
+      loading="lazy"
+    />
+    @if (prof?.form?.status === 'on_fire') {
+      <span class="avatar-form-badge on-fire">🔥</span>
+    } @else if (prof?.form?.status === 'in_crisis') {
+      <span class="avatar-form-badge in-crisis">❄️</span>
+    }
+  </div>
 
   <h2 class="player-name">{{ prof?.nome }}</h2>
 
-  @if (prof?.soprannome) {
-    <p class="player-nickname">"{{ prof.soprannome }}"</p>
+  @if (prof?.soprannomeAi || prof?.soprannome) {
+    <p class="player-nickname">
+      "{{ prof.soprannomeAi || prof.soprannome }}"
+      @if (prof.soprannomeAi) {
+        <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
+      }
+    </p>
   } @else {
-    <div class="spacer-15"></div>
+    <div class="spacer-8"></div>
   }
 
+  <!-- TIER BADGE & FORMA HERO -->
+  <div class="hero-badges-row">
+    @if (prof?.tier) {
+      <span
+        class="tier-badge-large"
+        [style.border-color]="prof.tier.color"
+        [style.background]="prof.tier.color + '1a'"
+        [style.color]="prof.tier.color"
+      >
+        <ion-icon [name]="prof.tier.icon"></ion-icon>
+        <span>{{ prof.tier.badge }}</span>
+      </span>
+    }
+
+    @if (prof?.form?.status === 'on_fire') {
+      <span class="form-badge-large on-fire">
+        🔥 On Fire (+{{ prof.form.currentStreak }} vittorie)
+      </span>
+    } @else if (prof?.form?.status === 'in_crisis') {
+      <span class="form-badge-large in-crisis">
+        ❄️ In Crisi ({{ prof.form.currentStreak }} sconfitte)
+      </span>
+    } @else {
+      <span class="form-badge-large neutral">
+        ➖ Forma Costante
+      </span>
+    }
+  </div>
+
+  <!-- SCOUTING REPORT AI CARD -->
+  <div class="ai-scouting-card">
+    <div class="ai-scouting-header">
+      <div class="scouting-title-wrap">
+        <span class="scouting-badge">✨ SCOUTING AI</span>
+        <span class="scouting-title">Relazione Segreta del Mister</span>
+      </div>
+      @if (prof?.scoutingReportAi) {
+        <button
+          type="button"
+          class="scouting-refresh-btn"
+          (click)="generaScouting(true)"
+          [disabled]="isGeneratingScouting()"
+          title="Rigenera Scouting Report con Gemini"
+        >
+          <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
+          <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
+        </button>
+      }
+    </div>
+
+    @if (prof?.scoutingReportAi) {
+      <div class="scouting-body">
+        <p class="scouting-text">“{{ prof.scoutingReportAi }}”</p>
+        <div class="scouting-footer">
+          <small>💾 Memorizzato nel profilo del giocatore</small>
+        </div>
+      </div>
+    } @else {
+      <div class="scouting-empty">
+        <p class="scouting-empty-desc">Nessuna scheda scouting redatta per questo giocatore.</p>
+        <button
+          type="button"
+          class="scouting-generate-btn"
+          (click)="generaScouting(false)"
+          [disabled]="isGeneratingScouting()"
+        >
+          @if (isGeneratingScouting()) {
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Analisi stile e commenti in corso...</span>
+          } @else {
+            <ion-icon name="sparkles"></ion-icon>
+            <span>📋 Genera Scouting Report AI</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- PULSANTE RAPIDO CONFRONTO 1v1 -->
+  <div class="h2h-btn-wrapper">
+    <button type="button" class="h2h-compare-btn" (click)="confronta()">
+      <ion-icon name="swap-horizontal"></ion-icon>
+      <span>⚔️ Confronto 1v1 Head-to-Head</span>
+    </button>
+  </div>
+
+  <!-- ULTIME 5 PARTITE (FORMA RECENTE) -->
+  @if (prof?.form?.recentForm?.length) {
+    <div class="recent-form-container">
+      <span class="recent-form-label">Ultime partite:</span>
+      <div class="recent-balls">
+        @for (res of prof.form.recentForm; track $index) {
+          <span
+            class="form-ball"
+            [class.win]="res === 'W'"
+            [class.draw]="res === 'D'"
+            [class.loss]="res === 'L'"
+            [title]="
+              res === 'W'
+                ? 'Vittoria'
+                : res === 'D'
+                  ? 'Pareggio'
+                  : 'Sconfitta'
+            "
+          >
+            {{ res }}
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ============================================== -->
+  <!-- STATISTICHE MOTORE MMR & PEAK PERFORMANCE       -->
+  <!-- ============================================== -->
+  <div class="section-badge-header">
+    <ion-icon name="shield" class="sec-icon mmr-icon"></ion-icon>
+    <span>Rating MMR & Performance</span>
+  </div>
+
+  <div class="mmr-stats-grid">
+    <!-- MMR Attuale -->
+    <div
+      class="stat-box mmr-box"
+      [style.border-color]="prof?.tier?.color || '#2dd36f'"
+    >
+      <div class="stat-box-title">MMR ATTUALE</div>
+      <div
+        class="stat-box-num"
+        [style.color]="prof?.tier?.color || '#2dd36f'"
+      >
+        {{ prof?.mmrVal ?? 1000 }}
+      </div>
+      @if (prof?.lastDeltaDisplay) {
+        <div
+          class="stat-box-sub trend"
+          [class.up]="prof?.trendDirection === 'up'"
+          [class.down]="prof?.trendDirection === 'down'"
+        >
+          @if (prof?.trendDirection === 'up') {
+            <ion-icon name="arrow-up"></ion-icon>
+          } @else if (prof?.trendDirection === 'down') {
+            <ion-icon name="arrow-down"></ion-icon>
+          } @else {
+            <ion-icon name="remove"></ion-icon>
+          }
+          {{ prof.lastDeltaDisplay }} ultimo match
+        </div>
+      } @else {
+        <div class="stat-box-sub">Nessun match recente</div>
+      }
+    </div>
+
+    <!-- Peak MMR Storico -->
+    <div class="stat-box peak-box">
+      <div class="stat-box-title">PEAK STORICO 🏔️</div>
+      <div class="stat-box-num peak-num">
+        {{ prof?.peakMmr ?? prof?.mmrVal ?? 1000 }}
+      </div>
+      <div class="stat-box-sub">Massimo all-time</div>
+    </div>
+
+    <!-- Win Rate -->
+    <div class="stat-box winrate-box">
+      <div class="stat-box-title">WIN RATE 📈</div>
+      <div class="stat-box-num">
+        {{ prof?.winRate ?? 0 }}%
+      </div>
+      <div class="stat-box-sub">
+        {{ prof?.wins ?? 0 }}V su {{ prof?.partiteGiocate ?? 0 }} match
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- SEZIONE CHIMICA DI COPPIA (PARTNER & NEMESI)   -->
+  <!-- ============================================== -->
+  <div class="section-badge-header chemistry-header">
+    <ion-icon name="flash" class="sec-icon chem-icon"></ion-icon>
+    <span>Chimica di Coppia & Rivalità</span>
+  </div>
+
+  <div class="chemistry-duo-cards">
+    <!-- CARD 1: MIGLIOR PARTNER 🤝 -->
+    <div class="chem-card partner-highlight">
+      <div class="chem-card-header">
+        <span class="chem-icon-tag">🤝</span>
+        <div class="chem-title-wrap">
+          <div class="chem-role-title">Miglior Partner</div>
+          <div class="chem-role-subtitle">Gemello del Gol</div>
+        </div>
+      </div>
+
+      @if (prof?.chemistry?.bestPartner; as partner) {
+        <div
+          class="chem-player-row"
+          (click)="apriGiocatore(partner.partnerId)"
+          title="Apri scheda di {{ partner.partnerNome }}"
+        >
+          <img
+            class="chem-avatar"
+            [src]="
+              partner.partnerFotoUrl ||
+              'https://ionicframework.com/docs/img/demos/avatar.svg'
+            "
+            loading="lazy"
+          />
+          <div class="chem-player-meta">
+            <div class="chem-player-name">
+              <b>{{ partner.partnerNome }}</b>
+              @if (partner.partnerSoprannome) {
+                <span>"{{ partner.partnerSoprannome }}"</span>
+              }
+            </div>
+            <div class="chem-percent win">
+              {{ partner.winRateTogether }}% Vittorie Insieme
+            </div>
+            <div class="chem-record-detail">
+              {{ partner.winsTogether }}V - {{ partner.drawsTogether }}P - {{ partner.lossesTogether }}S ({{ partner.matchesTogether }} match insieme)
+            </div>
+          </div>
+        </div>
+        <div class="chem-actions-row">
+          <button
+            type="button"
+            class="chem-h2h-btn partner-btn"
+            (click)="confronta(partner.partnerId); $event.stopPropagation()"
+          >
+            <ion-icon name="swap-horizontal"></ion-icon>
+            <span>⚔️ Confronta 1v1 con il Partner</span>
+          </button>
+        </div>
+      } @else {
+        <div class="chem-empty-state">
+          <span>Partite insieme insufficienti per determinare un partner (min. 2 match)</span>
+        </div>
+      }
+    </div>
+
+    <!-- CARD 2: NEMESI 😈 -->
+    <div class="chem-card nemesis-highlight">
+      <div class="chem-card-header">
+        <span class="chem-icon-tag">😈</span>
+        <div class="chem-title-wrap">
+          <div class="chem-role-title">Nemesi</div>
+          <div class="chem-role-subtitle">Bestia Nera</div>
+        </div>
+      </div>
+
+      @if (prof?.chemistry?.biggestNemesis; as nemesis) {
+        <div
+          class="chem-player-row"
+          (click)="apriGiocatore(nemesis.opponentId)"
+          title="Apri scheda di {{ nemesis.opponentNome }}"
+        >
+          <img
+            class="chem-avatar nemesis-avatar"
+            [src]="
+              nemesis.opponentFotoUrl ||
+              'https://ionicframework.com/docs/img/demos/avatar.svg'
+            "
+            loading="lazy"
+          />
+          <div class="chem-player-meta">
+            <div class="chem-player-name">
+              <b>{{ nemesis.opponentNome }}</b>
+              @if (nemesis.opponentSoprannome) {
+                <span>"{{ nemesis.opponentSoprannome }}"</span>
+              }
+            </div>
+            <div class="chem-percent loss">
+              {{ nemesis.opponentWinRate }}% Sconfitte Contro
+            </div>
+            <div class="chem-record-detail">
+              {{ nemesis.lossesAgainst }} sconfitte su {{ nemesis.matchesAgainst }} scontri diretti
+            </div>
+          </div>
+        </div>
+        <div class="chem-actions-row">
+          <button
+            type="button"
+            class="chem-h2h-btn nemesis-btn"
+            (click)="confronta(nemesis.opponentId); $event.stopPropagation()"
+          >
+            <ion-icon name="swap-horizontal"></ion-icon>
+            <span>⚔️ Confronta 1v1 con la Nemesi</span>
+          </button>
+        </div>
+      } @else {
+        <div class="chem-empty-state">
+          <span>Nessuna nemesi rilevata finora (min. 2 scontri diretti)</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Sinergie extra se presenti (Vittima Preferita o Coppia Difficile) -->
+  @if (prof?.chemistry?.favoriteVictim || prof?.chemistry?.worstPartner) {
+    <div class="chem-extra-row">
+      @if (prof?.chemistry?.favoriteVictim; as victim) {
+        <div
+          class="chem-extra-pill victim"
+          (click)="apriGiocatore(victim.opponentId)"
+        >
+          <span>🎯 Vittima preferita:</span>
+          <b>{{ victim.opponentNome }}</b>
+          <span>({{ victim.winRateAgainst }}% vittorie)</span>
+        </div>
+      }
+      @if (prof?.chemistry?.worstPartner; as worst) {
+        <div
+          class="chem-extra-pill struggle"
+          (click)="apriGiocatore(worst.partnerId)"
+        >
+          <span>💔 Intesa difficile:</span>
+          <b>{{ worst.partnerNome }}</b>
+          <span>({{ worst.winRateTogether }}% vittorie)</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================== -->
+  <!-- BARRA INFO FISICHE E BIOMETRICHE               -->
+  <!-- ============================================== -->
   <div class="physical-info-bar">
     <div class="info-block">
       <div class="info-emoji">🎂</div>
@@ -59,15 +400,25 @@
 
     <div class="info-block">
       <div class="info-emoji">⚽</div>
-      <div class="info-value capitalize">{{ prof?.ruoloPreferito || "--" }}</div>
+      <div class="info-value capitalize">
+        {{ prof?.ruoloPreferito || "--" }}
+      </div>
     </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- STATISTICHE CLASSICHE LEGACY                   -->
+  <!-- ============================================== -->
+  <div class="section-badge-header legacy-header">
+    <ion-icon name="trophy" class="sec-icon legacy-icon"></ion-icon>
+    <span>Punteggio Classico Legacy</span>
   </div>
 
   <ion-row class="ion-text-center">
     <ion-col size="6" class="stat-col">
       <div class="stat-card card-success">
         <ion-icon name="trophy" color="success" class="stat-icon"></ion-icon>
-        <div class="stat-label">Punti</div>
+        <div class="stat-label">Punti Classici</div>
         <div class="stat-value text-success">{{ prof?.puntiDisplay }}</div>
       </div>
     </ion-col>
@@ -76,7 +427,9 @@
       <div class="stat-card card-primary">
         <ion-icon name="analytics" color="primary" class="stat-icon"></ion-icon>
         <div class="stat-label">Media Voto</div>
-        <div class="stat-value text-primary">{{ prof?.mediaVotoDisplay }}</div>
+        <div class="stat-value text-primary">
+          {{ prof?.mediaVotoDisplay }}
+        </div>
       </div>
     </ion-col>
 
@@ -92,15 +445,17 @@
       <div class="stat-card card-dark">
         <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
         <div class="stat-label">Rendimento</div>
-        <div class="stat-value text-normal" style="font-size: 1.25em; letter-spacing: 0.5px;">
+        <div
+          class="stat-value text-normal"
+          style="font-size: 1.25em; letter-spacing: 0.5px;"
+        >
           {{ prof?.partiteGiocate ?? 0 }}/{{ prof?.wins ?? 0 }}/{{ prof?.draws ?? 0 }}/{{ prof?.losses ?? 0 }}
         </div>
       </div>
     </ion-col>
   </ion-row>
 
-  <p style="font-size: 0.75em; color: var(--ion-color-medium); margin: 15px 0 10px 0; text-transform: uppercase; letter-spacing: 0.5px;">
+  <p class="legend-note">
     Legenda: <b>P</b> (Disputate) / <b>W</b> (Vinte) / <b>D</b> (Pari) / <b>L</b> (Perse)
   </p>
-
 </ion-content>

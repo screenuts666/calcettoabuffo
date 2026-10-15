@@ -1,0 +1,612 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>⚔️ Confronto 1v1</ion-title>
+    <ion-buttons slot="end">
+      <app-theme-toggle></app-theme-toggle>
+      <ion-button
+        class="whatsapp-btn"
+        (click)="condividiConfronto()"
+        title="Condividi su WhatsApp"
+      >
+        <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- SELETTORE STAGIONE -->
+  <div class="season-filter-bar">
+    @for (stg of stagioniDisponibili(); track stg.id) {
+      <button
+        type="button"
+        class="season-pill"
+        [class.active]="stagioneSelezionata() === stg.id"
+        (click)="selezionaStagione(stg.id)"
+      >
+        <ion-icon [name]="stg.icon"></ion-icon>
+        <span>{{ stg.shortLabel }}</span>
+      </button>
+    }
+  </div>
+</ion-header>
+
+<ion-content class="confronto-content">
+  @if (comparison(); as comp) {
+    <!-- ======================================================== -->
+    <!-- HERO: SCHERMATA FACCIA A FACCIA DEI DUE GIOCATORI        -->
+    <!-- ======================================================== -->
+    <div class="h2h-hero-card">
+      <div class="players-clash-grid">
+        <!-- GIOCATORE A -->
+        <div
+          class="player-card player-a-card"
+          [style.--tier-color]="comp.playerA.tier.color"
+        >
+          <div class="avatar-wrapper" (click)="apriSelettore('A')">
+            <img
+              class="player-avatar"
+              [src]="
+                comp.playerA.fotoUrl ||
+                'https://ionicframework.com/docs/img/demos/avatar.svg'
+              "
+              loading="lazy"
+            />
+            @if (comp.playerA.form.status === 'on_fire') {
+              <span class="form-badge on-fire">🔥</span>
+            } @else if (comp.playerA.form.status === 'in_crisis') {
+              <span class="form-badge in-crisis">❄️</span>
+            }
+          </div>
+
+          <div class="player-info">
+            <h3 class="player-name">{{ comp.playerA.nome }}</h3>
+            @if (comp.playerA.soprannome) {
+              <span class="player-nick">"{{ comp.playerA.soprannome }}"</span>
+            }
+            <div class="tier-pill" [style.color]="comp.playerA.tier.color">
+              <ion-icon [name]="comp.playerA.tier.icon"></ion-icon>
+              <span>{{ comp.playerA.tier.badge }}</span>
+            </div>
+            <div class="mmr-badge">
+              <span class="mmr-val">{{ comp.playerA.currentMmr }}</span>
+              <span class="mmr-label">MMR</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="change-player-btn"
+            (click)="apriSelettore('A')"
+          >
+            <span>Cambia</span>
+            <ion-icon name="chevron-down"></ion-icon>
+          </button>
+        </div>
+
+        <!-- VS & SWAP BUTTON -->
+        <div class="clash-vs-col">
+          <div class="vs-glow-badge">VS</div>
+          <button
+            type="button"
+            class="swap-btn"
+            (click)="scambiaGiocatori()"
+            title="Inverti Giocatori"
+          >
+            <ion-icon name="repeat"></ion-icon>
+          </button>
+        </div>
+
+        <!-- GIOCATORE B -->
+        <div
+          class="player-card player-b-card"
+          [style.--tier-color]="comp.playerB.tier.color"
+        >
+          <div class="avatar-wrapper" (click)="apriSelettore('B')">
+            <img
+              class="player-avatar"
+              [src]="
+                comp.playerB.fotoUrl ||
+                'https://ionicframework.com/docs/img/demos/avatar.svg'
+              "
+              loading="lazy"
+            />
+            @if (comp.playerB.form.status === 'on_fire') {
+              <span class="form-badge on-fire">🔥</span>
+            } @else if (comp.playerB.form.status === 'in_crisis') {
+              <span class="form-badge in-crisis">❄️</span>
+            }
+          </div>
+
+          <div class="player-info">
+            <h3 class="player-name">{{ comp.playerB.nome }}</h3>
+            @if (comp.playerB.soprannome) {
+              <span class="player-nick">"{{ comp.playerB.soprannome }}"</span>
+            }
+            <div class="tier-pill" [style.color]="comp.playerB.tier.color">
+              <ion-icon [name]="comp.playerB.tier.icon"></ion-icon>
+              <span>{{ comp.playerB.tier.badge }}</span>
+            </div>
+            <div class="mmr-badge">
+              <span class="mmr-val">{{ comp.playerB.currentMmr }}</span>
+              <span class="mmr-label">MMR</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="change-player-btn"
+            (click)="apriSelettore('B')"
+          >
+            <span>Cambia</span>
+            <ion-icon name="chevron-down"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 🎙️ VERDETTO AI RIVALITÀ DIRETTA (GEMINI 2.5 FLASH)       -->
+    <!-- ======================================================== -->
+    <div class="section-card verdetto-ai-card">
+      <div class="verdetto-header">
+        <div class="verdetto-title-tag">
+          <span class="ai-sparkle-pill">✨ GEMINI AI</span>
+          <span class="verdetto-title">🎙️ Verdetto del Match</span>
+        </div>
+        @if (verdettoAi()) {
+          <button
+            type="button"
+            class="ai-refresh-btn"
+            (click)="generaVerdetto(true)"
+            [disabled]="isGeneratingVerdetto()"
+            title="Rigenera il verdetto AI"
+          >
+            <ion-icon name="refresh-outline" [class.spin]="isGeneratingVerdetto()"></ion-icon>
+            <span>{{ isGeneratingVerdetto() ? 'Analisi...' : '🔄 Rigenera AI' }}</span>
+          </button>
+        }
+      </div>
+
+      @if (verdettoAi()) {
+        <div class="verdetto-body">
+          <div class="verdetto-bubble">
+            <p class="verdetto-text">{{ verdettoAi() }}</p>
+          </div>
+          <div class="verdetto-footer">
+            <span>💾 Memorizzato su Firestore · Condivisibile su WhatsApp</span>
+          </div>
+        </div>
+      } @else {
+        <div class="verdetto-empty-box">
+          <p class="empty-prompt-text">
+            Chi comanda davvero tra <b>{{ comp.playerA.nome }}</b> e <b>{{ comp.playerB.nome }}</b>?
+            Chiedi a Gemini il verdetto definitivo sulla loro rivalità!
+          </p>
+          <button
+            type="button"
+            class="verdetto-call-btn"
+            (click)="generaVerdetto(false)"
+            [disabled]="isGeneratingVerdetto()"
+          >
+            @if (isGeneratingVerdetto()) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Gemini sta analizzando la rivalità...</span>
+            } @else {
+              <ion-icon name="sparkles"></ion-icon>
+              <span>🎙️ Verdetto AI</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- SCONTRI DIRETTI (CONTRO)                                  -->
+    <!-- ======================================================== -->
+    <div class="section-card direct-matches-card">
+      <div class="section-header">
+        <ion-icon name="flash" class="sec-icon red-icon"></ion-icon>
+        <div class="sec-title-wrap">
+          <span class="sec-title">Scontri Diretti (Contro)</span>
+          <span class="sec-subtitle">
+            Partite giocate l'uno contro l'altro come avversari
+          </span>
+        </div>
+      </div>
+
+      <!-- BANNER BESTIA NERA -->
+      <div
+        class="bestia-nera-banner"
+        [class.winner-a]="comp.scontriContro.bestiaNeraWinner === 'A'"
+        [class.winner-b]="comp.scontriContro.bestiaNeraWinner === 'B'"
+        [class.winner-tie]="comp.scontriContro.bestiaNeraWinner === 'PARITA'"
+      >
+        <div class="bn-icon">
+          @if (comp.scontriContro.bestiaNeraWinner === 'A' || comp.scontriContro.bestiaNeraWinner === 'B') {
+            <span>😈</span>
+          } @else if (comp.scontriContro.bestiaNeraWinner === 'PARITA') {
+            <span>⚖️</span>
+          } @else {
+            <span>🤷‍♂️</span>
+          }
+        </div>
+        <div class="bn-content">
+          <div class="bn-title">
+            @if (comp.scontriContro.bestiaNeraWinner === 'A') {
+              <b>{{ comp.playerA.nome }}</b> è la Bestia Nera!
+            } @else if (comp.scontriContro.bestiaNeraWinner === 'B') {
+              <b>{{ comp.playerB.nome }}</b> è la Bestia Nera!
+            } @else if (comp.scontriContro.bestiaNeraWinner === 'PARITA') {
+              Perfetta Parità
+            } @else {
+              Nessun precedente
+            }
+          </div>
+          <div class="bn-desc">{{ comp.scontriContro.bestiaNeraText }}</div>
+        </div>
+      </div>
+
+      @if (comp.scontriContro.totalePartite > 0) {
+        <!-- RECORD SCONTRI DIRETTI -->
+        <div class="record-h2h-row">
+          <div class="record-col a-side">
+            <span class="record-num">{{ comp.scontriContro.vittorieA }}</span>
+            <span class="record-lbl">Vittorie {{ comp.playerA.nome }}</span>
+            <span class="record-pct">{{ comp.scontriContro.winRateA }}%</span>
+          </div>
+
+          <div class="record-col draws-side">
+            <span class="record-num">{{ comp.scontriContro.pareggi }}</span>
+            <span class="record-lbl">Pareggi</span>
+            <span class="record-pct">
+              {{ comp.scontriContro.totalePartite > 0 ? (comp.scontriContro.pareggi * 100 / comp.scontriContro.totalePartite | number:'1.0-0') : 0 }}%
+            </span>
+          </div>
+
+          <div class="record-col b-side">
+            <span class="record-num">{{ comp.scontriContro.vittorieB }}</span>
+            <span class="record-lbl">Vittorie {{ comp.playerB.nome }}</span>
+            <span class="record-pct">{{ comp.scontriContro.winRateB }}%</span>
+          </div>
+        </div>
+
+        <!-- BARRA PROPORZIONALE SCONTRI DIRETTI -->
+        <div class="tri-bar-container">
+          <div
+            class="tri-bar seg-a"
+            [style.width.%]="comp.scontriContro.winRateA"
+            [title]="comp.playerA.nome + ': ' + comp.scontriContro.vittorieA + ' vittorie'"
+          ></div>
+          <div
+            class="tri-bar seg-draw"
+            [style.width.%]="comp.scontriContro.totalePartite > 0 ? (comp.scontriContro.pareggi * 100 / comp.scontriContro.totalePartite) : 0"
+            title="Pareggi"
+          ></div>
+          <div
+            class="tri-bar seg-b"
+            [style.width.%]="comp.scontriContro.winRateB"
+            [title]="comp.playerB.nome + ': ' + comp.scontriContro.vittorieB + ' vittorie'"
+          ></div>
+        </div>
+
+        <!-- DETTAGLIO ULTIME PARTITE CONTRO -->
+        <div class="matches-history-list">
+          <span class="history-title">Cronologia precedenti:</span>
+          @for (m of comp.scontriContro.matches; track m.id) {
+            <div class="history-match-item">
+              <span class="match-date">{{ m.data }}</span>
+              <div class="match-score-pill">
+                <span [class.winner-text]="m.winner === 'A'">
+                  {{ comp.playerA.nome }}
+                  @if (m.golA > 0) { (⚽{{ m.golA }}) }
+                </span>
+                <span class="score-box">
+                  {{ m.teamOfPlayerA === 'A' ? m.scoreA : m.scoreB }} - {{ m.teamOfPlayerA === 'A' ? m.scoreB : m.scoreA }}
+                </span>
+                <span [class.winner-text]="m.winner === 'B'">
+                  {{ comp.playerB.nome }}
+                  @if (m.golB > 0) { (⚽{{ m.golB }}) }
+                </span>
+              </div>
+              <span
+                class="result-badge"
+                [class.win-a]="m.winner === 'A'"
+                [class.win-b]="m.winner === 'B'"
+                [class.draw]="m.winner === 'D'"
+              >
+                {{ m.winner === 'A' ? comp.playerA.nome : m.winner === 'B' ? comp.playerB.nome : 'Pari' }}
+              </span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state-notice">
+          <p>Questi due giocatori non si sono ancora mai affrontati da avversari in campo.</p>
+        </div>
+      }
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- INTESA DI COPPIA (INSIEME)                               -->
+    <!-- ======================================================== -->
+    <div class="section-card synergy-card">
+      <div class="section-header">
+        <ion-icon name="people" class="sec-icon green-icon"></ion-icon>
+        <div class="sec-title-wrap">
+          <span class="sec-title">Intesa di Coppia (Insieme)</span>
+          <span class="sec-subtitle">
+            Rendimento quando giocano nella stessa squadra
+          </span>
+        </div>
+      </div>
+
+      <!-- BADGE INTESA -->
+      <div class="synergy-hero-banner">
+        <div class="syn-emoji">{{ comp.intesaInsieme.affinitaEmoji }}</div>
+        <div class="syn-info">
+          <div class="syn-label">{{ comp.intesaInsieme.affinitaLabel }}</div>
+          @if (comp.intesaInsieme.totalePartite > 0) {
+            <div class="syn-desc">
+              <b>{{ comp.intesaInsieme.winRate }}%</b> di vittorie insieme ({{ comp.intesaInsieme.vittorie }} vinte, {{ comp.intesaInsieme.pareggi }} pareggi, {{ comp.intesaInsieme.sconfitte }} perse) in <b>{{ comp.intesaInsieme.totalePartite }}</b> partite giocate insieme.
+            </div>
+          } @else {
+            <div class="syn-desc">Non hanno ancora mai giocato nella stessa squadra.</div>
+          }
+        </div>
+      </div>
+
+      @if (comp.intesaInsieme.totalePartite > 0) {
+        <div class="synergy-stat-grid">
+          <div class="syn-box">
+            <span class="syn-num">{{ comp.intesaInsieme.totalePartite }}</span>
+            <span class="syn-lbl">Match Insieme</span>
+          </div>
+          <div class="syn-box win-box">
+            <span class="syn-num">{{ comp.intesaInsieme.vittorie }}</span>
+            <span class="syn-lbl">Vittorie</span>
+          </div>
+          <div class="syn-box draw-box">
+            <span class="syn-num">{{ comp.intesaInsieme.pareggi }}</span>
+            <span class="syn-lbl">Pareggi</span>
+          </div>
+          <div class="syn-box loss-box">
+            <span class="syn-num">{{ comp.intesaInsieme.sconfitte }}</span>
+            <span class="syn-lbl">Sconfitte</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- STATO DI FORMA ATTUALE (STREAK 🔥/❄️)                     -->
+    <!-- ======================================================== -->
+    <div class="section-card form-card">
+      <div class="section-header">
+        <ion-icon name="flame" class="sec-icon orange-icon"></ion-icon>
+        <div class="sec-title-wrap">
+          <span class="sec-title">Stato di Forma Attuale</span>
+          <span class="sec-subtitle">
+            Serie consecutive in corso e ultime partite
+          </span>
+        </div>
+      </div>
+
+      <div class="form-comparison-grid">
+        <!-- FORMA GIOCATORE A -->
+        <div class="form-col">
+          <div class="form-player-header">
+            <b>{{ comp.playerA.nome }}</b>
+          </div>
+
+          <div
+            class="form-badge-hero"
+            [class.on-fire]="comp.playerA.form.status === 'on_fire'"
+            [class.in-crisis]="comp.playerA.form.status === 'in_crisis'"
+          >
+            @if (comp.playerA.form.status === 'on_fire') {
+              <span>🔥 On Fire (+{{ comp.playerA.form.currentStreak }}V)</span>
+            } @else if (comp.playerA.form.status === 'in_crisis') {
+              <span>❄️ In Crisi ({{ comp.playerA.form.currentStreak }}S)</span>
+            } @else {
+              <span>➖ Forma Costante</span>
+            }
+          </div>
+
+          <!-- ULTIME 5 PARTITE A -->
+          <div class="recent-balls-row">
+            @for (res of comp.playerA.form.recentForm; track $index) {
+              <span
+                class="form-ball"
+                [class.win]="res === 'W'"
+                [class.draw]="res === 'D'"
+                [class.loss]="res === 'L'"
+              >
+                {{ res }}
+              </span>
+            } @empty {
+              <span class="no-form-text">Nessun match</span>
+            }
+          </div>
+
+          <div class="form-records">
+            <div>Miglior serie V: <b>+{{ comp.playerA.form.bestWinStreak }}</b></div>
+            <div>Peggior serie S: <b>{{ comp.playerA.form.worstLossStreak }}</b></div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- FORMA GIOCATORE B -->
+        <div class="form-col">
+          <div class="form-player-header">
+            <b>{{ comp.playerB.nome }}</b>
+          </div>
+
+          <div
+            class="form-badge-hero"
+            [class.on-fire]="comp.playerB.form.status === 'on_fire'"
+            [class.in-crisis]="comp.playerB.form.status === 'in_crisis'"
+          >
+            @if (comp.playerB.form.status === 'on_fire') {
+              <span>🔥 On Fire (+{{ comp.playerB.form.currentStreak }}V)</span>
+            } @else if (comp.playerB.form.status === 'in_crisis') {
+              <span>❄️ In Crisi ({{ comp.playerB.form.currentStreak }}S)</span>
+            } @else {
+              <span>➖ Forma Costante</span>
+            }
+          </div>
+
+          <!-- ULTIME 5 PARTITE B -->
+          <div class="recent-balls-row">
+            @for (res of comp.playerB.form.recentForm; track $index) {
+              <span
+                class="form-ball"
+                [class.win]="res === 'W'"
+                [class.draw]="res === 'D'"
+                [class.loss]="res === 'L'"
+              >
+                {{ res }}
+              </span>
+            } @empty {
+              <span class="no-form-text">Nessun match</span>
+            }
+          </div>
+
+          <div class="form-records">
+            <div>Miglior serie V: <b>+{{ comp.playerB.form.bestWinStreak }}</b></div>
+            <div>Peggior serie S: <b>{{ comp.playerB.form.worstLossStreak }}</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- BARRE DI CONFRONTO VISIVE FACCIA A FACCIA                 -->
+    <!-- ======================================================== -->
+    <div class="section-card metrics-card">
+      <div class="section-header">
+        <ion-icon name="star" class="sec-icon gold-icon"></ion-icon>
+        <div class="sec-title-wrap">
+          <span class="sec-title">Barre di Confronto Faccia a Faccia</span>
+          <span class="sec-subtitle">
+            Confronto diretto su tutte le metriche chiave
+          </span>
+        </div>
+      </div>
+
+      <div class="metrics-list">
+        @for (m of comp.metrics; track m.id) {
+          <div class="metric-row">
+            <!-- TITOLO METRICA -->
+            <div class="metric-title-bar">
+              <ion-icon [name]="m.icon"></ion-icon>
+              <span>{{ m.label }}</span>
+            </div>
+
+            <!-- VALORI E VINCITORE -->
+            <div class="metric-values-row">
+              <div
+                class="val-box val-a"
+                [class.leader]="m.leader === 'A'"
+              >
+                @if (m.leader === 'A') {
+                  <span class="leader-crown">👑</span>
+                }
+                <span class="val-text">{{ m.displayA }}</span>
+              </div>
+
+              <div class="val-mid-label">{{ comp.playerA.nome }} vs {{ comp.playerB.nome }}</div>
+
+              <div
+                class="val-box val-b"
+                [class.leader]="m.leader === 'B'"
+              >
+                <span class="val-text">{{ m.displayB }}</span>
+                @if (m.leader === 'B') {
+                  <span class="leader-crown">👑</span>
+                }
+              </div>
+            </div>
+
+            <!-- BARRA DI CONFRONTO VISIVA DOPPIA -->
+            <div class="dual-bar-track">
+              <div
+                class="dual-bar bar-a"
+                [class.is-leader]="m.leader === 'A'"
+                [style.width.%]="m.barPercentA"
+              ></div>
+              <div
+                class="dual-bar bar-b"
+                [class.is-leader]="m.leader === 'B'"
+                [style.width.%]="m.barPercentB"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="no-selection-wrapper">
+      <div class="empty-icon">⚔️</div>
+      <h3>Seleziona due giocatori per iniziare il confronto 1v1</h3>
+      <p>Scegli Giocatore A e Giocatore B tramite i pulsanti in alto per analizzare testa a testa statistiche, MMR, bestia nera e affinità di coppia.</p>
+    </div>
+  }
+
+  <!-- ======================================================== -->
+  <!-- MODALE SELETTORE RAPIDO GIOCATORE                        -->
+  <!-- ======================================================== -->
+  <ion-modal
+    [isOpen]="isPickerOpen()"
+    (didDismiss)="chiudiSelettore()"
+    [initialBreakpoint]="0.75"
+    [breakpoints]="[0, 0.5, 0.75, 1]"
+  >
+    <ng-template>
+      <div class="picker-modal-content">
+        <div class="picker-modal-header">
+          <h3>Seleziona {{ pickerTarget() === 'A' ? 'Giocatore A' : 'Giocatore B' }}</h3>
+          <button type="button" class="modal-close-btn" (click)="chiudiSelettore()">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </div>
+
+        <ion-searchbar
+          placeholder="Cerca giocatore..."
+          [debounce]="150"
+          (ionInput)="aggiornaRicerca($event)"
+          class="custom-searchbar"
+        ></ion-searchbar>
+
+        <div class="picker-players-list">
+          @for (g of giocatoriFiltrati(); track g.id) {
+            <div class="picker-player-item" (click)="selezionaGiocatore(g)">
+              <ion-avatar class="picker-avatar">
+                <img
+                  [src]="
+                    g.fotoUrl ||
+                    'https://ionicframework.com/docs/img/demos/avatar.svg'
+                  "
+                  loading="lazy"
+                />
+              </ion-avatar>
+
+              <div class="picker-player-meta">
+                <span class="picker-name"><b>{{ g.nome }}</b></span>
+                @if (g.soprannome) {
+                  <span class="picker-nick">"{{ g.soprannome }}"</span>
+                }
+              </div>
+
+              <div class="picker-stats-pill">
+                <span class="picker-mmr">{{ g.id ? (tuttiIGiocatori() | slice:0:1) : '' }}</span>
+                <ion-icon name="chevron-down" style="transform: rotate(-90deg);"></ion-icon>
+              </div>
+            </div>
+          } @empty {
+            <div class="empty-search-msg">Nessun giocatore trovato</div>
+          }
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>
