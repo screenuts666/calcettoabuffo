@@ -179,6 +179,21 @@ export class ConfrontoPage implements OnInit {
     });
 
     effect(() => {
+      const list = this.tuttiIGiocatori() || [];
+      if (list.length < 2) return;
+
+      if (!this.playerAId()) {
+        this.playerAId.set(list[0].id);
+      }
+      if (!this.playerBId() || this.playerBId() === this.playerAId()) {
+        const second = list.find((g) => g.id !== this.playerAId());
+        if (second) {
+          this.playerBId.set(second.id);
+        }
+      }
+    });
+
+    effect(() => {
       const idA = this.playerAId();
       const idB = this.playerBId();
       if (!idA || !idB || idA === idB) {
