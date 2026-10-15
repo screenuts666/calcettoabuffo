@@ -18,6 +18,7 @@ import {
   IonIcon,
   IonChip,
   IonLabel,
+  IonFooter,
   ModalController,
   ToastController,
   LoadingController,
@@ -38,6 +39,8 @@ import {
   imageOutline,
   image,
   downloadOutline,
+  calendarOutline,
+  globeOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
@@ -63,6 +66,7 @@ import {
     IonIcon,
     IonChip,
     IonLabel,
+    IonFooter,
   ],
 })
 export class MatchShareModalComponent implements OnInit {
@@ -97,6 +101,8 @@ export class MatchShareModalComponent implements OnInit {
       imageOutline,
       image,
       downloadOutline,
+      calendarOutline,
+      globeOutline,
     });
   }
 
@@ -227,7 +233,15 @@ export class MatchShareModalComponent implements OnInit {
   inviaWhatsAppWeb() {
     const testo = this.testoWhatsApp();
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(testo)}`;
-    window.open(url, '_blank');
+    const isMobile =
+      typeof navigator !== 'undefined' &&
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+    if (isMobile) {
+      window.location.href = url;
+    } else {
+      window.open(url, '_blank');
+    }
   }
 
   async condividiNativo() {

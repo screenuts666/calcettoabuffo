@@ -297,8 +297,8 @@ export class PartitePage {
     const modal = await this.modalCtrl.create({
       component: MatchShareModalComponent,
       componentProps: { partita },
-      breakpoints: [0, 0.65, 0.95],
-      initialBreakpoint: 0.65,
+      breakpoints: [0, 0.85, 1],
+      initialBreakpoint: 0.85,
       handle: true,
     });
     await modal.present();
