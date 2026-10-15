@@ -9,6 +9,12 @@
   "background_color": "#1a1a2e",
   "icons": [
     {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    },
+    {
       "src": "icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
