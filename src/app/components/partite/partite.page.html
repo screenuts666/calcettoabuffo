@@ -5,16 +5,45 @@
 </ion-header>
 
 <ion-content class="matches-container">
+  <!-- SELETTORE STAGIONE -->
+  <div class="season-filter-bar">
+    @for (stg of stagioniList(); track stg.id) {
+      <button
+        type="button"
+        class="season-filter-chip"
+        [class.active]="stagioneSelezionata() === stg.id"
+        (click)="selezionaStagione(stg.id)"
+      >
+        <ion-icon [name]="stg.icon"></ion-icon>
+        <span class="season-name">{{ stg.label }}</span>
+        <span class="season-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
+      </button>
+    }
+  </div>
+
+  @if (stagioneSelezionata() === PREVIOUS_SEASON) {
+    <div class="archive-season-banner">
+      <ion-icon name="time-outline"></ion-icon>
+      <div class="banner-content">
+        <span class="banner-title">Archivio Stagione {{ PREVIOUS_SEASON }}</span>
+        <span class="banner-sub">Stagione conclusa • Solo consultazione storica</span>
+      </div>
+    </div>
+  }
+
   @if (partite() === undefined) {
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
       <ion-spinner name="crescent" color="success"></ion-spinner>
       <p style="color: var(--ion-color-medium); margin-top: 10px;">Caricamento partite in corso...</p>
     </div>
   } @else if ((partiteInCorso().length + partitePronte().length + partiteDaVotare().length + partiteArchiviate().length) === 0) {
-    <div class="ion-padding ion-text-center">
-      <p>
-        Al momento non ci sono partite. @if (isAdmin) {Crea una nuova partita con
-        il + in basso a destra.}
+    <div class="ion-padding ion-text-center empty-season-box">
+      <ion-icon name="calendar-clear-outline" style="font-size: 2.5rem; color: var(--ion-color-medium);"></ion-icon>
+      <p style="margin-top: 8px; color: var(--ion-color-medium);">
+        Nessuna partita trovata per questa selezione.
+        @if (isAdmin && stagioneSelezionata() !== PREVIOUS_SEASON) {
+          <br />Crea una nuova partita con il <b>+</b> in basso a destra.
+        }
       </p>
     </div>
   } @if (partiteInCorso().length > 0) {
@@ -29,11 +58,16 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)">
           <div class="match-header">
-            <div class="match-date">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ m.dataPartita | date:'dd/MM/yyyy' }}
+            <div class="match-header-left">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                {{ stagioneBadgeLabel(m) }}
+              </div>
             </div>
 
             <div class="status-badge" [ngClass]="badgeClass(m)">
@@ -50,6 +84,24 @@
             </div>
           </div>
 
+          @if (m.fotoUrl) {
+            <div
+              class="match-photo-banner"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+              <div class="photo-banner-overlay">
+                <div class="photo-pill-badge">
+                  <ion-icon name="image"></ion-icon>
+                  <span>Foto di Gruppo</span>
+                </div>
+                <div class="expand-circle">
+                  <ion-icon name="expand-outline"></ion-icon>
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="match-footer">
             <div class="info-pill">
               <ion-icon name="location-outline"></ion-icon>
@@ -59,6 +111,15 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.fotoUrl) {
+              <div
+                class="info-pill photo-pill"
+                (click)="$event.stopPropagation(); apriFotoViewer(m)"
+              >
+                <ion-icon name="image-outline"></ion-icon>
+                <span>Foto</span>
+              </div>
+            }
           </div>
         </div>
       </ion-item>
@@ -88,11 +149,16 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)">
           <div class="match-header">
-            <div class="match-date">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ m.dataPartita | date:'dd/MM/yyyy' }}
+            <div class="match-header-left">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                {{ stagioneBadgeLabel(m) }}
+              </div>
             </div>
 
             <div class="status-badge" [ngClass]="badgeClass(m)">
@@ -109,6 +175,24 @@
             </div>
           </div>
 
+          @if (m.fotoUrl) {
+            <div
+              class="match-photo-banner"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+              <div class="photo-banner-overlay">
+                <div class="photo-pill-badge">
+                  <ion-icon name="image"></ion-icon>
+                  <span>Foto di Gruppo</span>
+                </div>
+                <div class="expand-circle">
+                  <ion-icon name="expand-outline"></ion-icon>
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="match-footer">
             <div class="info-pill">
               <ion-icon name="location-outline"></ion-icon>
@@ -118,6 +202,15 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.fotoUrl) {
+              <div
+                class="info-pill photo-pill"
+                (click)="$event.stopPropagation(); apriFotoViewer(m)"
+              >
+                <ion-icon name="image-outline"></ion-icon>
+                <span>Foto</span>
+              </div>
+            }
           </div>
         </div>
       </ion-item>
@@ -147,11 +240,16 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)">
           <div class="match-header">
-            <div class="match-date">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ m.dataPartita | date:'dd/MM/yyyy' }}
+            <div class="match-header-left">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                {{ stagioneBadgeLabel(m) }}
+              </div>
             </div>
 
             <div class="status-badge" [ngClass]="badgeClass(m)">
@@ -168,6 +266,24 @@
             </div>
           </div>
 
+          @if (m.fotoUrl) {
+            <div
+              class="match-photo-banner"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+              <div class="photo-banner-overlay">
+                <div class="photo-pill-badge">
+                  <ion-icon name="image"></ion-icon>
+                  <span>Foto di Gruppo</span>
+                </div>
+                <div class="expand-circle">
+                  <ion-icon name="expand-outline"></ion-icon>
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="match-footer">
             <div class="info-pill">
               <ion-icon name="location-outline"></ion-icon>
@@ -177,6 +293,15 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.fotoUrl) {
+              <div
+                class="info-pill photo-pill"
+                (click)="$event.stopPropagation(); apriFotoViewer(m)"
+              >
+                <ion-icon name="image-outline"></ion-icon>
+                <span>Foto</span>
+              </div>
+            }
           </div>
         </div>
       </ion-item>
@@ -207,11 +332,16 @@
         lines="none"
         class="match-card-item"
       >
-        <div class="match-card">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)">
           <div class="match-header">
-            <div class="match-date">
-              <ion-icon name="calendar-outline"></ion-icon>
-              {{ m.dataPartita | date:'dd/MM/yyyy' }}
+            <div class="match-header-left">
+              <div class="match-date">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ m.dataPartita | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                {{ stagioneBadgeLabel(m) }}
+              </div>
             </div>
 
             <div class="status-badge" [ngClass]="badgeClass(m)">
@@ -228,6 +358,24 @@
             </div>
           </div>
 
+          @if (m.fotoUrl) {
+            <div
+              class="match-photo-banner"
+              (click)="$event.stopPropagation(); apriFotoViewer(m)"
+            >
+              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+              <div class="photo-banner-overlay">
+                <div class="photo-pill-badge">
+                  <ion-icon name="image"></ion-icon>
+                  <span>Foto di Gruppo</span>
+                </div>
+                <div class="expand-circle">
+                  <ion-icon name="expand-outline"></ion-icon>
+                </div>
+              </div>
+            </div>
+          }
+
           <div class="match-footer">
             <div class="info-pill">
               <ion-icon name="location-outline"></ion-icon>
@@ -237,6 +385,15 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.fotoUrl) {
+              <div
+                class="info-pill photo-pill"
+                (click)="$event.stopPropagation(); apriFotoViewer(m)"
+              >
+                <ion-icon name="image-outline"></ion-icon>
+                <span>Foto</span>
+              </div>
+            }
           </div>
         </div>
       </ion-item>
@@ -255,7 +412,7 @@
     }
   </ion-list>
 
-  @if (isAdmin) {
+  @if (isAdmin && stagioneSelezionata() !== PREVIOUS_SEASON) {
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
     <ion-fab-button color="success" (click)="apriModalePartita()">
       <ion-icon name="add"></ion-icon>

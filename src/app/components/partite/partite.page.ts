@@ -3,6 +3,7 @@ import {
   inject,
   ChangeDetectionStrategy,
   computed,
+  signal,
 } from '@angular/core';
 import {
   IonHeader,
@@ -34,6 +35,7 @@ import {
   orderBy,
   deleteDoc,
 } from '@angular/fire/firestore';
+import { Storage, ref, deleteObject } from '@angular/fire/storage';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
@@ -52,9 +54,24 @@ import {
   close,
   arrowBack,
   radioOutline,
+  image,
+  imageOutline,
+  expandOutline,
+  sparkles,
+  globeOutline,
 } from 'ionicons/icons';
 import { MatchModalComponent } from './match-modal/match-modal.component';
+import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
+import {
+  CURRENT_SEASON,
+  PREVIOUS_SEASON,
+  ALL_SEASONS,
+  STAGIONI,
+  getStagionePartita,
+  getStagioniDisponibili,
+  formatShortSeason,
+} from 'src/app/utils/season-utils';
 
 @Component({
   selector: 'app-partite',
@@ -83,6 +100,7 @@ import { AuthService } from 'src/app/services/auth.service';
 })
 export class PartitePage {
   private firestore = inject(Firestore);
+  private storage = inject(Storage);
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
   private auth = inject(AuthService);
@@ -112,8 +130,40 @@ export class PartitePage {
     ),
   );
 
+  readonly CURRENT_SEASON = CURRENT_SEASON;
+  readonly PREVIOUS_SEASON = PREVIOUS_SEASON;
+  readonly ALL_SEASONS = ALL_SEASONS;
+  getStagionePartita = getStagionePartita;
+
+  stagioneSelezionata = signal<string>(CURRENT_SEASON);
+
+  stagioniList = computed(() => {
+    return getStagioniDisponibili(this.partite());
+  });
+
+  partiteFiltrate = computed(() => {
+    const list = this.partite() || [];
+    const s = this.stagioneSelezionata();
+    if (s === ALL_SEASONS) return list;
+    return list.filter((m) => getStagionePartita(m) === s);
+  });
+
+  conteggioStagioni = computed<Record<string, number>>(() => {
+    const list = this.partite() || [];
+    const counts: Record<string, number> = {
+      [this.ALL_SEASONS]: list.length,
+      [this.CURRENT_SEASON]: 0,
+      [this.PREVIOUS_SEASON]: 0,
+    };
+    for (const m of list) {
+      const s = getStagionePartita(m);
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return counts;
+  });
+
   partiteInCorso = computed(() => {
-    const list = this.partite();
+    const list = this.partiteFiltrate();
     if (!list) return [];
     return [...list.filter((m: any) => m.status === 'in_corso')].sort(
       (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -121,7 +171,7 @@ export class PartitePage {
   });
 
   partitePronte = computed(() => {
-    const list = this.partite();
+    const list = this.partiteFiltrate();
     if (!list) return [];
     return [
       ...list.filter((m: any) => m.status === 'pronta' || !m.status),
@@ -131,7 +181,7 @@ export class PartitePage {
   });
 
   partiteDaVotare = computed(() => {
-    const list = this.partite();
+    const list = this.partiteFiltrate();
     if (!list) return [];
     return [
       ...list.filter((m: any) => m.status === 'conclusa' && !m.pagelleInserite),
@@ -141,7 +191,7 @@ export class PartitePage {
   });
 
   partiteArchiviate = computed(() => {
-    const list = this.partite();
+    const list = this.partiteFiltrate();
     if (!list) return [];
     return [
       ...list.filter((m: any) => m.status === 'conclusa' && m.pagelleInserite),
@@ -174,7 +224,34 @@ export class PartitePage {
       close,
       arrowBack,
       radioOutline,
+      image,
+      imageOutline,
+      expandOutline,
+      sparkles,
+      globeOutline,
     });
+  }
+
+  stagioneBadgeClass(m: any): string {
+    return getStagionePartita(m) === this.CURRENT_SEASON
+      ? 'badge-season-current'
+      : 'badge-season-old';
+  }
+
+  stagioneBadgeLabel(m: any): string {
+    const s = getStagionePartita(m);
+    const short = formatShortSeason(s);
+    return s === this.CURRENT_SEASON ? `⚡ ${short}` : `🏛️ ${short}`;
+  }
+
+  stagioneCardClass(m: any): string {
+    return getStagionePartita(m) === this.CURRENT_SEASON
+      ? 'card-season-current'
+      : 'card-season-old';
+  }
+
+  selezionaStagione(s: string) {
+    this.stagioneSelezionata.set(s);
   }
 
   badgeClass(m: any): string {
@@ -214,6 +291,16 @@ export class PartitePage {
   }
 
   async apriModalePartita(partita?: any) {
+    if (!partita && this.stagioneSelezionata() === this.PREVIOUS_SEASON) {
+      const alert = await this.alertController.create({
+        header: 'Stagione Conclusa',
+        message: `Non è possibile aggiungere nuove partite alla stagione ${this.PREVIOUS_SEASON}. Le nuove partite possono essere create esclusivamente per la stagione corrente (${this.CURRENT_SEASON}).`,
+        buttons: ['OK'],
+      });
+      await alert.present();
+      return;
+    }
+
     const tutti = this.giocatori() ?? [];
     const data = partita
       ? JSON.parse(JSON.stringify(partita))
@@ -258,6 +345,14 @@ export class PartitePage {
           text: 'Elimina',
           role: 'destructive',
           handler: async () => {
+            if (match.fotoPath) {
+              try {
+                const storageRef = ref(this.storage, match.fotoPath);
+                await deleteObject(storageRef);
+              } catch (e) {
+                console.warn('Errore eliminazione foto da storage:', e);
+              }
+            }
             await deleteDoc(doc(this.firestore, `partite/${match.id}`));
             slidingItem.close();
           },
@@ -265,6 +360,25 @@ export class PartitePage {
       ],
     });
     await alert.present();
+  }
+
+  async apriFotoViewer(m: any) {
+    if (!m?.fotoUrl) return;
+
+    const modal = await this.modalCtrl.create({
+      component: FotoViewerModalComponent,
+      componentProps: {
+        fotoUrl: m.fotoUrl,
+        luogo: m.luogo,
+        dataPartita: m.dataPartita,
+        risultato:
+          m.status === 'conclusa'
+            ? `Bianchi ${m.scoreA} - ${m.scoreB} Neri`
+            : undefined,
+      },
+    });
+
+    await modal.present();
   }
 
   get isAdmin(): boolean {

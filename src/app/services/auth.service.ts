@@ -5,6 +5,7 @@ import {
   signOut,
   authState,
 } from '@angular/fire/auth';
+import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -12,11 +13,16 @@ import {
 export class AuthService {
   private auth = inject(Auth);
 
-  isAdmin = signal<boolean>(false);
+  // In ambiente di sviluppo (dev), l'utente ha sempre tutti i permessi di superuser
+  isAdmin = signal<boolean>(!environment.production);
 
   constructor() {
     authState(this.auth).subscribe((user) => {
-      this.isAdmin.set(!!user);
+      if (!environment.production) {
+        this.isAdmin.set(true);
+      } else {
+        this.isAdmin.set(!!user);
+      }
     });
   }
 
@@ -32,5 +38,8 @@ export class AuthService {
 
   async logoutAdmin() {
     await signOut(this.auth);
+    if (!environment.production) {
+      this.isAdmin.set(true);
+    }
   }
 }

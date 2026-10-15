@@ -23,13 +23,14 @@ import {
   RatingThresholds,
 } from '../../../../../models/player-performance.model';
 import { MatchStateService } from '../../match-state.service';
+import { MatchPhotoComponent } from '../../../match-photo/match-photo.component';
 
 @Component({
   selector: 'app-step-prestazioni',
   templateUrl: './step-prestazioni.component.html',
   styleUrls: ['./step-prestazioni.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonAvatar, IonTextarea, IonIcon],
+  imports: [CommonModule, IonAvatar, IonTextarea, IonIcon, MatchPhotoComponent],
 })
 export class StepPrestazioniComponent {
   public state = inject(MatchStateService);

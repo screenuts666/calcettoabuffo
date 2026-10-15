@@ -20,16 +20,32 @@
     ></ion-input>
   </ion-item>
 
-  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
-    <ion-icon name="calendar-outline" slot="start" color="medium"></ion-icon>
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
+    <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
     <ion-input
       type="date"
       label="Data *"
       labelPlacement="stacked"
+      [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
       [value]="state.dataPartita()"
       (ionInput)="state.dataPartita.set($event.detail.value || '')"
     ></ion-input>
   </ion-item>
+
+  @if (!state.isDataStagioneValida() && state.dataPartita()) {
+    <div class="season-warning-card">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <div class="warning-text">
+        <strong>Stagione non valida</strong>
+        <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+      </div>
+    </div>
+  } @else if (state.dataPartita()) {
+    <div class="season-valid-pill">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
+    </div>
+  }
 
   <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
     <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>

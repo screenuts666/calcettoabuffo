@@ -30,7 +30,13 @@ import { MatchStateService } from '../../match-state.service';
   templateUrl: './step-match.component.html',
   styleUrls: ['./step-match.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonButton, IonIcon, IonListHeader, IonLabel],
+  imports: [
+    CommonModule,
+    IonButton,
+    IonIcon,
+    IonListHeader,
+    IonLabel,
+  ],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);

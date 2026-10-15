@@ -3,113 +3,128 @@
     <ion-title (click)="secretTitleClick()">
       Classifica
       @if (isAdmin()) {
-      <ion-icon
-        name="flame"
-        color="warning"
-        style="vertical-align: middle; margin-left: 5px"
-      ></ion-icon>
+        <ion-icon
+          name="flame"
+          color="warning"
+          style="vertical-align: middle; margin-left: 5px"
+        ></ion-icon>
       }
     </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button
+        class="whatsapp-btn"
+        (click)="condividiSuWhatsApp()"
+        title="Condividi su WhatsApp"
+      >
+        <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
+
+  <!-- SELETTORE STAGIONE -->
+  <div class="season-bar">
+    @for (stg of stagioniList(); track stg.id) {
+      <button
+        type="button"
+        class="season-btn"
+        [class.active]="stagioneSelezionata() === stg.id"
+        (click)="selezionaStagione(stg.id)"
+      >
+        <ion-icon [name]="stg.icon"></ion-icon>
+        <span>{{ stg.shortLabel }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- SELETTORE ORDINAMENTO (CRITERIO) -->
+  <div class="sort-bar">
+    <span class="sort-hint">Ordina:</span>
+    <div class="sort-scroll">
+      @for (c of CRITERI_ORDINAMENTO; track c.id) {
+        <button
+          type="button"
+          class="sort-chip"
+          [class.active]="criterioOrdinamento() === c.id"
+          (click)="selezionaCriterio(c.id)"
+        >
+          <ion-icon [name]="c.icon"></ion-icon>
+          <span>{{ c.label }}</span>
+        </button>
+      }
+    </div>
+  </div>
 </ion-header>
 
 <ion-content>
   <ion-list lines="full">
-    @if (classifica$ | async; as giocatori) { @for (g of giocatori; track g.id;
-    let i = $index) {
+    @for (g of classificaCalcolata(); track g.id; let i = $index) {
+      <ion-item button="true" detail="false" (click)="apriDettagliGiocatore(g)">
+        <ion-note
+          slot="start"
+          [style.color]="
+            i === 0
+              ? '#ffd700'
+              : i === 1
+                ? '#c0c0c0'
+                : i === 2
+                  ? '#cd7f32'
+                  : '#888'
+          "
+          class="rank-note"
+        >
+          {{ i + 1 }}°
+        </ion-note>
 
-    <ion-item button="true" detail="false" (click)="apriDettagliGiocatore(g)">
-      <ion-note
-        slot="start"
-        [style.color]="i === 0 ? '#ffd700' : (i === 1 ? '#c0c0c0' : (i === 2 ? '#cd7f32' : '#888'))"
-        style="
-          font-weight: bold;
-          font-size: 1.4em;
-          min-width: 35px;
-          text-align: center;
-          white-space: nowrap;
-        "
-      >
-        {{ i + 1 }}°
-      </ion-note>
-
-      <ion-avatar slot="start">
-        <img
-          [src]="g.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'"
-          loading="lazy"
-        />
-      </ion-avatar>
-
-      <ion-label class="ion-text-wrap">
-        <h2 style="white-space: normal; line-height: 1.2; margin-bottom: 2px">
-          <b>{{ g.nome }}</b>
-          @if (g.soprannome) {
-          <span
-            style="
-              color: gray;
-              font-size: 0.8em;
-              margin-left: 3px;
-              display: inline-block;
+        <ion-avatar slot="start">
+          <img
+            [src]="
+              g.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
             "
-          >
-            "{{ g.soprannome }}"
+            loading="lazy"
+          />
+        </ion-avatar>
+
+        <ion-label class="ion-text-wrap">
+          <h2 class="player-name-row">
+            <b>{{ g.nome }}</b>
+            @if (g.soprannome) {
+              <span class="nickname-span">"{{ g.soprannome }}"</span>
+            }
+          </h2>
+
+          <p class="stats-sub-row">
+            @if (criterioOrdinamento() !== 'punti') {
+              <span>Pt: <b>{{ g.puntiDisplay }}</b> | </span>
+            }
+            @if (criterioOrdinamento() !== 'mediaVoto') {
+              <span>Media: <b>{{ g.mediaVotoDisplay }}</b> | </span>
+            }
+            @if (criterioOrdinamento() !== 'gol') {
+              <span>Gol: <b>{{ g.golTotali }}</b> | </span>
+            }
+            @if (criterioOrdinamento() !== 'presenze') {
+              <span>Match: <b>{{ g.partiteGiocate }}</b></span>
+            }
+            @if (criterioOrdinamento() === 'wins') {
+              <span> | ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
+            }
+          </p>
+        </ion-label>
+
+        <div slot="end" class="stat-highlight-box">
+          <span class="stat-highlight-val">
+            {{ getValorePrincipale(g).valore }}
           </span>
-          }
-        </h2>
-        <p
-          style="
-            white-space: nowrap;
-            font-size: 0.85em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          "
-        >
-          Media: <b>{{ g.mediaVotoDisplay }}</b> | Gol:
-          <b>{{ g.golTotali }}</b> | Match: <b>{{ g.partiteGiocate }}</b>
-        </p>
-      </ion-label>
-
-      <div
-        slot="end"
-        style="
-          text-align: right;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          min-width: 55px;
-        "
-      >
-        <span
-          style="
-            font-size: 1.6em;
-            font-weight: 900;
-            color: var(--ion-color-success);
-          "
-        >
-          {{ g.puntiDisplay }}
-        </span>
-        <span
-          style="
-            font-size: 0.8em;
-            color: var(--ion-color-medium);
-            font-weight: bold;
-            margin-top: -5px;
-          "
-        >
-          PUNTI
-        </span>
-      </div>
-    </ion-item>
-
+          <span class="stat-highlight-label">
+            {{ getValorePrincipale(g).etichetta }}
+          </span>
+        </div>
+      </ion-item>
     } @empty {
-    <div class="ion-padding ion-text-center">
-      <p>Ancora nessun giocatore in database.</p>
-    </div>
-    } } @else {
-    <div class="ion-padding ion-text-center">
-      <ion-spinner name="crescent"></ion-spinner>
-      <p>Calcolo classifica in corso...</p>
-    </div>
+      <div class="ion-padding ion-text-center">
+        <p>Nessun giocatore registrato.</p>
+      </div>
     }
   </ion-list>
 
@@ -121,10 +136,8 @@
   >
     <ng-template>
       @if (giocatoreSelezionato(); as prof) {
-
-      <app-scheda-giocatore [prof]="prof" [chiudiModale]="chiudiModale">
-      </app-scheda-giocatore>
-
+        <app-scheda-giocatore [prof]="prof" [chiudiModale]="chiudiModale">
+        </app-scheda-giocatore>
       }
     </ng-template>
   </ion-modal>

@@ -83,3 +83,71 @@
     }
   }
 }
+
+.input-error {
+  border: 1px solid var(--ion-color-danger, #eb445a) !important;
+}
+
+.season-warning-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(235, 68, 90, 0.12);
+  border: 1px solid rgba(235, 68, 90, 0.4);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  animation: fadeIn 0.25s ease-in-out;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--ion-color-danger, #eb445a);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .warning-text {
+    strong {
+      display: block;
+      color: var(--ion-color-danger, #eb445a);
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: #e0e0e0;
+      line-height: 1.35;
+    }
+  }
+}
+
+.season-valid-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(45, 211, 111, 0.12);
+  border: 1px solid rgba(45, 211, 111, 0.35);
+  color: var(--ion-color-success, #2dd36f);
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

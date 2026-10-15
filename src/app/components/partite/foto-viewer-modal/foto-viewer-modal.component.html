@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Foto di Gruppo</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="apriInNuovaScheda()" title="Apri a dimensione reale" color="light">
+        <ion-icon name="open-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button (click)="chiudi()" color="light">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="viewer-content">
+  <div class="viewer-container">
+    @if (luogo || dataPartita || risultato) {
+      <div class="match-meta-bar">
+        @if (luogo) {
+          <span class="meta-item luogo">📍 {{ luogo }}</span>
+        }
+        @if (dataPartita) {
+          <span class="meta-item data">📅 {{ dataPartita | date:'dd/MM/yyyy' }}</span>
+        }
+        @if (risultato) {
+          <span class="meta-item risultato">⚽ {{ risultato }}</span>
+        }
+      </div>
+    }
+
+    <div class="image-wrapper" (click)="chiudi()">
+      <img
+        [src]="fotoUrl"
+        alt="Foto di gruppo della partita"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+
+    <div class="viewer-footer">
+      <p class="viewer-hint">Tocca l'icona in alto a destra per aprire a piena risoluzione</p>
+    </div>
+  </div>
+</ion-content>

@@ -10,6 +10,12 @@ import {
 } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { TMatchStatus } from '../../../models/match-status.type';
+import {
+  getStagionePartita,
+  isStagioneCorrente,
+  CURRENT_SEASON,
+  MIN_CURRENT_SEASON_DATE,
+} from '../../../utils/season-utils';
 
 @Injectable()
 export class MatchStateService {
@@ -36,6 +42,9 @@ export class MatchStateService {
   matchConcluso = signal<boolean>(false);
   pagelleInserite = signal<boolean>(false);
   cambioAttivo = signal<boolean>(false);
+  fotoUrl = signal<string | null>(null);
+  fotoPath = signal<string | null>(null);
+  stagione = signal<string>(CURRENT_SEASON);
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -65,11 +74,21 @@ export class MatchStateService {
     });
   });
   tuttiInCampo = computed(() => [...this.teamA(), ...this.teamB()]);
+
+  isDataStagioneValida = computed(() => {
+    // Se la partita esiste già (modifica match esistente), non bloccare le modifiche
+    if (this.matchId()) return true;
+    const d = this.dataPartita();
+    if (!d) return false;
+    return isStagioneCorrente({ dataPartita: d });
+  });
+
   isDettagliValidi = computed(
     () =>
       this.luogo().trim() !== '' &&
       this.dataPartita() !== '' &&
-      this.orario() !== '',
+      this.orario() !== '' &&
+      this.isDataStagioneValida(),
   );
   messaggioEquilibrio = computed(() => {
     const diff = Math.abs(this.teamA().length - this.teamB().length);
@@ -101,6 +120,8 @@ export class MatchStateService {
         this.timerStartAt.set(data.timerStartAt || null);
         this.status.set(data.status || 'da_definire');
         this.cambioAttivo.set(data.cambioAttivo || false);
+        this.fotoUrl.set(data.fotoUrl || null);
+        this.fotoPath.set(data.fotoPath || null);
       }
     });
   }
@@ -113,6 +134,12 @@ export class MatchStateService {
     pagelleInseriteFlag: boolean,
     matchConclusoFlag: boolean = false,
   ) {
+    if (!this.matchId() && !isStagioneCorrente({ dataPartita: this.dataPartita() })) {
+      throw new Error(
+        `Non è possibile aggiungere partite della stagione non corrente. La nuova stagione è ${CURRENT_SEASON} (dal ${MIN_CURRENT_SEASON_DATE}).`,
+      );
+    }
+
     const payload: any = {
       dataPartita: this.dataPartita(),
       orario: this.orario(),
@@ -130,6 +157,9 @@ export class MatchStateService {
       timerStartAt: this.timerStartAt(),
       isTimerRunning: this.isTimerRunning(),
       status: this.status(),
+      fotoUrl: this.fotoUrl() || null,
+      fotoPath: this.fotoPath() || null,
+      stagione: getStagionePartita({ dataPartita: this.dataPartita() }),
     };
 
     this.pagelleInserite.set(pagelleInseriteFlag);

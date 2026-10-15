@@ -17,6 +17,7 @@ import { addIcons } from 'ionicons';
 import { arrowBack, close, arrowForward } from 'ionicons/icons';
 
 import { MatchStateService } from './match-state.service';
+import { MIN_CURRENT_SEASON_DATE } from '../../../utils/season-utils';
 import { StepConvocatiComponent } from './steps/step-convocati/step-convocati.component';
 import { StepDettagliComponent } from './steps/step-dettagli/step-dettagli.component';
 import { StepSquadreComponent } from './steps/step-squadre/step-squadre.component';
@@ -75,6 +76,8 @@ export class MatchModalComponent implements OnInit, OnDestroy {
       this.state.luogo.set(this.matchData.luogo || '');
       this.state.dataPartita.set(this.matchData.dataPartita || '');
       this.state.orario.set(this.matchData.orario || '');
+      this.state.fotoUrl.set(this.matchData.fotoUrl || null);
+      this.state.fotoPath.set(this.matchData.fotoPath || null);
 
       this.state.scoreA.set(this.matchData.scoreA || 0);
       this.state.scoreB.set(this.matchData.scoreB || 0);
@@ -109,6 +112,8 @@ export class MatchModalComponent implements OnInit, OnDestroy {
       this.state.tutti.set(baseGiocatori);
       this.state.dataPartita.set(this.getProssimoMercoledi());
       this.state.orario.set('21:00');
+      this.state.fotoUrl.set(null);
+      this.state.fotoPath.set(null);
       this.state.step.set('convocati');
     }
   }
@@ -122,7 +127,8 @@ export class MatchModalComponent implements OnInit, OnDestroy {
     d.setDate(
       d.getDate() + (d.getDay() <= 3 ? 3 - d.getDay() : 10 - d.getDay()),
     );
-    return d.toISOString().split('T')[0];
+    const iso = d.toISOString().split('T')[0];
+    return iso < MIN_CURRENT_SEASON_DATE ? MIN_CURRENT_SEASON_DATE : iso;
   }
 
   chiudi() {

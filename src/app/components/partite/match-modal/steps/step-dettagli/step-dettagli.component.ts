@@ -15,9 +15,14 @@ import {
   timeOutline,
   checkmark,
   arrowForward,
+  alertCircleOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
-
+import {
+  MIN_CURRENT_SEASON_DATE,
+  CURRENT_SEASON,
+} from '../../../../../utils/season-utils';
 
 @Component({
   selector: 'app-step-dettagli',
@@ -37,6 +42,9 @@ import { MatchStateService } from '../../match-state.service';
 export class StepDettagliComponent {
   public state = inject(MatchStateService);
 
+  readonly MIN_CURRENT_SEASON_DATE = MIN_CURRENT_SEASON_DATE;
+  readonly CURRENT_SEASON = CURRENT_SEASON;
+
   constructor() {
     addIcons({
       locationOutline,
@@ -44,10 +52,13 @@ export class StepDettagliComponent {
       timeOutline,
       checkmark,
       arrowForward,
+      alertCircleOutline,
+      sparklesOutline,
     });
   }
 
   vaiASquadre() {
+    if (!this.state.isDettagliValidi()) return;
     const scelti = this.state.convocati();
     const idsScelti = scelti.map((g) => g.id);
 
