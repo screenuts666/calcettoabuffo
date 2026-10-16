@@ -1162,3 +1162,103 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+// ==========================================
+// SELETTORE GIOCATORE MODAL
+// ==========================================
+.picker-modal-content {
+  padding: 16px;
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+
+  .picker-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+
+    .modal-close-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--app-text-primary);
+      cursor: pointer;
+    }
+  }
+
+  .picker-players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
+
+    .picker-player-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-card-border);
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:active {
+        background: var(--app-surface-hover);
+      }
+
+      .picker-avatar {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        max-width: 44px;
+        max-height: 44px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+
+        app-player-avatar,
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          border-radius: 50%;
+        }
+      }
+
+      .picker-player-meta {
+        flex: 1;
+        min-width: 0;
+
+        .picker-name {
+          font-size: 0.95rem;
+          color: var(--app-text-primary);
+          display: block;
+        }
+
+        .picker-nick {
+          font-size: 0.75rem;
+          color: var(--app-text-muted);
+          font-style: italic;
+        }
+      }
+    }
+  }
+}
+
