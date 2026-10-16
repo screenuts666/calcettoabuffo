@@ -563,8 +563,26 @@ export class MatchmakingService {
     icon: string,
     evaluation: PartitionEvaluation,
   ): MatchmakingProposal {
-    const rawTeamA = evaluation.teamA.map((p) => p.raw);
-    const rawTeamB = evaluation.teamB.map((p) => p.raw);
+    const rawTeamA = evaluation.teamA.map((p) => ({
+      ...p.raw,
+      mmr: p.mmr,
+      tier: p.tier,
+      streak: p.streak,
+      formStatus: p.formStatus,
+      effectiveMmr: p.effectiveMmr,
+      ruoloPreferito: p.ruolo || p.raw?.ruoloPreferito,
+      fotoUrl: p.fotoUrl || p.raw?.fotoUrl,
+    }));
+    const rawTeamB = evaluation.teamB.map((p) => ({
+      ...p.raw,
+      mmr: p.mmr,
+      tier: p.tier,
+      streak: p.streak,
+      formStatus: p.formStatus,
+      effectiveMmr: p.effectiveMmr,
+      ruoloPreferito: p.ruolo || p.raw?.ruoloPreferito,
+      fotoUrl: p.fotoUrl || p.raw?.fotoUrl,
+    }));
 
     const synergies = [
       ...evaluation.synergiesA,

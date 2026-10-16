@@ -155,12 +155,12 @@ export class MatchmakingModalComponent {
     }
   }
 
-  getTierColor(mmr: number): string {
-    return getMmrTier(mmr).color;
+  getTierColor(mmr?: number | null): string {
+    return getMmrTier(mmr ?? 1000).color;
   }
 
-  getTierBadge(mmr: number): string {
-    return getMmrTier(mmr).badge;
+  getTierBadge(mmr?: number | null): string {
+    return getMmrTier(mmr ?? 1000).badge;
   }
 
   getRuoloIcon(ruolo: string): string {

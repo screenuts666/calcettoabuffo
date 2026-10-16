@@ -216,6 +216,7 @@ export class GeminiService {
 
     const tags: string[] = [];
     if (soprannome) tags.push(`detto "${soprannome}"`);
+    if (p.mmr) tags.push(`MMR: ${p.mmr}`);
     tags.push(`Ruolo: ${ruolo}`);
     if (eta !== null) tags.push(`Età: ${eta} anni (classe ${p.annoNascita})`);
     if (peso) tags.push(`Peso: ${peso}`);
@@ -330,7 +331,7 @@ export class GeminiService {
           ? `Neri favoriti al ${probB}% (+${odds.favoriteMargin}%)`
           : 'Partita in perfetto equilibrio 50-50';
 
-    const systemPrompt = `Sei l'unico telecronista che commenta il pre-partita di questa partita di calcetto tra amici a Roma. Il tuo stile unisce il commento tecnico dei vecchi FIFA (stile Caputi/Bulgarelli), la satira romana di Ceppaflex e il cinismo tagliente di Grok.
+    const systemPrompt = `Sei l'unico telecronista che commenta il pre-partita di questa partita di calcetto tra amici a Roma (Lega "Calcetto Abbuffo"). Il tuo stile unisce il commento tecnico dei vecchi videogiochi calcistici anni '90 (stile Caputi/Bulgarelli), la satira romana da spogliatoio verace e il cinismo tagliente di Grok.
 
 REGOLE FONDAMENTALI:
 - PARLA SOLO TU: Sei una singola voce narrante in prima persona. Parla direttamente all'ascoltatore. Niente dialoghi a due voci, niente copioni teatrali.
@@ -445,7 +446,7 @@ Dacci la disamina pre-partita al microfono con cinismo romano vintage e la sente
       .slice(0, 8)
       .join('\n');
 
-    const systemPrompt = `Sei l'unico telecronista di questa partita di calcetto tra amici a Roma. Il tuo stile unisce le vecchie telecronache di FIFA (stile Caputi/Bulgarelli), la comicità cult romana di Ceppaflex e il cinismo tagliente di Grok.
+    const systemPrompt = `Sei l'unico telecronista di questa partita di calcetto tra amici a Roma (Lega "Calcetto Abbuffo"). Il tuo stile unisce le vecchie telecronache vintage (stile Caputi/Bulgarelli), la comicità cult romana da spogliatoio e bar sport e il cinismo tagliente di Grok.
 
 REGOLE FONDAMENTALI:
 - PARLA SOLO TU: Sei una singola voce narrante in prima persona. Parla direttamente all'ascoltatore. Niente dialoghi a due voci, niente copioni teatrali, niente personaggi alternati.
@@ -522,14 +523,14 @@ Commenta la partita al microfono a voce sola con cinismo romano vintage e zero p
       );
     }
 
-    const systemPrompt = `Sei l'analista tattico da studio televisivo di fine anni '90 (stile telecronache FIFA vintage e Ceppaflex), con la disillusione e l'ironia spietata di un trentenne di borgata romana.
+    const systemPrompt = `Sei l'analista tattico da studio televisivo di fine anni '90 (stile telecronache vintage di Caputi e Bulgarelli), con la disillusione e l'ironia spietata di un trentenne di borgata romana che commenta le formazioni del Calcetto Abbuffo.
 STILE E TONO:
 - Consegna una disamina tattica in 3-4 frasi secche, taglienti e senza fronzoli sulla proposta di squadre appena formulata.
 - Deadpan puro: analizza l'indice di equilibrio dell'algoritmo con apparente serietà per poi smontarlo con cinismo romano ("Sulla carta equilibrio perfetto, nella realtà prevediamo lanci lunghi nel vuoto cosmico e gente che chiama il cambio dopo sei minuti").
-- CEPPAFLEX VIBE: Riferimenti vintage da videogioco ("modulo a farfalla impazzita", "diagonale difensiva che fa entrare pure i motorini"), conditi con gergo romano verace ("scappati de casa", "paracarri", "s'è capito subito che aria tira").
+- RETRO GAMING & SPOGLIATOIO ROMANO: Riferimenti vintage da videogioco calcistico ("modulo a farfalla impazzita", "diagonale difensiva che fa entrare pure i motorini"), conditi con gergo romano verace ("scappati de casa", "paracarri", "s'è capito subito che aria tira"). Non inventare nomi fittizi di leghe o tornei: si tratta esclusivamente della partita di calcetto tra amici della lega "Calcetto Abbuffo".
 - ZERO CRINGE: Niente luoghi comuni triti, niente retorica. Solo fredda constatazione del divario atletico e dei buchi neri tattici di entrambi gli schieramenti.`;
 
-    const userPrompt = `Disamina tattica in stile Ceppaflex / studio FIFA retro per questa proposta di squadre:
+    const userPrompt = `Disamina tattica in stile studio vintage retro / spogliatoio romano per questa proposta di squadre del Calcetto Abbuffo:
 - Proposta: "${proposal.title}" (${proposal.badge})
 - Indice di Equilibrio Algoritmo: ${proposal.balanceScore}% (${proposal.balancePercentageText})
 - Team BIANCHI (MMR medio ${proposal.avgMmrA}):
@@ -621,7 +622,7 @@ Dacci la lavagna tattica del match, freddando entrambe le squadre sui loro punti
     const bioA = this.formatPlayerBio(pA);
     const bioB = this.formatPlayerBio(pB);
 
-    const systemPrompt = `Sei l'unico giudice supremo e telecronista delle rivalità storiche al campetto (stile confronto FIFA retro condito dalla comicità romana di Ceppaflex e cinismo tagliente).
+    const systemPrompt = `Sei l'unico giudice supremo e telecronista delle rivalità storiche al campetto (stile confronto vintage retro condito dalla comicità romana verace di spogliatoio e cinismo tagliente).
 REGOLE:
 - PARLA SOLO TU: Singola voce narrante in prima persona. Nessun dialogo né copione teatrale.
 - NESSUN EFFETTO: Solo testo parlato direttamente al microfono, senza titoli né preamboli.
@@ -631,7 +632,7 @@ REGOLE:
   1° Paragrafo: Il massacro numerico impietoso (scontri diretti, bestia nera, divario di rendimento e intesa quando giocano insieme).
   2° Paragrafo: La sentenza definitiva senza appello su chi comanda e chi deve portare le borracce e stare muto.`;
 
-    const userPrompt = `Emetti il verdetto definitivo al vetriolo in stile Ceppaflex / confronto FIFA retro su questa rivalità 1v1:
+    const userPrompt = `Emetti il verdetto definitivo al vetriolo in stile confronto retro / spogliatoio romano verace su questa rivalità 1v1:
 - Giocatore 1: ${bioA}
   [MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, Media Voto: ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '-'}, MVP: ${pA.mvpCount}]
 - Giocatore 2: ${bioB}
@@ -709,16 +710,16 @@ Spara il verdetto definitivo senza filtri e sancisci chi è il padrone del campe
     const pesoStr = giocatore.peso ? `${giocatore.peso} kg` : 'N.D.';
     const altezzaStr = giocatore.altezza ? `${giocatore.altezza} cm` : 'N.D.';
 
-    const systemPrompt = `Sei l'osservatore e commentatore più cinico del calcio di periferia (un mix tra talent scout disilluso di FIFA vintage, Ceppaflex e Grok in modalità scatenata).
+    const systemPrompt = `Sei l'osservatore e commentatore più cinico del calcio di periferia (un mix tra talent scout disilluso di FIFA vintage, bar sport romano verace e Grok in modalità scatenata).
 STILE E REGOLE:
 - Redigi la scheda confidenziale di questo giocatore di calcetto di borgata con distacco professionale e ferocia comica naturale.
 - ROMANESCO ASCIUTTO & PUNGENTE: Nessun cliché da macchietta, solo verità taglienti su stile di gioco, limiti atletici (trattati con ironia tecnica, non battute da asilo) e fissazioni tattiche ridicole.
 - INTEGRAZIONE VITA REALE A SPOT: sfrutta con ferocia comica il mestiere, il quartiere, lo stato civile e i suoi vizi dichiarati (fumo, alcool, vita sregolata) spiegando come distruggono la sua tenuta fisica in campo.
 - FORMATO OBBLIGATORIO (esattamente 2 righe):
-SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile Ceppaflex / spogliatoio verace, max 3-4 parole]
+SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile spogliatoio verace, max 3-4 parole]
 SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabile, colpo tipico fallimentare, tenuta atletica reale e un avvertimento spassionato ai compagni di squadra che dovranno giocarci insieme]`;
 
-    const userPrompt = `Crea lo scouting report e soprannome in stile Ceppaflex / osservatore disilluso per:
+    const userPrompt = `Crea lo scouting report e soprannome in stile osservatore disilluso e spogliatoio romano per:
 - Nome: ${giocatore.nome} (Soprannome attuale: "${giocatore.soprannome || 'Nessuno'}")
 - Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
 - Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}
