@@ -239,6 +239,19 @@
         font-size: 0.75rem;
         margin-left: 4px;
       }
+
+      // 👟 STILE PER L'ASSIST-MAN
+      .assist-text {
+        color: #00b4d8;
+        font-weight: 700;
+        font-size: 0.76rem;
+        margin-left: 5px;
+        background: rgba(0, 180, 216, 0.12);
+        padding: 1px 6px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 180, 216, 0.25);
+        display: inline-block;
+      }
     }
   }
 }

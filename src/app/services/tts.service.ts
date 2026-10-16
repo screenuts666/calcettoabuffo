@@ -1,6 +1,15 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Storage, ref, getDownloadURL, uploadBytes } from '@angular/fire/storage';
+import { Storage, ref, getDownloadURL, uploadBytes, getBlob } from '@angular/fire/storage';
+import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { Mp3Encoder } from '@breezystack/lamejs';
 import { GeminiService } from './gemini.service';
+
+export interface TtsAudioResult {
+  blob: Blob;
+  mimeType: string;
+  extension: 'mp3';
+  downloadUrl?: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -8,11 +17,13 @@ import { GeminiService } from './gemini.service';
 export class TtsService {
   private geminiService = inject(GeminiService);
   private storage = inject(Storage);
+  private firestore = inject(Firestore);
 
   // Stato reattivo globale (Single Player)
   readonly isPlaying = signal<boolean>(false);
   readonly isLoadingAudio = signal<boolean>(false);
   readonly currentPlayingId = signal<string | null>(null);
+  readonly sharingAudioId = signal<string | null>(null);
 
   // Cache in memoria degli URL audio (cacheKey -> url o blobUrl)
   private audioCache = new Map<string, string>();
@@ -25,11 +36,17 @@ export class TtsService {
   private cachedBestVoice: SpeechSynthesisVoice | null = null;
   private lastCleanedText: string = '';
 
+  // Flag di sessione per evitare chiamate ripetute se la quota ElevenLabs è esaurita
+  private elevenLabsQuotaExceeded = false;
+  // Cache dei fallimenti Storage per evitare 404 ripetuti nella stessa sessione
+  private storageMissCache = new Set<string>();
+
   // Modelli Gemini TTS con supporto responseModalities: ["AUDIO"] (Motore di Fallback 2)
   private readonly TTS_MODELS = [
+    'gemini-3.8-flash-tts',
+    'gemini-3.8-flash-lite-tts',
+    'gemini-3.1-flash-tts-preview',
     'gemini-2.5-flash-preview-tts',
-    'gemini-2.0-flash',
-    'gemini-2.5-flash',
   ];
 
   constructor() {
@@ -159,7 +176,10 @@ export class TtsService {
     // =========================================================================
     // LIVELLO 1: ELEVENLABS API (eleven_flash_v2_5 - Telecronista Ultra-Realistico)
     // =========================================================================
-    if (this.isValidElevenLabsKey(aiConfig.elevenLabsApiKey)) {
+    if (
+      this.isValidElevenLabsKey(aiConfig.elevenLabsApiKey) &&
+      !this.elevenLabsQuotaExceeded
+    ) {
       try {
         const mp3Blob = await this.generateElevenLabsAudio(
           cleaned,
@@ -178,6 +198,7 @@ export class TtsService {
         const storagePath = `tts_cache/${cacheKey}.mp3`;
         this.uploadAudioToFirebaseStorage(mp3Blob, storagePath, 'audio/mpeg')
           .then((downloadUrl) => {
+            this.storageMissCache.delete(cacheKey);
             this.audioCache.set(cacheKey, downloadUrl);
           })
           .catch((err) => {
@@ -195,25 +216,26 @@ export class TtsService {
     }
 
     // =========================================================================
-    // LIVELLO 2: GEMINI TTS (Modello secondario con prompt telecronista calcetto)
+    // LIVELLO 2: GEMINI TTS (Modello secondario con codifica MP3 nativa)
     // =========================================================================
     try {
-      const wavBlob = await this.generateGeminiAudio(cleaned, signal);
+      const mp3Blob = await this.generateGeminiAudio(cleaned, signal);
 
       if (this.currentPlayingId() !== id) return;
 
-      const localUrl = URL.createObjectURL(wavBlob);
+      const localUrl = URL.createObjectURL(mp3Blob);
       this.audioCache.set(cacheKey, localUrl);
       this.playAudioUrl(localUrl, id);
 
-      // Upload asincrono su Firebase Storage
-      const storagePath = `tts_cache/${cacheKey}.wav`;
-      this.uploadAudioToFirebaseStorage(wavBlob, storagePath, 'audio/wav')
+      // Upload asincrono su Firebase Storage (sempre MP3 per massima compatibilità)
+      const storagePath = `tts_cache/${cacheKey}.mp3`;
+      this.uploadAudioToFirebaseStorage(mp3Blob, storagePath, 'audio/mpeg')
         .then((downloadUrl) => {
+          this.storageMissCache.delete(cacheKey);
           this.audioCache.set(cacheKey, downloadUrl);
         })
         .catch((err) => {
-          console.warn('Avviso upload audio Gemini su Firebase Storage:', err);
+          console.warn('Avviso upload audio Gemini MP3 su Firebase Storage:', err);
         });
 
       return;
@@ -290,55 +312,302 @@ export class TtsService {
 
   /**
    * Verifica se per la data chiave univoca esiste già un file audio generato
-   * (MP3 ElevenLabs o WAV Gemini) su Firebase Storage.
+   * memorizzato su Firestore/Firebase Storage (zero errori 404 in console!).
    */
   private async checkFirebaseStorageCache(cacheKey: string): Promise<string | null> {
-    const checkPromise = async (): Promise<string | null> => {
-      // 1. Priorità all'MP3 ultra-realistico ElevenLabs
-      try {
-        const mp3Ref = ref(this.storage, `tts_cache/${cacheKey}.mp3`);
-        const url = await getDownloadURL(mp3Ref);
-        if (url) return url;
-      } catch {
-        // Nessun MP3 in cache
-      }
-
-      // 2. Controllo audio Gemini WAV
-      try {
-        const wavRef = ref(this.storage, `tts_cache/${cacheKey}.wav`);
-        const url = await getDownloadURL(wavRef);
-        if (url) return url;
-      } catch {
-        // Nessun WAV in cache
-      }
-
+    if (this.storageMissCache.has(cacheKey)) {
       return null;
-    };
+    }
 
-    // Timeout di sicurezza a 2.5s per evitare attese prolungate se offline
-    return Promise.race([
-      checkPromise(),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500)),
-    ]);
+    try {
+      const snap = await getDoc(doc(this.firestore, `tts_cache/${cacheKey}`));
+      if (snap.exists() && snap.data()?.['downloadUrl']) {
+        const url = snap.data()['downloadUrl'];
+        const ext = snap.data()['extension'];
+        // Accetta esclusivamente file MP3 validi (ignora vecchi .wav per garantire compatibilità WhatsApp)
+        if (ext === 'mp3' && !url.includes('.wav')) {
+          this.audioCache.set(cacheKey, url);
+          return url;
+        }
+      }
+    } catch (e) {
+      // Ignora errori di rete Firestore temporanei
+    }
+
+    // Se il documento non esiste su Firestore o era un vecchio wav, è un cache miss:
+    // Evitiamo qualsiasi chiamata cieca a Firebase Storage che produrrebbe un 404 in console
+    this.storageMissCache.add(cacheKey);
+    return null;
   }
 
   /**
-   * Salva l'audio generato su Firebase Storage con content-type appropriato.
+   * Salva l'audio generato su Firebase Storage e ne indicizza l'URL su Firestore.
    */
   private async uploadAudioToFirebaseStorage(
     blob: Blob,
     path: string,
-    contentType: string
+    contentType = 'audio/mpeg'
   ): Promise<string> {
     try {
       const storageRef = ref(this.storage, path);
       await uploadBytes(storageRef, blob, { contentType });
       const downloadUrl = await getDownloadURL(storageRef);
+
+      const cacheKey = path.replace('tts_cache/', '').replace(/\.(mp3|wav)$/, '');
+
+      try {
+        await setDoc(
+          doc(this.firestore, `tts_cache/${cacheKey}`),
+          {
+            cacheKey,
+            downloadUrl,
+            contentType: 'audio/mpeg',
+            extension: 'mp3',
+            updatedAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (fErr) {
+        console.warn('Avviso salvataggio indice tts_cache su Firestore:', fErr);
+      }
+
+      this.storageMissCache.delete(cacheKey);
       return downloadUrl;
     } catch (err) {
       console.warn('Errore durante upload dell\'audio su Firebase Storage:', err);
       throw err;
     }
+  }
+
+  // =========================================================================
+  // CONDIVISIONE DIRETTA SU WHATSAPP (FILE BINARIO MP3 / AUDIO TRACK)
+  // =========================================================================
+
+  /**
+   * Recupera o genera l'effettivo Blob binario del file audio strictly .mp3 (128kbps / 44.1kHz).
+   * Se già presente in memoria o su Firebase Storage, lo restituisce istantaneamente.
+   * Altrimenti lo genera tramite ElevenLabs o Gemini TTS e lo indicizza.
+   */
+  async getOrGenerateAudioBlob(rawText: string, id: string): Promise<TtsAudioResult> {
+    const cleaned = this.cleanTextForSpeech(rawText);
+    if (!cleaned) {
+      throw new Error('Testo vuoto o non valido per la generazione audio');
+    }
+
+    const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const textHash = this.computeHash(cleaned);
+    const cacheKey = `${safeId}_${textHash}`;
+
+    // 1. Controllo cache in memoria (SOLO se MP3, mai WAV)
+    const cachedUrl = this.audioCache.get(cacheKey);
+    if (cachedUrl && !cachedUrl.includes('.wav')) {
+      try {
+        const resp = await fetch(cachedUrl);
+        if (resp.ok) {
+          const blob = await resp.blob();
+          if (!blob.type.includes('wav') && blob.size > 0) {
+            return {
+              blob,
+              mimeType: 'audio/mpeg',
+              extension: 'mp3',
+              downloadUrl: cachedUrl.startsWith('http') ? cachedUrl : undefined,
+            };
+          }
+        }
+      } catch (e) {
+        console.warn('Errore lettura audio in cache:', e);
+      }
+    }
+
+    // 2. Controllo se l'audio è già indicizzato su Firestore come MP3
+    if (!this.storageMissCache.has(cacheKey)) {
+      try {
+        const snap = await getDoc(doc(this.firestore, `tts_cache/${cacheKey}`));
+        if (snap.exists() && snap.data()?.['downloadUrl']) {
+          const downloadUrl = snap.data()['downloadUrl'];
+          const ext = snap.data()['extension'];
+          if (ext === 'mp3' && !downloadUrl.includes('.wav')) {
+            const resp = await fetch(downloadUrl);
+            if (resp.ok) {
+              const blob = await resp.blob();
+              if (blob.size > 0) {
+                this.audioCache.set(cacheKey, downloadUrl);
+                return {
+                  blob,
+                  mimeType: 'audio/mpeg',
+                  extension: 'mp3',
+                  downloadUrl,
+                };
+              }
+            }
+          }
+        }
+      } catch {
+        // Nessun record Firestore
+      }
+
+      this.storageMissCache.add(cacheKey);
+    }
+
+    // 3. Se non in cache o se vecchio file non era MP3, generiamo l'audio MP3 nativo
+    const aiConfig = await this.geminiService.getAiConfig();
+
+    // MOTORE 1: ElevenLabs (se la chiave è valida e la quota non è esaurita)
+    if (
+      this.isValidElevenLabsKey(aiConfig.elevenLabsApiKey) &&
+      !this.elevenLabsQuotaExceeded
+    ) {
+      try {
+        const mp3Blob = await this.generateElevenLabsAudio(
+          cleaned,
+          aiConfig.elevenLabsApiKey,
+          aiConfig.elevenLabsVoiceId
+        );
+        const storagePath = `tts_cache/${cacheKey}.mp3`;
+        let downloadUrl: string | undefined;
+        try {
+          downloadUrl = await this.uploadAudioToFirebaseStorage(mp3Blob, storagePath, 'audio/mpeg');
+          this.storageMissCache.delete(cacheKey);
+          this.audioCache.set(cacheKey, downloadUrl);
+        } catch (upErr) {
+          console.warn('Upload Firebase Storage fallito (generazione share):', upErr);
+          this.audioCache.set(cacheKey, URL.createObjectURL(mp3Blob));
+        }
+        return {
+          blob: mp3Blob,
+          mimeType: 'audio/mpeg',
+          extension: 'mp3',
+          downloadUrl,
+        };
+      } catch (elevenErr) {
+        console.warn('ElevenLabs fallito per share audio, fallback su Gemini TTS:', elevenErr);
+      }
+    }
+
+    // MOTORE 2: Gemini TTS (sempre convertito in MP3 128kbps / 44.1kHz per piena compatibilità WhatsApp)
+    try {
+      const mp3Blob = await this.generateGeminiAudio(cleaned);
+      const storagePath = `tts_cache/${cacheKey}.mp3`;
+      let downloadUrl: string | undefined;
+      try {
+        downloadUrl = await this.uploadAudioToFirebaseStorage(mp3Blob, storagePath, 'audio/mpeg');
+        this.storageMissCache.delete(cacheKey);
+        this.audioCache.set(cacheKey, downloadUrl);
+      } catch (upErr) {
+        console.warn('Upload Firebase Storage fallito (generazione share MP3):', upErr);
+        this.audioCache.set(cacheKey, URL.createObjectURL(mp3Blob));
+      }
+      return {
+        blob: mp3Blob,
+        mimeType: 'audio/mpeg',
+        extension: 'mp3',
+        downloadUrl,
+      };
+    } catch (geminiErr: any) {
+      console.error('Generazione audio Gemini TTS MP3 fallita:', geminiErr);
+      throw new Error('Impossibile generare il file audio MP3: ' + (geminiErr?.message || geminiErr));
+    }
+  }
+
+  /**
+   * Condivide l'audio direttamente su WhatsApp:
+   * - Su Mobile (Android/iOS) con Web Share API: passa l'effettivo file binario audio
+   *   .mp3 che WhatsApp apre e allega come audio inviabile!
+   *   IMPORTANTE: NON passare 'text' con il file audio in navigator.share, poiché su WhatsApp
+   *   l'audio non supporta didascalie e passare testo causava la traccia vuota/non avviabile.
+   * - Su Desktop o browser senza supporto file: scarica il file audio localmente
+   *   e apre WhatsApp Web con il messaggio formattato e link all'audio online.
+   */
+  async shareAudioToWhatsApp(
+    rawText: string,
+    id: string,
+    title = 'Audio Calcetto Abbuffo'
+  ): Promise<{ success: boolean; method: 'web-share' | 'download-and-wa' | 'aborted' }> {
+    if (this.sharingAudioId() === id) {
+      return { success: false, method: 'aborted' };
+    }
+
+    this.sharingAudioId.set(id);
+
+    try {
+      const audioData = await this.getOrGenerateAudioBlob(rawText, id);
+      const safeTitle = (title || 'Audio Calcetto Abbuffo').trim();
+      const safeBase = safeTitle
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '') || 'telecronaca_calcetto';
+      const fileName = `${safeBase}.mp3`;
+      const file = new File([audioData.blob], fileName, {
+        type: 'audio/mpeg',
+      });
+
+      const isMobile =
+        typeof navigator !== 'undefined' &&
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+
+      const canShareFiles =
+        typeof navigator !== 'undefined' &&
+        'share' in navigator &&
+        'canShare' in navigator &&
+        (navigator as any).canShare({ files: [file] });
+
+      if (isMobile && canShareFiles) {
+        // Condivisione nativa su mobile (iOS Safari / Chrome Android)
+        // NOTA FONDAMENTALE PER WHATSAPP:
+        // Passare solo `files` e `title`. Omettere `text` per evitare che WhatsApp
+        // interpreti erroneamente l'audio con caption vuota bloccandone l'ascolto.
+        await navigator.share({
+          title: safeTitle,
+          files: [file],
+        });
+        return { success: true, method: 'web-share' };
+      }
+
+      // Modalità Desktop o browser senza canShare files:
+      // 1. Scarica automaticamente il file .mp3
+      this.downloadBlobFile(audioData.blob, fileName);
+
+      // 2. Apri WhatsApp Web
+      const cleanedSnippet = this.cleanTextForSpeech(rawText).slice(0, 160);
+      let messageText = `🎙️ *${safeTitle}*\n\n"${cleanedSnippet}..."`;
+      if (audioData.downloadUrl) {
+        messageText += `\n\n🎧 *Ascolta l'audio online:*\n${audioData.downloadUrl}`;
+      }
+      messageText += `\n\n_(File audio MP3 scaricato sul dispositivo, pronto da allegare in chat!)_`;
+
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(messageText)}`;
+      if (isMobile) {
+        window.location.href = waUrl;
+      } else {
+        window.open(waUrl, '_blank');
+      }
+
+      return { success: true, method: 'download-and-wa' };
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        return { success: false, method: 'aborted' };
+      }
+      console.error('Errore shareAudioToWhatsApp:', err);
+      throw err;
+    } finally {
+      this.sharingAudioId.set(null);
+    }
+  }
+
+
+  private downloadBlobFile(blob: Blob, fileName: string): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   // =========================================================================
@@ -426,7 +695,7 @@ export class TtsService {
     signal?: AbortSignal
   ): Promise<Blob> {
     const targetVoiceId = voiceId || 'pNInz6obpgDQGcFmaJgB';
-    const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}?output_format=mp3_44100_64`;
+    const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}?output_format=mp3_44100_128`;
 
     const body = {
       text: cleanedText,
@@ -452,6 +721,9 @@ export class TtsService {
 
     if (!response.ok) {
       const errTxt = await response.text();
+      if (response.status === 401 || errTxt.includes('quota_exceeded')) {
+        this.elevenLabsQuotaExceeded = true;
+      }
       throw new Error(`ElevenLabs API errore (${response.status}): ${errTxt}`);
     }
 
@@ -484,6 +756,24 @@ export class TtsService {
           },
         },
       },
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_NONE',
+        },
+      ],
     };
 
     let lastError: any = null;
@@ -510,14 +800,9 @@ export class TtsService {
           if (inlineData?.data) {
             const mimeType = inlineData.mimeType || 'audio/wav';
             const rawBytes = this.base64ToUint8Array(inlineData.data);
-
-            if (mimeType.includes('pcm') || mimeType.includes('raw')) {
-              const match = mimeType.match(/rate=(\d+)/);
-              const sampleRate = match ? parseInt(match[1], 10) : 24000;
-              return this.pcmToWavBlob(rawBytes, sampleRate);
-            } else {
-              return new Blob([rawBytes as any], { type: mimeType });
-            }
+            const match = mimeType.match(/rate=(\d+)/);
+            const sampleRate = match ? parseInt(match[1], 10) : 24000;
+            return this.pcmToMp3Blob(rawBytes, sampleRate);
           }
         } else {
           const errText = await response.text();
@@ -638,49 +923,87 @@ export class TtsService {
   }
 
   // =========================================================================
-  // UTILITY CONVERSIONE PCM -> WAV CON INTESTAZIONE RIFF
+  // UTILITY CONVERSIONE PCM/WAV -> MP3 NATIVO A 128KBPS / 44.1kHz
   // =========================================================================
 
-  private pcmToWavBlob(
-    pcmData: Uint8Array,
-    sampleRate = 24000,
-    numChannels = 1,
-    bitsPerSample = 16
+  private pcmToMp3Blob(
+    rawBytes: Uint8Array,
+    inputSampleRate = 24000,
+    channels = 1,
+    kbps = 128
   ): Blob {
-    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-    const blockAlign = numChannels * (bitsPerSample / 8);
-    const buffer = new ArrayBuffer(44 + pcmData.byteLength);
-    const view = new DataView(buffer);
+    let pcm = rawBytes;
+    let sampleRate = inputSampleRate;
 
-    // RIFF chunk descriptor
-    this.writeAsciiString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + pcmData.byteLength, true);
-    this.writeAsciiString(view, 8, 'WAVE');
+    // Se è presente un header RIFF WAVE (44 byte), estrai sample rate ed escludi l'header
+    if (
+      pcm.byteLength > 44 &&
+      pcm[0] === 0x52 && // 'R'
+      pcm[1] === 0x49 && // 'I'
+      pcm[2] === 0x46 && // 'F'
+      pcm[3] === 0x46    // 'F'
+    ) {
+      try {
+        const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.byteLength);
+        const wavRate = view.getUint32(24, true);
+        if (wavRate >= 8000 && wavRate <= 48000) {
+          sampleRate = wavRate;
+        }
+      } catch {}
+      pcm = pcm.subarray(44);
+    }
 
-    // fmt sub-chunk
-    this.writeAsciiString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true); // PCM
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
+    const sampleCount = Math.floor(pcm.byteLength / 2);
+    // Allineamento sicuro della memoria a 16-bit
+    const alignedBuffer = new ArrayBuffer(sampleCount * 2);
+    new Uint8Array(alignedBuffer).set(pcm.subarray(0, sampleCount * 2));
+    const int16 = new Int16Array(alignedBuffer);
 
-    // data sub-chunk
-    this.writeAsciiString(view, 36, 'data');
-    view.setUint32(40, pcmData.byteLength, true);
+    // Resampling a 44100 Hz per garantire massima compatibilità MPEG-1 Layer 3 su WhatsApp
+    const targetSampleRate = 44100;
+    const samplesToEncode =
+      sampleRate === targetSampleRate
+        ? int16
+        : this.resamplePcmLinear(int16, sampleRate, targetSampleRate);
 
-    // Dati PCM
-    new Uint8Array(buffer, 44).set(pcmData);
+    const encoder = new Mp3Encoder(channels, targetSampleRate, kbps);
+    const mp3Chunks: Uint8Array[] = [];
+    const blockSize = 1152;
 
-    return new Blob([buffer], { type: 'audio/wav' });
+    for (let i = 0; i < samplesToEncode.length; i += blockSize) {
+      const chunk = samplesToEncode.subarray(i, i + blockSize);
+      const mp3buf = encoder.encodeBuffer(chunk);
+      if (mp3buf && mp3buf.length > 0) {
+        // Conversione in Uint8Array pulito per evitare problemi di buffer con Int8Array
+        mp3Chunks.push(new Uint8Array(mp3buf.buffer, mp3buf.byteOffset, mp3buf.byteLength));
+      }
+    }
+
+    const mp3end = encoder.flush();
+    if (mp3end && mp3end.length > 0) {
+      mp3Chunks.push(new Uint8Array(mp3end.buffer, mp3end.byteOffset, mp3end.byteLength));
+    }
+
+    return new Blob(mp3Chunks as any, { type: 'audio/mpeg' });
   }
 
-  private writeAsciiString(view: DataView, offset: number, str: string): void {
-    for (let i = 0; i < str.length; i++) {
-      view.setUint8(offset + i, str.charCodeAt(i));
+  private resamplePcmLinear(
+    samples: Int16Array,
+    oldRate: number,
+    newRate: number
+  ): Int16Array {
+    if (oldRate === newRate || samples.length === 0) return samples;
+    const ratio = oldRate / newRate;
+    const newLength = Math.round(samples.length / ratio);
+    const result = new Int16Array(newLength);
+    for (let i = 0; i < newLength; i++) {
+      const origIndex = i * ratio;
+      const indexFloor = Math.floor(origIndex);
+      const indexCeil = Math.min(indexFloor + 1, samples.length - 1);
+      const frac = origIndex - indexFloor;
+      result[i] = Math.round(samples[indexFloor] * (1 - frac) + samples[indexCeil] * frac);
     }
+    return result;
   }
 
   private base64ToUint8Array(base64: string): Uint8Array {

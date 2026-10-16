@@ -3,6 +3,16 @@
   vertical-align: middle;
 }
 
+.ai-tts-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  &.is-compact {
+    gap: 3px;
+  }
+}
+
 .ai-tts-btn {
   display: inline-flex;
   align-items: center;
@@ -135,6 +145,90 @@
     .tts-icon {
       font-size: 1.05rem;
     }
+  }
+}
+
+.ai-tts-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(37, 211, 102, 0.14);
+  color: #4ade80;
+  border: 1px solid rgba(37, 211, 102, 0.38);
+  border-radius: 9999px;
+  padding: 4px 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  white-space: nowrap;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover:not(:disabled) {
+    background: rgba(37, 211, 102, 0.26);
+    border-color: rgba(37, 211, 102, 0.75);
+    color: #86efac;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.32);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .whatsapp-icon {
+    font-size: 0.95rem;
+    color: #25d366;
+    flex-shrink: 0;
+  }
+
+  .whatsapp-label {
+    display: inline-block;
+    line-height: 1;
+    font-size: 0.72rem;
+  }
+
+  &.is-sharing {
+    background: rgba(37, 211, 102, 0.25);
+    border-color: rgba(74, 222, 128, 0.8);
+    cursor: wait;
+    animation: waSharingPulse 1.4s ease-in-out infinite;
+
+    .whatsapp-spinner {
+      width: 14px;
+      height: 14px;
+      color: #4ade80;
+    }
+  }
+
+  &.is-compact {
+    padding: 4px 6px;
+    border-radius: 8px;
+
+    .whatsapp-icon {
+      font-size: 1.05rem;
+    }
+  }
+}
+
+@keyframes waSharingPulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(37, 211, 102, 0.25);
+    border-color: rgba(37, 211, 102, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(37, 211, 102, 0.6);
+    border-color: rgba(74, 222, 128, 0.95);
   }
 }
 

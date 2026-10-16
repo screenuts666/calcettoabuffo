@@ -26,6 +26,9 @@ service cloud.firestore {
     match /confronti/{document=**} {
       allow read, write: if true;
     }
+    match /tts_cache/{document=**} {
+      allow read, write: if true;
+    }
   }
 }
 

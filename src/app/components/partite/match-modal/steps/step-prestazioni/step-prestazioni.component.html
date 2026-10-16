@@ -145,6 +145,7 @@
               [text]="state.pronosticoAi()!"
               [id]="'pronostico-' + (state.matchId() || 'temp')"
               label="Ascolta Pronostico"
+              shareTitle="Pronostico del Mister"
             ></app-ai-tts-button>
             <button
               type="button"
@@ -271,7 +272,7 @@
         <div class="award-player-body">
           <div class="award-avatar-wrap">
             <ion-avatar class="award-avatar mvp-avatar">
-              <img [src]="report().mvp?.fotoUrl || 'assets/default-avatar.svg'" [alt]="report().mvp?.nome" />
+              <app-player-avatar [fotoUrl]="report().mvp?.fotoUrl" [alt]="report().mvp?.nome"></app-player-avatar>
             </ion-avatar>
             <div class="mvp-crown-badge">👑</div>
           </div>
@@ -318,7 +319,7 @@
         <div class="award-player-body">
           <div class="award-avatar-wrap">
             <ion-avatar class="award-avatar worst-avatar">
-              <img [src]="report().worst?.fotoUrl || 'assets/default-avatar.svg'" [alt]="report().worst?.nome" />
+              <app-player-avatar [fotoUrl]="report().worst?.fotoUrl" [alt]="report().worst?.nome"></app-player-avatar>
             </ion-avatar>
             <div class="worst-flipflop-badge">🩴</div>
           </div>
@@ -444,6 +445,7 @@
             [text]="state.cronacaAi()!"
             [id]="'cronaca-' + (state.matchId() || 'temp')"
             label="Ascolta Telecronaca"
+            shareTitle="Telecronaca Ignorante Partita"
           ></app-ai-tts-button>
           <button
             type="button"
@@ -494,7 +496,69 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 10. TABELLINO COMPLETO: FORMAZIONI, VOTI, GOL E PAGELLE                  -->
+  <!-- 10. CRONOLOGIA GOL & ASSIST                                               -->
+  <!-- ========================================================================= -->
+  @if (state.eventiGol().length > 0) {
+    <div class="report-section-card goals-timeline-card">
+      <div class="section-card-header">
+        <div class="header-left">
+          <ion-icon name="football" class="section-icon goals-icon"></ion-icon>
+          <span class="section-title">Cronologia Gol & Assist</span>
+        </div>
+        @if (state.matchDataOriginale?.isAdmin) {
+          <span class="timeline-edit-hint">Tocca un gol per modificare l'assist</span>
+        }
+      </div>
+
+      <div class="timeline-goals-list">
+        @for (gol of state.eventiGol(); track $index) {
+          <div
+            class="timeline-goal-item"
+            [class.team-b-goal]="gol.teamVantaggio === 'B'"
+            [class.clickable]="state.matchDataOriginale?.isAdmin && !gol.isAutogoal"
+            (click)="state.matchDataOriginale?.isAdmin && !gol.isAutogoal ? modificaAssistEvento($index) : null"
+          >
+            <div class="timeline-goal-time">{{ gol.tempo || '--:--' }}</div>
+            <div
+              class="timeline-team-badge"
+              [class.white]="gol.teamVantaggio === 'A'"
+              [class.black]="gol.teamVantaggio === 'B'"
+            >
+              {{ gol.teamVantaggio === 'A' ? '⚪ Bianchi' : '⚫ Neri' }}
+            </div>
+            <div class="timeline-goal-info">
+              <span class="timeline-scorer">
+                @if (gol.isAutogoal) {
+                  ⚠️ <strong>{{ gol.nome }}</strong> <em class="autogol-tag">(Autogol)</em>
+                } @else {
+                  ⚽ <strong>{{ gol.nome }}</strong>
+                }
+              </span>
+
+              @if (!gol.isAutogoal) {
+                <span class="timeline-assist">
+                  @if (gol.assistNome) {
+                    <span class="assist-tag">👟 Assist: <strong>{{ gol.assistNome }}</strong></span>
+                  } @else {
+                    <span class="no-assist-tag">⚡ Azione personale</span>
+                  }
+                </span>
+              }
+            </div>
+
+            @if (state.matchDataOriginale?.isAdmin && !gol.isAutogoal) {
+              <div class="timeline-edit-icon" title="Modifica assist">
+                <ion-icon name="create-outline"></ion-icon>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- 11. TABELLINO COMPLETO: FORMAZIONI, VOTI, GOL E PAGELLE                  -->
   <!-- ========================================================================= -->
   <div class="tabellino-container">
     <div class="tabellino-header">
@@ -534,7 +598,7 @@
           <div class="player-roster-card">
             <div class="card-top-row">
               <ion-avatar class="player-avatar">
-                <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" [alt]="g.nome" />
+                <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
               </ion-avatar>
 
               <div class="player-identity">
@@ -545,6 +609,16 @@
                       <ion-icon name="football"></ion-icon> {{ g.gol }}
                     </span>
                   }
+                  @if (g.assist > 0) {
+                    <span
+                      class="assist-pill"
+                      [class.clickable]="state.matchDataOriginale?.isAdmin"
+                      (click)="state.matchDataOriginale?.isAdmin ? modificaAssist(g) : null"
+                      title="Assist vincenti"
+                    >
+                      👟 {{ g.assist }}
+                    </span>
+                  }
                   @if (g.autogol > 0) {
                     <span class="autogol-pill">
                       (AG x{{ g.autogol }})
@@ -552,6 +626,16 @@
                   }
                   @if (report().mvp?.id === g.id) {
                     <span class="crown-mini-badge">👑 MVP</span>
+                  }
+                  @if (state.matchDataOriginale?.isAdmin && (!g.assist || g.assist === 0)) {
+                    <button
+                      type="button"
+                      class="add-assist-admin-btn"
+                      (click)="modificaAssist(g)"
+                      title="Aggiungi assist manuale"
+                    >
+                      +👟
+                    </button>
                   }
                 </div>
 
@@ -634,7 +718,7 @@
           <div class="player-roster-card">
             <div class="card-top-row">
               <ion-avatar class="player-avatar">
-                <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" [alt]="g.nome" />
+                <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
               </ion-avatar>
 
               <div class="player-identity">
@@ -645,6 +729,16 @@
                       <ion-icon name="football"></ion-icon> {{ g.gol }}
                     </span>
                   }
+                  @if (g.assist > 0) {
+                    <span
+                      class="assist-pill"
+                      [class.clickable]="state.matchDataOriginale?.isAdmin"
+                      (click)="state.matchDataOriginale?.isAdmin ? modificaAssist(g) : null"
+                      title="Assist vincenti"
+                    >
+                      👟 {{ g.assist }}
+                    </span>
+                  }
                   @if (g.autogol > 0) {
                     <span class="autogol-pill">
                       (AG x{{ g.autogol }})
@@ -652,6 +746,16 @@
                   }
                   @if (report().mvp?.id === g.id) {
                     <span class="crown-mini-badge">👑 MVP</span>
+                  }
+                  @if (state.matchDataOriginale?.isAdmin && (!g.assist || g.assist === 0)) {
+                    <button
+                      type="button"
+                      class="add-assist-admin-btn"
+                      (click)="modificaAssist(g)"
+                      title="Aggiungi assist manuale"
+                    >
+                      +👟
+                    </button>
                   }
                 </div>
 

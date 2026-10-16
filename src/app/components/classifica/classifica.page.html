@@ -122,7 +122,7 @@
             (click)="selezionaFiltro(t.id)"
           >
             <span class="tier-dot" [style.background]="t.color"></span>
-            {{ t.label }}
+            {{ t.badge }}
           </button>
         }
       </div>
@@ -134,7 +134,8 @@
   <!-- VISTA 1: CLASSIFICA GENERALE CON MMR E PUNTEGGIO LEGACY AFFIANCATI -->
   @if (vistaSelezionata() === 'classifica') {
     <ion-list lines="full" class="classifica-list">
-      @for (g of classificaCalcolata(); track g.id; let i = $index) {
+      <!-- GIOCATORI UFFICIALMENTE CLASSIFICATI (1+ MATCH) -->
+      @for (g of giocatoriClassificati(); track g.id; let i = $index) {
         <ion-item
           button="true"
           detail="false"
@@ -157,13 +158,7 @@
           <div slot="start" class="avatar-col">
             <div class="avatar-ring" [style.border-color]="g.tier.color">
               <ion-avatar>
-                <img
-                  [src]="
-                    g.fotoUrl ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
               </ion-avatar>
             </div>
             @if (g.form.status === 'on_fire') {
@@ -239,11 +234,13 @@
               </div>
             </div>
 
-            <!-- Riga 3: Statistiche di contorno (Media, Gol, Match) -->
+            <!-- Riga 3: Statistiche di contorno (Media, Gol, Assist, Match) -->
             <p class="stats-sub-row">
-              <span>⭐ {{ g.mediaVotoDisplay }} media</span>
+              <span>⭐ {{ g.mediaVotoDisplay }}</span>
               <span class="dot-sep">•</span>
               <span>⚽ {{ g.golTotali }} gol</span>
+              <span class="dot-sep">•</span>
+              <span>👟 {{ g.assistTotali }} assist</span>
               <span class="dot-sep">•</span>
               <span>👥 {{ g.partiteGiocate }} match ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
             </p>
@@ -274,8 +271,90 @@
           </div>
         </ion-item>
       } @empty {
-        <div class="ion-padding ion-text-center empty-state">
-          <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
+        @if (giocatoriNonClassificati().length === 0) {
+          <div class="ion-padding ion-text-center empty-state">
+            <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
+          </div>
+        }
+      }
+
+      <!-- SEZIONE COLLASSATA PER GIOCATORI NON CLASSIFICATI (0 MATCH) -->
+      @if (giocatoriNonClassificati().length > 0) {
+        <div class="unranked-section">
+          <button
+            type="button"
+            class="unranked-toggle-header"
+            (click)="toggleMostraNonClassificati()"
+          >
+            <div class="unranked-header-left">
+              <span class="unranked-icon-tag">⚪</span>
+              <span class="unranked-title-text">
+                Non Classificati ({{ giocatoriNonClassificati().length }} con 0 presenze)
+              </span>
+            </div>
+            <ion-icon
+              [name]="mostraNonClassificati() ? 'chevron-up' : 'chevron-down'"
+              class="unranked-arrow"
+            ></ion-icon>
+          </button>
+
+          @if (mostraNonClassificati()) {
+            <div class="unranked-list">
+              @for (ug of giocatoriNonClassificati(); track ug.id) {
+                <ion-item
+                  button="true"
+                  detail="false"
+                  (click)="apriDettagliGiocatore(ug)"
+                  class="player-rank-item unranked-item"
+                >
+                  <div slot="start" class="rank-col">
+                    <span class="rank-badge rank-unranked">—</span>
+                  </div>
+
+                  <div slot="start" class="avatar-col">
+                    <div class="avatar-ring unranked-ring">
+                      <ion-avatar>
+                        <app-player-avatar [fotoUrl]="ug.fotoUrl" [alt]="ug.nome"></app-player-avatar>
+                      </ion-avatar>
+                    </div>
+                  </div>
+
+                  <ion-label class="ion-text-wrap player-info-label">
+                    <div class="name-tier-row">
+                      <span class="player-name">{{ ug.nome }}</span>
+                      @if (ug.soprannomeAi || ug.soprannome) {
+                        <span class="nickname-span">"{{ ug.soprannomeAi || ug.soprannome }}"</span>
+                      }
+                      <span class="tier-pill unranked-pill">
+                        <ion-icon name="help-circle-outline"></ion-icon>
+                        <span>Non Classificato</span>
+                      </span>
+                    </div>
+
+                    <div class="scores-duo-row">
+                      <div class="score-chip unranked-chip">
+                        <span class="score-chip-label">MMR</span>
+                        <span class="score-chip-val">—</span>
+                      </div>
+                      <div class="score-chip legacy-chip">
+                        <span class="score-chip-label">CLASSICO</span>
+                        <span class="score-chip-val">{{ ug.puntiDisplay }} pt</span>
+                      </div>
+                    </div>
+
+                    <p class="stats-sub-row unranked-sub">
+                      <span>Nessuna presenza registrata</span>
+                    </p>
+                  </ion-label>
+
+                  <div slot="end" class="stat-highlight-box unranked-highlight">
+                    <span class="stat-highlight-val unranked-dash">—</span>
+                    <span class="stat-highlight-label">UNRANKED</span>
+                  </div>
+                </ion-item>
+              }
+            </div>
+          }
         </div>
       }
     </ion-list>
@@ -311,13 +390,7 @@
                 (click)="apriDettagliPerId(duo.p1Id)"
                 title="Vedi scheda {{ duo.p1Nome }}"
               >
-                <img
-                  [src]="
-                    duo.p1Foto ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="duo.p1Foto" [alt]="duo.p1Nome"></app-player-avatar>
                 <span class="mini-name">{{ duo.p1Nome }}</span>
               </div>
 
@@ -328,13 +401,7 @@
                 (click)="apriDettagliPerId(duo.p2Id)"
                 title="Vedi scheda {{ duo.p2Nome }}"
               >
-                <img
-                  [src]="
-                    duo.p2Foto ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="duo.p2Foto" [alt]="duo.p2Nome"></app-player-avatar>
                 <span class="mini-name">{{ duo.p2Nome }}</span>
               </div>
             </div>
@@ -369,13 +436,7 @@
                 (click)="apriDettagliPerId(riv.p1Id)"
                 title="Vedi scheda {{ riv.p1Nome }}"
               >
-                <img
-                  [src]="
-                    riv.p1Foto ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="riv.p1Foto" [alt]="riv.p1Nome"></app-player-avatar>
                 <span class="mini-name">{{ riv.p1Nome }}</span>
               </div>
 
@@ -386,13 +447,7 @@
                 (click)="apriDettagliPerId(riv.p2Id)"
                 title="Vedi scheda {{ riv.p2Nome }}"
               >
-                <img
-                  [src]="
-                    riv.p2Foto ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="riv.p2Foto" [alt]="riv.p2Nome"></app-player-avatar>
                 <span class="mini-name">{{ riv.p2Nome }}</span>
               </div>
             </div>

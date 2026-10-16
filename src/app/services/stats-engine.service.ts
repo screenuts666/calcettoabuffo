@@ -17,6 +17,7 @@ import {
   MatchReportData,
   MatchReportPlayer,
   MatchReportChemistryItem,
+  UNRANKED_TIER,
 } from '../models/mmr.model';
 import {
   ALL_SEASONS,
@@ -24,9 +25,21 @@ import {
   getStagionePartita,
   parseDate,
 } from '../utils/season-utils';
+import { getAvatarUrl } from '../utils/avatar-utils';
 
-export const BASE_INITIAL_MMR = 1000;
+export const BASE_INITIAL_MMR = 880;
 export const K_FACTOR = 32;
+export const K_FACTOR_WIN = 45;
+export const K_FACTOR_LOSS = 22;
+export const K_FACTOR_DRAW = 33.5;
+export const PRESENCE_BONUS = 12;
+export const GOAL_BONUS = 4;
+export const AUTOGOAL_PENALTY = 4;
+export const ASSIST_BONUS = 2;
+export const MVP_BONUS = 10;
+export const DECAY_CONSECUTIVE_THRESHOLD = 3;
+export const DECAY_AMOUNT = 6;
+export const DECAY_FLOOR = 820;
 export const MIN_MATCHES_CHEMISTRY = 2;
 
 @Injectable({
@@ -69,16 +82,21 @@ export class StatsEngineService {
       : signal<Partita[]>([]);
 
     this.statsResult = computed<MmrCalculationResult>(() => {
-      const giocatori = this.giocatoriRaw() || [];
+      const giocatori = (this.giocatoriRaw() || []).map((g) => ({
+        ...g,
+        fotoUrl: getAvatarUrl(g.fotoUrl),
+      }));
       const partite = this.partiteRaw() || [];
       return StatsEngineService.calculateAllStats(giocatori, partite);
     });
 
     this.allTimeLeaderboard = computed<PlayerMmrStats[]>(() => {
       const res = this.statsResult();
-      return Array.from(res.allTime.values()).sort(
-        (a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate,
-      );
+      return Array.from(res.allTime.values())
+        .filter((s) => s.partiteGiocate > 0)
+        .sort(
+          (a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate,
+        );
     });
   }
 
@@ -259,26 +277,6 @@ export class StatsEngineService {
         ? deltaObj.mmrBefore
         : (pStats?.currentMmr ?? BASE_INITIAL_MMR);
 
-      // Se il match non è ancora nello storico simulato, stimiamo il delta con la formula base
-      let mmrDelta = 0;
-      if (deltaObj) {
-        mmrDelta = deltaObj.delta;
-      } else {
-        const goalDiff = Math.abs(scoreA - scoreB);
-        let goalDiffMultiplier = 1.0;
-        if (goalDiff === 2) goalDiffMultiplier = 1.1;
-        else if (goalDiff === 3) goalDiffMultiplier = 1.25;
-        else if (goalDiff >= 4) goalDiffMultiplier = Math.min(1.75, 1.35 + (goalDiff - 4) * 0.05);
-
-        const myProb = team === 'A' ? odds.probA : odds.probB;
-        const actual = won ? 1.0 : draw ? 0.5 : 0.0;
-        const baseDelta = K_FACTOR * (actual - myProb) * goalDiffMultiplier;
-        mmrDelta = Math.round(baseDelta);
-      }
-
-      const mmrAfter = deltaObj ? deltaObj.mmrAfter : Math.max(100, mmrBefore + mmrDelta);
-
-      // Punti Legacy: +2 presenza, +2 vittoria / +1 pareggio, +1 per gol, -1 per autogol, +voto
       const golCount =
         eventiGol.filter(
           (eg: any) =>
@@ -295,10 +293,57 @@ export class StatsEngineService {
         p.autogol ||
         0;
 
+      const assistCount =
+        eventiGol.filter(
+          (eg: any) =>
+            eg.assistId === p.id ||
+            (!eg.assistId && eg.assistNome && eg.assistNome === p.nome),
+        ).length ||
+        p.assist ||
+        0;
+
       const votoNum = Number(p.voto) || 0;
+      const isLoss = !won && !draw;
+      const hasSvp = isLoss && (votoNum >= 7.0 || golCount >= 2);
+
+      // Se il match non è ancora nello storico simulato, stimiamo il delta con la formula Turbo LP
+      let mmrDelta = 0;
+      if (deltaObj) {
+        mmrDelta = deltaObj.delta;
+      } else {
+        const goalDiff = Math.abs(scoreA - scoreB);
+        let goalDiffMultiplier = 1.0;
+        if (goalDiff === 2) goalDiffMultiplier = 1.1;
+        else if (goalDiff === 3) goalDiffMultiplier = 1.25;
+        else if (goalDiff >= 4) goalDiffMultiplier = Math.min(1.75, 1.35 + (goalDiff - 4) * 0.05);
+
+        const myProb = team === 'A' ? odds.probA : odds.probB;
+        const baseDelta = won
+          ? (K_FACTOR_WIN * (1 - myProb))
+          : draw
+            ? (K_FACTOR_DRAW * (0.5 - myProb))
+            : (-K_FACTOR_LOSS * myProb);
+        const teamDelta = baseDelta * goalDiffMultiplier;
+        const effectiveTeamDelta = hasSvp ? teamDelta * 0.5 : teamDelta;
+
+        const voteBonus = votoNum > 0 ? (votoNum - 6.0) * 8 : 0;
+        const goalsBonus = golCount * GOAL_BONUS - autogolCount * AUTOGOAL_PENALTY;
+        const assistsBonus = assistCount * ASSIST_BONUS;
+
+        mmrDelta = Math.round(
+          effectiveTeamDelta +
+            PRESENCE_BONUS +
+            voteBonus +
+            goalsBonus +
+            assistsBonus,
+        );
+      }
+
+      const mmrAfter = deltaObj ? deltaObj.mmrAfter : Math.max(100, mmrBefore + mmrDelta);
+
       const resultPoints = won ? 2 : draw ? 1 : 0;
       const legacyDelta =
-        Math.round((2 + resultPoints + golCount - autogolCount + votoNum) * 10) /
+        Math.round((2 + resultPoints + golCount - autogolCount + assistCount * 0.5 + votoNum) * 10) /
         10;
 
       const onFireTransition =
@@ -310,7 +355,7 @@ export class StatsEngineService {
         id: p.id,
         nome: p.nome || 'Sconosciuto',
         soprannome: p.soprannome || pStats?.soprannome,
-        fotoUrl: p.fotoUrl || pStats?.fotoUrl,
+        fotoUrl: getAvatarUrl(p.fotoUrl || pStats?.fotoUrl),
         team,
         voto:
           p.voto !== undefined && p.voto !== null && !isNaN(Number(p.voto)) && Number(p.voto) > 0
@@ -319,12 +364,15 @@ export class StatsEngineService {
         note: (p.note || '').trim(),
         gol: golCount,
         autogol: autogolCount,
+        assist: assistCount,
         mmrDelta,
         mmrBefore,
         mmrAfter,
         legacyDelta,
         onFireTransition,
         streakAfter,
+        isRanked: pStats ? pStats.isRanked : true,
+        svpShield: deltaObj?.individualBonus?.svpShield ?? hasSvp,
       };
     };
 
@@ -576,13 +624,13 @@ export class StatsEngineService {
       return dateA - dateB;
     });
 
-    // 4. Simulazione All-Time
+    // 4. Simulazione All-Time (percorre tutti i match dello storico partendo da BASE_INITIAL_MMR)
     const allTimeResult = StatsEngineService.simulateMmrHistory(
       sortedMatches,
       playerMetadata,
     );
 
-    // 5. Simulazione per singola Stagione
+    // 5. Simulazione per singola Stagione con Soft-Reset dall'anno prima (Stile League of Legends)
     const matchesBySeason = new Map<string, Partita[]>();
     for (const match of sortedMatches) {
       const season = getStagionePartita(match);
@@ -592,13 +640,36 @@ export class StatsEngineService {
       matchesBySeason.get(season)!.push(match);
     }
 
+    // Ordina le stagioni cronologicamente (es. "2025/2026" prima di "2026/2027")
+    const sortedSeasonKeys = Array.from(matchesBySeason.keys()).sort();
     const bySeasonResult = new Map<string, Map<string, PlayerMmrStats>>();
-    for (const [season, seasonMatches] of matchesBySeason.entries()) {
+    let previousSeasonStats: Map<string, PlayerMmrStats> | null = null;
+
+    for (const season of sortedSeasonKeys) {
+      const seasonMatches = matchesBySeason.get(season)!;
+
+      // Soft-Reset piazzamento: se il giocatore ha giocato nella stagione precedente,
+      // la sua base di partenza è la media tra il suo MMR finale precedente e la base iniziale (880),
+      // esattamente come il soft-reset Ranked di League of Legends!
+      const initialMmrMap = new Map<string, number>();
+      if (previousSeasonStats) {
+        for (const [playerId, prevP] of previousSeasonStats.entries()) {
+          if (prevP.partiteGiocate > 0) {
+            const softReset = Math.round((prevP.currentMmr + BASE_INITIAL_MMR) / 2);
+            initialMmrMap.set(playerId, softReset);
+          } else {
+            initialMmrMap.set(playerId, BASE_INITIAL_MMR);
+          }
+        }
+      }
+
       const sim = StatsEngineService.simulateMmrHistory(
         seasonMatches,
         playerMetadata,
+        initialMmrMap,
       );
       bySeasonResult.set(season, sim.playerStats);
+      previousSeasonStats = sim.playerStats;
     }
 
     // 6. Calcolo Chimica di Coppia (Sinergie e Nemesi)
@@ -617,12 +688,12 @@ export class StatsEngineService {
   }
 
   /**
-   * Simulatore cronologico step-by-step
+   * Simulatore cronologico step-by-step con motore Turbo LP, Meritocrazia Individuale e Decay
    */
   private static simulateMmrHistory(
-
     matches: Partita[],
     playerMetadata: Map<string, Giocatore>,
+    initialMmrMap?: Map<string, number>,
   ): {
     playerStats: Map<string, PlayerMmrStats>;
     predictions: Map<string, MatchPrediction>;
@@ -643,15 +714,17 @@ export class StatsEngineService {
           worstLossStreak: 0,
           recentForm: [],
         };
+        const startMmr = initialMmrMap?.get(id) ?? BASE_INITIAL_MMR;
         statsMap.set(id, {
           giocatoreId: id,
           nome: meta?.nome || 'Sconosciuto',
           soprannome: meta?.soprannome,
-          fotoUrl: meta?.fotoUrl,
-          currentMmr: BASE_INITIAL_MMR,
-          peakMmr: BASE_INITIAL_MMR,
-          lowestMmr: BASE_INITIAL_MMR,
-          tier: getMmrTier(BASE_INITIAL_MMR),
+          fotoUrl: getAvatarUrl(meta?.fotoUrl),
+          isRanked: false, // Diventa true appena gioca la 1ª partita
+          currentMmr: startMmr,
+          peakMmr: startMmr,
+          lowestMmr: startMmr,
+          tier: UNRANKED_TIER,
           partiteGiocate: 0,
           wins: 0,
           draws: 0,
@@ -659,6 +732,8 @@ export class StatsEngineService {
           winRate: 0,
           form,
           history: [],
+          consecutiveMissedMatches: 0,
+          totalDecayLost: 0,
         });
       }
       return statsMap.get(id)!;
@@ -684,6 +759,32 @@ export class StatsEngineService {
       const teamBPlayers = match.teamB.filter((p) => p && p.id);
 
       if (teamAPlayers.length === 0 || teamBPlayers.length === 0) continue;
+
+      const inMatchIds = new Set([
+        ...teamAPlayers.map((p) => p.id),
+        ...teamBPlayers.map((p) => p.id),
+      ]);
+
+      // 0. Decay Leggero per Assenza:
+      // Se un giocatore GIÀ CLASSIFICATO (isRanked) salta più di 3 partite consecutive del gruppo,
+      // applica un leggero Decay di -6 MMR per ogni partita saltata oltre la terza (senza scendere sotto 820 MMR).
+      for (const stats of statsMap.values()) {
+        if (stats.isRanked) {
+          if (!inMatchIds.has(stats.giocatoreId)) {
+            stats.consecutiveMissedMatches = (stats.consecutiveMissedMatches || 0) + 1;
+            if (stats.consecutiveMissedMatches > DECAY_CONSECUTIVE_THRESHOLD) {
+              const prev = stats.currentMmr;
+              const decayed = Math.max(DECAY_FLOOR, stats.currentMmr - DECAY_AMOUNT);
+              const lost = prev - decayed;
+              stats.currentMmr = decayed;
+              stats.tier = getMmrTier(decayed);
+              stats.totalDecayLost = (stats.totalDecayLost || 0) + lost;
+            }
+          } else {
+            stats.consecutiveMissedMatches = 0;
+          }
+        }
+      }
 
       // 1. MMR medio delle due squadre PRIMA del match
       const mmrsBeforeA = teamAPlayers.map(
@@ -712,9 +813,6 @@ export class StatsEngineService {
       const bWon = scoreB > scoreA;
       const isDraw = scoreA === scoreB;
 
-      const actualA = aWon ? 1.0 : isDraw ? 0.5 : 0.0;
-      const actualB = bWon ? 1.0 : isDraw ? 0.5 : 0.0;
-
       // 4. Moltiplicatore scarto gol ampio (World Chess / FIFA goal diff scale)
       const goalDiff = Math.abs(scoreA - scoreB);
       let goalDiffMultiplier = 1.0;
@@ -724,19 +822,37 @@ export class StatsEngineService {
         goalDiffMultiplier = Math.min(1.75, 1.35 + (goalDiff - 4) * 0.05);
       }
 
-      // Delta base di squadra
-      const baseTeamDeltaA = K_FACTOR * (actualA - probA);
-      const baseTeamDeltaB = K_FACTOR * (actualB - probB);
+      // Delta base asimmetrico in stile LP di League of Legends:
+      // K_win generoso (45), K_loss ammortizzato (22)
+      const baseTeamDeltaA = aWon
+        ? K_FACTOR_WIN * (1 - probA)
+        : isDraw
+          ? K_FACTOR_DRAW * (0.5 - probA)
+          : -K_FACTOR_LOSS * probA;
+
+      const baseTeamDeltaB = bWon
+        ? K_FACTOR_WIN * (1 - probB)
+        : isDraw
+          ? K_FACTOR_DRAW * (0.5 - probB)
+          : -K_FACTOR_LOSS * probB;
 
       const teamDeltaA = baseTeamDeltaA * goalDiffMultiplier;
       const teamDeltaB = baseTeamDeltaB * goalDiffMultiplier;
 
-      // 5. Trova l'MVP del match (voto più alto >= 7.0)
+      // 5. Trova l'MVP del match (voto più alto >= 7.0, a parità chi ha segnato di più)
       const allPlayersInMatch = [...teamAPlayers, ...teamBPlayers];
-      const validVotes = allPlayersInMatch
-        .map((p) => Number(p.voto) || 0)
-        .filter((v) => v >= 7.0);
-      const maxVote = validVotes.length > 0 ? Math.max(...validVotes) : 0;
+      const ratedPlayers = allPlayersInMatch.filter(
+        (p) => (Number(p.voto) || 0) >= 7.0,
+      );
+      let mvpPlayerId: string | null = null;
+      if (ratedPlayers.length > 0) {
+        const sorted = [...ratedPlayers].sort((a, b) => {
+          const diff = (Number(b.voto) || 0) - (Number(a.voto) || 0);
+          if (diff !== 0) return diff;
+          return (Number(b.gol) || 0) - (Number(a.gol) || 0);
+        });
+        mvpPlayerId = sorted[0].id;
+      }
 
       // 6. Aggiorna ciascun giocatore di Team A e Team B
       const processPlayer = (
@@ -755,59 +871,86 @@ export class StatsEngineService {
         const stats = getOrCreatePlayer(pPerf.id);
         const mmrBefore = stats.currentMmr;
 
-        // Bonus / Malus individuale:
-        // a) Voto
+        // Regola 3: Bonus Fedeltà Presenza fisso (+12 MMR a partita giocata)
+        const presenceBonus = PRESENCE_BONUS;
+
+        // Regola 4: Impatto Voto Pagella -> (voto - 6.0) * 8
         const voto = Number(pPerf.voto) || 0;
         let voteBonus = 0;
-        if (voto >= 8.0) voteBonus = 3.0;
-        else if (voto >= 7.5) voteBonus = 2.0;
-        else if (voto >= 7.0) voteBonus = 1.0;
-        else if (voto > 0 && voto <= 5.0) voteBonus = -1.5;
-        else if (voto > 0 && voto < 4.5) voteBonus = -3.0;
+        if (voto > 0) {
+          voteBonus = Math.round((voto - 6.0) * 8 * 10) / 10;
+        }
 
-        // b) Gol & Autogol
+        // Regola 4: Impatto Gol (+4 MMR), Autogol (-4 MMR) e Assist (+2 MMR)
         const eventi = match.eventiGol || [];
-        const golCount = eventi.filter(
-          (eg: any) => eg.idAssegnato === pPerf.id && !eg.isAutogoal,
-        ).length;
-        const autogolCount = eventi.filter(
-          (eg: any) => eg.idAssegnato === pPerf.id && eg.isAutogoal,
-        ).length;
+        const golCount =
+          eventi.filter(
+            (eg: any) =>
+              (eg.idAssegnato === pPerf.id || eg.nome === pPerf.nome) &&
+              !eg.isAutogoal,
+          ).length || (pPerf.gol || 0);
 
-        const goalsBonus = Math.min(3.0, golCount * 1.0) - autogolCount * 1.5;
+        const autogolCount =
+          eventi.filter(
+            (eg: any) =>
+              (eg.idAssegnato === pPerf.id || eg.nome === pPerf.nome) &&
+              eg.isAutogoal,
+          ).length || (pPerf.autogol || 0);
 
-        // c) MVP bonus
-        const isMvp = voto > 0 && voto === maxVote && maxVote >= 7.0;
-        const mvpBonus = isMvp ? 2.5 : 0;
+        const assistCount =
+          eventi.filter(
+            (eg: any) =>
+              eg.assistId === pPerf.id ||
+              (!eg.assistId && eg.assistNome && eg.assistNome === pPerf.nome),
+          ).length || (pPerf.assist || 0);
 
-        // d) Streak bonus / malus
+        const goalsBonus = (golCount * GOAL_BONUS) - (autogolCount * AUTOGOAL_PENALTY);
+        const assistsBonus = assistCount * ASSIST_BONUS;
+
+        // Regola 4: Bonus MVP del Match (+10 MMR extra al migliore in campo)
+        const isMvp = pPerf.id === mvpPlayerId;
+        const mvpBonus = isMvp ? MVP_BONUS : 0;
+
+        // Streak bonus / malus
         let streakBonus = 0;
         const wasOnFire = stats.form.status === 'on_fire';
         const wasInCrisis = stats.form.status === 'in_crisis';
 
         if (won && wasOnFire) {
-          // Moltiplicatore 1.15 sul guadagno positivo di squadra per serie di vittorie
           if (teamDelta > 0) {
-            streakBonus = teamDelta * 0.15;
+            streakBonus = Math.round(teamDelta * 0.15 * 10) / 10;
           }
         } else if (won && wasInCrisis) {
-          // Bonus riscatto per aver interrotto la serie negativa
-          streakBonus = 2.0;
+          streakBonus = 4.0;
         }
 
+        // Regola 4: Scudo "SVP / Carry Sconfitto"
+        // Se un giocatore perde la partita ma ha preso voto >= 7.0 oppure ha segnato 2+ gol,
+        // la perdita base di ELO della sconfitta viene dimezzata del 50%.
+        const isLoss = !won && !draw;
+        const hasSvpShield = isLoss && (voto >= 7.0 || golCount >= 2);
+        const effectiveTeamDelta = hasSvpShield ? teamDelta * 0.5 : teamDelta;
+
         const individualBonusTotal =
-          voteBonus + goalsBonus + mvpBonus + streakBonus;
+          presenceBonus + voteBonus + goalsBonus + assistsBonus + mvpBonus + streakBonus;
 
         // Calcolo finale del delta MMR (arrotondato a intero)
-        const totalDelta = Math.round(teamDelta + individualBonusTotal);
+        const totalDelta = Math.round(effectiveTeamDelta + individualBonusTotal);
         const mmrAfter = Math.max(100, mmrBefore + totalDelta);
 
-        // Aggiorna statistiche generali
+        // Appena gioca la 1ª partita si sblocca lo status RANKED
+        stats.isRanked = true;
         stats.currentMmr = mmrAfter;
-        stats.peakMmr = Math.max(stats.peakMmr, mmrAfter);
-        stats.lowestMmr = Math.min(stats.lowestMmr, mmrAfter);
+        if (stats.partiteGiocate === 0) {
+          stats.peakMmr = mmrAfter;
+          stats.lowestMmr = mmrAfter;
+        } else {
+          stats.peakMmr = Math.max(stats.peakMmr, mmrAfter);
+          stats.lowestMmr = Math.min(stats.lowestMmr, mmrAfter);
+        }
         stats.tier = getMmrTier(mmrAfter);
         stats.partiteGiocate++;
+        stats.consecutiveMissedMatches = 0;
 
         const matchResultChar: 'W' | 'D' | 'L' = won ? 'W' : draw ? 'D' : 'L';
         if (won) stats.wins++;
@@ -848,10 +991,13 @@ export class StatsEngineService {
           baseTeamDelta: Math.round(baseTeamDelta),
           goalDiffMultiplier,
           individualBonus: {
+            presenceBonus,
             goalsBonus,
+            assistsBonus,
             voteBonus,
             mvpBonus,
             streakBonus: Math.round(streakBonus * 10) / 10,
+            svpShield: hasSvpShield,
             total: Math.round(individualBonusTotal * 10) / 10,
           },
           streakBefore,
@@ -962,7 +1108,7 @@ export class StatsEngineService {
       {
         together: Map<
           string,
-          { matches: number; wins: number; draws: number; losses: number }
+          { matches: number; wins: number; draws: number; losses: number; assistedGoals: number }
         >;
         against: Map<
           string,
@@ -1008,6 +1154,7 @@ export class StatsEngineService {
               wins: 0,
               draws: 0,
               losses: 0,
+              assistedGoals: 0,
             });
           }
           const t = entry.together.get(p2)!;
@@ -1031,6 +1178,7 @@ export class StatsEngineService {
               wins: 0,
               draws: 0,
               losses: 0,
+              assistedGoals: 0,
             });
           }
           const t = entry.together.get(p2)!;
@@ -1038,6 +1186,23 @@ export class StatsEngineService {
           if (bWon) t.wins++;
           else if (isDraw) t.draws++;
           else t.losses++;
+        }
+      }
+
+      // 3. Conteggio gol con assist tra compagni di squadra (Gemelli del Gol)
+      const eventi = match.eventiGol || [];
+      for (const eg of eventi) {
+        if (!eg.isAutogoal && eg.idAssegnato && eg.assistId && eg.idAssegnato !== eg.assistId) {
+          const entry1 = getPairEntry(eg.idAssegnato);
+          if (entry1.together.has(eg.assistId)) {
+            const t1 = entry1.together.get(eg.assistId)!;
+            t1.assistedGoals = (t1.assistedGoals || 0) + 1;
+          }
+          const entry2 = getPairEntry(eg.assistId);
+          if (entry2.together.has(eg.idAssegnato)) {
+            const t2 = entry2.together.get(eg.idAssegnato)!;
+            t2.assistedGoals = (t2.assistedGoals || 0) + 1;
+          }
         }
       }
 
@@ -1095,12 +1260,13 @@ export class StatsEngineService {
           partnerId,
           partnerNome: pMeta?.nome || 'Sconosciuto',
           partnerSoprannome: pMeta?.soprannome,
-          partnerFotoUrl: pMeta?.fotoUrl,
+          partnerFotoUrl: getAvatarUrl(pMeta?.fotoUrl),
           matchesTogether: t.matches,
           winsTogether: t.wins,
           drawsTogether: t.draws,
           lossesTogether: t.losses,
           winRateTogether: winRate,
+          assistedGoals: t.assistedGoals || 0,
         });
       }
 
@@ -1119,7 +1285,7 @@ export class StatsEngineService {
           opponentId: oppId,
           opponentNome: oMeta?.nome || 'Sconosciuto',
           opponentSoprannome: oMeta?.soprannome,
-          opponentFotoUrl: oMeta?.fotoUrl,
+          opponentFotoUrl: getAvatarUrl(oMeta?.fotoUrl),
           matchesAgainst: ag.matches,
           winsAgainst: ag.wins,
           drawsAgainst: ag.draws,
@@ -1137,12 +1303,17 @@ export class StatsEngineService {
         (n) => n.matchesAgainst >= minMatches,
       );
 
-      // Gemello del Gol 🤝 (Miglior sinergia: massimo winRateTogether, poi più partite giocate)
-      const sortedSynergiesDesc = [...(qualifiedSynergies.length > 0 ? qualifiedSynergies : allSynergies)].sort(
-        (a, b) =>
-          b.winRateTogether - a.winRateTogether ||
-          b.matchesTogether - a.matchesTogether,
-      );
+      // Gemello del Gol 🤝 (Miglior sinergia: pondera winRateTogether e intesa gol/assist combinati)
+      const sortedSynergiesDesc = [
+        ...(qualifiedSynergies.length > 0 ? qualifiedSynergies : allSynergies),
+      ].sort((a, b) => {
+        const scoreA = a.winRateTogether + (a.assistedGoals || 0) * 5;
+        const scoreB = b.winRateTogether + (b.assistedGoals || 0) * 5;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        if (b.winRateTogether !== a.winRateTogether)
+          return b.winRateTogether - a.winRateTogether;
+        return b.matchesTogether - a.matchesTogether;
+      });
       const bestPartner = sortedSynergiesDesc[0] || null;
 
       // Incubo di Coppia 💔 (Peggior sinergia: minor winRateTogether)

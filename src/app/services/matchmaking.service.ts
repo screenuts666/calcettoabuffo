@@ -9,6 +9,7 @@ import {
 import { RuoloPreferito } from '../models/ruolo-preferito.enum';
 import { Giocatore } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
+import { getAvatarUrl } from '../utils/avatar-utils';
 
 export interface SynergyHighlight {
   player1Name: string;
@@ -53,6 +54,9 @@ interface EnrichedPlayer {
   id: string;
   nome: string;
   soprannome?: string;
+  annoNascita?: string;
+  peso?: string;
+  altezza?: string;
   fotoUrl?: string;
   raw: any;
   mmr: number;
@@ -63,6 +67,7 @@ interface EnrichedPlayer {
   legacyPunti: number;
   legacyAvg: number;
   ruolo: RuoloPreferito | string;
+  isUnranked?: boolean;
 }
 
 interface PartitionEvaluation {
@@ -125,9 +130,35 @@ export class MatchmakingService {
     const enrichedPlayers: EnrichedPlayer[] = players.map((p) => {
       const meta = metaMap.get(p.id);
       const mmrStats = statsRes.allTime.get(p.id);
+      const isUnranked = !mmrStats || mmrStats.partiteGiocate === 0;
 
-      const mmr = mmrStats ? Math.round(mmrStats.currentMmr) : BASE_INITIAL_MMR;
-      const tier = mmrStats ? mmrStats.tier : getMmrTier(mmr);
+      const legInfo = legacyMap.get(p.id);
+      const legacyPunti = legInfo?.punti ?? (p.punti ?? meta?.punti ?? 0);
+      const legacyAvg = legInfo?.mediaPunti ?? 0;
+
+      let mmr = BASE_INITIAL_MMR;
+      if (!isUnranked && mmrStats) {
+        mmr = Math.round(mmrStats.currentMmr);
+      } else {
+        // Stima provvisoria basata su storico legacy/skill per bilanciare al meglio le squadre
+        const mediaVoto = (meta?.mediaVoto && meta.mediaVoto > 0)
+          ? meta.mediaVoto
+          : 6.0;
+
+        const legacyMediaPunti = (meta?.punti && meta?.partiteGiocate)
+          ? (meta.punti / meta.partiteGiocate)
+          : (legInfo?.mediaPunti || 5.0);
+
+        let stima = BASE_INITIAL_MMR;
+        stima += (mediaVoto - 6.0) * 60;
+        stima += (legacyMediaPunti - 5.0) * 12;
+        const gol = meta?.gol || p.gol || 0;
+        if (gol > 5) stima += 20;
+
+        mmr = Math.round(Math.max(820, Math.min(1120, stima)));
+      }
+
+      const tier = !isUnranked && mmrStats ? mmrStats.tier : getMmrTier(mmr);
 
       const streak = mmrStats?.form.currentStreak ?? 0;
       const formStatus = mmrStats?.form.status ?? 'neutral';
@@ -142,10 +173,6 @@ export class MatchmakingService {
         effectiveMmr = Math.round(mmr * (1 - malus));
       }
 
-      const legInfo = legacyMap.get(p.id);
-      const legacyPunti = legInfo?.punti ?? (p.punti ?? meta?.punti ?? 0);
-      const legacyAvg = legInfo?.mediaPunti ?? 0;
-
       const ruolo =
         p.ruoloPreferito || meta?.ruoloPreferito || RuoloPreferito.Fascia;
 
@@ -153,7 +180,10 @@ export class MatchmakingService {
         id: p.id,
         nome: p.nome || meta?.nome || 'Giocatore',
         soprannome: p.soprannome || meta?.soprannome,
-        fotoUrl: p.fotoUrl || meta?.fotoUrl,
+        annoNascita: p.annoNascita || meta?.annoNascita,
+        peso: p.peso || meta?.peso,
+        altezza: p.altezza || meta?.altezza,
+        fotoUrl: getAvatarUrl(p.fotoUrl || meta?.fotoUrl),
         raw: p,
         mmr,
         tier,
@@ -163,6 +193,7 @@ export class MatchmakingService {
         legacyPunti,
         legacyAvg,
         ruolo,
+        isUnranked,
       };
     });
 
@@ -342,8 +373,8 @@ export class MatchmakingService {
             synergies.push({
               player1Name: p1.nome.split(' ')[0],
               player2Name: p2.nome.split(' ')[0],
-              player1Foto: p1.fotoUrl,
-              player2Foto: p2.fotoUrl,
+              player1Foto: getAvatarUrl(p1.fotoUrl),
+              player2Foto: getAvatarUrl(p2.fotoUrl),
               team: teamKey,
               teamName,
               matchesTogether: syn.matchesTogether,
@@ -643,7 +674,15 @@ export class MatchmakingService {
         const autogol = eventi.filter(
           (eg: any) => eg.idAssegnato === pl.id && eg.isAutogoal,
         ).length;
+        const assist =
+          eventi.filter(
+            (eg: any) =>
+              eg.assistId === pl.id ||
+              (!eg.assistId && eg.assistNome && eg.assistNome === pl.nome),
+          ).length || (pl.assist || 0);
+
         stat.punti += gol * 1 - autogol * 1;
+        stat.punti += assist * 0.5;
         stat.punti += Number(pl.voto) || 0;
       };
 

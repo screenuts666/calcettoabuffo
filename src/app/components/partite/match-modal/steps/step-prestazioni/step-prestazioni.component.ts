@@ -7,6 +7,7 @@ import {
   ModalController,
   AlertController,
   ToastController,
+  ActionSheetController,
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -55,6 +56,12 @@ import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
 import { formatAiMarkdown } from '../../../../../utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../../../ai-tts-button/ai-tts-button.component';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from '../../../../../utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-step-prestazioni',
@@ -69,6 +76,7 @@ import { AiTtsButtonComponent } from '../../../../ai-tts-button/ai-tts-button.co
     IonSpinner,
     MatchPhotoComponent,
     AiTtsButtonComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class StepPrestazioniComponent {
@@ -78,8 +86,17 @@ export class StepPrestazioniComponent {
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
+  private actionSheetCtrl = inject(ActionSheetController);
 
   readonly formatAiMarkdown = formatAiMarkdown;
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   isGeneratingPronostico = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);
@@ -251,6 +268,152 @@ export class StepPrestazioniComponent {
     }
 
     return (giocatore as any)?.autogol || 0;
+  }
+
+  getAssistCount(giocatore: PlayerPerformance): number {
+    const eventi =
+      this.state.eventiGol() ||
+      this.state.matchDataOriginale?.eventiGol ||
+      [];
+    const fromEvents = eventi.filter(
+      (eg: any) =>
+        eg.assistId === giocatore.id ||
+        (!eg.assistId && eg.assistNome && eg.assistNome === giocatore.nome),
+    ).length;
+
+    if (fromEvents > 0) {
+      return fromEvents;
+    }
+
+    return (giocatore as any)?.assist || 0;
+  }
+
+  async modificaAssist(giocatore: any) {
+    if (!this.state.matchDataOriginale?.isAdmin) return;
+
+    const currentAssist = this.getAssistCount(giocatore);
+    const alert = await this.alertCtrl.create({
+      header: `👟 Assist: ${giocatore.nome}`,
+      subHeader: 'Modifica manuale del numero di assist',
+      inputs: [
+        {
+          name: 'assist',
+          type: 'number',
+          min: 0,
+          max: 20,
+          value: currentAssist,
+          placeholder: 'Numero assist',
+        },
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Salva',
+          handler: async (data) => {
+            const val = parseInt(data.assist, 10);
+            if (isNaN(val) || val < 0) return false;
+            this.salvaAssistNelloStato(giocatore.id, val);
+            await this.state.salvaInDatabase(this.state.pagelleInserite(), true);
+            await this.mostraToast(
+              `👟 Assist di ${giocatore.nome} impostati a ${val}`,
+              'success',
+            );
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private salvaAssistNelloStato(id: string, assist: number) {
+    const updateFn = (list: PlayerPerformance[]) =>
+      list.map((g) => (g.id === id ? { ...g, assist } : g));
+    this.state.teamA().some((g: PlayerPerformance) => g.id === id)
+      ? this.state.teamA.update(updateFn)
+      : this.state.teamB.update(updateFn);
+    this.state.tutti.update(updateFn);
+  }
+
+  async modificaAssistEvento(index: number) {
+    if (!this.state.matchDataOriginale?.isAdmin) return;
+
+    const eventi = this.state.eventiGol();
+    const evento = eventi[index];
+    if (!evento || evento.isAutogoal) return;
+
+    const team =
+      evento.teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();
+    const compagni = team.filter((c: any) => c.id !== evento.idAssegnato);
+
+    const buttons = [
+      {
+        text: '⚡ Nessuno / Azione Personale',
+        role: evento.assistId ? undefined : 'selected',
+        handler: async () => {
+          await this.aggiornaAssistEvento(index, null, null);
+        },
+      },
+      ...compagni.map((c: any) => ({
+        text: `👟 Assist di ${c.nome}`,
+        role: evento.assistId === c.id ? 'selected' : undefined,
+        handler: async () => {
+          await this.aggiornaAssistEvento(index, c.id, c.nome);
+        },
+      })),
+      { text: 'Annulla', role: 'cancel' },
+    ];
+
+    const as = await this.actionSheetCtrl.create({
+      header: '👟 Modifica Assist per il gol',
+      subHeader: `Gol di ${evento.nome} (${evento.teamVantaggio === 'A' ? 'Bianchi' : 'Neri'})`,
+      buttons,
+    });
+    await as.present();
+  }
+
+  private async aggiornaAssistEvento(
+    index: number,
+    assistId: string | null,
+    assistNome: string | null,
+  ) {
+    const eventi = [...this.state.eventiGol()];
+    if (!eventi[index]) return;
+
+    eventi[index] = {
+      ...eventi[index],
+      assistId,
+      assistNome,
+    };
+    this.state.eventiGol.set(eventi);
+
+    // Sincronizza i totali assist per tutti i giocatori in base agli eventi
+    this.sincronizzaAssistDaiGoalEventi();
+
+    await this.state.salvaInDatabase(this.state.pagelleInserite(), true);
+    await this.mostraToast(
+      assistNome
+        ? `👟 Assist assegnato a ${assistNome}!`
+        : '⚡ Assist rimosso (Azione personale)',
+      'success',
+    );
+  }
+
+  private sincronizzaAssistDaiGoalEventi() {
+    const eventi = this.state.eventiGol();
+    const syncFn = (list: PlayerPerformance[]) =>
+      list.map((g) => {
+        const count = eventi.filter(
+          (eg: any) =>
+            eg.assistId === g.id ||
+            (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
+        ).length;
+        return { ...g, assist: count };
+      });
+
+    this.state.teamA.update(syncFn);
+    this.state.teamB.update(syncFn);
+    this.state.tutti.update(syncFn);
   }
 
   async apriCondivisione() {

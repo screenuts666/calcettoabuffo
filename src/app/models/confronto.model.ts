@@ -4,6 +4,9 @@ export interface PlayerComparisonProfile {
   id: string;
   nome: string;
   soprannome?: string;
+  annoNascita?: string;
+  peso?: string;
+  altezza?: string;
   fotoUrl?: string;
   piedePreferito?: string;
   ruoloPreferito?: string;
@@ -12,6 +15,7 @@ export interface PlayerComparisonProfile {
   currentMmr: number;
   peakMmr: number;
   tier: MmrTier;
+  isRanked?: boolean;
 
   // Forma
   form: PlayerFormStreak;
@@ -24,9 +28,11 @@ export interface PlayerComparisonProfile {
   losses: number;
   winRate: number; // 0..100
 
-  // Gol, Voti e MVP
+  // Gol, Assist, Voti e MVP
   golTotali: number;
   mediaGol: number;
+  assistTotali: number;
+  mediaAssist: number;
   mediaVoto: number;
   partiteConVoto: number;
   mvpCount: number;

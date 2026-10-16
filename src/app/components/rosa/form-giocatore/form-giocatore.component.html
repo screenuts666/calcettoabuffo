@@ -10,12 +10,7 @@
 <ion-content class="ion-padding deep-black-content">
   <div class="photo-container">
     <ion-avatar class="editable-avatar" (click)="openFilePicker()">
-      <img
-        [src]="
-          anteprimaFoto() ||
-          'https://ionicframework.com/docs/img/demos/avatar.svg'
-        "
-      />
+      <app-player-avatar [fotoUrl]="anteprimaFoto()"></app-player-avatar>
     </ion-avatar>
     <input
       #f

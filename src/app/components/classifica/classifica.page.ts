@@ -28,6 +28,7 @@ import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { addIcons } from 'ionicons';
 import {
   flame,
@@ -56,17 +57,21 @@ import {
   trendingDown,
   swapHorizontal,
   chevronForward,
+  chevronDown,
+  chevronUp,
+  helpCircleOutline,
   filter,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
-import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import { StatsEngineService, BASE_INITIAL_MMR } from 'src/app/services/stats-engine.service';
 import {
   MmrTier,
   PlayerChemistryProfile,
   PlayerFormStreak,
   getMmrTier,
   MMR_TIERS,
+  UNRANKED_TIER,
 } from 'src/app/models/mmr.model';
 import {
   CURRENT_SEASON,
@@ -75,12 +80,17 @@ import {
   getStagionePartita,
   getStagioniDisponibili,
 } from 'src/app/utils/season-utils';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
 
 export type CriterioOrdinamento =
   | 'mmr'
   | 'punti'
   | 'presenze'
   | 'gol'
+  | 'assist'
   | 'mediaVoto'
   | 'wins';
 
@@ -96,6 +106,7 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'punti', label: 'Punti Classici', icon: 'trophy', unit: 'PUNTI' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'MATCH' },
   { id: 'gol', label: 'Gol', icon: 'football', unit: 'GOL' },
+  { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
 ];
@@ -105,6 +116,7 @@ export interface GiocatoreConPunti extends Giocatore {
   puntiVal: number;
   puntiDisplay: string;
   golTotali: number;
+  assistTotali: number;
   mediaVotoVal: number;
   mediaVotoDisplay: string;
   partiteGiocate: number;
@@ -113,6 +125,7 @@ export interface GiocatoreConPunti extends Giocatore {
   losses: number;
 
   // Nuovo Motore MMR & Statistiche
+  isRanked: boolean;
   mmrVal: number;
   mmrDisplay: string;
   tier: MmrTier;
@@ -150,6 +163,7 @@ export interface GiocatoreConPunti extends Giocatore {
     SchedaGiocatoreComponent,
     IonIcon,
     ThemeToggleComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class ClassificaPage {
@@ -176,6 +190,13 @@ export class ClassificaPage {
   // Filtro rapido per Tier o Stato di Forma
   filtroTierOForma = signal<string>('all');
 
+  // Toggle sezione Non Classificati (0 partite)
+  mostraNonClassificati = signal<boolean>(false);
+
+  toggleMostraNonClassificati() {
+    this.mostraNonClassificati.update((v) => !v);
+  }
+
   stagioniList = computed(() => {
     return getStagioniDisponibili(this.partiteRaw());
   });
@@ -184,6 +205,14 @@ export class ClassificaPage {
   giocatoreSelezionato = signal<GiocatoreConPunti | null>(null);
 
   isAdmin = this.authService.isAdmin;
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   giocatoriRaw = toSignal<Giocatore[], Giocatore[]>(
     collectionData(collection(this.firestore, 'giocatori'), {
@@ -219,13 +248,14 @@ export class ClassificaPage {
     const calcolata = giocatori.map((g) => {
       let punti = 0;
       let golTotali = 0;
+      let assistTotali = 0;
       let sommaVoti = 0;
       let partiteGiocate = 0;
       let wins = 0;
       let draws = 0;
       let losses = 0;
 
-      // 1. Calcolo Punteggio Legacy (100% inalterato)
+      // 1. Calcolo Punteggio Legacy (+0.5 per assist)
       partiteStagione.forEach((p: any) => {
         const inTeamA = p.teamA?.find((pl: any) => pl.id === g.id);
         const inTeamB = p.teamB?.find((pl: any) => pl.id === g.id);
@@ -253,23 +283,35 @@ export class ClassificaPage {
 
           const eventi = p.eventiGol || [];
           const golFatti = eventi.filter(
-            (eg: any) => eg.idAssegnato === g.id && !eg.isAutogoal,
+            (eg: any) =>
+              (eg.idAssegnato === g.id || eg.nome === g.nome) && !eg.isAutogoal,
           ).length;
           const autogolFatti = eventi.filter(
-            (eg: any) => eg.idAssegnato === g.id && eg.isAutogoal,
+            (eg: any) =>
+              (eg.idAssegnato === g.id || eg.nome === g.nome) && eg.isAutogoal,
           ).length;
 
+          const playerObj = inTeamA || inTeamB;
+          const assistFatti =
+            eventi.filter(
+              (eg: any) =>
+                eg.assistId === g.id ||
+                (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
+            ).length || (playerObj.assist || 0);
+
           golTotali += golFatti;
+          assistTotali += assistFatti;
           punti += golFatti * 1;
           punti += autogolFatti * -1;
+          punti += assistFatti * 0.5;
 
-          const playerObj = inTeamA || inTeamB;
           const voto = Number(playerObj.voto) || 0;
           sommaVoti += voto;
           punti += voto;
         }
       });
 
+      punti = Math.round(punti * 10) / 10;
       const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
 
       // 2. Dati del Nuovo Motore MMR & Statistiche
@@ -279,10 +321,12 @@ export class ClassificaPage {
           : statsRes.bySeason.get(stagione)?.get(g.id);
 
       const allTimeMmr = statsRes.allTime.get(g.id);
-      const peakMmr = allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? 1000);
-      const mmrVal = playerMmr ? Math.round(playerMmr.currentMmr) : 1000;
-      const tier = playerMmr ? playerMmr.tier : getMmrTier(1000);
-      const form = playerMmr?.form || {
+      const isRanked = partiteGiocate > 0;
+      const mmrVal = isRanked && playerMmr ? Math.round(playerMmr.currentMmr) : BASE_INITIAL_MMR;
+      const mmrDisplay = isRanked ? mmrVal.toString() : '—';
+      const tier = isRanked && playerMmr ? playerMmr.tier : UNRANKED_TIER;
+      const peakMmr = isRanked ? (allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? mmrVal)) : 0;
+      const form = isRanked && playerMmr?.form ? playerMmr.form : {
         currentStreak: 0,
         status: 'neutral' as const,
         statusLabel: 'Costante',
@@ -294,7 +338,7 @@ export class ClassificaPage {
       };
 
       // Trend dall'ultima partita giocata (delta punti con segno)
-      const history = playerMmr?.history || [];
+      const history = isRanked ? (playerMmr?.history || []) : [];
       const lastMatch =
         history.length > 0 ? history[history.length - 1] : null;
       const lastDelta = lastMatch ? lastMatch.delta : null;
@@ -321,17 +365,22 @@ export class ClassificaPage {
 
       return {
         ...g,
+        fotoUrl: getAvatarUrl(g.fotoUrl),
         puntiVal: punti,
-        puntiDisplay: punti.toString(),
+        puntiDisplay: Number.isInteger(punti)
+          ? punti.toString()
+          : punti.toFixed(1),
         golTotali,
+        assistTotali,
         mediaVotoVal: mediaVoto,
         mediaVotoDisplay: mediaVoto.toFixed(2),
         partiteGiocate,
         wins,
         draws,
         losses,
+        isRanked,
         mmrVal,
-        mmrDisplay: mmrVal.toString(),
+        mmrDisplay,
         tier,
         peakMmr,
         lastDelta,
@@ -339,7 +388,7 @@ export class ClassificaPage {
         trendDirection,
         form,
         winRate,
-        rankAssoluto: 1,
+        rankAssoluto: 0,
         chemistry,
       };
     });
@@ -351,8 +400,8 @@ export class ClassificaPage {
       switch (crit) {
         case 'mmr':
           // Chi ha giocato viene prima di chi ha 0 presenze
-          if ((b.partiteGiocate > 0) !== (a.partiteGiocate > 0)) {
-            return b.partiteGiocate > 0 ? 1 : -1;
+          if (b.isRanked !== a.isRanked) {
+            return b.isRanked ? 1 : -1;
           }
           if (b.mmrVal !== a.mmrVal) {
             return b.mmrVal - a.mmrVal;
@@ -392,9 +441,18 @@ export class ClassificaPage {
           }
           return b.puntiVal - a.puntiVal;
 
+        case 'assist':
+          if (b.assistTotali !== a.assistTotali) {
+            return b.assistTotali - a.assistTotali;
+          }
+          if (b.puntiVal !== a.puntiVal) {
+            return b.puntiVal - a.puntiVal;
+          }
+          return b.mmrVal - a.mmrVal;
+
         case 'mediaVoto':
-          if ((b.partiteGiocate > 0) !== (a.partiteGiocate > 0)) {
-            return b.partiteGiocate > 0 ? 1 : -1;
+          if (b.isRanked !== a.isRanked) {
+            return b.isRanked ? 1 : -1;
           }
           if (b.mediaVotoVal !== a.mediaVotoVal) {
             return b.mediaVotoVal - a.mediaVotoVal;
@@ -418,24 +476,46 @@ export class ClassificaPage {
       }
     });
 
-    // Assegna la posizione reale in classifica prima di eventuali filtri visivi
-    ordinata.forEach((item, index) => {
-      item.rankAssoluto = index + 1;
+    // Assegna la posizione reale in classifica solo ai giocatori classificati (1+ match)
+    let rankCounter = 1;
+    ordinata.forEach((item) => {
+      if (item.isRanked) {
+        item.rankAssoluto = rankCounter++;
+      } else {
+        item.rankAssoluto = 0;
+      }
     });
 
     // 4. Filtro opzionale per Tier o Stato di Forma
     const filtro = this.filtroTierOForma();
     if (filtro === 'on_fire') {
-      return ordinata.filter((p) => p.form.status === 'on_fire');
+      return ordinata.filter((p) => p.isRanked && p.form.status === 'on_fire');
     }
     if (filtro === 'in_crisis') {
-      return ordinata.filter((p) => p.form.status === 'in_crisis');
+      return ordinata.filter((p) => p.isRanked && p.form.status === 'in_crisis');
     }
     if (filtro !== 'all') {
-      return ordinata.filter((p) => p.tier.id === filtro);
+      return ordinata.filter((p) => p.isRanked && p.tier.id === filtro);
     }
 
     return ordinata;
+  });
+
+  /**
+   * Giocatori ufficialmente classificati (>= 1 partita giocata)
+   */
+  giocatoriClassificati = computed<GiocatoreConPunti[]>(() => {
+    return this.classificaCalcolata().filter((g) => g.isRanked);
+  });
+
+  /**
+   * Giocatori Non Classificati (0 partite giocate) mostrati in sezione dedicata
+   */
+  giocatoriNonClassificati = computed<GiocatoreConPunti[]>(() => {
+    if (this.filtroTierOForma() !== 'all') {
+      return [];
+    }
+    return this.classificaCalcolata().filter((g) => !g.isRanked);
   });
 
   /**
@@ -575,6 +655,9 @@ export class ClassificaPage {
       trendingDown,
       swapHorizontal,
       chevronForward,
+      chevronDown,
+      chevronUp,
+      helpCircleOutline,
       filter,
     });
   }
@@ -601,13 +684,15 @@ export class ClassificaPage {
   } {
     switch (this.criterioOrdinamento()) {
       case 'mmr':
-        return { valore: g.mmrVal, etichetta: 'MMR' };
+        return { valore: g.isRanked ? g.mmrVal : '—', etichetta: 'MMR' };
       case 'presenze':
         return { valore: g.partiteGiocate, etichetta: 'MATCH' };
       case 'gol':
         return { valore: g.golTotali, etichetta: 'GOL' };
+      case 'assist':
+        return { valore: g.assistTotali, etichetta: 'ASSIST' };
       case 'mediaVoto':
-        return { valore: g.mediaVotoDisplay, etichetta: 'MEDIA' };
+        return { valore: g.isRanked ? g.mediaVotoDisplay : '—', etichetta: 'MEDIA' };
       case 'wins':
         return { valore: g.wins, etichetta: 'VITTORIE' };
       case 'punti':
@@ -694,7 +779,9 @@ export class ClassificaPage {
       if (this.criterioOrdinamento() === 'mmr') {
         msg += `   └ 🛡️ *${g.mmrVal} MMR*${trendStr} | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match | ⭐ ${g.mediaVotoDisplay}\n`;
       } else if (this.criterioOrdinamento() === 'gol') {
-        msg += `   └ ⚽ *${g.golTotali} Gol* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
+        msg += `   └ ⚽ *${g.golTotali} Gol* | 👟 ${g.assistTotali} assist | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
+      } else if (this.criterioOrdinamento() === 'assist') {
+        msg += `   └ 👟 *${g.assistTotali} Assist* | ⚽ ${g.golTotali} gol | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
       } else if (this.criterioOrdinamento() === 'presenze') {
         msg += `   └ 👥 *${g.partiteGiocate} Match* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
       } else if (this.criterioOrdinamento() === 'mediaVoto') {
@@ -702,7 +789,7 @@ export class ClassificaPage {
       } else if (this.criterioOrdinamento() === 'wins') {
         msg += `   └ 🔥 *${g.wins} Vittorie* (V${g.wins}-P${g.draws}-S${g.losses}) | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
       } else {
-        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 🛡️ ${g.mmrVal} MMR${trendStr} | 👥 ${g.partiteGiocate} match | ⚽ ${g.golTotali} gol\n`;
+        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 🛡️ ${g.mmrVal} MMR${trendStr} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
       }
     });
 

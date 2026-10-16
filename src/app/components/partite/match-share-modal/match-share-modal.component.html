@@ -117,6 +117,16 @@
             ></ion-icon>
             <ion-label>🎙️ Cronaca AI</ion-label>
           </ion-chip>
+
+          <ion-chip
+            (click)="inviaAudioCronacaWhatsApp()"
+            class="ai-chip audio-direct-chip"
+            [disabled]="isSharingAudio()"
+            title="Invia direttamente l'audio della telecronaca su WhatsApp"
+          >
+            <ion-icon name="logo-whatsapp" color="success"></ion-icon>
+            <ion-label>{{ isSharingAudio() ? 'Preparazione...' : '🎧 Audio WhatsApp' }}</ion-label>
+          </ion-chip>
         } @else {
           <ion-chip
             (click)="generaCronaca()"
@@ -159,12 +169,29 @@
       expand="block"
       color="success"
       class="whatsapp-primary-btn"
-      [disabled]="isSharingNative()"
+      [disabled]="isSharingNative() || isSharingAudio()"
       (click)="inviaWhatsApp()"
     >
       <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
       <span>{{ includeFoto() && partita.fotoUrl ? 'Invia Foto + Report su WhatsApp' : 'Invia su WhatsApp' }}</span>
     </ion-button>
+
+    @if (hasCronacaDisponibile()) {
+      <ion-button
+        expand="block"
+        class="whatsapp-audio-action-btn"
+        [disabled]="isSharingAudio() || isSharingNative()"
+        (click)="inviaAudioCronacaWhatsApp()"
+      >
+        @if (isSharingAudio()) {
+          <ion-spinner name="crescent" slot="start"></ion-spinner>
+          <span>Preparazione audio WhatsApp...</span>
+        } @else {
+          <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+          <span>🎧 Invia Audio Telecronaca su WhatsApp</span>
+        }
+      </ion-button>
+    }
 
     <div class="secondary-actions-row">
       <ion-button
@@ -172,7 +199,7 @@
         fill="outline"
         color="light"
         class="sub-action-btn"
-        [disabled]="isSharingNative()"
+        [disabled]="isSharingNative() || isSharingAudio()"
         (click)="condividiNativo()"
       >
         <ion-icon name="share-social-outline" slot="start"></ion-icon>

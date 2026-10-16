@@ -93,6 +93,8 @@
             ⚽ {{ gol.nome }}
             @if (gol.isAutogoal) {
               <span class="autogol-text">(Autogol)</span>
+            } @else if (gol.assistNome) {
+              <span class="assist-text">👟 {{ gol.assistNome }}</span>
             }
           </span>
         </div>

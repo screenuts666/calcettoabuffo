@@ -22,6 +22,12 @@ import {
 } from 'src/app/services/matchmaking.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { MatchmakingModalComponent } from './matchmaking-modal/matchmaking-modal.component';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-step-squadre',
@@ -35,6 +41,7 @@ import { MatchmakingModalComponent } from './matchmaking-modal/matchmaking-modal
     IonFabButton,
     IonIcon,
     MatchmakingModalComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class StepSquadreComponent {
@@ -42,6 +49,14 @@ export class StepSquadreComponent {
   private matchmakingService = inject(MatchmakingService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   isMatchmakingOpen = signal<boolean>(false);
   proposals = signal<MatchmakingProposal[]>([]);

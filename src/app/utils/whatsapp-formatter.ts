@@ -51,6 +51,7 @@ function formatDataItaliana(dataIso?: string): string {
 function formatTeamRoster(
   giocatori: PlayerPerformance[] = [],
   includeMarcatori: boolean,
+  eventiGol: any[] = [],
 ): string {
   if (!giocatori || giocatori.length === 0)
     return '_Nessun convocato registrato_';
@@ -61,10 +62,21 @@ function formatTeamRoster(
       if (includeMarcatori) {
         const gol = g.gol || 0;
         const autogol = g.autogol || 0;
+        const assist =
+          g.assist ??
+          eventiGol.filter(
+            (e) =>
+              e.assistId === g.id ||
+              (!e.assistId && e.assistNome && e.assistNome === g.nome),
+          ).length;
+
         const indicatori: string[] = [];
 
         if (gol > 0) {
           indicatori.push(gol === 1 ? '⚽' : `⚽ x${gol}`);
+        }
+        if (assist > 0) {
+          indicatori.push(assist === 1 ? '👟' : `👟 x${assist}`);
         }
         if (autogol > 0) {
           indicatori.push(autogol === 1 ? '(AG)' : `(AG x${autogol})`);
@@ -145,11 +157,23 @@ export function formatMatchForWhatsApp(
     parts.push('');
     parts.push('👥 *PRESENZE E FORMAZIONI*');
     parts.push(
-      `*Bianchi:* ${formatTeamRoster(partita.teamA, options.includeMarcatori)}`,
+      `*Bianchi:* ${formatTeamRoster(partita.teamA, options.includeMarcatori, partita.eventiGol)}`,
     );
     parts.push(
-      `*Neri:* ${formatTeamRoster(partita.teamB, options.includeMarcatori)}`,
+      `*Neri:* ${formatTeamRoster(partita.teamB, options.includeMarcatori, partita.eventiGol)}`,
     );
+
+    // Se ci sono gol con assist registrati nel tabellino
+    const eventiConAssist = (partita.eventiGol || []).filter(
+      (e) => !e.isAutogoal && e.assistNome,
+    );
+    if (options.includeMarcatori && eventiConAssist.length > 0) {
+      parts.push('');
+      parts.push('👟 *ASSIST VINCENTI:*');
+      for (const eg of eventiConAssist) {
+        parts.push(`• ⚽ ${eg.nome} _(assist di ${eg.assistNome})_`);
+      }
+    }
   }
 
   // Cronaca Sportiva Ignorante (Gemini AI)

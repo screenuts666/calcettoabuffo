@@ -88,6 +88,12 @@
   ion-icon {
     font-size: 1rem;
   }
+
+  &.unranked-hero-badge {
+    border-color: #71717a;
+    background: rgba(113, 113, 122, 0.15);
+    color: #a1a1aa;
+  }
 }
 
 .form-badge-large {
@@ -552,6 +558,19 @@
 }
 .text-warning {
   color: var(--ion-color-warning);
+}
+
+.card-cyan {
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.5);
+}
+.text-cyan {
+  color: #00b4d8;
+}
+.stat-emoji-icon {
+  font-size: 1.4rem;
+  display: inline-block;
+  margin-bottom: 2px;
 }
 
 .card-dark {

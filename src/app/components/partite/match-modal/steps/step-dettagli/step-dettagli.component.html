@@ -72,7 +72,9 @@
         <div class="fixed-check-badge">
           <ion-icon name="checkmark" color="light"></ion-icon>
         </div>
-        <ion-avatar><img loading="lazy" [src]="g.fotoUrl" /></ion-avatar>
+        <ion-avatar>
+          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+        </ion-avatar>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
     </div>

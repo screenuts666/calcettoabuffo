@@ -12,6 +12,12 @@ import {
 import { addIcons } from 'ionicons';
 import { closeCircle, search } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from '../../../../../utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-step-convocati',
@@ -27,10 +33,19 @@ import { MatchStateService } from '../../match-state.service';
     IonCheckbox,
     IonSearchbar,
     IonIcon,
+    PlayerAvatarComponent,
   ],
 })
 export class StepConvocatiComponent {
   public state = inject(MatchStateService);
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   constructor() {
     addIcons({ closeCircle, search });

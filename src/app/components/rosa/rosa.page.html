@@ -1,6 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Rosa Giocatori</ion-title>
+    <ion-title>
+      <span>Rosa Giocatori</span>
+      <span class="title-counter-badge">{{ tuttiIGiocatori().length }}</span>
+    </ion-title>
     <ion-buttons slot="end">
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
@@ -18,6 +21,17 @@
         class="custom-searchbar"
       >
       </ion-searchbar>
+
+      <div class="counter-strip">
+        <div class="counter-badge">
+          <ion-icon name="people"></ion-icon>
+          @if (filtro().trim()) {
+            <span>Trovati <b>{{ giocatoriFiltrati().length }}</b> su {{ tuttiIGiocatori().length }} giocatori</span>
+          } @else {
+            <span><b>{{ tuttiIGiocatori().length }}</b> giocatori in rosa</span>
+          }
+        </div>
+      </div>
     </div>
 
     @if (giocatoriFiltrati().length === 0) {
@@ -33,7 +47,7 @@
       <ion-item-sliding #slidingItem>
         <ion-item lines="full" class="player-item" (click)="apriModale(g)">
           <ion-avatar slot="start">
-            <img [src]="g.fotoUrl || DEFAULT_AVATAR" />
+            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
           </ion-avatar>
           <ion-label>
             <div class="name-row">
