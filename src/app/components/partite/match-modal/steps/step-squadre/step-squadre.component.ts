@@ -26,6 +26,7 @@ import {
   getAvatarUrl,
   handleAvatarError,
 } from 'src/app/utils/avatar-utils';
+import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
@@ -71,8 +72,23 @@ export class StepSquadreComponent {
     if (teamA.length === 0 || teamB.length === 0) return null;
 
     const statsRes = this.statsEngine.statsResult();
-    const getMmr = (p: any) =>
-      statsRes.allTime.get(p.id)?.currentMmr ?? 1000;
+    const activeSeasonId = this.state.stagione() || CURRENT_SEASON;
+    const seasonMap =
+      activeSeasonId && activeSeasonId !== 'Tutte'
+        ? statsRes.bySeason.get(activeSeasonId)
+        : null;
+
+    const getMmr = (p: any) => {
+      const s = seasonMap?.get(p.id);
+      if (s) {
+        return s.partiteGiocate > 0 ? s.currentMmr : (s.seasonStartMmr ?? 1000);
+      }
+      const a = statsRes.allTime.get(p.id);
+      if (a) {
+        return a.partiteGiocate > 0 ? a.currentMmr : (a.seasonStartMmr ?? 1000);
+      }
+      return 1000;
+    };
 
     const avgA = Math.round(
       teamA.reduce((s, p) => s + getMmr(p), 0) / teamA.length,
@@ -127,7 +143,10 @@ export class StepSquadreComponent {
       return;
     }
 
-    const generated = this.matchmakingService.generateProposals(pool);
+    const generated = this.matchmakingService.generateProposals(
+      pool,
+      this.state.stagione() || CURRENT_SEASON,
+    );
     if (!generated || generated.length === 0) {
       const toast = await this.toastCtrl.create({
         message: 'Impossibile generare combinazioni con i giocatori attuali.',

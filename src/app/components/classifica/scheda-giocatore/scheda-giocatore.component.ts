@@ -49,6 +49,7 @@ import {
   refreshOutline,
   documentTextOutline,
   helpCircleOutline,
+  hourglassOutline,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from '../classifica.page';
 import { GeminiService } from 'src/app/services/gemini.service';
@@ -133,6 +134,7 @@ export class SchedaGiocatoreComponent {
       refreshOutline,
       documentTextOutline,
       helpCircleOutline,
+      hourglassOutline,
     });
   }
 

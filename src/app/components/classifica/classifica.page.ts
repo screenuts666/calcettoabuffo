@@ -60,6 +60,7 @@ import {
   chevronDown,
   chevronUp,
   helpCircleOutline,
+  informationCircleOutline,
   filter,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
@@ -72,6 +73,7 @@ import {
   getMmrTier,
   MMR_TIERS,
   UNRANKED_TIER,
+  PastSeasonBanner,
 } from 'src/app/models/mmr.model';
 import {
   CURRENT_SEASON,
@@ -126,6 +128,7 @@ export interface GiocatoreConPunti extends Giocatore {
 
   // Nuovo Motore MMR & Statistiche
   isRanked: boolean;
+  seasonStartMmr?: number;
   mmrVal: number;
   mmrDisplay: string;
   tier: MmrTier;
@@ -139,6 +142,9 @@ export interface GiocatoreConPunti extends Giocatore {
 
   // Profilo Chimica di Coppia
   chemistry?: PlayerChemistryProfile;
+
+  // Albo d'Oro / Medaglieri stagioni passate
+  pastSeasonsBanners?: PastSeasonBanner[];
 }
 
 @Component({
@@ -195,6 +201,13 @@ export class ClassificaPage {
 
   toggleMostraNonClassificati() {
     this.mostraNonClassificati.update((v) => !v);
+  }
+
+  // Toggle Modal / Box Guida Ranghi & Regolamento MMR
+  isGuidaRanghiOpen = signal<boolean>(false);
+
+  toggleGuidaRanghi() {
+    this.isGuidaRanghiOpen.update((v) => !v);
   }
 
   stagioniList = computed(() => {
@@ -322,10 +335,12 @@ export class ClassificaPage {
 
       const allTimeMmr = statsRes.allTime.get(g.id);
       const isRanked = partiteGiocate > 0;
-      const mmrVal = isRanked && playerMmr ? Math.round(playerMmr.currentMmr) : BASE_INITIAL_MMR;
+      const seasonStartMmr = playerMmr?.seasonStartMmr ?? BASE_INITIAL_MMR;
+      const mmrVal = isRanked && playerMmr ? Math.round(playerMmr.currentMmr) : seasonStartMmr;
       const mmrDisplay = isRanked ? mmrVal.toString() : '—';
       const tier = isRanked && playerMmr ? playerMmr.tier : UNRANKED_TIER;
       const peakMmr = isRanked ? (allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? mmrVal)) : 0;
+      const pastSeasonsBanners = playerMmr?.pastSeasonsBanners || allTimeMmr?.pastSeasonsBanners || [];
       const form = isRanked && playerMmr?.form ? playerMmr.form : {
         currentStreak: 0,
         status: 'neutral' as const,
@@ -390,6 +405,8 @@ export class ClassificaPage {
         winRate,
         rankAssoluto: 0,
         chemistry,
+        seasonStartMmr,
+        pastSeasonsBanners,
       };
     });
 
@@ -536,6 +553,7 @@ export class ClassificaPage {
       draws: number;
       losses: number;
       winRate: number;
+      avgDeltaTogether?: number;
     }[] = [];
 
     for (const [p1Id, prof] of chemMap.entries()) {
@@ -558,6 +576,7 @@ export class ClassificaPage {
           draws: s.drawsTogether,
           losses: s.lossesTogether,
           winRate: s.winRateTogether,
+          avgDeltaTogether: s.avgMmrDeltaTogether,
         });
       }
     }
@@ -658,6 +677,7 @@ export class ClassificaPage {
       chevronDown,
       chevronUp,
       helpCircleOutline,
+      informationCircleOutline,
       filter,
     });
   }

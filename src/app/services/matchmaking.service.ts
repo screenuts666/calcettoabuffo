@@ -10,6 +10,7 @@ import { RuoloPreferito } from '../models/ruolo-preferito.enum';
 import { Giocatore } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
 import { getAvatarUrl } from '../utils/avatar-utils';
+import { CURRENT_SEASON } from '../utils/season-utils';
 
 export interface SynergyHighlight {
   player1Name: string;
@@ -117,7 +118,10 @@ export class MatchmakingService {
   /**
    * Genera le 2 o 3 migliori combinazioni equilibrate partendo dall'elenco dei giocatori convocati.
    */
-  generateProposals(players: any[]): MatchmakingProposal[] {
+  generateProposals(
+    players: any[],
+    targetSeason: string = CURRENT_SEASON,
+  ): MatchmakingProposal[] {
     if (!players || players.length < 2) return [];
 
     const statsRes = this.statsEngine.statsResult();
@@ -130,42 +134,55 @@ export class MatchmakingService {
       if (g.id) metaMap.set(g.id, g);
     }
 
+    const activeSeasonId = targetSeason || CURRENT_SEASON;
+    const seasonMap =
+      activeSeasonId && activeSeasonId !== 'Tutte'
+        ? statsRes.bySeason.get(activeSeasonId)
+        : null;
+
     // 1. Arricchimento dati giocatore (MMR, Forma, Legacy, Ruolo, Chimica)
     const enrichedPlayers: EnrichedPlayer[] = players.map((p) => {
       const meta = metaMap.get(p.id);
-      const mmrStats = statsRes.allTime.get(p.id);
-      const isUnranked = !mmrStats || mmrStats.partiteGiocate === 0;
+      const seasonStats = seasonMap?.get(p.id);
+      const allTimeStats = statsRes.allTime.get(p.id);
+
+      // Determinazione MMR:
+      // Se il giocatore ha giocato almeno 1 partita nella stagione attiva, usa seasonStats.currentMmr.
+      // Se ha 0 presenze nella stagione attiva, usa seasonStats.seasonStartMmr (seed calcolato col soft reset 35% o 1000).
+      // Altrimenti fallback all-time o BASE_INITIAL_MMR (1000).
+      let mmr = BASE_INITIAL_MMR;
+      let isUnranked = false;
+
+      if (seasonStats) {
+        if (seasonStats.partiteGiocate > 0) {
+          mmr = Math.round(seasonStats.currentMmr);
+          isUnranked = false;
+        } else {
+          mmr = Math.round(seasonStats.seasonStartMmr ?? BASE_INITIAL_MMR);
+          isUnranked = true;
+        }
+      } else if (allTimeStats) {
+        if (allTimeStats.partiteGiocate > 0) {
+          mmr = Math.round(allTimeStats.currentMmr);
+          isUnranked = false;
+        } else {
+          mmr = Math.round(allTimeStats.seasonStartMmr ?? BASE_INITIAL_MMR);
+          isUnranked = true;
+        }
+      } else {
+        mmr = BASE_INITIAL_MMR;
+        isUnranked = true;
+      }
+
+      const activeStats = seasonStats || allTimeStats;
+      const tier = !isUnranked && activeStats ? activeStats.tier : getMmrTier(mmr);
 
       const legInfo = legacyMap.get(p.id);
       const legacyPunti = legInfo?.punti ?? (p.punti ?? meta?.punti ?? 0);
       const legacyAvg = legInfo?.mediaPunti ?? 0;
 
-      let mmr = BASE_INITIAL_MMR;
-      if (!isUnranked && mmrStats) {
-        mmr = Math.round(mmrStats.currentMmr);
-      } else {
-        // Stima provvisoria basata su storico legacy/skill per bilanciare al meglio le squadre
-        const mediaVoto = (meta?.mediaVoto && meta.mediaVoto > 0)
-          ? meta.mediaVoto
-          : 6.0;
-
-        const legacyMediaPunti = (meta?.punti && meta?.partiteGiocate)
-          ? (meta.punti / meta.partiteGiocate)
-          : (legInfo?.mediaPunti || 5.0);
-
-        let stima = BASE_INITIAL_MMR;
-        stima += (mediaVoto - 6.0) * 60;
-        stima += (legacyMediaPunti - 5.0) * 12;
-        const gol = meta?.gol || p.gol || 0;
-        if (gol > 5) stima += 20;
-
-        mmr = Math.round(Math.max(820, Math.min(1120, stima)));
-      }
-
-      const tier = !isUnranked && mmrStats ? mmrStats.tier : getMmrTier(mmr);
-
-      const streak = mmrStats?.form.currentStreak ?? 0;
-      const formStatus = mmrStats?.form.status ?? 'neutral';
+      const streak = activeStats?.form.currentStreak ?? 0;
+      const formStatus = activeStats?.form.status ?? 'neutral';
 
       // Calcolo moltiplicatore di forma attiva
       let effectiveMmr = mmr;
@@ -289,29 +306,41 @@ export class MatchmakingService {
     const onFireDiff = Math.abs(onFireA - onFireB);
 
     // Chimica di Coppia (Sinergie nei rispettivi team)
-    const { synergies: synergiesA, score: synergyScoreA } =
-      this.extractTeamSynergies(teamA, 'A', 'Bianchi', chemistryMap);
-    const { synergies: synergiesB, score: synergyScoreB } =
-      this.extractTeamSynergies(teamB, 'B', 'Neri', chemistryMap);
+    const {
+      synergies: synergiesA,
+      score: synergyScoreA,
+      superPairsCount: superPairsA,
+    } = this.extractTeamSynergies(teamA, 'A', 'Bianchi', chemistryMap);
+    const {
+      synergies: synergiesB,
+      score: synergyScoreB,
+      superPairsCount: superPairsB,
+    } = this.extractTeamSynergies(teamB, 'B', 'Neri', chemistryMap);
     const synergyDiff = Math.abs(synergyScoreA - synergyScoreB);
+    const superPairsSkew = Math.abs(superPairsA - superPairsB);
+
+    // Peso 75% (Equilibrio MMR) + Peso 25% (Fattore Chimica)
+    const mmrPenalty = diffMmr * 1.8 + probDiff * 2.2;
+    const chemPenalty = synergyDiff * 0.45 + superPairsSkew * 35;
 
     // Punteggio di penalità combinato (più basso è, più la partita è bilanciata)
     const penaltyOverall =
-      probDiff * 25 +
-      effectiveDiff * 0.7 +
+      mmrPenalty * 0.75 +
+      chemPenalty * 0.25 +
       rolePenalty +
-      legacyDiff * 6 +
-      onFireDiff * 12 +
-      synergyDiff * 0.35;
+      effectiveDiff * 0.35 +
+      legacyDiff * 3 +
+      onFireDiff * 8;
 
     // Percentuale di equilibrio (0..100%)
     let balanceScore = Math.round(
       100 -
-        probDiff * 3.5 -
+        diffMmr * 1.2 * 0.75 -
+        probDiff * 1.5 * 0.75 -
+        chemPenalty * 0.25 * 0.15 -
         (gkPenalty > 0 ? 25 : 0) -
-        defDiff * 3 -
-        attDiff * 3 -
-        effectiveDiff * 0.08,
+        defDiff * 2 -
+        attDiff * 2,
     );
     balanceScore = Math.max(1, Math.min(100, balanceScore));
 
@@ -358,9 +387,10 @@ export class MatchmakingService {
     teamKey: 'A' | 'B',
     teamName: 'Bianchi' | 'Neri',
     chemistryMap: Map<string, PlayerChemistryProfile>,
-  ): { synergies: SynergyHighlight[]; score: number } {
+  ): { synergies: SynergyHighlight[]; score: number; superPairsCount: number } {
     const synergies: SynergyHighlight[] = [];
     let score = 0;
+    let superPairsCount = 0;
     const handledPairs = new Set<string>();
 
     for (let i = 0; i < team.length; i++) {
@@ -375,6 +405,9 @@ export class MatchmakingService {
         const syn = profile1?.allSynergies?.find((s) => s.partnerId === p2.id);
 
         if (syn && syn.matchesTogether >= 2) {
+          if (syn.winRateTogether >= 75) {
+            superPairsCount++;
+          }
           if (syn.winRateTogether >= 60) {
             score +=
               (syn.winRateTogether - 50) * Math.min(syn.matchesTogether, 5);
@@ -398,7 +431,7 @@ export class MatchmakingService {
       }
     }
 
-    return { synergies, score };
+    return { synergies, score, superPairsCount };
   }
 
   /**

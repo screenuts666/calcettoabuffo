@@ -113,6 +113,15 @@
         >
           ❄️ In Crisi
         </button>
+        <button
+          type="button"
+          class="filter-chip guide-chip"
+          [class.active]="isGuidaRanghiOpen()"
+          (click)="toggleGuidaRanghi()"
+          title="Info su soglie MMR, Soft Reset e Rango Fenomeno"
+        >
+          ℹ️ Ranghi MMR
+        </button>
         @for (t of MMR_TIERS; track t.id) {
           <button
             type="button"
@@ -133,6 +142,66 @@
 <ion-content>
   <!-- VISTA 1: CLASSIFICA GENERALE CON MMR E PUNTEGGIO LEGACY AFFIANCATI -->
   @if (vistaSelezionata() === 'classifica') {
+    @if (isGuidaRanghiOpen()) {
+      <div class="mmr-guide-card">
+        <div class="guide-card-header">
+          <div class="guide-title">
+            <span class="guide-icon">🏆</span>
+            <div>
+              <h3>Regolamento MMR & Piramide Ranghi</h3>
+              <p>Stile League of Legends adattato al campionato (11-15 match/anno)</p>
+            </div>
+          </div>
+          <button type="button" class="guide-close-btn" (click)="toggleGuidaRanghi()">✕</button>
+        </div>
+
+        <div class="guide-tiers-grid">
+          <div class="tier-info-box" style="--tier-c: #71717a">
+            <span class="t-name">🔩 Ferro</span>
+            <span class="t-thresh">&lt; 930 MMR</span>
+          </div>
+          <div class="tier-info-box" style="--tier-c: #CD7F32">
+            <span class="t-name">🥉 Bronzo</span>
+            <span class="t-thresh">930 - 999 MMR</span>
+          </div>
+          <div class="tier-info-box" style="--tier-c: #A8A29E">
+            <span class="t-name">🥈 Argento</span>
+            <span class="t-thresh">1000 - 1069 MMR</span>
+          </div>
+          <div class="tier-info-box" style="--tier-c: #EAB308">
+            <span class="t-name">🥇 Oro</span>
+            <span class="t-thresh">1070 - 1139 MMR</span>
+          </div>
+          <div class="tier-info-box" style="--tier-c: #06B6D4">
+            <span class="t-name">🩵 Platino</span>
+            <span class="t-thresh">1140 - 1209 MMR</span>
+          </div>
+          <div class="tier-info-box" style="--tier-c: #3B82F6">
+            <span class="t-name">💎 Diamante</span>
+            <span class="t-thresh">&ge; 1210 MMR</span>
+          </div>
+          <div class="tier-info-box fenomeno-box" style="--tier-c: #EF4444">
+            <span class="t-name">🏆 Fenomeno</span>
+            <span class="t-thresh">Challenger: Top 1 assoluto (o Top 2 se &ge;10 match e MMR &ge;1300) + &ge;1275 MMR stagionale + costanza presenze!</span>
+          </div>
+        </div>
+
+        <div class="guide-bullet-points">
+          <div class="guide-bullet">
+            <strong>⏳ Piazzamento Rapido:</strong> Basta 1 sola partita giocata per piazzarsi e sbloccare il rango (con calibrazione 1.35x).
+          </div>
+          <div class="guide-bullet">
+            <strong>🔄 Soft Reset Stagionale:</strong> Compressione del 35% verso la base 1000 (Seed clampato tra 920 e 1130 MMR).
+          </div>
+          <div class="guide-bullet">
+            <strong>⚖️ K-Factor 28 & Anti-Inflazione:</strong> Guadagni equilibrati in base alle quote pre-match, scarto gol e pagella (voto vs 6.5).
+          </div>
+          <div class="guide-bullet">
+            <strong>🏆 Punti Classici Intatti:</strong> Il sistema legacy lavora in parallelo e non viene mai toccato o rimosso!
+          </div>
+        </div>
+      </div>
+    }
     <ion-list lines="full" class="classifica-list">
       <!-- GIOCATORI UFFICIALMENTE CLASSIFICATI (1+ MATCH) -->
       @for (g of giocatoriClassificati(); track g.id; let i = $index) {
@@ -278,7 +347,7 @@
         }
       }
 
-      <!-- SEZIONE COLLASSATA PER GIOCATORI NON CLASSIFICATI (0 MATCH) -->
+      <!-- SEZIONE COLLASSATA PER GIOCATORI IN PIAZZAMENTO (0 MATCH) -->
       @if (giocatoriNonClassificati().length > 0) {
         <div class="unranked-section">
           <button
@@ -287,9 +356,9 @@
             (click)="toggleMostraNonClassificati()"
           >
             <div class="unranked-header-left">
-              <span class="unranked-icon-tag">⚪</span>
+              <span class="unranked-icon-tag">⏳</span>
               <span class="unranked-title-text">
-                Non Classificati ({{ giocatoriNonClassificati().length }} con 0 presenze)
+                In Piazzamento ({{ giocatoriNonClassificati().length }} giocatori con 0 presenze)
               </span>
             </div>
             <ion-icon
@@ -308,7 +377,7 @@
                   class="player-rank-item unranked-item"
                 >
                   <div slot="start" class="rank-col">
-                    <span class="rank-badge rank-unranked">—</span>
+                    <span class="rank-badge rank-unranked">⏳</span>
                   </div>
 
                   <div slot="start" class="avatar-col">
@@ -327,14 +396,14 @@
                       }
                       <span class="tier-pill unranked-pill">
                         <ion-icon name="help-circle-outline"></ion-icon>
-                        <span>Non Classificato</span>
+                        <span>In Piazzamento</span>
                       </span>
                     </div>
 
                     <div class="scores-duo-row">
-                      <div class="score-chip unranked-chip">
-                        <span class="score-chip-label">MMR</span>
-                        <span class="score-chip-val">—</span>
+                      <div class="score-chip unranked-chip" title="Seed iniziale per il bilanciamento squadre">
+                        <span class="score-chip-label">SEED</span>
+                        <span class="score-chip-val">{{ ug.seasonStartMmr || 1000 }}</span>
                       </div>
                       <div class="score-chip legacy-chip">
                         <span class="score-chip-label">CLASSICO</span>
@@ -343,13 +412,13 @@
                     </div>
 
                     <p class="stats-sub-row unranked-sub">
-                      <span>Nessuna presenza registrata</span>
+                      <span>⏳ 1 match richiesto per sbloccare il rango ufficiale</span>
                     </p>
                   </ion-label>
 
                   <div slot="end" class="stat-highlight-box unranked-highlight">
-                    <span class="stat-highlight-val unranked-dash">—</span>
-                    <span class="stat-highlight-label">UNRANKED</span>
+                    <span class="stat-highlight-val unranked-dash">⏳</span>
+                    <span class="stat-highlight-label">PROVISIONAL</span>
                   </div>
                 </ion-item>
               }
@@ -390,7 +459,7 @@
                 (click)="apriDettagliPerId(duo.p1Id)"
                 title="Vedi scheda {{ duo.p1Nome }}"
               >
-                <app-player-avatar [fotoUrl]="duo.p1Foto" [alt]="duo.p1Nome"></app-player-avatar>
+                <app-player-avatar class="duo-avatar" [fotoUrl]="duo.p1Foto" [alt]="duo.p1Nome"></app-player-avatar>
                 <span class="mini-name">{{ duo.p1Nome }}</span>
               </div>
 
@@ -401,13 +470,18 @@
                 (click)="apriDettagliPerId(duo.p2Id)"
                 title="Vedi scheda {{ duo.p2Nome }}"
               >
-                <app-player-avatar [fotoUrl]="duo.p2Foto" [alt]="duo.p2Nome"></app-player-avatar>
+                <app-player-avatar class="duo-avatar" [fotoUrl]="duo.p2Foto" [alt]="duo.p2Nome"></app-player-avatar>
                 <span class="mini-name">{{ duo.p2Nome }}</span>
               </div>
             </div>
 
             <div class="duo-stats">
               <div class="duo-rate">{{ duo.winRate }}% Vittorie</div>
+              @if (duo.avgDeltaTogether !== undefined) {
+                <div class="duo-delta" [class.positive]="duo.avgDeltaTogether >= 0" [class.negative]="duo.avgDeltaTogether < 0">
+                  ⚡ Delta MMR medio: {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} pt/partita
+                </div>
+              }
               <div class="duo-record">
                 {{ duo.wins }}V - {{ duo.draws }}P - {{ duo.losses }}S ({{ duo.matches }} partite insieme)
               </div>
@@ -436,7 +510,7 @@
                 (click)="apriDettagliPerId(riv.p1Id)"
                 title="Vedi scheda {{ riv.p1Nome }}"
               >
-                <app-player-avatar [fotoUrl]="riv.p1Foto" [alt]="riv.p1Nome"></app-player-avatar>
+                <app-player-avatar class="duo-avatar" [fotoUrl]="riv.p1Foto" [alt]="riv.p1Nome"></app-player-avatar>
                 <span class="mini-name">{{ riv.p1Nome }}</span>
               </div>
 
@@ -447,7 +521,7 @@
                 (click)="apriDettagliPerId(riv.p2Id)"
                 title="Vedi scheda {{ riv.p2Nome }}"
               >
-                <app-player-avatar [fotoUrl]="riv.p2Foto" [alt]="riv.p2Nome"></app-player-avatar>
+                <app-player-avatar class="duo-avatar" [fotoUrl]="riv.p2Foto" [alt]="riv.p2Nome"></app-player-avatar>
                 <span class="mini-name">{{ riv.p2Nome }}</span>
               </div>
             </div>
