@@ -508,6 +508,66 @@
 }
 
 // ===============================
+// GRIGLIA DETTAGLI PERSONALI
+// ===============================
+.personal-bio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin: 0 0 16px 0;
+
+  .bio-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+    .bio-pill-icon {
+      font-size: 1.15rem;
+      flex-shrink: 0;
+    }
+
+    .bio-pill-text {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+
+      .bio-pill-label {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--app-text-muted);
+        letter-spacing: 0.3px;
+      }
+
+      .bio-pill-val {
+        font-size: 0.8rem;
+        font-weight: 750;
+        color: var(--app-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    &.vizi-pill {
+      grid-column: 1 / -1;
+      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.07);
+
+      .bio-pill-val {
+        color: #f59e0b;
+        white-space: normal;
+      }
+    }
+  }
+}
+
+// ===============================
 // GRIGLIA STATISTICHE LEGACY
 // ===============================
 .stat-col {

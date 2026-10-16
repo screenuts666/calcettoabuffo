@@ -10,6 +10,10 @@ export interface PlayerComparisonProfile {
   fotoUrl?: string;
   piedePreferito?: string;
   ruoloPreferito?: string;
+  professione?: string;
+  origini?: string;
+  statoCivile?: string;
+  vizi?: string;
 
   // MMR
   currentMmr: number;

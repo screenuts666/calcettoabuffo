@@ -116,6 +116,64 @@
         ></ion-input>
       </ion-item>
     </div>
+
+    <div class="section-divider">
+      <span>Dettagli Personali & Bio</span>
+    </div>
+
+    <div class="grid-row">
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          label="Mestiere / Professione"
+          labelPlacement="stacked"
+          placeholder="Es. Geometra, Elettricista"
+          [value]="professione()"
+          (ionInput)="professione.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
+        ></ion-input>
+      </ion-item>
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          label="Origini / Quartiere"
+          labelPlacement="stacked"
+          placeholder="Es. Centocelle, Ciociaria"
+          [value]="origini()"
+          (ionInput)="origini.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
+        ></ion-input>
+      </ion-item>
+    </div>
+
+    <div class="grid-row">
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-select
+          label="Stato Civile"
+          labelPlacement="stacked"
+          [value]="statoCivile()"
+          (ionChange)="statoCivile.set($event.detail.value)"
+          interface="popover"
+          [disabled]="!isAdmin"
+          placeholder="Seleziona"
+        >
+          <ion-select-option value="Single">Single</ion-select-option>
+          <ion-select-option value="Fidanzato">Fidanzato</ion-select-option>
+          <ion-select-option value="Convivente">Convivente</ion-select-option>
+          <ion-select-option value="Sposato">Sposato</ion-select-option>
+          <ion-select-option value="Separato / Divorziato">Separato / Divorziato</ion-select-option>
+          <ion-select-option value="Disperato">Disperato</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          label="Vizi (beve, fuma, droga)"
+          labelPlacement="stacked"
+          placeholder="Es. Beve come una spugna, fuma"
+          [value]="vizi()"
+          (ionInput)="vizi.set($event.detail.value || '')"
+          [readonly]="!isAdmin"
+        ></ion-input>
+      </ion-item>
+    </div>
   </div>
 
   <ion-button

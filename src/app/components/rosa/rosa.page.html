@@ -52,18 +52,27 @@
           <ion-label>
             <div class="name-row">
               <h3>{{ g.nome }}</h3>
-              <span class="nickname"
-                >{{ g.soprannome ? '"' + g.soprannome + '"' : '' }}</span
-              >
+              @if (g.soprannomeAi || g.soprannome) {
+                <span class="nickname">"{{ g.soprannome || g.soprannomeAi }}"</span>
+                @if (g.soprannomeAi && !g.soprannome) {
+                  <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
+                }
+              }
             </div>
             <div class="player-stats">
               <span>🎂 {{ g.annoNascita || 'N.D.' }}</span>
               <span>| 👟 {{ g.piedePreferito || 'N.D.' }}</span>
-            </div>
-            <div class="player-biometry">
-              <span>📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
+              <span>| 📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
               <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
             </div>
+            @if (g.professione || g.origini || g.statoCivile || g.vizi) {
+              <div class="player-details-row">
+                @if (g.professione) { <span class="detail-pill">💼 {{ g.professione }}</span> }
+                @if (g.origini) { <span class="detail-pill">📍 {{ g.origini }}</span> }
+                @if (g.statoCivile) { <span class="detail-pill">💍 {{ g.statoCivile }}</span> }
+                @if (g.vizi) { <span class="detail-pill vizi-pill">🍺 {{ g.vizi }}</span> }
+              </div>
+            }
           </ion-label>
         </ion-item>
         @if (isAdmin) {

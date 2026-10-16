@@ -220,6 +220,10 @@ export class GeminiService {
     if (eta !== null) tags.push(`Età: ${eta} anni (classe ${p.annoNascita})`);
     if (peso) tags.push(`Peso: ${peso}`);
     if (altezza) tags.push(`Altezza: ${altezza}`);
+    if (p.professione?.trim()) tags.push(`Mestiere: ${p.professione.trim()}`);
+    if (p.origini?.trim()) tags.push(`Origini: ${p.origini.trim()}`);
+    if (p.statoCivile?.trim()) tags.push(`Stato civile: ${p.statoCivile.trim()}`);
+    if (p.vizi?.trim()) tags.push(`Vizi/Abitudini: ${p.vizi.trim()}`);
 
     return `${nome} [${tags.join(' | ')}]`;
   }
@@ -333,6 +337,7 @@ REGOLE FONDAMENTALI:
 - NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole che pronunci al microfono.
 - INIZIA SUBITO: Parti direttamente con la prima parola, senza titoli ("Pronostico:") né formule introduttive.
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e tagliente. Usa età, peso e quote come dati tecnici impietosi per prendere in giro le due squadre ("pippa ar sugo", "paracarro", "a cazzo de cane", "s'è fatto mette sotto"). Volgare e pungente al punto giusto, zero battute da bambini, zero cringe.
+- DETTAGLI PERSONALI A SPOT: usa a sorpresa e con intelligenza comica i mestieri, i quartieri di provenienza, lo stato civile o i vizi dei singoli giocatori indicati nelle bio (es. "l'elettricista sposato che scappa di casa per farsi saltare come un birillo", "fumatore accanito con i polmoni a fisarmonica", "single disperato di Tor Bella Monaca"). Non elencarli tutti, piazzane 1-2 a spot con perfetto tempismo comico!
 
 STRUTTURA (2 brevi paragrafi):
 1. Analisi cinica delle due formazioni e delle quote, evidenziando chi parte già battuto nella dignità.
@@ -447,6 +452,7 @@ REGOLE FONDAMENTALI:
 - NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole esatte che dici al microfono.
 - INIZIA SUBITO: Parti direttamente con la prima frase della telecronaca, senza titoli ("Cronaca:"), saluti o preamboli.
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e deadpan. Contrasto comico micidiale tra serietà formale da grande evento e degrado tecnico del campetto ("s'è fatto 'na passeggiata", "ciabattata immonda", "paracarro", "annamo bene", "a zappà la terra", "gol sventrato"). Volgare e pungente al punto giusto, zero cringe, niente battute boomer.
+- DETTAGLI PERSONALI A SPOT: sfrutta a tradimento e a spot i dettagli personali dei protagonisti presenti nei tag delle bio (mestiere, quartiere, stato civile, vizi come fumo/alcool) per umiliare il bidone della serata o esaltare l'MVP (es. "il geometra di Centocelle che fuma come un vaporetto e al decimo minuto chiedeva l'ossigeno", "padre di famiglia irreprensibile di giorno, paracarro immondo di notte"). Usali con naturalezza senza elenchi forzati.
 
 STRUTTURA DEL COMMENTO:
 1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, autogol comici).
@@ -707,6 +713,7 @@ Spara il verdetto definitivo senza filtri e sancisci chi è il padrone del campe
 STILE E REGOLE:
 - Redigi la scheda confidenziale di questo giocatore di calcetto di borgata con distacco professionale e ferocia comica naturale.
 - ROMANESCO ASCIUTTO & PUNGENTE: Nessun cliché da macchietta, solo verità taglienti su stile di gioco, limiti atletici (trattati con ironia tecnica, non battute da asilo) e fissazioni tattiche ridicole.
+- INTEGRAZIONE VITA REALE A SPOT: sfrutta con ferocia comica il mestiere, il quartiere, lo stato civile e i suoi vizi dichiarati (fumo, alcool, vita sregolata) spiegando come distruggono la sua tenuta fisica in campo.
 - FORMATO OBBLIGATORIO (esattamente 2 righe):
 SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile Ceppaflex / spogliatoio verace, max 3-4 parole]
 SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabile, colpo tipico fallimentare, tenuta atletica reale e un avvertimento spassionato ai compagni di squadra che dovranno giocarci insieme]`;
@@ -715,6 +722,10 @@ SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabi
 - Nome: ${giocatore.nome} (Soprannome attuale: "${giocatore.soprannome || 'Nessuno'}")
 - Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
 - Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}
+- Mestiere: ${giocatore.professione || 'Non dichiarato'}
+- Origini: ${giocatore.origini || 'Periferia romana'}
+- Stato Civile: ${giocatore.statoCivile || 'Non dichiarato'}
+- Vizi e abitudini (alcool, fumo, sostanze): ${giocatore.vizi || 'Sospetto bevitore del weekend'}
 - Rating MMR: ${mmr} (${tier}) | Stato di Forma: ${streak}
 - Statistiche: ${partite} partite disputate, ${gol} gol fatti, ${mediaVoto} media voto, ${winRate}% win rate
 - Gemello del Gol: ${gemello}

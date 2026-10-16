@@ -416,6 +416,50 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- DETTAGLI PERSONALI & BIO GOLIARDICA            -->
+  <!-- ============================================== -->
+  @if (prof?.professione || prof?.origini || prof?.statoCivile || prof?.vizi) {
+    <div class="personal-bio-grid">
+      @if (prof?.professione) {
+        <div class="bio-pill">
+          <span class="bio-pill-icon">💼</span>
+          <div class="bio-pill-text">
+            <span class="bio-pill-label">Mestiere</span>
+            <span class="bio-pill-val">{{ prof.professione }}</span>
+          </div>
+        </div>
+      }
+      @if (prof?.origini) {
+        <div class="bio-pill">
+          <span class="bio-pill-icon">📍</span>
+          <div class="bio-pill-text">
+            <span class="bio-pill-label">Origini</span>
+            <span class="bio-pill-val">{{ prof.origini }}</span>
+          </div>
+        </div>
+      }
+      @if (prof?.statoCivile) {
+        <div class="bio-pill">
+          <span class="bio-pill-icon">💍</span>
+          <div class="bio-pill-text">
+            <span class="bio-pill-label">Stato Civile</span>
+            <span class="bio-pill-val">{{ prof.statoCivile }}</span>
+          </div>
+        </div>
+      }
+      @if (prof?.vizi) {
+        <div class="bio-pill vizi-pill">
+          <span class="bio-pill-icon">🍺</span>
+          <div class="bio-pill-text">
+            <span class="bio-pill-label">Vizi & Abitudini</span>
+            <span class="bio-pill-val">{{ prof.vizi }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ============================================== -->
   <!-- STATISTICHE CLASSICHE LEGACY                   -->
   <!-- ============================================== -->
   <div class="section-badge-header legacy-header">
