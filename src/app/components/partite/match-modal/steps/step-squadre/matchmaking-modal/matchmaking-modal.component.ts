@@ -44,6 +44,12 @@ import {
 import { getMmrTier } from 'src/app/models/mmr.model';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { AiTtsButtonComponent } from '../../../../../ai-tts-button/ai-tts-button.component';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-matchmaking-modal',
@@ -63,10 +69,19 @@ import { AiTtsButtonComponent } from '../../../../../ai-tts-button/ai-tts-button
     IonModal,
     IonSpinner,
     AiTtsButtonComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class MatchmakingModalComponent {
   private geminiService = inject(GeminiService);
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   @Input() isOpen: boolean = false;
   @Input() proposals: MatchmakingProposal[] = [];

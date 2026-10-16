@@ -23,6 +23,12 @@ import {
   MIN_CURRENT_SEASON_DATE,
   CURRENT_SEASON,
 } from '../../../../../utils/season-utils';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from '../../../../../utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-step-dettagli',
@@ -37,6 +43,7 @@ import {
     IonAvatar,
     IonFab,
     IonFabButton,
+    PlayerAvatarComponent,
   ],
 })
 export class StepDettagliComponent {
@@ -44,6 +51,14 @@ export class StepDettagliComponent {
 
   readonly MIN_CURRENT_SEASON_DATE = MIN_CURRENT_SEASON_DATE;
   readonly CURRENT_SEASON = CURRENT_SEASON;
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   constructor() {
     addIcons({

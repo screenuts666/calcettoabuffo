@@ -1,33 +1,57 @@
-<button
-  type="button"
-  class="ai-tts-btn"
-  [class.is-playing]="isThisPlaying()"
-  [class.is-loading]="isThisLoading()"
-  [class.is-compact]="compact"
-  [disabled]="!text || !text.trim()"
-  (click)="togglePlayback($event)"
-  [attr.aria-label]="isThisPlaying() ? stopLabel : (isThisLoading() ? 'Microfono acceso...' : label)"
-  [title]="isThisPlaying() ? 'Ferma telecronaca' : (isThisLoading() ? 'Generazione audio in corso...' : 'Ascolta la telecronaca AI ad alta voce')"
->
-  @if (isThisLoading()) {
-    <ion-spinner name="crescent" class="tts-spinner"></ion-spinner>
-    @if (!compact) {
-      <span class="tts-label">Microfono acceso...</span>
+<div class="ai-tts-wrapper" [class.is-compact]="compact">
+  <button
+    type="button"
+    class="ai-tts-btn"
+    [class.is-playing]="isThisPlaying()"
+    [class.is-loading]="isThisLoading()"
+    [class.is-compact]="compact"
+    [disabled]="!text || !text.trim()"
+    (click)="togglePlayback($event)"
+    [attr.aria-label]="isThisPlaying() ? stopLabel : (isThisLoading() ? 'Microfono acceso...' : label)"
+    [title]="isThisPlaying() ? 'Ferma telecronaca' : (isThisLoading() ? 'Generazione audio in corso...' : 'Ascolta l\'audio ad alta voce')"
+  >
+    @if (isThisLoading()) {
+      <ion-spinner name="crescent" class="tts-spinner"></ion-spinner>
+      @if (!compact) {
+        <span class="tts-label">Microfono acceso...</span>
+      }
+    } @else if (isThisPlaying()) {
+      <ion-icon name="stop-circle-outline" class="tts-icon stop-icon"></ion-icon>
+      <div class="sound-wave" aria-hidden="true">
+        <span class="bar bar-1"></span>
+        <span class="bar bar-2"></span>
+        <span class="bar bar-3"></span>
+      </div>
+      @if (!compact) {
+        <span class="tts-label">{{ stopLabel }}</span>
+      }
+    } @else {
+      <ion-icon name="volume-high-outline" class="tts-icon play-icon"></ion-icon>
+      @if (!compact) {
+        <span class="tts-label">🎧 {{ label }}</span>
+      }
     }
-  } @else if (isThisPlaying()) {
-    <ion-icon name="stop-circle-outline" class="tts-icon stop-icon"></ion-icon>
-    <div class="sound-wave" aria-hidden="true">
-      <span class="bar bar-1"></span>
-      <span class="bar bar-2"></span>
-      <span class="bar bar-3"></span>
-    </div>
-    @if (!compact) {
-      <span class="tts-label">{{ stopLabel }}</span>
-    }
-  } @else {
-    <ion-icon name="volume-high-outline" class="tts-icon play-icon"></ion-icon>
-    @if (!compact) {
-      <span class="tts-label">🎧 {{ label }}</span>
-    }
+  </button>
+
+  @if (showWhatsAppShare && text && text.trim()) {
+    <button
+      type="button"
+      class="ai-tts-whatsapp-btn"
+      [class.is-sharing]="isThisSharing()"
+      [class.is-compact]="compact"
+      [disabled]="isThisSharing()"
+      (click)="shareToWhatsApp($event)"
+      [attr.aria-label]="isThisSharing() ? 'Preparazione audio per WhatsApp...' : 'Invia audio su WhatsApp'"
+      [title]="isThisSharing() ? 'Preparazione audio WhatsApp in corso...' : 'Invia direttamente questo audio su WhatsApp'"
+    >
+      @if (isThisSharing()) {
+        <ion-spinner name="crescent" class="whatsapp-spinner"></ion-spinner>
+      } @else {
+        <ion-icon name="logo-whatsapp" class="whatsapp-icon"></ion-icon>
+      }
+      @if (!compact && showShareText) {
+        <span class="whatsapp-label">WhatsApp</span>
+      }
+    </button>
   }
-</button>
+</div>

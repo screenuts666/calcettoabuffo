@@ -15,13 +15,11 @@
     class="profile-avatar-wrapper"
     [style.--tier-color]="prof?.tier?.color || '#888'"
   >
-    <img
+    <app-player-avatar
       class="avatar-img"
-      [src]="
-        prof?.fotoUrl || 'https://ionicframework.com/docs/img/demos/avatar.svg'
-      "
-      loading="lazy"
-    />
+      [fotoUrl]="prof?.fotoUrl"
+      [alt]="prof?.nome"
+    ></app-player-avatar>
     @if (prof?.form?.status === 'on_fire') {
       <span class="avatar-form-badge on-fire">🔥</span>
     } @else if (prof?.form?.status === 'in_crisis') {
@@ -44,7 +42,7 @@
 
   <!-- TIER BADGE & FORMA HERO -->
   <div class="hero-badges-row">
-    @if (prof?.tier) {
+    @if (prof?.isRanked && prof?.tier) {
       <span
         class="tier-badge-large"
         [style.border-color]="prof.tier.color"
@@ -54,20 +52,27 @@
         <ion-icon [name]="prof.tier.icon"></ion-icon>
         <span>{{ prof.tier.badge }}</span>
       </span>
+    } @else {
+      <span class="tier-badge-large unranked-hero-badge">
+        <ion-icon name="help-circle-outline"></ion-icon>
+        <span>⚪ Non Classificato</span>
+      </span>
     }
 
-    @if (prof?.form?.status === 'on_fire') {
-      <span class="form-badge-large on-fire">
-        🔥 On Fire (+{{ prof.form.currentStreak }} vittorie)
-      </span>
-    } @else if (prof?.form?.status === 'in_crisis') {
-      <span class="form-badge-large in-crisis">
-        ❄️ In Crisi ({{ prof.form.currentStreak }} sconfitte)
-      </span>
-    } @else {
-      <span class="form-badge-large neutral">
-        ➖ Forma Costante
-      </span>
+    @if (prof?.isRanked) {
+      @if (prof?.form?.status === 'on_fire') {
+        <span class="form-badge-large on-fire">
+          🔥 On Fire (+{{ prof.form.currentStreak }} vittorie)
+        </span>
+      } @else if (prof?.form?.status === 'in_crisis') {
+        <span class="form-badge-large in-crisis">
+          ❄️ In Crisi ({{ prof.form.currentStreak }} sconfitte)
+        </span>
+      } @else {
+        <span class="form-badge-large neutral">
+          ➖ Forma Costante
+        </span>
+      }
     }
   </div>
 
@@ -84,6 +89,7 @@
             [text]="prof!.scoutingReportAi!"
             [id]="'scouting-' + prof!.id"
             label="Ascolta Scouting"
+            [shareTitle]="'Scouting Report - ' + prof!.nome"
           ></app-ai-tts-button>
           <button
             type="button"
@@ -173,16 +179,16 @@
     <!-- MMR Attuale -->
     <div
       class="stat-box mmr-box"
-      [style.border-color]="prof?.tier?.color || '#2dd36f'"
+      [style.border-color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#71717a'"
     >
       <div class="stat-box-title">MMR ATTUALE</div>
       <div
         class="stat-box-num"
-        [style.color]="prof?.tier?.color || '#2dd36f'"
+        [style.color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#a1a1aa'"
       >
-        {{ prof?.mmrVal ?? 1000 }}
+        {{ prof?.isRanked ? (prof?.mmrVal ?? '—') : '—' }}
       </div>
-      @if (prof?.lastDeltaDisplay) {
+      @if (prof?.isRanked && prof?.lastDeltaDisplay) {
         <div
           class="stat-box-sub trend"
           [class.up]="prof?.trendDirection === 'up'"
@@ -197,8 +203,10 @@
           }
           {{ prof.lastDeltaDisplay }} ultimo match
         </div>
-      } @else {
+      } @else if (prof?.isRanked) {
         <div class="stat-box-sub">Nessun match recente</div>
+      } @else {
+        <div class="stat-box-sub">1 match per qualificarsi</div>
       }
     </div>
 
@@ -206,19 +214,19 @@
     <div class="stat-box peak-box">
       <div class="stat-box-title">PEAK STORICO 🏔️</div>
       <div class="stat-box-num peak-num">
-        {{ prof?.peakMmr ?? prof?.mmrVal ?? 1000 }}
+        {{ prof?.isRanked ? (prof?.peakMmr ?? prof?.mmrVal ?? '—') : '—' }}
       </div>
-      <div class="stat-box-sub">Massimo all-time</div>
+      <div class="stat-box-sub">{{ prof?.isRanked ? 'Massimo all-time' : 'Non piazzato' }}</div>
     </div>
 
     <!-- Win Rate -->
     <div class="stat-box winrate-box">
       <div class="stat-box-title">WIN RATE 📈</div>
       <div class="stat-box-num">
-        {{ prof?.winRate ?? 0 }}%
+        {{ prof?.isRanked ? (prof?.winRate ?? 0) + '%' : '—' }}
       </div>
       <div class="stat-box-sub">
-        {{ prof?.wins ?? 0 }}V su {{ prof?.partiteGiocate ?? 0 }} match
+        {{ prof?.isRanked ? ((prof?.wins ?? 0) + 'V su ' + (prof?.partiteGiocate ?? 0) + ' match') : '0 match giocati' }}
       </div>
     </div>
   </div>
@@ -248,14 +256,11 @@
           (click)="apriGiocatore(partner.partnerId)"
           title="Apri scheda di {{ partner.partnerNome }}"
         >
-          <img
+          <app-player-avatar
             class="chem-avatar"
-            [src]="
-              partner.partnerFotoUrl ||
-              'https://ionicframework.com/docs/img/demos/avatar.svg'
-            "
-            loading="lazy"
-          />
+            [fotoUrl]="partner.partnerFotoUrl"
+            [alt]="partner.partnerNome"
+          ></app-player-avatar>
           <div class="chem-player-meta">
             <div class="chem-player-name">
               <b>{{ partner.partnerNome }}</b>
@@ -304,14 +309,11 @@
           (click)="apriGiocatore(nemesis.opponentId)"
           title="Apri scheda di {{ nemesis.opponentNome }}"
         >
-          <img
+          <app-player-avatar
             class="chem-avatar nemesis-avatar"
-            [src]="
-              nemesis.opponentFotoUrl ||
-              'https://ionicframework.com/docs/img/demos/avatar.svg'
-            "
-            loading="lazy"
-          />
+            [fotoUrl]="nemesis.opponentFotoUrl"
+            [alt]="nemesis.opponentNome"
+          ></app-player-avatar>
           <div class="chem-player-meta">
             <div class="chem-player-name">
               <b>{{ nemesis.opponentNome }}</b>
@@ -449,9 +451,17 @@
     </ion-col>
 
     <ion-col size="6" class="stat-col">
+      <div class="stat-card card-cyan">
+        <span class="stat-emoji-icon">👟</span>
+        <div class="stat-label">Assist Totali</div>
+        <div class="stat-value text-cyan">{{ prof?.assistTotali ?? 0 }}</div>
+      </div>
+    </ion-col>
+
+    <ion-col size="12" class="stat-col">
       <div class="stat-card card-dark">
         <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
-        <div class="stat-label">Rendimento</div>
+        <div class="stat-label">Rendimento Match</div>
         <div
           class="stat-value text-normal"
           style="font-size: 1.25em; letter-spacing: 0.5px;"

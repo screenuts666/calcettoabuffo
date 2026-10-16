@@ -52,12 +52,17 @@ import {
   mic,
 } from 'ionicons/icons';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { ConfrontoService } from 'src/app/services/confronto.service';
 import { GeminiService } from 'src/app/services/gemini.service';
 import {
   HeadToHeadComparison,
   PlayerComparisonProfile,
 } from 'src/app/models/confronto.model';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
 import {
   ALL_SEASONS,
   CURRENT_SEASON,
@@ -88,6 +93,7 @@ import { AiTtsButtonComponent } from '../ai-tts-button/ai-tts-button.component';
     IonSpinner,
     ThemeToggleComponent,
     AiTtsButtonComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class ConfrontoPage implements OnInit {
@@ -101,6 +107,14 @@ export class ConfrontoPage implements OnInit {
 
   readonly ALL_SEASONS = ALL_SEASONS;
   readonly CURRENT_SEASON = CURRENT_SEASON;
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   // Giocatori selezionati
   playerAId = signal<string>('');

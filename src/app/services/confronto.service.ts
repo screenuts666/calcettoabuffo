@@ -1,9 +1,10 @@
 import { Injectable, computed, inject } from '@angular/core';
-import { StatsEngineService } from './stats-engine.service';
+import { StatsEngineService, BASE_INITIAL_MMR } from './stats-engine.service';
 import { Giocatore } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
-import { getMmrTier } from '../models/mmr.model';
+import { getMmrTier, UNRANKED_TIER } from '../models/mmr.model';
 import { ALL_SEASONS, getStagionePartita } from '../utils/season-utils';
+import { getAvatarUrl } from '../utils/avatar-utils';
 import {
   ComparisonMetric,
   DirectMatchItem,
@@ -30,8 +31,8 @@ export class ConfrontoService {
     const statsRes = this.statsResult();
 
     return [...list].sort((a, b) => {
-      const mmrA = statsRes.allTime.get(a.id)?.currentMmr ?? 1000;
-      const mmrB = statsRes.allTime.get(b.id)?.currentMmr ?? 1000;
+      const mmrA = statsRes.allTime.get(a.id)?.currentMmr ?? BASE_INITIAL_MMR;
+      const mmrB = statsRes.allTime.get(b.id)?.currentMmr ?? BASE_INITIAL_MMR;
       return mmrB - mmrA || (a.nome || '').localeCompare(b.nome || '');
     });
   });
@@ -238,19 +239,19 @@ export class ConfrontoService {
         'mmr',
         'MMR Rating Attuale',
         'shield',
-        profA.currentMmr,
-        profB.currentMmr,
-        `${profA.currentMmr}`,
-        `${profB.currentMmr}`,
+        profA.isRanked ? profA.currentMmr : 0,
+        profB.isRanked ? profB.currentMmr : 0,
+        profA.isRanked ? `${profA.currentMmr}` : '—',
+        profB.isRanked ? `${profB.currentMmr}` : '—',
       ),
       this.createMetric(
         'peakMmr',
         'Peak MMR Storico',
         'trophy',
-        profA.peakMmr,
-        profB.peakMmr,
-        `${profA.peakMmr}`,
-        `${profB.peakMmr}`,
+        profA.isRanked ? profA.peakMmr : 0,
+        profB.isRanked ? profB.peakMmr : 0,
+        profA.isRanked ? `${profA.peakMmr}` : '—',
+        profB.isRanked ? `${profB.peakMmr}` : '—',
       ),
       this.createMetric(
         'puntiLegacy',
@@ -287,6 +288,15 @@ export class ConfrontoService {
         profB.mediaGol,
         profA.mediaGol.toFixed(2),
         profB.mediaGol.toFixed(2),
+      ),
+      this.createMetric(
+        'assistTotali',
+        'Assist Vincenti',
+        'flash',
+        profA.assistTotali,
+        profB.assistTotali,
+        `${profA.assistTotali} 👟`,
+        `${profB.assistTotali} 👟`,
       ),
       this.createMetric(
         'mvp',
@@ -361,11 +371,10 @@ export class ConfrontoService {
           statsRes.allTime.get(g.id);
 
     const allTimeMmrStats = statsRes.allTime.get(g.id);
-    const currentMmr = mmrStats ? Math.round(mmrStats.currentMmr) : 1000;
+    const currentMmr = mmrStats ? Math.round(mmrStats.currentMmr) : BASE_INITIAL_MMR;
     const peakMmr = allTimeMmrStats
       ? Math.round(allTimeMmrStats.peakMmr)
       : currentMmr;
-    const tier = mmrStats ? mmrStats.tier : getMmrTier(currentMmr);
     const form = mmrStats?.form || {
       currentStreak: 0,
       status: 'neutral',
@@ -383,6 +392,7 @@ export class ConfrontoService {
     let draws = 0;
     let losses = 0;
     let golTotali = 0;
+    let assistTotali = 0;
     let sommaVoti = 0;
     let partiteConVoto = 0;
     let mvpCount = 0;
@@ -414,15 +424,25 @@ export class ConfrontoService {
 
         const eventi = p.eventiGol || [];
         const golFatti = eventi.filter(
-          (eg: any) => eg.idAssegnato === g.id && !eg.isAutogoal,
+          (eg: any) =>
+            (eg.idAssegnato === g.id || eg.nome === g.nome) && !eg.isAutogoal,
         ).length;
         const autogolFatti = eventi.filter(
-          (eg: any) => eg.idAssegnato === g.id && eg.isAutogoal,
+          (eg: any) =>
+            (eg.idAssegnato === g.id || eg.nome === g.nome) && eg.isAutogoal,
         ).length;
+        const assistFatti =
+          eventi.filter(
+            (eg: any) =>
+              eg.assistId === g.id ||
+              (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
+          ).length || (playerObj.assist || 0);
 
         golTotali += golFatti;
+        assistTotali += assistFatti;
         puntiLegacy += golFatti * 1;
         puntiLegacy -= autogolFatti * 1;
+        puntiLegacy += assistFatti * 0.5;
 
         const voto = Number(playerObj.voto) || 0;
         if (voto > 0) {
@@ -442,23 +462,34 @@ export class ConfrontoService {
       }
     }
 
+    puntiLegacy = Math.round(puntiLegacy * 10) / 10;
     const mediaVoto = partiteConVoto > 0 ? sommaVoti / partiteConVoto : 0;
     const mediaGol = partiteGiocate > 0 ? golTotali / partiteGiocate : 0;
+    const mediaAssist = partiteGiocate > 0 ? assistTotali / partiteGiocate : 0;
     const winRate =
       partiteGiocate > 0
         ? Math.round((wins / partiteGiocate) * 1000) / 10
         : 0;
 
+    const isRanked = partiteGiocate > 0;
+    const tier = isRanked
+      ? (mmrStats ? mmrStats.tier : getMmrTier(currentMmr))
+      : UNRANKED_TIER;
+
     return {
       id: g.id,
       nome: g.nome,
-      soprannome: g.soprannome,
-      fotoUrl: g.fotoUrl,
+      soprannome: g.soprannome || g.soprannomeAi,
+      annoNascita: g.annoNascita,
+      peso: g.peso,
+      altezza: g.altezza,
+      fotoUrl: getAvatarUrl(g.fotoUrl),
       piedePreferito: g.piedePreferito,
       ruoloPreferito: g.ruoloPreferito,
       currentMmr,
       peakMmr,
       tier,
+      isRanked,
       form,
       puntiLegacy,
       partiteGiocate,
@@ -468,6 +499,8 @@ export class ConfrontoService {
       winRate,
       golTotali,
       mediaGol,
+      assistTotali,
+      mediaAssist,
       mediaVoto,
       partiteConVoto,
       mvpCount,

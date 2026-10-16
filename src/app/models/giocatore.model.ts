@@ -13,6 +13,7 @@ export interface Giocatore {
   fotoUrl?: string;
   gol: number;
   autogol?: number;
+  assist?: number;
   punti: number;
   mediaVoto: number;
   partiteGiocate: number;

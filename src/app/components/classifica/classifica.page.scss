@@ -809,3 +809,111 @@
     transform: scale(0.98);
   }
 }
+
+// ==========================================
+// SEZIONE NON CLASSIFICATI (0 MATCH)
+// ==========================================
+.unranked-section {
+  margin: 16px 8px 24px;
+  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px dashed rgba(113, 113, 122, 0.35);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.unranked-toggle-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  background: rgba(113, 113, 122, 0.07);
+  border: none;
+  cursor: pointer;
+  color: var(--app-text-secondary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: rgba(113, 113, 122, 0.14);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+.unranked-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unranked-icon-tag {
+  font-size: 0.95rem;
+}
+
+.unranked-title-text {
+  letter-spacing: 0.2px;
+}
+
+.unranked-arrow {
+  font-size: 1.15rem;
+  color: var(--app-text-muted);
+}
+
+.unranked-list {
+  background: transparent;
+}
+
+.unranked-item {
+  opacity: 0.82;
+  --background: transparent;
+  border-top: 1px solid var(--app-divider);
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 1;
+    --background: var(--app-surface-hover);
+  }
+}
+
+.unranked-ring {
+  border-color: #71717a !important;
+  border-style: dashed !important;
+}
+
+.rank-unranked {
+  color: var(--app-text-muted) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700;
+}
+
+.unranked-pill {
+  background: rgba(113, 113, 122, 0.12) !important;
+  border-color: #71717a !important;
+  color: #a1a1aa !important;
+}
+
+.unranked-chip {
+  border-color: rgba(113, 113, 122, 0.35) !important;
+  .score-chip-val {
+    color: #a1a1aa !important;
+  }
+}
+
+.unranked-sub {
+  color: var(--app-text-muted);
+  font-style: italic;
+}
+
+.unranked-highlight {
+  .unranked-dash {
+    color: #71717a;
+    font-size: 1.35rem;
+    font-weight: 900;
+  }
+}
+

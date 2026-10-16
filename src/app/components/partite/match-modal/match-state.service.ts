@@ -10,6 +10,7 @@ import {
 } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { TMatchStatus } from '../../../models/match-status.type';
+import { EventoGol } from '../../../models/partita.model';
 import {
   getStagionePartita,
   isStagioneCorrente,
@@ -38,7 +39,7 @@ export class MatchStateService {
   teamB = signal<any[]>([]);
   scoreA = signal<number>(0);
   scoreB = signal<number>(0);
-  eventiGol = signal<any[]>([]);
+  eventiGol = signal<EventoGol[]>([]);
   matchConcluso = signal<boolean>(false);
   pagelleInserite = signal<boolean>(false);
   cambioAttivo = signal<boolean>(false);

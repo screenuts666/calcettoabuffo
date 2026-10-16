@@ -7,6 +7,7 @@
  */
 
 export type MmrTierId =
+  | 'ferro'
   | 'bronzo'
   | 'argento'
   | 'oro'
@@ -26,10 +27,19 @@ export interface MmrTier {
 
 export const MMR_TIERS: readonly MmrTier[] = [
   {
+    id: 'ferro',
+    label: 'Ferro',
+    minMmr: 0,
+    maxMmr: 869,
+    color: '#71717a',
+    badge: '🔩 Ferro',
+    icon: 'shield-outline',
+  },
+  {
     id: 'bronzo',
     label: 'Bronzo',
-    minMmr: 0,
-    maxMmr: 949,
+    minMmr: 870,
+    maxMmr: 939,
     color: '#CD7F32',
     badge: '🥉 Bronzo',
     icon: 'shield-outline',
@@ -37,49 +47,59 @@ export const MMR_TIERS: readonly MmrTier[] = [
   {
     id: 'argento',
     label: 'Argento',
-    minMmr: 950,
-    maxMmr: 1049,
-    color: '#C0C0C0',
+    minMmr: 940,
+    maxMmr: 1009,
+    color: '#A8A29E',
     badge: '🥈 Argento',
     icon: 'shield',
   },
   {
     id: 'oro',
     label: 'Oro',
-    minMmr: 1050,
-    maxMmr: 1199,
-    color: '#FFD700',
+    minMmr: 1010,
+    maxMmr: 1079,
+    color: '#EAB308',
     badge: '🥇 Oro',
     icon: 'medal',
   },
   {
     id: 'platino',
     label: 'Platino',
-    minMmr: 1200,
-    maxMmr: 1349,
-    color: '#00E5FF',
-    badge: '💠 Platino',
+    minMmr: 1080,
+    maxMmr: 1149,
+    color: '#06B6D4',
+    badge: '💎 Platino',
     icon: 'ribbon',
   },
   {
     id: 'diamante',
     label: 'Diamante',
-    minMmr: 1350,
-    maxMmr: 1499,
-    color: '#B9F2FF',
-    badge: '💎 Diamante',
+    minMmr: 1150,
+    maxMmr: 1219,
+    color: '#3B82F6',
+    badge: '💠 Diamante',
     icon: 'diamond',
   },
   {
     id: 'fenomeno',
     label: 'Fenomeno',
-    minMmr: 1500,
+    minMmr: 1220,
     maxMmr: 99999,
-    color: '#FF4500',
-    badge: '👑 Fenomeno',
+    color: '#EF4444',
+    badge: '🔴 Fenomeno',
     icon: 'trophy',
   },
 ] as const;
+
+export const UNRANKED_TIER: MmrTier = {
+  id: 'ferro',
+  label: 'Non Classificato',
+  minMmr: 0,
+  maxMmr: 0,
+  color: '#71717a',
+  badge: '⚪ Non Classificato',
+  icon: 'help-circle-outline',
+};
 
 export function getMmrTier(mmr: number): MmrTier {
   const rounded = Math.round(mmr);
@@ -105,10 +125,14 @@ export interface PlayerFormStreak {
 }
 
 export interface IndividualBonusBreakdown {
+  presenceBonus?: number;
   goalsBonus: number;
+  assistsBonus?: number;
   voteBonus: number;
   mvpBonus: number;
   streakBonus: number;
+  svpShield?: boolean;
+  decayApplied?: number;
   total: number;
 }
 
@@ -144,12 +168,15 @@ export interface MatchReportPlayer {
   note?: string;
   gol: number;
   autogol: number;
+  assist: number;
   mmrDelta: number;
   mmrBefore: number;
   mmrAfter: number;
   legacyDelta: number;
   onFireTransition: 'entered' | 'exited' | 'maintained' | 'none';
   streakAfter: number;
+  isRanked?: boolean;
+  svpShield?: boolean;
 }
 
 export interface MatchReportChemistryItem {
@@ -205,6 +232,7 @@ export interface PlayerMmrStats {
   nome: string;
   soprannome?: string;
   fotoUrl?: string;
+  isRanked: boolean; // false se 0 partite giocate, true appena gioca 1 partita
   currentMmr: number;
   peakMmr: number;
   lowestMmr: number;
@@ -216,6 +244,8 @@ export interface PlayerMmrStats {
   winRate: number; // percentuale 0..100
   form: PlayerFormStreak;
   history: MatchMmrDelta[];
+  consecutiveMissedMatches?: number;
+  totalDecayLost?: number;
 }
 
 export interface MatchPrediction {
@@ -240,6 +270,7 @@ export interface PlayerSynergy {
   drawsTogether: number;
   lossesTogether: number;
   winRateTogether: number; // percentuale 0..100
+  assistedGoals?: number; // gol con assist tra la coppia (Gemelli del Gol)
 }
 
 export interface PlayerNemesis {

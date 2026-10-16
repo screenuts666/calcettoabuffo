@@ -7,6 +7,7 @@ import {
   IonLabel,
   ActionSheetController,
   AlertController,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -24,6 +25,7 @@ import {
 } from 'ionicons/icons';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
+import { EventoGol } from '../../../../../models/partita.model';
 
 @Component({
   selector: 'app-step-match',
@@ -42,6 +44,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
+  private toastCtrl = inject(ToastController);
 
   @Input() isAdmin: boolean = false;
 
@@ -249,7 +252,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // GOL
+  // GOL & ASSIST (FLUSSO IMMEDIATO ZERO ATTRITO)
   // ──────────────────────────────────────────────────────────────────────
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
@@ -260,41 +263,81 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
     const buttons = [
       ...teamCheSegna.map((g) => ({
-        text: g.nome,
-        handler: () => this.registraGol(g, teamVantaggio, false),
+        text: `⚽ ${g.nome}`,
+        handler: () => {
+          // Passaggio immediato allo Step 2 (Chi ha fatto l'assist)
+          setTimeout(() => this.chiediChiHaFattoAssist(g, teamVantaggio), 120);
+        },
       })),
       ...teamAvversario.map((g) => ({
-        text: g.nome + ' (Autogol)',
+        text: `⚠️ ${g.nome} (Autogol)`,
         role: 'destructive',
-        handler: () => this.registraGol(g, teamVantaggio, true),
+        handler: () => this.registraGol(g, teamVantaggio, true, null),
       })),
       { text: 'Annulla', role: 'cancel' },
     ];
 
     const as = await this.actionSheetCtrl.create({
-      header: `Gol per i ${teamVantaggio === 'A' ? 'BIANCHI' : 'NERI'}! Chi ha segnato?`,
+      header: `⚽ Gol ${teamVantaggio === 'A' ? 'BIANCHI' : 'NERI'}! Chi ha segnato?`,
+      subHeader: 'Seleziona il marcatore',
       buttons,
     });
     await as.present();
   }
 
-  registraGol(giocatore: any, teamVantaggio: 'A' | 'B', isAutogoal: boolean) {
-    this.state.eventiGol.update((list) => [
-      ...list,
+  async chiediChiHaFattoAssist(marcatore: any, teamVantaggio: 'A' | 'B') {
+    const teamCheSegna =
+      teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();
+
+    // Solo compagni della stessa squadra escluso il marcatore
+    const compagni = teamCheSegna.filter((c: any) => c.id !== marcatore.id);
+
+    const buttons = [
+      // Bottone grande in cima: Azione Personale / Nessun assist
       {
-        idAssegnato: giocatore.id,
-        nome: giocatore.nome,
-        teamVantaggio,
-        isAutogoal,
-        tempo: this.state.formatTimer(),
+        text: '⚡ Nessuno / Azione Personale',
+        role: 'selected',
+        handler: () => this.registraGol(marcatore, teamVantaggio, false, null),
       },
-    ]);
+      ...compagni.map((c: any) => ({
+        text: `👟 Assist di ${c.nome}`,
+        handler: () => this.registraGol(marcatore, teamVantaggio, false, c),
+      })),
+      { text: 'Annulla (Non registrare)', role: 'cancel' },
+    ];
+
+    const as = await this.actionSheetCtrl.create({
+      header: "👟 Chi ha fatto l'assist?",
+      subHeader: `Gol di ${marcatore.nome} (${teamVantaggio === 'A' ? 'Bianchi' : 'Neri'})`,
+      buttons,
+    });
+    await as.present();
+  }
+
+  async registraGol(
+    giocatore: any,
+    teamVantaggio: 'A' | 'B',
+    isAutogoal: boolean,
+    assistMan: any | null = null,
+  ) {
+    const nuovoEvento: EventoGol = {
+      idAssegnato: giocatore.id,
+      nome: giocatore.nome,
+      teamVantaggio,
+      isAutogoal,
+      tempo: this.state.formatTimer(),
+      assistId: assistMan ? assistMan.id : null,
+      assistNome: assistMan ? assistMan.nome : null,
+    };
+
+    this.state.eventiGol.update((list) => [...list, nuovoEvento]);
 
     teamVantaggio === 'A'
       ? this.state.scoreA.update((s) => s + 1)
       : this.state.scoreB.update((s) => s + 1);
 
-    const updateGol = (lista: any[]) =>
+    // 1. Aggiorna gol / autogol marcatore
+    const updateScorer = (lista: any[]) =>
       lista.map((g) =>
         g.id === giocatore.id
           ? {
@@ -305,23 +348,54 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           : g,
       );
 
-    this.state.tutti.update(updateGol);
+    this.state.tutti.update(updateScorer);
 
     if (teamVantaggio === 'A' && !isAutogoal) {
-      this.state.teamA.update(updateGol);
+      this.state.teamA.update(updateScorer);
     } else if (teamVantaggio === 'B' && !isAutogoal) {
-      this.state.teamB.update(updateGol);
+      this.state.teamB.update(updateScorer);
     } else if (isAutogoal) {
       // Se è autogol, il gol va cercato nel team opposto a chi ha "vantaggio"
       teamVantaggio === 'A'
-        ? this.state.teamB.update(updateGol)
-        : this.state.teamA.update(updateGol);
+        ? this.state.teamB.update(updateScorer)
+        : this.state.teamA.update(updateScorer);
     }
 
-    this.state.salvaInDatabase(false);
+    // 2. Se presente assist-man, aggiorna assist count
+    if (assistMan && !isAutogoal) {
+      const updateAssist = (lista: any[]) =>
+        lista.map((g) =>
+          g.id === assistMan.id
+            ? {
+                ...g,
+                assist: (g.assist || 0) + 1,
+              }
+            : g,
+        );
+
+      this.state.tutti.update(updateAssist);
+      if (teamVantaggio === 'A') {
+        this.state.teamA.update(updateAssist);
+      } else {
+        this.state.teamB.update(updateAssist);
+      }
+    }
+
+    await this.state.salvaInDatabase(false);
+
+    // Feedback rapido Toast
+    let feedbackMsg = '';
+    if (isAutogoal) {
+      feedbackMsg = `⚠️ Autogol di ${giocatore.nome}!`;
+    } else if (assistMan) {
+      feedbackMsg = `⚽ Gol di ${giocatore.nome} (👟 Assist di ${assistMan.nome})`;
+    } else {
+      feedbackMsg = `⚽ Gol di ${giocatore.nome} (⚡ Azione Personale)`;
+    }
+    await this.mostraToastFeedback(feedbackMsg);
   }
 
-  rimuoviUltimoGol(team: 'A' | 'B') {
+  async rimuoviUltimoGol(team: 'A' | 'B') {
     const list = this.state.eventiGol();
     for (let i = list.length - 1; i >= 0; i--) {
       if (list[i].teamVantaggio === team) {
@@ -348,15 +422,52 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
         this.state.tutti.update(removeGol);
 
-        // Aggiorniamo il team corretto per la rimozione
+        // Aggiorniamo il team corretto per la rimozione gol
         this.state.teamA().find((p) => p.id === rimosso.idAssegnato)
           ? this.state.teamA.update(removeGol)
           : this.state.teamB.update(removeGol);
 
-        this.state.salvaInDatabase(false);
+        // Rimozione dell'assist associato se presente
+        if (rimosso.assistId) {
+          const removeAssist = (lista: any[]) =>
+            lista.map((g) =>
+              g.id === rimosso.assistId
+                ? {
+                    ...g,
+                    assist: Math.max(0, (g.assist || 0) - 1),
+                  }
+                : g,
+            );
+
+          this.state.tutti.update(removeAssist);
+          this.state.teamA().find((p) => p.id === rimosso.assistId)
+            ? this.state.teamA.update(removeAssist)
+            : this.state.teamB.update(removeAssist);
+        }
+
+        await this.state.salvaInDatabase(false);
+
+        const undoMsg = rimosso.assistNome
+          ? `Rimosso gol di ${rimosso.nome} (👟 assist di ${rimosso.assistNome})`
+          : `Rimosso gol di ${rimosso.nome}`;
+        await this.mostraToastFeedback(undoMsg, 'warning');
         break;
       }
     }
+  }
+
+  private async mostraToastFeedback(
+    message: string,
+    color: 'success' | 'warning' | 'danger' = 'success',
+  ) {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      position: 'bottom',
+      color,
+      mode: 'ios',
+    });
+    await toast.present();
   }
 
   async finisciMatch() {

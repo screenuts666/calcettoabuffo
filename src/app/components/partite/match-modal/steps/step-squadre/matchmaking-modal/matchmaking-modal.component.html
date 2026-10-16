@@ -115,6 +115,7 @@
                   [text]="activeTacticalAnalysis()!"
                   [id]="'tactical-' + activeProposal().id"
                   label="Ascolta Tattica"
+                  shareTitle="Disamina Tattica Squadre"
                 ></app-ai-tts-button>
                 <button
                   type="button"
@@ -170,7 +171,7 @@
               @for (g of p.teamA; track g.id) {
                 <div class="player-row">
                   <div class="player-avatar-box">
-                    <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" class="avatar-img" />
+                    <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome" class="avatar-img"></app-player-avatar>
                     @if (g.ruoloPreferito) {
                       <span class="role-mini-badge" [title]="g.ruoloPreferito">
                         {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -221,7 +222,7 @@
               @for (g of p.teamB; track g.id) {
                 <div class="player-row">
                   <div class="player-avatar-box">
-                    <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" class="avatar-img" />
+                    <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome" class="avatar-img"></app-player-avatar>
                     @if (g.ruoloPreferito) {
                       <span class="role-mini-badge" [title]="g.ruoloPreferito">
                         {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -280,9 +281,9 @@
                   </div>
                   <div class="synergy-duo">
                     <div class="duo-avatars">
-                      <img [src]="syn.player1Foto || 'assets/default-avatar.svg'" class="duo-avatar" />
+                      <app-player-avatar [fotoUrl]="syn.player1Foto" [alt]="syn.player1Name" class="duo-avatar"></app-player-avatar>
                       <span class="duo-join">🤝</span>
-                      <img [src]="syn.player2Foto || 'assets/default-avatar.svg'" class="duo-avatar" />
+                      <app-player-avatar [fotoUrl]="syn.player2Foto" [alt]="syn.player2Name" class="duo-avatar"></app-player-avatar>
                     </div>
                     <div class="duo-names">
                       <strong>{{ syn.player1Name }} & {{ syn.player2Name }}</strong>

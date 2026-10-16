@@ -42,14 +42,11 @@
           [style.--tier-color]="comp.playerA.tier.color"
         >
           <div class="avatar-wrapper" (click)="apriSelettore('A')">
-            <img
+            <app-player-avatar
               class="player-avatar"
-              [src]="
-                comp.playerA.fotoUrl ||
-                'https://ionicframework.com/docs/img/demos/avatar.svg'
-              "
-              loading="lazy"
-            />
+              [fotoUrl]="comp.playerA.fotoUrl"
+              [alt]="comp.playerA.nome"
+            ></app-player-avatar>
             @if (comp.playerA.form.status === 'on_fire') {
               <span class="form-badge on-fire">🔥</span>
             } @else if (comp.playerA.form.status === 'in_crisis') {
@@ -67,7 +64,7 @@
               <span>{{ comp.playerA.tier.badge }}</span>
             </div>
             <div class="mmr-badge">
-              <span class="mmr-val">{{ comp.playerA.currentMmr }}</span>
+              <span class="mmr-val">{{ comp.playerA.isRanked ? comp.playerA.currentMmr : '—' }}</span>
               <span class="mmr-label">MMR</span>
             </div>
           </div>
@@ -101,14 +98,11 @@
           [style.--tier-color]="comp.playerB.tier.color"
         >
           <div class="avatar-wrapper" (click)="apriSelettore('B')">
-            <img
+            <app-player-avatar
               class="player-avatar"
-              [src]="
-                comp.playerB.fotoUrl ||
-                'https://ionicframework.com/docs/img/demos/avatar.svg'
-              "
-              loading="lazy"
-            />
+              [fotoUrl]="comp.playerB.fotoUrl"
+              [alt]="comp.playerB.nome"
+            ></app-player-avatar>
             @if (comp.playerB.form.status === 'on_fire') {
               <span class="form-badge on-fire">🔥</span>
             } @else if (comp.playerB.form.status === 'in_crisis') {
@@ -126,7 +120,7 @@
               <span>{{ comp.playerB.tier.badge }}</span>
             </div>
             <div class="mmr-badge">
-              <span class="mmr-val">{{ comp.playerB.currentMmr }}</span>
+              <span class="mmr-val">{{ comp.playerB.isRanked ? comp.playerB.currentMmr : '—' }}</span>
               <span class="mmr-label">MMR</span>
             </div>
           </div>
@@ -158,6 +152,7 @@
               [text]="verdettoAi()!"
               [id]="'verdetto-' + playerAId() + '-' + playerBId()"
               label="Ascolta Verdetto"
+              shareTitle="Verdetto Confronto 1vs1"
             ></app-ai-tts-button>
             <button
               type="button"
@@ -597,13 +592,7 @@
           @for (g of giocatoriFiltrati(); track g.id) {
             <div class="picker-player-item" (click)="selezionaGiocatore(g)">
               <ion-avatar class="picker-avatar">
-                <img
-                  [src]="
-                    g.fotoUrl ||
-                    'https://ionicframework.com/docs/img/demos/avatar.svg'
-                  "
-                  loading="lazy"
-                />
+                <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
               </ion-avatar>
 
               <div class="picker-player-meta">

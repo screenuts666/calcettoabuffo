@@ -211,6 +211,18 @@
         box-shadow: 0 0 8px rgba(37, 211, 102, 0.15);
       }
 
+      &.audio-direct-chip {
+        --background: rgba(37, 211, 102, 0.14);
+        --color: #25d366;
+        border-color: rgba(37, 211, 102, 0.45);
+        cursor: pointer;
+
+        &:hover {
+          --background: rgba(37, 211, 102, 0.25);
+          border-color: #25d366;
+        }
+      }
+
       &:active {
         transform: scale(0.94);
       }
@@ -322,6 +334,41 @@
       ion-icon {
         font-size: 1.2rem;
         margin-right: 6px;
+      }
+    }
+
+    .whatsapp-audio-action-btn {
+      --background: linear-gradient(135deg, rgba(37, 211, 102, 0.16) 0%, rgba(16, 185, 129, 0.24) 100%);
+      --border-color: rgba(37, 211, 102, 0.5);
+      --border-style: solid;
+      --border-width: 1px;
+      --color: #25d366;
+      --border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      height: 40px;
+      margin: 0;
+      letter-spacing: 0.1px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+
+      ion-icon {
+        font-size: 1.15rem;
+        margin-right: 6px;
+        color: #25d366;
+      }
+
+      ion-spinner {
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+        color: #25d366;
+      }
+
+      &:hover:not([disabled]) {
+        --background: linear-gradient(135deg, rgba(37, 211, 102, 0.25) 0%, rgba(16, 185, 129, 0.35) 100%);
+        --border-color: #25d366;
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
       }
     }
 

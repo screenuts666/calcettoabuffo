@@ -50,7 +50,7 @@
     <div class="avatar-item" (click)="spostaIn(g, 'B')" title="Tocca per spostare in Neri">
       <div class="avatar-wrapper">
         <ion-avatar>
-          <img loading="lazy" [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
         <span class="swap-hint">⇄</span>
       </div>
@@ -83,7 +83,7 @@
     <div class="avatar-item" (click)="spostaIn(g, 'A')" title="Tocca per spostare in Bianchi">
       <div class="avatar-wrapper">
         <ion-avatar>
-          <img loading="lazy" [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
         <span class="swap-hint">⇄</span>
       </div>

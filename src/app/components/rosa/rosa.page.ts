@@ -46,12 +46,20 @@ import {
   create,
   search,
   closeCircle,
+  people,
 } from 'ionicons/icons';
 import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
 import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
 import { AuthService } from 'src/app/services/auth.service';
+import {
+  DEFAULT_AVATAR,
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-rosa',
@@ -80,6 +88,7 @@ import { AuthService } from 'src/app/services/auth.service';
     FormGiocatoreComponent,
     IonButtons,
     ThemeToggleComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class RosaPage {
@@ -87,7 +96,15 @@ export class RosaPage {
   private alertController = inject(AlertController);
   private auth = inject(AuthService);
 
-  readonly DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
+  readonly DEFAULT_AVATAR = DEFAULT_AVATAR;
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   filtro = signal('');
   isModalOpen = signal(false);
@@ -121,7 +138,7 @@ export class RosaPage {
   });
 
   constructor() {
-    addIcons({ add, trash, person, create, search, closeCircle });
+    addIcons({ add, trash, person, create, search, closeCircle, people });
   }
 
   get isAdmin(): boolean {

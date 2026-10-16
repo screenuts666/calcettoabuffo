@@ -48,12 +48,19 @@ import {
   sparkles,
   refreshOutline,
   documentTextOutline,
+  helpCircleOutline,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from '../classifica.page';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../ai-tts-button/ai-tts-button.component';
+import {
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
+
+import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-scheda-giocatore',
@@ -74,6 +81,7 @@ import { AiTtsButtonComponent } from '../../ai-tts-button/ai-tts-button.componen
     IonCol,
     IonSpinner,
     AiTtsButtonComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class SchedaGiocatoreComponent {
@@ -81,6 +89,14 @@ export class SchedaGiocatoreComponent {
   private geminiService = inject(GeminiService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
+
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
 
   readonly formatAiMarkdown = formatAiMarkdown;
 
@@ -116,6 +132,7 @@ export class SchedaGiocatoreComponent {
       sparkles,
       refreshOutline,
       documentTextOutline,
+      helpCircleOutline,
     });
   }
 

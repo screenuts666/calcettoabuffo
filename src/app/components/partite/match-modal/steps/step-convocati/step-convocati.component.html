@@ -20,7 +20,7 @@
       @for (g of state.convocati(); track g.id) {
         <div class="selected-chip">
           <div class="avatar-wrapper">
-            <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
             <button class="remove-btn" (click)="toggleSelezione(g)">
               <ion-icon name="close-circle"></ion-icon>
             </button>
@@ -35,7 +35,7 @@
     @for (g of state.giocatoriFiltrati(); track g.id) {
       <ion-item (click)="toggleSelezione(g)" lines="full" class="player-item">
         <ion-avatar slot="start">
-          <img [src]="g.fotoUrl || 'assets/default-avatar.svg'" />
+          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
         <ion-label>
           <h3>{{ g.nome }}</h3>

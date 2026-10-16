@@ -27,6 +27,7 @@
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
     "@angular/service-worker": "^20.3.17",
+    "@breezystack/lamejs": "^1.2.7",
     "@capacitor/android": "^8.1.0",
     "@capacitor/app": "8.0.1",
     "@capacitor/core": "8.1.0",

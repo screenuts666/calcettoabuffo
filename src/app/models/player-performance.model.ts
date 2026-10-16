@@ -3,6 +3,7 @@ import { Giocatore } from './giocatore.model';
 export interface PlayerPerformance extends Giocatore {
   voto?: number;
   note?: string;
+  assist?: number;
 }
 
 export type RatingClass = '' | 'voto-alto' | 'voto-medio' | 'voto-basso';

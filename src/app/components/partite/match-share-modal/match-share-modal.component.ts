@@ -19,6 +19,7 @@ import {
   IonChip,
   IonLabel,
   IonFooter,
+  IonSpinner,
   ModalController,
   ToastController,
   LoadingController,
@@ -44,6 +45,7 @@ import {
   sparkles,
   refreshOutline,
   micOutline,
+  volumeHighOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
@@ -53,6 +55,7 @@ import {
 } from '../../../utils/whatsapp-formatter';
 import { StatsEngineService } from '../../../services/stats-engine.service';
 import { GeminiService } from '../../../services/gemini.service';
+import { TtsService } from '../../../services/tts.service';
 
 @Component({
   selector: 'app-match-share-modal',
@@ -72,6 +75,7 @@ import { GeminiService } from '../../../services/gemini.service';
     IonChip,
     IonLabel,
     IonFooter,
+    IonSpinner,
   ],
 })
 export class MatchShareModalComponent implements OnInit {
@@ -81,6 +85,7 @@ export class MatchShareModalComponent implements OnInit {
   private storage = inject(Storage);
   private statsEngine = inject(StatsEngineService);
   private geminiService = inject(GeminiService);
+  public ttsService = inject(TtsService);
 
   @Input({ required: true }) partita!: Partita;
 
@@ -97,6 +102,7 @@ export class MatchShareModalComponent implements OnInit {
   includeCronacaAi = signal<boolean>(true);
 
   isSharingNative = signal<boolean>(false);
+  isSharingAudio = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);
 
   constructor() {
@@ -119,6 +125,7 @@ export class MatchShareModalComponent implements OnInit {
       sparkles,
       refreshOutline,
       micOutline,
+      volumeHighOutline,
     });
   }
 
@@ -379,6 +386,69 @@ export class MatchShareModalComponent implements OnInit {
       }
     } finally {
       this.isSharingNative.set(false);
+    }
+  }
+
+  /**
+   * Condivide l'audio della Cronaca AI direttamente su WhatsApp (come traccia audio .mp3/.wav su mobile,
+   * o via download e WhatsApp Web su desktop).
+   */
+  async inviaAudioCronacaWhatsApp() {
+    const cronaca = (this.partita.cronacaAi || this.reportData()?.cronacaAi)?.trim();
+    if (!cronaca) {
+      const toast = await this.toastCtrl.create({
+        message: 'Nessuna telecronaca AI generata da condividere in audio.',
+        duration: 2500,
+        color: 'warning',
+        position: 'bottom',
+        mode: 'ios',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.isSharingAudio.set(true);
+    const loading = await this.loadingCtrl.create({
+      message: '🎙️ Preparazione audio per WhatsApp...',
+      mode: 'ios',
+      duration: 10000,
+    });
+    await loading.present();
+
+    try {
+      const title = `Telecronaca ${this.partita.dataPartita || 'Match'}`;
+      const res = await this.ttsService.shareAudioToWhatsApp(
+        cronaca,
+        `cronaca-${this.partita.id || 'temp'}`,
+        title
+      );
+      await loading.dismiss();
+
+      if (res.method === 'download-and-wa') {
+        const toast = await this.toastCtrl.create({
+          message: '📁 Audio scaricato! Trascinalo nella chat WhatsApp aperta.',
+          duration: 3500,
+          color: 'success',
+          position: 'bottom',
+          mode: 'ios',
+        });
+        await toast.present();
+      }
+    } catch (err: any) {
+      await loading.dismiss();
+      if (err?.name !== 'AbortError') {
+        console.warn('Errore condivisione audio:', err);
+        const toast = await this.toastCtrl.create({
+          message: 'Errore preparazione audio: ' + (err?.message || 'Riprova'),
+          duration: 3000,
+          color: 'danger',
+          position: 'bottom',
+          mode: 'ios',
+        });
+        await toast.present();
+      }
+    } finally {
+      this.isSharingAudio.set(false);
     }
   }
 

@@ -97,8 +97,22 @@ export class MatchModalComponent implements OnInit, OnDestroy {
           selezionato: idsSalvati.includes(g.id),
         })),
       );
-      this.state.teamA.set(this.matchData.teamA || []);
-      this.state.teamB.set(this.matchData.teamB || []);
+      const eventi = this.matchData.eventiGol || [];
+      const normalizePlayer = (p: any) => ({
+        ...p,
+        gol: p.gol || 0,
+        autogol: p.autogol || 0,
+        assist:
+          p.assist !== undefined
+            ? p.assist
+            : eventi.filter(
+                (eg: any) =>
+                  eg.assistId === p.id ||
+                  (!eg.assistId && eg.assistNome && eg.assistNome === p.nome),
+              ).length,
+      });
+      this.state.teamA.set((this.matchData.teamA || []).map(normalizePlayer));
+      this.state.teamB.set((this.matchData.teamB || []).map(normalizePlayer));
 
       if (!this.state.isDettagliValidi()) this.state.step.set('dettagli');
       else if (

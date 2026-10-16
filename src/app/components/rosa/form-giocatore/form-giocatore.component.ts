@@ -45,8 +45,13 @@ import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
 import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
 import { AuthService } from 'src/app/services/auth.service';
+import {
+  DEFAULT_AVATAR,
+  getAvatarUrl,
+  handleAvatarError,
+} from 'src/app/utils/avatar-utils';
 
-const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
+import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-form-giocatore',
@@ -70,6 +75,7 @@ const DEFAULT_AVATAR = 'https://ionicframework.com/docs/img/demos/avatar.svg';
     IonSelect,
     IonSelectOption,
     IonAvatar,
+    PlayerAvatarComponent,
   ],
 })
 export class FormGiocatoreComponent implements OnInit {
@@ -138,6 +144,14 @@ export class FormGiocatoreComponent implements OnInit {
     }
   }
 
+  getAvatar(fotoUrl?: string | null): string {
+    return getAvatarUrl(fotoUrl);
+  }
+
+  onImgError(event: Event) {
+    handleAvatarError(event);
+  }
+
   async salvaGiocatore() {
     if (!this.nome().trim()) return;
 
@@ -148,7 +162,14 @@ export class FormGiocatoreComponent implements OnInit {
     await loading.present();
 
     try {
-      let fotoUrl = this.anteprimaFoto() || DEFAULT_AVATAR;
+      let fotoUrl = this.anteprimaFoto() || '';
+      if (
+        fotoUrl.includes('ionicframework.com') ||
+        fotoUrl.includes('default-avatar.svg') ||
+        fotoUrl === DEFAULT_AVATAR
+      ) {
+        fotoUrl = '';
+      }
 
       if (this.fileSelezionato) {
         const path = `avatars/${Date.now()}_${this.fileSelezionato.name}`;

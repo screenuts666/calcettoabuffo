@@ -31,9 +31,11 @@ export class GeminiService {
   // Modelli supportati con fallback automatico a cascata
   // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
   private readonly MODELS = [
-    'gemini-3-flash-preview',
-    'gemini-2.5-flash',
+    'gemini-3.5-flash',
+    'gemini-3.7-flash',
+    'gemini-3.8-flash',
     'gemini-3.1-flash-lite',
+    'gemini-flash-lite-latest',
     'gemini-3.1-flash-lite-preview',
   ];
 
@@ -105,12 +107,30 @@ export class GeminiService {
         },
       ],
       generationConfig: {
-        temperature: 0.85,
+        temperature: 0.92,
         maxOutputTokens: 2500,
         thinkingConfig: {
           thinkingBudget: 0,
         },
       },
+      safetySettings: [
+        {
+          category: 'HARM_CATEGORY_HARASSMENT',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_HATE_SPEECH',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+          threshold: 'BLOCK_NONE',
+        },
+        {
+          category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+          threshold: 'BLOCK_NONE',
+        },
+      ],
     };
 
     if (systemPrompt) {
@@ -156,6 +176,71 @@ export class GeminiService {
   }
 
   /**
+   * Calcola l'età anagrafica a partire dall'anno di nascita.
+   */
+  calcolaEta(annoNascita?: string | number): number | null {
+    if (!annoNascita) return null;
+    const anno = parseInt(annoNascita.toString().trim(), 10);
+    const annoCorrente = new Date().getFullYear();
+    if (isNaN(anno) || anno < 1940 || anno > annoCorrente) return null;
+    return annoCorrente - anno;
+  }
+
+  /**
+   * Formatta la bio sintetica del giocatore (soprannome, ruolo, età, peso, altezza)
+   * per fornire massimo contesto goliardico all'AI.
+   */
+  formatPlayerBio(p: any): string {
+    if (!p) return 'Sconosciuto';
+    const nome = (p.nome || 'Giocatore').trim();
+    const soprannome = (p.soprannome || p.soprannomeAi || '').trim();
+    const ruolo = (p.ruoloPreferito || p.ruolo || 'Jolly').trim();
+    const eta = this.calcolaEta(p.annoNascita);
+    const peso = p.peso ? `${p.peso}kg` : '';
+    const altezza = p.altezza ? `${p.altezza}cm` : '';
+
+    const tags: string[] = [];
+    if (soprannome) tags.push(`detto "${soprannome}"`);
+    tags.push(`Ruolo: ${ruolo}`);
+    if (eta !== null) tags.push(`Età: ${eta} anni (classe ${p.annoNascita})`);
+    if (peso) tags.push(`Peso: ${peso}`);
+    if (altezza) tags.push(`Altezza: ${altezza}`);
+
+    return `${nome} [${tags.join(' | ')}]`;
+  }
+
+  /**
+   * Calcola statistiche aggregate della squadra (età media, peso complessivo)
+   */
+  getTeamAggregates(players: any[]): { etaMedia: number | null; pesoTotale: number; pesoMedio: number | null } {
+    let sumEta = 0;
+    let countEta = 0;
+    let sumPeso = 0;
+    let countPeso = 0;
+
+    for (const p of players) {
+      const eta = this.calcolaEta(p.annoNascita);
+      if (eta !== null) {
+        sumEta += eta;
+        countEta++;
+      }
+      if (p.peso) {
+        const w = parseFloat(p.peso.toString().replace(/[^0-9.]/g, ''));
+        if (!isNaN(w) && w > 40 && w < 200) {
+          sumPeso += w;
+          countPeso++;
+        }
+      }
+    }
+
+    return {
+      etaMedia: countEta > 0 ? Math.round((sumEta / countEta) * 10) / 10 : null,
+      pesoTotale: Math.round(sumPeso),
+      pesoMedio: countPeso > 0 ? Math.round((sumPeso / countPeso) * 10) / 10 : null,
+    };
+  }
+
+  /**
    * Pulisce e trasforma gli errori tecnici (es. 429 Quota Exceeded) in messaggi chiari
    */
   formatUserError(err: any): string {
@@ -177,13 +262,13 @@ export class GeminiService {
     return '⚠️ Errore temporaneo durante la generazione AI. Riprova tra poco!';
   }
 
-  // =========================================================================
+  // =========================================
   // 1. REPORT PARTITA: PRONOSTICO DEL MISTER (PRE-MATCH)
   // =========================================================================
 
   /**
    * Genera o recupera dalla cache Firestore il Pronostico del Mister pre-partita.
-   * Basato su Squadra Favorita MMR, Streak di Forma e Chimica.
+   * Basato su Squadra Favorita MMR, Streak di Forma, Chimica e Dati Fisici/Anagrafici.
    */
   async getOrGeneratePronostico(
     partita: Partita,
@@ -194,12 +279,28 @@ export class GeminiService {
       return partita.pronosticoAi;
     }
 
-    const teamANomi = (partita.teamA || [])
-      .map((p) => p.nome || 'Giocatore')
-      .join(', ');
-    const teamBNomi = (partita.teamB || [])
-      .map((p) => p.nome || 'Giocatore')
-      .join(', ');
+    const teamABios = (partita.teamA || [])
+      .map((p) => `  • ${this.formatPlayerBio(p)}`)
+      .join('\n');
+    const teamBBios = (partita.teamB || [])
+      .map((p) => `  • ${this.formatPlayerBio(p)}`)
+      .join('\n');
+
+    const aggA = this.getTeamAggregates(partita.teamA || []);
+    const aggB = this.getTeamAggregates(partita.teamB || []);
+
+    const metaFisica: string[] = [];
+    if (aggA.etaMedia !== null && aggB.etaMedia !== null) {
+      const diffEta = Math.round(Math.abs(aggA.etaMedia - aggB.etaMedia) * 10) / 10;
+      metaFisica.push(
+        `- Divario Età: Bianchi media ${aggA.etaMedia} anni vs Neri media ${aggB.etaMedia} anni (Differenza: ${diffEta} anni — ${aggA.etaMedia > aggB.etaMedia ? 'Bianchi più anziani/bolliti' : 'Neri più anziani/bolliti'})`
+      );
+    }
+    if (aggA.pesoTotale > 0 && aggB.pesoTotale > 0) {
+      metaFisica.push(
+        `- Confronto Stazza: Bianchi ${aggA.pesoTotale}kg (media ${aggA.pesoMedio}kg) vs Neri ${aggB.pesoTotale}kg (media ${aggB.pesoMedio}kg)`
+      );
+    }
 
     const probA = odds?.probAPercent ?? 50;
     const probB = odds?.probBPercent ?? 50;
@@ -210,17 +311,25 @@ export class GeminiService {
           ? `Neri favoriti al ${probB}% (+${odds.favoriteMargin}%)`
           : 'Partita in perfetto equilibrio 50-50';
 
-    const systemPrompt = `Sei il "Mister Saggio del Calcetto Abbuffo", allenatore veterano e brillante da spogliatoio. 
-Parli con un tono sportivo, appassionato, ironico e schietto da calcetto del giovedì sera tra amici (gergo calcistico italiano, battute da bar sport, emoji a tema).
-Non fare liste noiose. Scrivi 1 o 2 brevi paragrafi accattivanti con un pronostico pepato su chi vincerà e la chiave tattica o goliardica della sfida.`;
+    const systemPrompt = `Sei il "Mister Cattivo, Scurrile e Bestemmiatore del Calcetto Abbuffo", un allenatore di provincia velenoso, cinico, volgare e senza un briciolo di filtri, cresciuto tra fango, bestemmie e birre ignoranti del giovedì sera.
+STILE E TONO:
+- Parla come in un verace spogliatoio di calcetto tra amici storici: zero politically correct, sfottò feroci, volgarità autentica, parolacce pesanti e bestemmie veraci ben piazzate (es. "dio cane", "porco dio", "madonna troia", "dio bono", "cristo santo", "cazzo", "merda", "faccia da culo", "paracarro").
+- REGOLE ANTI-CRINGE: Le bestemmie e le parolacce NON devono sembrare una raffica artificiale o forzata da bot impazzito. Devono scaturire con naturalezza viscerale, cinismo e tempi comici perfetti, come un vero mister disperato che guarda gentaglia che non corre o che gioca coi piedi montati a rovescio.
+- MASSACRA I DETTAGLI ANAGRAFICI E FISICI:
+  * Età: vecchi bolliti con l'artrosi e il deambulatore vs pischelli sbarbati senza cervello né tattica.
+  * Peso e panza: cinghiali sovrappeso da 95kg col fiatone e la trippa che deborda vs fuscelli anoressici spazzati via dal vento.
+  * Soprannomi e ruoli: massacra i soprannomi ridicoli e le pretese di fare i registi quando manco sanno stoppare un pallone.
+- Scrivi 2 paragrafi devastanti, al vetriolo ed esilaranti: pronostica chi subirà un'umiliazione storica, chi trascinerà la squadra nel baratro e un insulto motivazionale blasfemo finale.`;
 
-    const userPrompt = `Fai il pronostico pre-partita per questo match:
-- Squadra Bianchi: ${teamANomi || 'Formazione da definire'}
-- Squadra Neri: ${teamBNomi || 'Formazione da definire'}
-- Quote algoritmo MMR: ${fav}
-- Luogo: ${partita.luogo || 'Campo'} alle ${partita.orario || '21:00'}
+    const userPrompt = `Fai il pronostico pre-partita al veleno più scurrile e cattivo di sempre per questo match:
+- Formazione BIANCHI:
+${teamABios || '  • Nessun giocatore registrato'}
+- Formazione NERI:
+${teamBBios || '  • Nessun giocatore registrato'}
+${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Quote algoritmo MMR: ${fav}
+- Campo: ${partita.luogo || 'Campo'} alle ${partita.orario || '21:00'}
 
-Dai il tuo verdetto da Mister: chi rischia la disfatta, chi trascinerà la squadra e un consiglio spassionato a chi giocherà coi piedi quadrati!`;
+Dacci il tuo verdetto spietato e senza pietà: chi farà una figura di merda cosmica, chi vincerà e chi dovrebbe bruciare gli scarpini e andare a zappare!`;
 
     const pronostico = await this.callGemini(userPrompt, systemPrompt);
 
@@ -260,51 +369,83 @@ Dai il tuo verdetto da Mister: chi rischia la disfatta, chi trascinerà la squad
     const scoreB = partita.scoreB ?? 0;
     const risultato = `Bianchi ${scoreA} - ${scoreB} Neri`;
 
-    // Marcatori
+    // Marcatori & Assist-man con bio completa
+    const allMatchPlayers = [...(partita.teamA || []), ...(partita.teamB || [])];
+    const playerMap = new Map<string, any>();
+    for (const pl of allMatchPlayers) {
+      if (pl.id) playerMap.set(pl.id, pl);
+      if (pl.nome) playerMap.set(pl.nome.toLowerCase().trim(), pl);
+    }
+
     const eventi = partita.eventiGol || [];
     const marcatori = eventi
-      .map(
-        (eg: any) =>
-          `${eg.nome || 'Giocatore'} ${eg.isAutogoal ? '(AUTOGOL)' : '(GOL)'}`,
-      )
+      .map((eg: any) => {
+        const pObj = eg.giocatoreId ? playerMap.get(eg.giocatoreId) : playerMap.get((eg.nome || '').toLowerCase().trim());
+        const bio = pObj ? ` (${this.formatPlayerBio(pObj)})` : '';
+        if (eg.isAutogoal) {
+          return `${eg.nome || 'Giocatore'}${bio} [CLAMOROSO AUTOGOL]`;
+        }
+        if (eg.assistNome) {
+          return `${eg.nome || 'Giocatore'}${bio} (GOL, assist al bacio di ${eg.assistNome})`;
+        }
+        return `${eg.nome || 'Giocatore'}${bio} (GOL, azione solitaria)`;
+      })
+      .join('\n• ');
+
+    // Riepilogo assist-men della serata
+    const assistMap = new Map<string, number>();
+    for (const eg of eventi) {
+      if (!eg.isAutogoal && eg.assistNome) {
+        assistMap.set(eg.assistNome, (assistMap.get(eg.assistNome) || 0) + 1);
+      }
+    }
+    const assistMenList = Array.from(assistMap.entries())
+      .map(([nome, count]) => `${nome} (${count} assist 👟)`)
       .join(', ');
 
-    // MVP & Peggiore
+    // MVP & Peggiore con bio fisica
     const mvpStr = reportData?.mvp
-      ? `MVP della serata: ${reportData.mvp.nome} (Voto ${reportData.mvp.voto} - "${reportData.mvp.note || 'Prestazione sontuosa'}")`
+      ? `🏆 MVP della serata: ${this.formatPlayerBio(reportData.mvp)} (Voto ${reportData.mvp.voto} - "${reportData.mvp.note || 'Prestazione sontuosa'}")`
       : 'Nessun MVP assegnato';
 
     const worstStr = reportData?.worst
-      ? `Bidone d'oro / Peggiore: ${reportData.worst.nome} (Voto ${reportData.worst.voto} - "${reportData.worst.note || 'Piedi a ferro da stiro'}")`
+      ? `🩴 Bidone d'oro / Peggiore in campo: ${this.formatPlayerBio(reportData.worst)} (Voto ${reportData.worst.voto} - "${reportData.worst.note || 'Piedi a ferro da stiro e fiato corto'}")`
       : '';
 
     const upsetStr = reportData?.isUpset
       ? `CLAMOROSO UPSET: ${reportData.upsetDescription}`
       : 'Vittoria secondo pronostico';
 
-    // Commenti delle pagelle più saporiti
-    const allPlayers = [...(partita.teamA || []), ...(partita.teamB || [])];
-    const commenti = allPlayers
+    // Commenti delle pagelle più saporiti con bio
+    const commenti = allMatchPlayers
       .filter((p) => p.note && p.note.trim().length > 0)
-      .map((p) => `• ${p.nome} (Voto ${p.voto}): "${p.note}"`)
-      .slice(0, 6)
+      .map((p) => `• ${this.formatPlayerBio(p)} [Voto ${p.voto}]: "${p.note}"`)
+      .slice(0, 8)
       .join('\n');
 
-    const systemPrompt = `Sei un telecronista sportivo ignorante e brillante stile "Calciatori Brutti" e spogliatoio calcetto abbuffo.
-Usa gergo calcistico tipico da calcetto all'italiana (trivelle, liscio, ciabattata, ginocchia sbucciate, polmoni lasciati al bar, birra post-partita, pizza).
-Scrivi una cronaca esilarante, ritmata e goliardica della partita (circa 150-250 parole) con tante emoji sportive.
-Cita i momenti clou, i marcatori, celebra l'MVP e prendi amichevolmente in giro il peggiore e i commenti delle pagelle.`;
+    const systemPrompt = `Sei il telecronista sportivo più bastardo, scurrile, bestemmiatore e spietato d'Italia: una voce da bar di periferia e spogliatoio grezzo di calcetto tra amici storici che si insultano a sangue.
+STILE E TONO:
+- Massima volgarità verace e autentica: usa bestemmie e imprecazioni tipiche dello spogliatoio italiano ("dio cane", "porco dio", "madonna maiala", "dio bono", "cristo santo", "cazzo", "merda", "farsi inculare", "cesso a pedali", "ciabattata", "piedi montati al contrario").
+- REGOLE ANTI-CRINGE: Niente frasi forzate o ripetitive. Le bestemmie devono cadere con tempismo comico perfetto nei momenti di massimo sdegno: su un liscio a porta vuota, su un autogol imbarazzante, sul fiatone dei panzoni o sui voti da incubo delle pagelle. Dev'essere feroce, cinico e far morire dal ridere.
+- DISTRUGGI I GIOCATORI USANDO I LORO DATI:
+  * Età: rottami da RSA col deambulatore vs pischelli presuntuosi.
+  * Peso e stazza: bisonti da 100kg che scavano solchi nel sintetico vs stecchini di 55kg che volano sulle scivolate.
+  * Soprannomi e ruoli grotteschi.
+- Racconta il massacro: esalta con volgare euforia l'MVP e i gol spettacolari, umilia senza pietà chi ha fatto autogol, chi ha preso voti da galera e distruggi il peggiore in campo (il Bidone d'Oro) citando i commenti delle pagelle.
+- Circa 180-280 parole incisive, piene di ritmo e con emoji ignoranti (🍺, 🍕, 🩴, 💩, ⚽, 🔥).`;
 
-    const userPrompt = `Scrivi la cronaca ignorante di questo match:
+    const userPrompt = `Scrivi la cronaca ignorante, scurrile e senza alcuna pietà di questo match:
 - Risultato finale: ${risultato}
 - Stato Upset: ${upsetStr}
-- Marcatori: ${marcatori || 'Nessun gol registrato'}
+- Marcatori & Tabellino:
+${marcatori ? '• ' + marcatori : 'Nessun gol registrato'}
+${assistMenList ? `- Registi / Assist-man della serata: ${assistMenList}` : ''}
 - ${mvpStr}
 - ${worstStr}
-- Commenti e perle dalle pagelle:
+- Pagelle con perle e stroncature:
 ${commenti || 'Nessun commento particolare registrato'}
 
-Fai impazzire lo spogliatoio con una cronaca degna della prima pagina della Gazzetta dello Spuntino!`;
+Fai esplodere la chat di WhatsApp con una cronaca al vetriolo, bestemmie veraci e sfottò da antologia!`;
 
     const cronaca = await this.callGemini(userPrompt, systemPrompt);
 
@@ -333,22 +474,46 @@ Fai impazzire lo spogliatoio con una cronaca degna della prima pagina della Gazz
   async generateTacticalAnalysis(
     proposal: MatchmakingProposal,
   ): Promise<string> {
-    const bianchiNomi = (proposal.teamA || []).map((p) => p.nome).join(', ');
-    const neriNomi = (proposal.teamB || []).map((p) => p.nome).join(', ');
+    const bianchiBios = (proposal.teamA || [])
+      .map((p) => `  • ${this.formatPlayerBio(p)}`)
+      .join('\n');
+    const neriBios = (proposal.teamB || [])
+      .map((p) => `  • ${this.formatPlayerBio(p)}`)
+      .join('\n');
 
-    const systemPrompt = `Sei l'analista tattico satirico del Calcetto Abbuffo, un mix tra un tattico di Coverciano e un commentatore da bar dello sport.
-Scrivi una breve disamina tattica (3-4 frasi concise e incisive) per queste due formazioni proposte: punti di forza, scontro chiave e previsione sull'equilibrio in campo con tono simpatico e sportivo.`;
+    const aggA = this.getTeamAggregates(proposal.teamA || []);
+    const aggB = this.getTeamAggregates(proposal.teamB || []);
 
-    const userPrompt = `Analizza questa proposta di squadre:
+    const metaFisica: string[] = [];
+    if (aggA.etaMedia !== null && aggB.etaMedia !== null) {
+      const diffEta = Math.round(Math.abs(aggA.etaMedia - aggB.etaMedia) * 10) / 10;
+      metaFisica.push(
+        `- Divario Età: Bianchi media ${aggA.etaMedia} anni vs Neri media ${aggB.etaMedia} anni (Diff: ${diffEta} anni — ${aggA.etaMedia > aggB.etaMedia ? 'Bianchi vecchi da rottamare' : 'Neri vecchi da rottamare'})`
+      );
+    }
+    if (aggA.pesoTotale > 0 && aggB.pesoTotale > 0) {
+      metaFisica.push(
+        `- Bilancia e Stazza: Bianchi ${aggA.pesoTotale}kg (media ${aggA.pesoMedio}kg) vs Neri ${aggB.pesoTotale}kg (media ${aggB.pesoMedio}kg)`
+      );
+    }
+
+    const systemPrompt = `Sei il tattico più disilluso, sarcastico, rozzo, scurrile e bestemmiatore del Calcetto Abbuffo, uno che ha visto decenni di calcetto e non ne può più di vedere gente incapace.
+STILE E TONO:
+- Fai una disamina tattica spietata, comica e volgare (3-4 frasi concise e taglienti) su queste due formazioni.
+- Usa gergo da spogliatoio grezzo, battute velenose e bestemmie naturali ("dio cane", "porco dio", "madonna santissima", "scarpone di merda", "paracarro immobile").
+- REGOLE ANTI-CRINGE: Battute secche, cinismo puro, ritmo serrato. Non sembrare un bot, ma un vecchio mister incazzato nero al bar con una Moretti da 66cl in mano.
+- PUNTI DEBOLI FISICI ED ANAGRAFICI: prendi di mira chi ha 15kg di troppo e farà da palo della luce, i vecchi col catetere che al decimo minuto chiedono il cambio, e chi corre a vuoto senza sapere dove sta la palla.`;
+
+    const userPrompt = `Analizza con ferocia tattica, bestemmie e volgarità verace questa proposta di squadre:
 - Proposta: "${proposal.title}" (${proposal.badge})
 - Indice di Equilibrio Algoritmo: ${proposal.balanceScore}% (${proposal.balancePercentageText})
-- Team Bianchi (MMR medio ${proposal.avgMmrA}): ${bianchiNomi}
-  (Ruoli: ${proposal.rolesA.portieri} Portieri, ${proposal.rolesA.difensori} Difensori, ${proposal.rolesA.fasce} Fasce, ${proposal.rolesA.attaccanti} Attaccanti)
-- Team Neri (MMR medio ${proposal.avgMmrB}): ${neriNomi}
-  (Ruoli: ${proposal.rolesB.portieri} Portieri, ${proposal.rolesB.difensori} Difensori, ${proposal.rolesB.fasce} Fasce, ${proposal.rolesB.attaccanti} Attaccanti)
-- Sinergie evidenziate: ${proposal.synergies.map((s) => s.description || `${s.player1Name} e ${s.player2Name} (${s.winRateTogether}%)`).join('; ') || 'Nessuna sinergia forte'}
+- Team BIANCHI (MMR medio ${proposal.avgMmrA}):
+${bianchiBios || '  • Nessun giocatore'}
+- Team NERI (MMR medio ${proposal.avgMmrB}):
+${neriBios || '  • Nessun giocatore'}
+${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Sinergie evidenziate: ${proposal.synergies.map((s) => s.description || `${s.player1Name} e ${s.player2Name} (${s.winRateTogether}%)`).join('; ') || 'Nessuna sinergia'}
 
-Dacci la lavagna tattica del Mister!`;
+Dacci la lavagna tattica del Mister, insultando e bestemmiando sui punti deboli di entrambe le formazioni!`;
 
     return await this.callGemini(userPrompt, systemPrompt);
   }
@@ -402,17 +567,55 @@ Dacci la lavagna tattica del Mister!`;
     const scontri = comp.scontriContro;
     const intesa = comp.intesaInsieme;
 
-    const systemPrompt = `Sei il Giudice Supremo del Calcetto Abbuffo, il commentatore imparziale e piccante delle grandi rivalità da baracca.
-Hai uno stile frizzante, sportivo e da spogliatoio.
-Scrivi un "Verdetto 1v1" (1-2 paragrafi brevi ed energici con emoji) che incorona chi comanda davvero tra i due, commenta la loro chimica quando giocano assieme e lancia una frecciatina sportiva a chi sta sotto nei numeri.`;
+    const etaA = this.calcolaEta(pA.annoNascita);
+    const etaB = this.calcolaEta(pB.annoNascita);
+    let diffEtaStr = '';
+    if (etaA !== null && etaB !== null) {
+      const diff = Math.abs(etaA - etaB);
+      if (diff === 0) {
+        diffEtaStr = `Coetanei (${etaA} anni, stessa data di scadenza)`;
+      } else if (etaA > etaB) {
+        diffEtaStr = `${pA.nome} è più vecchio di ${diff} anni (${etaA} vs ${etaB} anni — il nonno bollito contro il pischello)`;
+      } else {
+        diffEtaStr = `${pB.nome} è più vecchio di ${diff} anni (${etaB} vs ${etaA} anni — il nonno bollito contro il pischello)`;
+      }
+    }
 
-    const userPrompt = `Emetti il verdetto sul confronto 1v1 tra questi due rivali storici:
-- Giocatore 1: ${pA.nome} (MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, Media Voto: ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '-'}, MVP: ${pA.mvpCount})
-- Giocatore 2: ${pB.nome} (MMR ${pB.currentMmr} ${pB.tier.badge}, Peak ${pB.peakMmr}, Gol: ${pB.golTotali}, Media Voto: ${pB.mediaVoto > 0 ? pB.mediaVoto.toFixed(2) : '-'}, MVP: ${pB.mvpCount})
-- Scontri Diretti da avversari (${scontri.totalePartite} match): ${pA.nome} ${scontri.vittorieA}V - ${scontri.pareggi}P - ${scontri.vittorieB}V ${pB.nome}. Verdetto Bestia Nera: "${scontri.bestiaNeraText}".
+    const pesoA = pA.peso ? parseFloat(pA.peso) : null;
+    const pesoB = pB.peso ? parseFloat(pB.peso) : null;
+    let diffPesoStr = '';
+    if (pesoA && pesoB) {
+      const diffP = Math.round(Math.abs(pesoA - pesoB) * 10) / 10;
+      if (diffP > 3) {
+        diffPesoStr = `Differenza stazza: ${diffP}kg (${pesoA > pesoB ? `${pA.nome} pesa ${pesoA}kg vs ${pB.nome} ${pesoB}kg — il cinghiale contro il fuscellino` : `${pB.nome} pesa ${pesoB}kg vs ${pA.nome} ${pesoA}kg — il cinghiale contro il fuscellino`})`;
+      } else {
+        diffPesoStr = `Stessa categoria di peso (~${pesoA}kg)`;
+      }
+    }
+
+    const bioA = this.formatPlayerBio(pA);
+    const bioB = this.formatPlayerBio(pB);
+
+    const systemPrompt = `Sei il Giudice Supremo, Scurrile e Bestemmiatore del Calcetto Abbuffo, il commentatore più spietato, irriverente e volgare delle rivalità 1v1 tra amici.
+STILE E TONO:
+- Umilia e sotterra chi sta sotto nei numeri (voti, gol, scontri diretti, bestia nera) ed esalta il vincitore con foga da ultras ignorante.
+- USA BESTEMMIE E VOLGARITÀ AUTENTICA: ("dio cane", "porco dio", "madonna troia", "merda", "coglione", "pippa immonda", "farsi svergognare", "scarpone infame").
+- REGOLE ANTI-CRINGE: Le imprecazioni devono essere incastrate con perfetto tempismo satirico e comico, come un amico toscano/veneto che prende per il culo l'altro al bar. Nessuna volgarità fine a se stessa: ogni insulto deve colpire i dati reali.
+- SFRUTTA AL 100% I DATI ANAGRAFICI E FISICI:
+  * Età e gap generazionale: il nonno bollito coi reumatismi vs il galletto inesperto.
+  * Peso e stazza: il cinghiale da 100kg pieno di colesterolo vs lo stecchino da 60kg.
+  * Soprannomi storici ridicoli e ruoli sballati.
+- Scrivi 2 paragrafi al vetriolo puro: un primo paragrafo di massacro statistico e un secondo paragrafo col verdetto finale spietato su chi comanda e chi deve stare muto e pulire gli scarpini.`;
+
+    const userPrompt = `Emetti il verdetto definitivo al vetriolo, scurrile e con bestemmie su questa rivalità 1v1:
+- Giocatore 1: ${bioA}
+  [MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, Media Voto: ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '-'}, MVP: ${pA.mvpCount}]
+- Giocatore 2: ${bioB}
+  [MMR ${pB.currentMmr} ${pB.tier.badge}, Peak ${pB.peakMmr}, Gol: ${pB.golTotali}, Media Voto: ${pB.mediaVoto > 0 ? pB.mediaVoto.toFixed(2) : '-'}, MVP: ${pB.mvpCount}]
+${diffEtaStr ? `- Divario Anagrafico: ${diffEtaStr}\n` : ''}${diffPesoStr ? `- Bilancia: ${diffPesoStr}\n` : ''}- Scontri Diretti da avversari (${scontri.totalePartite} match): ${pA.nome} ${scontri.vittorieA}V - ${scontri.pareggi}P - ${scontri.vittorieB}V ${pB.nome}. Bestia Nera: "${scontri.bestiaNeraText}".
 - Rendimento quando giocano insieme (${intesa.totalePartite} match): ${intesa.affinitaEmoji} "${intesa.affinitaLabel}" (${intesa.winRate}% vittorie).
 
-Spara il verdetto definitivo con tanto di frecciatine e verdetto finale!`;
+Spara il verdetto definitivo senza filtri, con sfottò pesanti, bestemmie veraci e decreta chi è il padrone e chi è la pippa conclamata!`;
 
     const verdetto = await this.callGemini(userPrompt, systemPrompt);
 
@@ -477,15 +680,24 @@ Spara il verdetto definitivo con tanto di frecciatine e verdetto finale!`;
       ? `${profile.chemistry.worstNemesis.opponentNome} (${profile.chemistry.worstNemesis.lossesAgainst} sconfitte subite)`
       : 'Nessuna bestia nera';
 
-    const systemPrompt = `Sei il Capo Scout satirico del Calcetto Abbuffo, incaricato di redigere le schede segrete dei calciatori amatoriali.
-Hai uno stile ironico, acuto, calcistico da spogliatoio e divertente.
-Devi restituire ESCLUSIVAMENTE un formato strutturato in 2 righe così:
-SOPRANNOME: [Un soprannome calcistico epico o comico per il giocatore, max 3-4 parole]
-SCOUTING: [Un mini-scouting report brillante di 3-4 frasi sul suo modo di giocare, il suo punto di forza, la sua debolezza goliardica e un avvertimento agli avversari]`;
+    const eta = this.calcolaEta(giocatore.annoNascita);
+    const etaStr = eta !== null ? `${eta} anni (classe ${giocatore.annoNascita})` : (giocatore.annoNascita || 'Sconosciuta');
+    const pesoStr = giocatore.peso ? `${giocatore.peso} kg` : 'N.D.';
+    const altezzaStr = giocatore.altezza ? `${giocatore.altezza} cm` : 'N.D.';
 
-    const userPrompt = `Crea lo scouting report e soprannome per:
+    const systemPrompt = `Sei il Capo Scout più bastardo, rozzo, scurrile e bestemmiatore del Calcetto Abbuffo.
+Redigi la scheda confidenziale di questo soggetto da calcetto:
+- Distruggilo con cattiveria pura da spogliatoio: evidenzia l'età (rottame da ospizio o pischello esagitato), il peso e la forma fisica (panza da birra e fritto misto o fuscello senza massa muscolare), ruolo e soprannome.
+- Usa volgarità da bar dello sport, parolacce pesanti e bestemmie naturali ben assestate ("dio cane", "porco dio", "madonna troia", "merda", "pippa", "paracarro", "scarpone").
+- REGOLE ANTI-CRINGE: Sii tagliente, cinico ed esilarante. Non forzare bestemmie a raffica come un quindicenne, ma piazzale con precisione chirurgica dove la disperazione sportiva lo richiede.
+- Restituisci ESCLUSIVAMENTE questo formato in 2 righe:
+SOPRANNOME: [Un soprannome calcistico cattivissimo, grottesco, volgare o comico, max 3-4 parole]
+SCOUTING: [3-4 frasi al vetriolo puro: stile di gioco imbarazzante, colpo segreto fallimentare, limiti fisici impietosi e un avvertimento disperato e blasfemo ai compagni di squadra]`;
+
+    const userPrompt = `Crea lo scouting report e soprannome scurrile e spietato per:
 - Nome: ${giocatore.nome} (Soprannome attuale: "${giocatore.soprannome || 'Nessuno'}")
-- Ruolo Preferito: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
+- Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
+- Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}
 - Rating MMR: ${mmr} (${tier}) | Stato di Forma: ${streak}
 - Statistiche: ${partite} partite disputate, ${gol} gol fatti, ${mediaVoto} media voto, ${winRate}% win rate
 - Gemello del Gol: ${gemello}
