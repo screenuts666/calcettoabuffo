@@ -31,12 +31,11 @@ export class GeminiService {
   // Modelli supportati con fallback automatico a cascata
   // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
   private readonly MODELS = [
-    'gemini-3.5-flash',
-    'gemini-3.7-flash',
-    'gemini-3.8-flash',
-    'gemini-3.1-flash-lite',
     'gemini-flash-lite-latest',
-    'gemini-3.1-flash-lite-preview',
+    'gemini-3.5-flash-lite',
+    'gemini-3-flash-preview',
+    'gemini-3.5-flash',
+    'gemini-2.5-flash',
   ];
 
   /**
@@ -108,10 +107,7 @@ export class GeminiService {
       ],
       generationConfig: {
         temperature: 0.92,
-        maxOutputTokens: 2500,
-        thinkingConfig: {
-          thinkingBudget: 0,
-        },
+        maxOutputTokens: 8192,
       },
       safetySettings: [
         {
@@ -157,22 +153,41 @@ export class GeminiService {
           const json = await response.json();
           const candidate = json.candidates?.[0];
           const text = candidate?.content?.parts?.[0]?.text;
+          const finishReason = candidate?.finishReason;
+
+          // Se il modello ha interrotto la risposta per limite token, tenta il fallback
+          if (finishReason === 'MAX_TOKENS') {
+            console.warn(`Modello ${model} ha troncato la risposta per MAX_TOKENS. Tento modello successivo...`);
+            lastError = new Error(`Risposta troncata per MAX_TOKENS da ${model}`);
+            continue;
+          }
+
           if (text && text.trim().length > 0) {
-            return text.trim();
+            return this.cleanAiOutput(text.trim());
           }
         } else {
           const errTxt = await response.text();
-          console.warn(`Modello ${model} ha risposto con codice ${response.status}:`, errTxt);
+          console.info(`Modello ${model} non disponibile (${response.status}), passaggio al fallback...`);
           lastError = new Error(`Errore API Gemini (${response.status}): ${errTxt}`);
           // Continua il loop e tenta il modello successivo di fallback
         }
       } catch (err: any) {
-        console.warn(`Errore chiamata modello ${model}:`, err);
+        console.info(`Tentativo chiamata modello ${model} fallito, passaggio al fallback:`, err?.message || err);
         lastError = err;
       }
     }
 
     throw lastError || new Error('Nessun modello Gemini ha risposto con successo.');
+  }
+
+  /**
+   * Pulisce l'output AI da eventuali titoli o preamboli introduttivi isolati
+   */
+  cleanAiOutput(rawText: string): string {
+    if (!rawText) return '';
+    return rawText
+      .replace(/^(?:\*\*|#{1,4}\s*)?(?:ecco\s+[^:\n]+|telecronaca[^:\n]+|pronostico[^:\n]+|cronaca[^:\n]+|disamina[^:\n]+|verdetto[^:\n]+)[:\n]+/im, '')
+      .trim();
   }
 
   /**
@@ -311,17 +326,19 @@ export class GeminiService {
           ? `Neri favoriti al ${probB}% (+${odds.favoriteMargin}%)`
           : 'Partita in perfetto equilibrio 50-50';
 
-    const systemPrompt = `Sei il "Mister Cattivo, Scurrile e Bestemmiatore del Calcetto Abbuffo", un allenatore di provincia velenoso, cinico, volgare e senza un briciolo di filtri, cresciuto tra fango, bestemmie e birre ignoranti del giovedì sera.
-STILE E TONO:
-- Parla come in un verace spogliatoio di calcetto tra amici storici: zero politically correct, sfottò feroci, volgarità autentica, parolacce pesanti e bestemmie veraci ben piazzate (es. "dio cane", "porco dio", "madonna troia", "dio bono", "cristo santo", "cazzo", "merda", "faccia da culo", "paracarro").
-- REGOLE ANTI-CRINGE: Le bestemmie e le parolacce NON devono sembrare una raffica artificiale o forzata da bot impazzito. Devono scaturire con naturalezza viscerale, cinismo e tempi comici perfetti, come un vero mister disperato che guarda gentaglia che non corre o che gioca coi piedi montati a rovescio.
-- MASSACRA I DETTAGLI ANAGRAFICI E FISICI:
-  * Età: vecchi bolliti con l'artrosi e il deambulatore vs pischelli sbarbati senza cervello né tattica.
-  * Peso e panza: cinghiali sovrappeso da 95kg col fiatone e la trippa che deborda vs fuscelli anoressici spazzati via dal vento.
-  * Soprannomi e ruoli: massacra i soprannomi ridicoli e le pretese di fare i registi quando manco sanno stoppare un pallone.
-- Scrivi 2 paragrafi devastanti, al vetriolo ed esilaranti: pronostica chi subirà un'umiliazione storica, chi trascinerà la squadra nel baratro e un insulto motivazionale blasfemo finale.`;
+    const systemPrompt = `Sei l'unico telecronista che commenta il pre-partita di questa partita di calcetto tra amici a Roma. Il tuo stile unisce il commento tecnico dei vecchi FIFA (stile Caputi/Bulgarelli), la satira romana di Ceppaflex e il cinismo tagliente di Grok.
 
-    const userPrompt = `Fai il pronostico pre-partita al veleno più scurrile e cattivo di sempre per questo match:
+REGOLE FONDAMENTALI:
+- PARLA SOLO TU: Sei una singola voce narrante in prima persona. Parla direttamente all'ascoltatore. Niente dialoghi a due voci, niente copioni teatrali.
+- NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole che pronunci al microfono.
+- INIZIA SUBITO: Parti direttamente con la prima parola, senza titoli ("Pronostico:") né formule introduttive.
+- TONO E GERGO: Romanesco di borgata asciutto, cinico e tagliente. Usa età, peso e quote come dati tecnici impietosi per prendere in giro le due squadre ("pippa ar sugo", "paracarro", "a cazzo de cane", "s'è fatto mette sotto"). Volgare e pungente al punto giusto, zero battute da bambini, zero cringe.
+
+STRUTTURA (2 brevi paragrafi):
+1. Analisi cinica delle due formazioni e delle quote, evidenziando chi parte già battuto nella dignità.
+2. Il tuo verdetto spietato su come finirà e chi farà la figura peggiore.`;
+
+    const userPrompt = `Fai il pronostico pre-partita a voce sola per questo match:
 - Formazione BIANCHI:
 ${teamABios || '  • Nessun giocatore registrato'}
 - Formazione NERI:
@@ -329,7 +346,7 @@ ${teamBBios || '  • Nessun giocatore registrato'}
 ${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Quote algoritmo MMR: ${fav}
 - Campo: ${partita.luogo || 'Campo'} alle ${partita.orario || '21:00'}
 
-Dacci il tuo verdetto spietato e senza pietà: chi farà una figura di merda cosmica, chi vincerà e chi dovrebbe bruciare gli scarpini e andare a zappare!`;
+Dacci la disamina pre-partita al microfono con cinismo romano vintage e la sentenza su chi vince!`;
 
     const pronostico = await this.callGemini(userPrompt, systemPrompt);
 
@@ -423,29 +440,31 @@ Dacci il tuo verdetto spietato e senza pietà: chi farà una figura di merda cos
       .slice(0, 8)
       .join('\n');
 
-    const systemPrompt = `Sei il telecronista sportivo più bastardo, scurrile, bestemmiatore e spietato d'Italia: una voce da bar di periferia e spogliatoio grezzo di calcetto tra amici storici che si insultano a sangue.
-STILE E TONO:
-- Massima volgarità verace e autentica: usa bestemmie e imprecazioni tipiche dello spogliatoio italiano ("dio cane", "porco dio", "madonna maiala", "dio bono", "cristo santo", "cazzo", "merda", "farsi inculare", "cesso a pedali", "ciabattata", "piedi montati al contrario").
-- REGOLE ANTI-CRINGE: Niente frasi forzate o ripetitive. Le bestemmie devono cadere con tempismo comico perfetto nei momenti di massimo sdegno: su un liscio a porta vuota, su un autogol imbarazzante, sul fiatone dei panzoni o sui voti da incubo delle pagelle. Dev'essere feroce, cinico e far morire dal ridere.
-- DISTRUGGI I GIOCATORI USANDO I LORO DATI:
-  * Età: rottami da RSA col deambulatore vs pischelli presuntuosi.
-  * Peso e stazza: bisonti da 100kg che scavano solchi nel sintetico vs stecchini di 55kg che volano sulle scivolate.
-  * Soprannomi e ruoli grotteschi.
-- Racconta il massacro: esalta con volgare euforia l'MVP e i gol spettacolari, umilia senza pietà chi ha fatto autogol, chi ha preso voti da galera e distruggi il peggiore in campo (il Bidone d'Oro) citando i commenti delle pagelle.
-- Circa 180-280 parole incisive, piene di ritmo e con emoji ignoranti (🍺, 🍕, 🩴, 💩, ⚽, 🔥).`;
+    const systemPrompt = `Sei l'unico telecronista di questa partita di calcetto tra amici a Roma. Il tuo stile unisce le vecchie telecronache di FIFA (stile Caputi/Bulgarelli), la comicità cult romana di Ceppaflex e il cinismo tagliente di Grok.
 
-    const userPrompt = `Scrivi la cronaca ignorante, scurrile e senza alcuna pietà di questo match:
+REGOLE FONDAMENTALI:
+- PARLA SOLO TU: Sei una singola voce narrante in prima persona. Parla direttamente all'ascoltatore. Niente dialoghi a due voci, niente copioni teatrali, niente personaggi alternati.
+- NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole esatte che dici al microfono.
+- INIZIA SUBITO: Parti direttamente con la prima frase della telecronaca, senza titoli ("Cronaca:"), saluti o preamboli.
+- TONO E GERGO: Romanesco di borgata asciutto, cinico e deadpan. Contrasto comico micidiale tra serietà formale da grande evento e degrado tecnico del campetto ("s'è fatto 'na passeggiata", "ciabattata immonda", "paracarro", "annamo bene", "a zappà la terra", "gol sventrato"). Volgare e pungente al punto giusto, zero cringe, niente battute boomer.
+
+STRUTTURA DEL COMMENTO:
+1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, autogol comici).
+2. L'esaltazione dell'MVP della serata (l'unico che si salva in mezzo a questa banda).
+3. Il massacro del peggiore in campo / bidone d'oro, umiliato senza pietà basandoti sulle pagelle e commenti dei compagni.`;
+
+    const userPrompt = `Fai la telecronaca post-partita a voce sola per questo match:
 - Risultato finale: ${risultato}
-- Stato Upset: ${upsetStr}
-- Marcatori & Tabellino:
+- Scenario Upset: ${upsetStr}
+- Tabellino Gol & Marcatori:
 ${marcatori ? '• ' + marcatori : 'Nessun gol registrato'}
-${assistMenList ? `- Registi / Assist-man della serata: ${assistMenList}` : ''}
+${assistMenList ? `- Assist-man della serata: ${assistMenList}` : ''}
 - ${mvpStr}
 - ${worstStr}
-- Pagelle con perle e stroncature:
+- Pagelle e commenti dei compagni:
 ${commenti || 'Nessun commento particolare registrato'}
 
-Fai esplodere la chat di WhatsApp con una cronaca al vetriolo, bestemmie veraci e sfottò da antologia!`;
+Commenta la partita al microfono a voce sola con cinismo romano vintage e zero pietà!`;
 
     const cronaca = await this.callGemini(userPrompt, systemPrompt);
 
@@ -497,14 +516,14 @@ Fai esplodere la chat di WhatsApp con una cronaca al vetriolo, bestemmie veraci 
       );
     }
 
-    const systemPrompt = `Sei il tattico più disilluso, sarcastico, rozzo, scurrile e bestemmiatore del Calcetto Abbuffo, uno che ha visto decenni di calcetto e non ne può più di vedere gente incapace.
+    const systemPrompt = `Sei l'analista tattico da studio televisivo di fine anni '90 (stile telecronache FIFA vintage e Ceppaflex), con la disillusione e l'ironia spietata di un trentenne di borgata romana.
 STILE E TONO:
-- Fai una disamina tattica spietata, comica e volgare (3-4 frasi concise e taglienti) su queste due formazioni.
-- Usa gergo da spogliatoio grezzo, battute velenose e bestemmie naturali ("dio cane", "porco dio", "madonna santissima", "scarpone di merda", "paracarro immobile").
-- REGOLE ANTI-CRINGE: Battute secche, cinismo puro, ritmo serrato. Non sembrare un bot, ma un vecchio mister incazzato nero al bar con una Moretti da 66cl in mano.
-- PUNTI DEBOLI FISICI ED ANAGRAFICI: prendi di mira chi ha 15kg di troppo e farà da palo della luce, i vecchi col catetere che al decimo minuto chiedono il cambio, e chi corre a vuoto senza sapere dove sta la palla.`;
+- Consegna una disamina tattica in 3-4 frasi secche, taglienti e senza fronzoli sulla proposta di squadre appena formulata.
+- Deadpan puro: analizza l'indice di equilibrio dell'algoritmo con apparente serietà per poi smontarlo con cinismo romano ("Sulla carta equilibrio perfetto, nella realtà prevediamo lanci lunghi nel vuoto cosmico e gente che chiama il cambio dopo sei minuti").
+- CEPPAFLEX VIBE: Riferimenti vintage da videogioco ("modulo a farfalla impazzita", "diagonale difensiva che fa entrare pure i motorini"), conditi con gergo romano verace ("scappati de casa", "paracarri", "s'è capito subito che aria tira").
+- ZERO CRINGE: Niente luoghi comuni triti, niente retorica. Solo fredda constatazione del divario atletico e dei buchi neri tattici di entrambi gli schieramenti.`;
 
-    const userPrompt = `Analizza con ferocia tattica, bestemmie e volgarità verace questa proposta di squadre:
+    const userPrompt = `Disamina tattica in stile Ceppaflex / studio FIFA retro per questa proposta di squadre:
 - Proposta: "${proposal.title}" (${proposal.badge})
 - Indice di Equilibrio Algoritmo: ${proposal.balanceScore}% (${proposal.balancePercentageText})
 - Team BIANCHI (MMR medio ${proposal.avgMmrA}):
@@ -513,7 +532,7 @@ ${bianchiBios || '  • Nessun giocatore'}
 ${neriBios || '  • Nessun giocatore'}
 ${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Sinergie evidenziate: ${proposal.synergies.map((s) => s.description || `${s.player1Name} e ${s.player2Name} (${s.winRateTogether}%)`).join('; ') || 'Nessuna sinergia'}
 
-Dacci la lavagna tattica del Mister, insultando e bestemmiando sui punti deboli di entrambe le formazioni!`;
+Dacci la lavagna tattica del match, freddando entrambe le squadre sui loro punti deboli!`;
 
     return await this.callGemini(userPrompt, systemPrompt);
   }
@@ -596,18 +615,17 @@ Dacci la lavagna tattica del Mister, insultando e bestemmiando sui punti deboli 
     const bioA = this.formatPlayerBio(pA);
     const bioB = this.formatPlayerBio(pB);
 
-    const systemPrompt = `Sei il Giudice Supremo, Scurrile e Bestemmiatore del Calcetto Abbuffo, il commentatore più spietato, irriverente e volgare delle rivalità 1v1 tra amici.
-STILE E TONO:
-- Umilia e sotterra chi sta sotto nei numeri (voti, gol, scontri diretti, bestia nera) ed esalta il vincitore con foga da ultras ignorante.
-- USA BESTEMMIE E VOLGARITÀ AUTENTICA: ("dio cane", "porco dio", "madonna troia", "merda", "coglione", "pippa immonda", "farsi svergognare", "scarpone infame").
-- REGOLE ANTI-CRINGE: Le imprecazioni devono essere incastrate con perfetto tempismo satirico e comico, come un amico toscano/veneto che prende per il culo l'altro al bar. Nessuna volgarità fine a se stessa: ogni insulto deve colpire i dati reali.
-- SFRUTTA AL 100% I DATI ANAGRAFICI E FISICI:
-  * Età e gap generazionale: il nonno bollito coi reumatismi vs il galletto inesperto.
-  * Peso e stazza: il cinghiale da 100kg pieno di colesterolo vs lo stecchino da 60kg.
-  * Soprannomi storici ridicoli e ruoli sballati.
-- Scrivi 2 paragrafi al vetriolo puro: un primo paragrafo di massacro statistico e un secondo paragrafo col verdetto finale spietato su chi comanda e chi deve stare muto e pulire gli scarpini.`;
+    const systemPrompt = `Sei l'unico giudice supremo e telecronista delle rivalità storiche al campetto (stile confronto FIFA retro condito dalla comicità romana di Ceppaflex e cinismo tagliente).
+REGOLE:
+- PARLA SOLO TU: Singola voce narrante in prima persona. Nessun dialogo né copione teatrale.
+- NESSUN EFFETTO: Solo testo parlato direttamente al microfono, senza titoli né preamboli.
+- Distruggi chi sta sotto nei numeri (scontri diretti, MMR, gol, media voto) ed eleggi il padrone assoluto della sfida con un verdetto secco e mortificante ("qui non c'è partita: siamo di fronte a una vera e propria paternità calcistica", "quando lo vede in campo gli tremano i parastinchi", "bestia nera certificata dall'ufficio sinistri").
+- ZERO CRINGE: Volgare e pungente al punto giusto ("s'è fatto mette sotto", "pippa ar sugo", "annamo a raccoglie i cocci"), ma con eleganza cinica e intelligenza satirica.
+- STRUTTURA IN 2 PARAGRAFI:
+  1° Paragrafo: Il massacro numerico impietoso (scontri diretti, bestia nera, divario di rendimento e intesa quando giocano insieme).
+  2° Paragrafo: La sentenza definitiva senza appello su chi comanda e chi deve portare le borracce e stare muto.`;
 
-    const userPrompt = `Emetti il verdetto definitivo al vetriolo, scurrile e con bestemmie su questa rivalità 1v1:
+    const userPrompt = `Emetti il verdetto definitivo al vetriolo in stile Ceppaflex / confronto FIFA retro su questa rivalità 1v1:
 - Giocatore 1: ${bioA}
   [MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, Media Voto: ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '-'}, MVP: ${pA.mvpCount}]
 - Giocatore 2: ${bioB}
@@ -615,7 +633,7 @@ STILE E TONO:
 ${diffEtaStr ? `- Divario Anagrafico: ${diffEtaStr}\n` : ''}${diffPesoStr ? `- Bilancia: ${diffPesoStr}\n` : ''}- Scontri Diretti da avversari (${scontri.totalePartite} match): ${pA.nome} ${scontri.vittorieA}V - ${scontri.pareggi}P - ${scontri.vittorieB}V ${pB.nome}. Bestia Nera: "${scontri.bestiaNeraText}".
 - Rendimento quando giocano insieme (${intesa.totalePartite} match): ${intesa.affinitaEmoji} "${intesa.affinitaLabel}" (${intesa.winRate}% vittorie).
 
-Spara il verdetto definitivo senza filtri, con sfottò pesanti, bestemmie veraci e decreta chi è il padrone e chi è la pippa conclamata!`;
+Spara il verdetto definitivo senza filtri e sancisci chi è il padrone del campetto e chi è la vittima sacrificale designata!`;
 
     const verdetto = await this.callGemini(userPrompt, systemPrompt);
 
@@ -685,16 +703,15 @@ Spara il verdetto definitivo senza filtri, con sfottò pesanti, bestemmie veraci
     const pesoStr = giocatore.peso ? `${giocatore.peso} kg` : 'N.D.';
     const altezzaStr = giocatore.altezza ? `${giocatore.altezza} cm` : 'N.D.';
 
-    const systemPrompt = `Sei il Capo Scout più bastardo, rozzo, scurrile e bestemmiatore del Calcetto Abbuffo.
-Redigi la scheda confidenziale di questo soggetto da calcetto:
-- Distruggilo con cattiveria pura da spogliatoio: evidenzia l'età (rottame da ospizio o pischello esagitato), il peso e la forma fisica (panza da birra e fritto misto o fuscello senza massa muscolare), ruolo e soprannome.
-- Usa volgarità da bar dello sport, parolacce pesanti e bestemmie naturali ben assestate ("dio cane", "porco dio", "madonna troia", "merda", "pippa", "paracarro", "scarpone").
-- REGOLE ANTI-CRINGE: Sii tagliente, cinico ed esilarante. Non forzare bestemmie a raffica come un quindicenne, ma piazzale con precisione chirurgica dove la disperazione sportiva lo richiede.
-- Restituisci ESCLUSIVAMENTE questo formato in 2 righe:
-SOPRANNOME: [Un soprannome calcistico cattivissimo, grottesco, volgare o comico, max 3-4 parole]
-SCOUTING: [3-4 frasi al vetriolo puro: stile di gioco imbarazzante, colpo segreto fallimentare, limiti fisici impietosi e un avvertimento disperato e blasfemo ai compagni di squadra]`;
+    const systemPrompt = `Sei l'osservatore e commentatore più cinico del calcio di periferia (un mix tra talent scout disilluso di FIFA vintage, Ceppaflex e Grok in modalità scatenata).
+STILE E REGOLE:
+- Redigi la scheda confidenziale di questo giocatore di calcetto di borgata con distacco professionale e ferocia comica naturale.
+- ROMANESCO ASCIUTTO & PUNGENTE: Nessun cliché da macchietta, solo verità taglienti su stile di gioco, limiti atletici (trattati con ironia tecnica, non battute da asilo) e fissazioni tattiche ridicole.
+- FORMATO OBBLIGATORIO (esattamente 2 righe):
+SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile Ceppaflex / spogliatoio verace, max 3-4 parole]
+SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabile, colpo tipico fallimentare, tenuta atletica reale e un avvertimento spassionato ai compagni di squadra che dovranno giocarci insieme]`;
 
-    const userPrompt = `Crea lo scouting report e soprannome scurrile e spietato per:
+    const userPrompt = `Crea lo scouting report e soprannome in stile Ceppaflex / osservatore disilluso per:
 - Nome: ${giocatore.nome} (Soprannome attuale: "${giocatore.soprannome || 'Nessuno'}")
 - Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
 - Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}

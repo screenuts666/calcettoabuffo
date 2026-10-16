@@ -50,11 +50,19 @@ export class TtsService {
   ];
 
   constructor() {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
+    if (typeof window !== 'undefined') {
+      try {
+        if (sessionStorage.getItem('elevenlabs_quota_exceeded') === 'true') {
+          this.elevenLabsQuotaExceeded = true;
+        }
+      } catch {}
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+          this.cachedBestVoice = this.findBestItalianVoice();
+        };
         this.cachedBestVoice = this.findBestItalianVoice();
-      };
-      this.cachedBestVoice = this.findBestItalianVoice();
+      }
     }
   }
 
@@ -70,38 +78,48 @@ export class TtsService {
     text = text.replace(/```[\s\S]*?```/g, ' ');
     text = text.replace(/https?:\/\/\S+/gi, ' ');
 
-    // 2. Rimuovi intestazioni markdown (#, ##, ###), blockquote (>) ed elenchi (- o *)
-    text = text.replace(/^[#>\-\*]+\s+/gm, ' ');
-
-    // 3. Rimuovi link markdown [testo](url) lasciando solo il testo
+    // 2. Rimuovi link markdown [testo](url) lasciando solo il testo
     text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
 
-    // 4. Rimuovi formattazioni bold, italic, barrato, inline code
+    // 3. Rimuovi formattazioni bold, italic, barrato, inline code
     text = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
     text = text.replace(/(\*|_)(.*?)\1/g, '$2');
     text = text.replace(/`([^`]+)`/g, '$1');
     text = text.replace(/~~(.*?)~~/g, '$1');
 
-    // 5. Rimuovi simboli markdown residui e separatori
+    // 4. Rimuovi intestazioni markdown (#, ##, ###), blockquote (>) ed elenchi (- o *)
+    text = text.replace(/^[#>\-\*]+\s+/gm, '');
+
+    // 5. Rimuovi preamboli da prompt: se la prima riga/frase è un titolo o preambolo che finisce con ':' o a capo
+    text = text.replace(/^(?:certamente|di seguito|va bene)[!,.:\s\n]+/i, '');
+    text = text.replace(/^(?:ecco\s+[^:\n]+|telecronaca[^:\n]+|cronaca[^:\n]+|pronostico[^:\n]+|disamina[^:\n]+|verdetto[^:\n]+|scouting[^:\n]+|analisi\s+tattica[^:\n]+|scheda\s+tecnica[^:\n]+)[:\n]+/im, '');
+
+    text = text.replace(/\bSOPRANNOME:\s*/gi, '');
+    text = text.replace(/\bSCOUTING:\s*/gi, '');
+
+    // 6. Rimuovi simboli markdown residui e separatori
     text = text.replace(/[#\*_~`|]/g, ' ');
 
-    // 6. Rimuovi sequenze di emoji per una lettura fluida
+    // 7. Rimuovi sequenze di emoji per una lettura fluida
     text = text.replace(
       /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu,
       ' '
     );
 
-    // 7. Rimuovi frecce o icone speciali
+    // 8. Rimuovi frecce o icone speciali
     text = text.replace(/[→←↑↓➜➤▶◀🎙️🔮✨🧙‍♂️📋💾🔄⚠️🎧⚽🔥💥]/g, ' ');
 
-    // 8. Normalizza virgolette tipografiche e trattini
+    // 9. Normalizza virgolette tipografiche e trattini
     text = text.replace(/[«»“”]/g, '"').replace(/[–—]/g, '-');
 
-    // 9. Normalizza punteggiatura multipla e spazi bianchi
+    // 10. Normalizza punteggiatura multipla e spazi bianchi
     text = text.replace(/\.{2,}/g, '.');
     text = text.replace(/\s+/g, ' ').trim();
 
-    return text;
+    // 11. Se dopo la normalizzazione è rimasto un preambolo iniziale prima di due punti
+    text = text.replace(/^(?:ecco\s+[^:]{3,60}|telecronaca[^:]{3,60}|cronaca[^:]{3,60}|pronostico[^:]{3,60})[:]\s*/i, '');
+
+    return text.trim();
   }
 
   /**
@@ -144,7 +162,7 @@ export class TtsService {
 
     const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
     const textHash = this.computeHash(cleaned);
-    const cacheKey = `${safeId}_${textHash}`;
+    const cacheKey = `v3_${safeId}_${textHash}`;
 
     // 1. Controllo se l'audio è già presente nella cache in memoria
     const cachedUrl = this.audioCache.get(cacheKey);
@@ -396,7 +414,7 @@ export class TtsService {
 
     const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
     const textHash = this.computeHash(cleaned);
-    const cacheKey = `${safeId}_${textHash}`;
+    const cacheKey = `v3_${safeId}_${textHash}`;
 
     // 1. Controllo cache in memoria (SOLO se MP3, mai WAV)
     const cachedUrl = this.audioCache.get(cacheKey);
@@ -694,56 +712,75 @@ export class TtsService {
     voiceId: string,
     signal?: AbortSignal
   ): Promise<Blob> {
-    const targetVoiceId = voiceId || 'pNInz6obpgDQGcFmaJgB';
+    const targetVoiceId = (voiceId || 'pNInz6obpgDQGcFmaJgB').trim();
+    const cleanKey = (apiKey || '').trim();
     const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${targetVoiceId}?output_format=mp3_44100_128`;
 
-    const body = {
-      text: cleanedText,
-      model_id: 'eleven_flash_v2_5',
-      language_code: 'it',
-      voice_settings: {
-        stability: 0.35,
-        similarity_boost: 0.8,
-        style: 0.65,
-        use_speaker_boost: true,
-      },
-    };
+    // Tentativo primario con eleven_flash_v2_5, fallback a eleven_multilingual_v2
+    const models = ['eleven_flash_v2_5', 'eleven_multilingual_v2'];
+    let lastError: any = null;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-      signal,
-    });
+    for (const model of models) {
+      if (signal?.aborted) throw new Error('Richiesta audio annullata');
 
-    if (!response.ok) {
-      const errTxt = await response.text();
-      if (response.status === 401 || errTxt.includes('quota_exceeded')) {
-        this.elevenLabsQuotaExceeded = true;
+      const body = {
+        text: cleanedText,
+        model_id: model,
+        language_code: 'it',
+        voice_settings: {
+          stability: 0.35,
+          similarity_boost: 0.8,
+          style: 0.65,
+          use_speaker_boost: true,
+        },
+      };
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'xi-api-key': cleanKey,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+          signal,
+        });
+
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          return new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        }
+
+        const errTxt = await response.text();
+        if (response.status === 401 || errTxt.includes('quota_exceeded')) {
+          this.elevenLabsQuotaExceeded = true;
+          try {
+            sessionStorage.setItem('elevenlabs_quota_exceeded', 'true');
+          } catch {}
+          throw new Error(`ElevenLabs API quota/auth error (${response.status}): ${errTxt}`);
+        }
+        console.warn(`ElevenLabs modello ${model} non riuscito (${response.status}):`, errTxt);
+        lastError = new Error(`ElevenLabs API errore (${response.status}): ${errTxt}`);
+      } catch (e: any) {
+        if (signal?.aborted || this.elevenLabsQuotaExceeded) throw e;
+        lastError = e;
       }
-      throw new Error(`ElevenLabs API errore (${response.status}): ${errTxt}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    return new Blob([arrayBuffer], { type: 'audio/mpeg' });
+    throw lastError || new Error('Tutti i modelli ElevenLabs hanno fallito.');
   }
 
   // =========================================================================
-  // MOTORE 2: GEMINI TTS CON INTONAZIONE DA TELECRONISTA
+  // MOTORE 2: GEMINI TTS CON INTONAZIONE DA TELECRONISTA (SENZA LEAK DI PROMPT)
   // =========================================================================
 
   private async generateGeminiAudio(cleanedText: string, signal?: AbortSignal): Promise<Blob> {
     const apiKey = await this.geminiService.getApiKey();
 
-    const prompt = `Leggi questo testo con l'intonazione e l'enfasi di un vero telecronista sportivo italiano appassionato, energico e goliardico da calcetto tra amici:\n\n"${cleanedText}"`;
-
     const body: any = {
       contents: [
         {
-          parts: [{ text: prompt }],
+          parts: [{ text: cleanedText }],
         },
       ],
       generationConfig: {
