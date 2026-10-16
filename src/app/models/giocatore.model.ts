@@ -20,4 +20,10 @@ export interface Giocatore {
   soprannomeAi?: string;
   scoutingReportAi?: string;
   aiUpdatedAt?: string;
+
+  // Dettagli personali & goliardici
+  professione?: string;
+  origini?: string;
+  statoCivile?: string;
+  vizi?: string;
 }

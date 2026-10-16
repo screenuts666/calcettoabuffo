@@ -68,6 +68,10 @@ interface EnrichedPlayer {
   legacyAvg: number;
   ruolo: RuoloPreferito | string;
   isUnranked?: boolean;
+  professione?: string;
+  origini?: string;
+  statoCivile?: string;
+  vizi?: string;
 }
 
 interface PartitionEvaluation {
@@ -184,6 +188,10 @@ export class MatchmakingService {
         peso: p.peso || meta?.peso,
         altezza: p.altezza || meta?.altezza,
         fotoUrl: getAvatarUrl(p.fotoUrl || meta?.fotoUrl),
+        professione: p.professione || meta?.professione,
+        origini: p.origini || meta?.origini,
+        statoCivile: p.statoCivile || meta?.statoCivile,
+        vizi: p.vizi || meta?.vizi,
         raw: p,
         mmr,
         tier,

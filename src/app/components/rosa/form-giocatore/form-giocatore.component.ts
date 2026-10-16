@@ -99,6 +99,10 @@ export class FormGiocatoreComponent implements OnInit {
   ruoloPreferito = signal<RuoloPreferito | null>(null);
   altezza = signal('');
   peso = signal('');
+  professione = signal('');
+  origini = signal('');
+  statoCivile = signal('');
+  vizi = signal('');
 
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
@@ -122,6 +126,10 @@ export class FormGiocatoreComponent implements OnInit {
       this.ruoloPreferito.set(this.giocatore.ruoloPreferito ?? null);
       this.altezza.set(this.giocatore.altezza || '');
       this.peso.set(this.giocatore.peso || '');
+      this.professione.set(this.giocatore.professione || '');
+      this.origini.set(this.giocatore.origini || '');
+      this.statoCivile.set(this.giocatore.statoCivile || '');
+      this.vizi.set(this.giocatore.vizi || '');
       this.anteprimaFoto.set(this.giocatore.fotoUrl || null);
     }
   }
@@ -189,6 +197,10 @@ export class FormGiocatoreComponent implements OnInit {
         ruoloPreferito: this.ruoloPreferito() ?? undefined,
         altezza: this.altezza(),
         peso: this.peso(),
+        professione: this.professione().trim(),
+        origini: this.origini().trim(),
+        statoCivile: this.statoCivile().trim(),
+        vizi: this.vizi().trim(),
         fotoUrl: fotoUrl,
       };
 
