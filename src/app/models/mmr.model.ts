@@ -300,6 +300,7 @@ export interface MatchReportData {
   chemistryNotes: MatchReportChemistryItem[];
   cronacaAi?: string;
   pronosticoAi?: string;
+  commentoPartita?: string | null;
 }
 
 

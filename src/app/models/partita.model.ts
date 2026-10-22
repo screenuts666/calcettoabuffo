@@ -37,4 +37,5 @@ export interface Partita {
   stagione?: string;
   pronosticoAi?: string | null;
   cronacaAi?: string | null;
+  commentoPartita?: string | null;
 }

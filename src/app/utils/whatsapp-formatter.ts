@@ -9,6 +9,7 @@ export interface WhatsAppShareOptions {
   includeLink: boolean;
   includeFoto: boolean;
   includeCronacaAi?: boolean;
+  includeCommentoPartita?: boolean;
 }
 
 /**
@@ -174,6 +175,14 @@ export function formatMatchForWhatsApp(
         parts.push(`• ⚽ ${eg.nome} _(assist di ${eg.assistNome})_`);
       }
     }
+  }
+
+  // Note a bordocampo dell'organizzatore (Pablo)
+  const commentoPartita = (partita.commentoPartita || (partita as any)?.commento || reportData?.commentoPartita)?.trim();
+  if (options.includeCommentoPartita !== false && commentoPartita) {
+    parts.push('');
+    parts.push('📝 *NOTE A BORDOCAMPO:*');
+    parts.push(`"${commentoPartita}"`);
   }
 
   // Cronaca Sportiva Ignorante (Gemini AI)
