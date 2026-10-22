@@ -1,0 +1,140 @@
+<div class="prestazioni-container">
+
+  <!-- 1. HERO COMPONENT (TOP BAR, SCOREBOARD, MARCATORI, UPSET) -->
+  <app-prestazioni-hero
+    [dataPartita]="state.dataPartita()"
+    [luogo]="state.luogo()"
+    [timerFormatted]="state.formatTimer()"
+    [scoreA]="state.scoreA()"
+    [scoreB]="state.scoreB()"
+    [pagelleInserite]="state.pagelleInserite()"
+    [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+    [scorersA]="scorersA()"
+    [scorersB]="scorersB()"
+    [isUpset]="report().isUpset"
+    [upsetDescription]="report().upsetDescription"
+    (shareClick)="apriCondivisione()"
+    (editScoreClick)="apriModificaRisultato()"
+  ></app-prestazioni-hero>
+
+  <!-- 2. STICKY NAV BAR -->
+  <div class="report-nav-bar-wrapper">
+    <div class="report-segments-bar">
+      <button
+        type="button"
+        class="segment-tab-btn"
+        [class.active]="activeTab() === 'sintesi'"
+        (click)="activeTab.set('sintesi')"
+      >
+        <ion-icon name="flash"></ion-icon>
+        <span class="tab-label-text">Sintesi</span>
+      </button>
+
+      <button
+        type="button"
+        class="segment-tab-btn"
+        [class.active]="activeTab() === 'pagelle'"
+        (click)="activeTab.set('pagelle')"
+      >
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <span class="tab-label-text">Pagelle</span>
+        @if (!state.pagelleInserite()) {
+          <span class="tab-badge-dot" title="Da Votare"></span>
+        }
+      </button>
+
+      <button
+        type="button"
+        class="segment-tab-btn"
+        [class.active]="activeTab() === 'spogliatoio'"
+        (click)="activeTab.set('spogliatoio')"
+      >
+        <ion-icon name="mic-outline"></ion-icon>
+        <span class="tab-label-text">Spogliatoio</span>
+      </button>
+
+      <button
+        type="button"
+        class="segment-tab-btn"
+        [class.active]="activeTab() === 'statistiche'"
+        (click)="activeTab.set('statistiche')"
+      >
+        <ion-icon name="trending-up-outline"></ion-icon>
+        <span class="tab-label-text">Stats</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. TAB VIEWS (DELEGATED TO ATOMIC COMPONENTS) -->
+  <div class="tab-content-area animate-fade-in">
+    @if (activeTab() === 'sintesi') {
+      <app-prestazioni-tab-sintesi
+        [mvp]="report().mvp"
+        [worst]="report().worst"
+        [eventiGol]="state.eventiGol()"
+        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        (shareClick)="apriCondivisione()"
+        (editAssistClick)="modificaAssistEvento($event)"
+      ></app-prestazioni-tab-sintesi>
+    }
+
+    @if (activeTab() === 'pagelle') {
+      <app-prestazioni-tab-pagelle
+        [playersA]="report().playersA"
+        [playersB]="report().playersB"
+        [scoreA]="state.scoreA()"
+        [scoreB]="state.scoreB()"
+        [votoMedioA]="report().votoMedioA"
+        [votoMedioB]="report().votoMedioB"
+        [teamAvgMmrDeltaA]="report().teamAvgMmrDeltaA"
+        [teamAvgMmrDeltaB]="report().teamAvgMmrDeltaB"
+        [pagelleInserite]="state.pagelleInserite()"
+        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [mvpId]="report().mvp?.id"
+        (voteChange)="aggiornaVoto($event.player, $event.event)"
+        (noteChange)="aggiornaNote($event.player, $event.note)"
+        (editAssist)="modificaAssist($event)"
+      ></app-prestazioni-tab-pagelle>
+    }
+
+    @if (activeTab() === 'spogliatoio') {
+      <app-prestazioni-tab-spogliatoio
+        [matchId]="state.matchId()"
+        [commentoPartita]="state.commentoPartita()"
+        [cronacaAi]="state.cronacaAi()"
+        [chemistryNotes]="report().chemistryNotes"
+        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [isSavingCommento]="isSavingCommento()"
+        [isGeneratingCronaca]="isGeneratingCronaca()"
+        (commentoChange)="onCommentoPartitaChange($event)"
+        (saveCommentoClick)="salvaCommentoPartita($event)"
+        (generateCronacaClick)="generaCronaca($event)"
+      ></app-prestazioni-tab-spogliatoio>
+    }
+
+    @if (activeTab() === 'statistiche') {
+      <app-prestazioni-tab-statistiche
+        [matchId]="state.matchId()"
+        [report]="report()"
+        [pronosticoAi]="state.pronosticoAi()"
+        [isGeneratingPronostico]="isGeneratingPronostico()"
+        (generatePronosticoClick)="generaPronostico($event)"
+      ></app-prestazioni-tab-statistiche>
+    }
+  </div>
+
+  <!-- 4. PULSANTE FLOTTANTE ADMIN PER SALVATAGGIO -->
+  @if (state.matchDataOriginale?.isAdmin) {
+    <div class="fab-fixed-container">
+      <button
+        class="fab-round"
+        [class.is-archived]="state.pagelleInserite()"
+        (click)="salvaModifiche()"
+        [title]="state.pagelleInserite() ? 'Salva Modifiche' : 'Concludi e Archivia'"
+      >
+        <ion-icon [name]="state.pagelleInserite() ? 'save-outline' : 'checkmark-done'"></ion-icon>
+      </button>
+    </div>
+  }
+
+</div>

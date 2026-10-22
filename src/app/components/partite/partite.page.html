@@ -71,7 +71,7 @@
     @for (m of partiteInCorso(); track m.id) {
     <ion-item-sliding #slidingItem>
       <ion-item
-        (click)="apriModalePartita(m) "
+        (click)="apriPartita(m)"
         lines="none"
         class="match-card-item"
       >
@@ -135,6 +135,12 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.commentoPartita) {
+            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <span>Note Pablo</span>
+            </div>
+            }
             @if (m.fotoUrl) {
             <div
               class="info-pill photo-pill"
@@ -176,7 +182,7 @@
     @for (m of partitePronte(); track m.id) {
     <ion-item-sliding #slidingItem>
       <ion-item
-        (click)="apriModalePartita(m) "
+        (click)="apriPartita(m)"
         lines="none"
         class="match-card-item"
       >
@@ -240,6 +246,12 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.commentoPartita) {
+            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <span>Note Pablo</span>
+            </div>
+            }
             @if (m.fotoUrl) {
             <div
               class="info-pill photo-pill"
@@ -281,7 +293,7 @@
     @for (m of partiteDaVotare(); track m.id) {
     <ion-item-sliding #slidingItem>
       <ion-item
-        (click)="apriModalePartita(m)"
+        (click)="apriPartita(m)"
         lines="none"
         class="match-card-item"
       >
@@ -345,6 +357,12 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.commentoPartita) {
+            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <span>Note Pablo</span>
+            </div>
+            }
             @if (m.fotoUrl) {
             <div
               class="info-pill photo-pill"
@@ -387,7 +405,7 @@
     @for (m of partiteArchiviate(); track m.id) {
     <ion-item-sliding #slidingItem>
       <ion-item
-        (click)="apriModalePartita(m)"
+        (click)="apriPartita(m)"
         lines="none"
         class="match-card-item"
       >
@@ -451,6 +469,12 @@
               <ion-icon name="people-outline"></ion-icon>
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
+            @if (m.commentoPartita) {
+            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <span>Note Pablo</span>
+            </div>
+            }
             @if (m.fotoUrl) {
             <div
               class="info-pill photo-pill"
@@ -487,7 +511,7 @@
 
   @if (isAdmin && stagioneSelezionata() !== PREVIOUS_SEASON) {
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="success" (click)="apriModalePartita()">
+    <ion-fab-button color="success" (click)="apriPartita()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

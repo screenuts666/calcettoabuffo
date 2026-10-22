@@ -1,0 +1,108 @@
+<div class="ion-padding">
+  <h2
+    style="
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: var(--ion-color-success);
+    "
+  >
+    Dettagli Partita
+  </h2>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+    <ion-input
+      label="Luogo Partita *"
+      labelPlacement="stacked"
+      placeholder="Es. Campetto dei Pioppi"
+      [value]="state.luogo()"
+      (ionInput)="state.luogo.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
+    <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
+    <ion-input
+      type="date"
+      label="Data *"
+      labelPlacement="stacked"
+      [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
+      [value]="state.dataPartita()"
+      (ionInput)="state.dataPartita.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+
+  @if (!state.isDataStagioneValida() && state.dataPartita()) {
+    <div class="season-warning-card">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <div class="warning-text">
+        <strong>Stagione non valida</strong>
+        <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+      </div>
+    </div>
+  } @else if (state.dataPartita()) {
+    <div class="season-valid-pill">
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
+    </div>
+  }
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+    <ion-input
+      type="time"
+      label="Orario *"
+      labelPlacement="stacked"
+      [value]="state.orario()"
+      (ionInput)="state.orario.set($event.detail.value || '')"
+    ></ion-input>
+  </ion-item>
+
+  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+    <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
+    <ion-textarea
+      label="Note Partita / Retroscena (Pablo)"
+      labelPlacement="stacked"
+      autoGrow="true"
+      rows="2"
+      placeholder="Es. Campo bagnato, lisci clamorosi... (utilizzate dall'AI per i commenti)"
+      [value]="state.commentoPartita()"
+      (ionInput)="state.commentoPartita.set($event.detail.value || '')"
+    ></ion-textarea>
+  </ion-item>
+</div>
+
+<div class="ion-padding-horizontal ion-margin-top">
+  <h3 style="font-weight: bold; color: var(--ion-color-medium)">
+    Convocati ({{ state.totaleConvocati() }})
+  </h3>
+</div>
+
+<div class="selected-avatars-grid ion-padding-bottom">
+  @for (g of state.convocati(); track g.id) {
+    <div class="avatar-item">
+      <div class="avatar-wrapper">
+        <div class="fixed-check-badge">
+          <ion-icon name="checkmark" color="light"></ion-icon>
+        </div>
+        <ion-avatar>
+          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+        </ion-avatar>
+      </div>
+      <small>{{ g.nome.split(" ")[0] }}</small>
+    </div>
+  }
+</div>
+
+@if (state.isDettagliValidi()) {
+  <ion-fab
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+    style="margin-bottom: 20px; margin-right: 10px"
+  >
+    <ion-fab-button color="success" (click)="vaiASquadre()">
+      <ion-icon name="arrow-forward"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}

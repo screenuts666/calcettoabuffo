@@ -1,0 +1,344 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+// SPOTLIGHT AWARDS (MVP & WORST)
+.spotlight-awards-container {
+  @include flex-col(12px);
+  margin: 12px 14px;
+}
+
+.award-card {
+  position: relative;
+  @include card-surface(16px, 14px);
+  overflow: hidden;
+
+  .award-badge-ribbon {
+    @include pill-badge;
+    padding: 3px 9px;
+    border-radius: 16px;
+    font-size: 0.68rem;
+    font-weight: 900;
+    margin-bottom: 10px;
+
+    &.mvp-ribbon {
+      background: linear-gradient(135deg, var(--app-accent-gold) 0%, var(--app-accent-orange) 100%);
+      color: var(--app-black);
+    }
+
+    &.worst-ribbon {
+      background: var(--app-surface-subtle);
+      color: var(--app-text-secondary);
+      border: 1px solid var(--app-border-color);
+    }
+  }
+
+  &.mvp-award-card {
+    border: 1px solid var(--app-accent-gold-border);
+    background: radial-gradient(circle at 10% 10%, var(--app-accent-gold-subtle) 0%, var(--app-card-bg) 70%);
+
+    .award-glow-bg {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, var(--app-accent-gold-border) 0%, transparent 70%);
+      pointer-events: none;
+    }
+  }
+
+  &.worst-award-card {
+    border: 1px solid var(--app-card-border);
+    background: var(--app-card-bg);
+  }
+
+  .award-player-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    .award-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+
+      .award-avatar {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        overflow: hidden;
+
+        &.mvp-avatar {
+          border: 2px solid var(--app-accent-gold);
+          box-shadow: 0 0 10px var(--app-accent-gold-border);
+        }
+
+        &.worst-avatar { border: 2px solid var(--app-text-muted); }
+
+        app-player-avatar,
+        img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
+      }
+
+      .mvp-crown-badge, .worst-flipflop-badge {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        font-size: 1rem;
+        background: var(--app-neutral-dark);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        @include flex-center;
+      }
+    }
+
+    .award-details {
+      @include flex-col(3px);
+      flex: 1;
+
+      .award-player-name {
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--app-text-primary);
+      }
+
+      .award-team-tag {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: var(--app-text-secondary);
+      }
+
+      .award-metrics-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 3px;
+        flex-wrap: wrap;
+
+        span {
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 5px;
+        }
+
+        .award-rating-pill { background: var(--app-accent-gold-subtle); color: var(--app-accent-gold); }
+        .award-goals-pill { background: var(--app-primary-subtle); color: var(--app-primary); }
+        .award-mmr-pill { background: var(--app-accent-blue-subtle); color: var(--app-accent-blue); }
+        .worst-rating-pill { background: var(--app-accent-danger-subtle); color: var(--app-accent-danger); }
+        .worst-humor-pill { background: var(--app-surface-subtle); color: var(--app-text-secondary); }
+      }
+
+      .award-quote-box {
+        margin-top: 6px;
+        font-size: 0.8rem;
+        font-style: italic;
+        line-height: 1.35;
+        background: var(--app-surface-subtle);
+        color: var(--app-text-primary);
+        border: 1px solid var(--app-border-color);
+        padding: 5px 8px;
+        border-radius: 6px;
+        border-left: 3px solid var(--app-accent-gold);
+
+        &.worst-quote {
+          border-left-color: var(--app-text-muted);
+          color: var(--app-text-secondary);
+        }
+        .quote-mark { color: var(--app-accent-gold); font-weight: bold; }
+      }
+
+      .worst-comfort-note {
+        margin-top: 4px;
+        font-size: 0.72rem;
+        color: var(--app-text-muted);
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// CRONOLOGIA GOL & ASSIST
+.goals-timeline-card {
+  margin: 12px 14px;
+  @include card-surface(16px, 14px);
+
+  .section-card-header {
+    @include flex-between;
+    margin-bottom: 10px;
+    gap: 6px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .goals-icon {
+        font-size: 1.1rem;
+        color: var(--app-primary);
+      }
+
+      .section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .timeline-edit-hint {
+      font-size: 0.72rem;
+      color: var(--app-text-muted);
+      font-style: italic;
+    }
+  }
+
+  .timeline-goals-list {
+    @include flex-col(8px);
+    margin-top: 10px;
+  }
+
+  .timeline-goal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-border-color);
+    font-size: 0.84rem;
+    transition: all 0.15s ease;
+
+    &.clickable {
+      cursor: pointer;
+      @include btn-press(0.99);
+      &:hover {
+        background: var(--app-player1-subtle);
+        border-color: var(--app-player1-border);
+        transform: translateX(2px);
+      }
+    }
+
+    .timeline-goal-time {
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--app-text-muted);
+      min-width: 42px;
+    }
+
+    .timeline-team-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      &.white {
+        background: var(--app-white);
+        color: var(--app-neutral-dark);
+        border: 1px solid var(--app-border-color);
+      }
+
+      &.black {
+        background: var(--app-neutral-dark);
+        color: var(--app-white);
+        border: 1px solid var(--app-card-border);
+      }
+    }
+
+    .timeline-goal-info {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+
+      .timeline-scorer {
+        color: var(--app-text-primary);
+
+        .autogol-tag {
+          color: var(--app-accent-danger);
+          font-weight: 800;
+          font-style: normal;
+        }
+      }
+
+      .timeline-assist {
+        .assist-tag {
+          font-size: 0.78rem;
+          color: var(--app-player1);
+          background: var(--app-player1-subtle);
+          padding: 2px 7px;
+          border-radius: 6px;
+          border: 1px solid var(--app-player1-border);
+        }
+
+        .no-assist-tag {
+          font-size: 0.74rem;
+          color: var(--app-text-muted);
+          font-style: italic;
+        }
+      }
+    }
+
+    .timeline-edit-icon {
+      color: var(--app-player1);
+      font-size: 1.05rem;
+      opacity: 0.75;
+      transition: opacity 0.15s ease;
+      &:hover { opacity: 1; }
+    }
+  }
+}
+
+.empty-goals-card {
+  margin: 12px 14px;
+  @include card-surface(16px, 16px);
+
+  .empty-goals-inner {
+    @include flex-center;
+    gap: 10px;
+    padding: 16px 10px;
+    color: var(--app-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    .empty-icon {
+      font-size: 1.4rem;
+    }
+  }
+}
+
+// CTA WHATSAPP
+.report-share-cta-card {
+  margin: 14px 14px 20px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--app-primary-subtle) 0%, rgba(var(--app-primary-rgb), 0.04) 100%);
+  border: 1px solid var(--app-primary-border);
+  @include flex-col(10px);
+  align-items: center;
+  text-align: center;
+
+  .cta-title { font-size: 0.95rem; font-weight: 900; color: var(--app-primary); }
+  .cta-subtitle { font-size: 0.75rem; color: var(--app-text-muted); }
+
+  .whatsapp-full-share-btn {
+    width: 100%;
+    max-width: 360px;
+    background: var(--app-primary);
+    color: var(--app-primary-contrast);
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    font-weight: 900;
+    @include flex-center;
+    gap: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(var(--app-primary-rgb), 0.35);
+    @include btn-press(0.97);
+  }
+}

@@ -1,0 +1,121 @@
+@use 'mixins' as *;
+@use 'animations' as *;
+
+.prestazioni-container {
+  @include safe-area-bottom(110px);
+  background: var(--app-bg);
+  color: var(--app-text-primary);
+}
+
+// 2. SEGMENTI DI NAVIGAZIONE A SCHEDE (STICKY & RESPONSIVE MOBILE)
+.report-nav-bar-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--app-toolbar-bg);
+  border-bottom: 1px solid var(--app-toolbar-border);
+  box-shadow: var(--app-card-shadow);
+  margin-bottom: 10px;
+}
+
+.report-segments-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 6px 8px;
+  max-width: 600px;
+  margin: 0 auto;
+
+  .segment-tab-btn {
+    @include flex-col(3px);
+    align-items: center;
+    justify-content: center;
+    padding: 7px 2px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    color: var(--app-text-secondary);
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-border-color);
+    cursor: pointer;
+    position: relative;
+    @include btn-press(0.95);
+    -webkit-tap-highlight-color: transparent;
+
+    ion-icon {
+      font-size: 1.15rem;
+      transition: transform 0.2s ease;
+    }
+
+    .tab-label-text {
+      @include text-ellipsis;
+      max-width: 100%;
+    }
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
+    }
+
+    &.active {
+      background: var(--app-primary-subtle);
+      color: var(--app-primary);
+      border-color: var(--app-primary-border);
+      box-shadow: 0 2px 10px var(--app-primary-subtle);
+
+      ion-icon {
+        transform: scale(1.12);
+        color: var(--app-primary);
+      }
+    }
+
+    .tab-badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--app-accent-gold);
+      box-shadow: 0 0 8px rgba(var(--app-accent-gold-rgb), 0.8);
+      position: absolute;
+      top: 5px;
+      right: 18%;
+      animation: pulseBadge 2s infinite;
+    }
+  }
+}
+
+.tab-content-area {
+  min-height: 400px;
+}
+
+.animate-fade-in {
+  animation: tabFadeIn 0.22s ease-out forwards;
+}
+
+// 3. ADMIN FIXED FAB
+.fab-fixed-container {
+  position: fixed;
+  @include safe-area-bottom-pos(20px);
+  right: 20px;
+  z-index: 99;
+
+  .fab-round {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-primary-shade) 100%);
+    color: var(--app-primary-contrast);
+    border: none;
+    box-shadow: 0 6px 20px rgba(var(--app-primary-rgb), 0.4);
+    @include flex-center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    @include btn-press(0.92);
+
+    &.is-archived {
+      background: linear-gradient(135deg, var(--app-accent-blue) 0%, var(--app-player1) 100%);
+      color: var(--app-white);
+      box-shadow: 0 6px 20px var(--app-accent-blue-subtle);
+    }
+  }
+}

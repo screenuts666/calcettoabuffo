@@ -1,0 +1,136 @@
+@use 'mixins' as *;
+
+.convocati-container {
+  padding-bottom: 90px;
+}
+
+.search-header {
+  background: var(--ion-background-color);
+
+  .title-row {
+    @include flex-between;
+    margin-bottom: 12px;
+
+    h2 {
+      margin: 0;
+      font-weight: 800;
+      font-size: 1.5rem;
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+// 🏷️ CONTATORE VERDE
+.count-badge {
+  @include pill-badge(var(--ion-color-success), var(--app-black));
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px var(--app-primary-border);
+}
+
+// 🔍 SEARCHBAR ADATTIVA
+.custom-searchbar {
+  --background: var(--app-surface-subtle);
+  --color: var(--app-text-primary);
+  --placeholder-color: var(--app-text-muted);
+  --icon-color: var(--ion-color-success);
+  --border-radius: 12px;
+  padding: 0;
+  margin-top: 5px;
+  border: 1px solid var(--app-card-border);
+
+  &::part(search-icon) {
+    transform: scale(1.1);
+  }
+}
+
+// ✅ CHECKBOX VERDE FORZATA
+.green-check {
+  --checkbox-background-checked: var(--ion-color-success);
+  --border-color-checked: var(--ion-color-success);
+  --checkmark-color: var(--app-black);
+}
+
+// Chips Orizzontali
+.selected-players-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding: 15px;
+  gap: 15px;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-border-color);
+  @include hide-scrollbar;
+
+  .selected-chip {
+    @include flex-col;
+    align-items: center;
+    min-width: 60px;
+    width: 60px;
+    flex-shrink: 0;
+
+    .avatar-wrapper {
+      position: relative;
+      width: 55px;
+      height: 55px;
+      @include flex-center;
+
+      app-player-avatar,
+      img {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: 2px solid var(--ion-color-success);
+        display: block;
+        overflow: hidden;
+      }
+
+      .remove-btn {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--app-white);
+        border-radius: 50%;
+        padding: 0;
+        @include flex-center;
+        border: none;
+        z-index: 2;
+        @include btn-press;
+
+        ion-icon {
+          font-size: 20px;
+          color: var(--ion-color-danger);
+        }
+      }
+    }
+
+    .chip-name {
+      font-size: 0.7rem;
+      color: var(--app-text-secondary);
+      margin-top: 4px;
+      font-weight: 600;
+      @include text-ellipsis;
+      max-width: 100%;
+    }
+  }
+}
+
+.giocatori-list {
+  background: transparent;
+
+  .player-item {
+    --background: transparent;
+    --border-color: var(--app-border-color);
+
+    h3 {
+      font-weight: 700;
+      color: var(--app-text-primary);
+    }
+
+    p {
+      color: var(--app-text-secondary);
+      font-style: italic;
+    }
+  }
+}

@@ -46,6 +46,7 @@ import {
   refreshOutline,
   micOutline,
   volumeHighOutline,
+  chatboxEllipsesOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
@@ -100,6 +101,7 @@ export class MatchShareModalComponent implements OnInit {
   includeLink = signal<boolean>(true);
   includeFoto = signal<boolean>(true);
   includeCronacaAi = signal<boolean>(true);
+  includeCommentoPartita = signal<boolean>(true);
 
   isSharingNative = signal<boolean>(false);
   isSharingAudio = signal<boolean>(false);
@@ -126,6 +128,7 @@ export class MatchShareModalComponent implements OnInit {
       refreshOutline,
       micOutline,
       volumeHighOutline,
+      chatboxEllipsesOutline,
     });
   }
 
@@ -145,6 +148,8 @@ export class MatchShareModalComponent implements OnInit {
     const hasCronaca = Boolean(this.partita.cronacaAi || this.reportData()?.cronacaAi);
     this.includeCronacaAi.set(hasCronaca);
 
+    this.includeCommentoPartita.set(this.hasCommentoDisponibile());
+
     if (!this.partita.fotoUrl) {
       this.includeFoto.set(false);
     }
@@ -152,6 +157,12 @@ export class MatchShareModalComponent implements OnInit {
 
   hasCronacaDisponibile = computed(() => {
     return Boolean(this.partita?.cronacaAi || this.reportData()?.cronacaAi);
+  });
+
+  hasCommentoDisponibile = computed(() => {
+    return Boolean(
+      (this.partita?.commentoPartita || (this.partita as any)?.commento || this.reportData()?.commentoPartita)?.trim()
+    );
   });
 
   hasVotiDisponibili = computed(() => {
@@ -176,11 +187,12 @@ export class MatchShareModalComponent implements OnInit {
       includeLink: this.includeLink(),
       includeFoto: this.includeFoto(),
       includeCronacaAi: this.includeCronacaAi(),
+      includeCommentoPartita: this.includeCommentoPartita(),
     };
     return formatMatchForWhatsApp(this.partita, options, this.reportData());
   });
 
-  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca') {
+  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca' | 'commento') {
     switch (key) {
       case 'risultato':
         this.includeRisultato.update((v) => !v);
@@ -199,6 +211,9 @@ export class MatchShareModalComponent implements OnInit {
         break;
       case 'cronaca':
         this.includeCronacaAi.update((v) => !v);
+        break;
+      case 'commento':
+        this.includeCommentoPartita.update((v) => !v);
         break;
     }
   }

@@ -1,0 +1,126 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+// FILTRO SQUADRA PAGELLE
+.pagelle-team-filter-bar {
+  @include flex-center;
+  gap: 8px;
+  padding: 4px 14px 12px;
+
+  .team-filter-chip {
+    @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
+    padding: 6px 14px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    @include btn-press;
+
+    &.active {
+      background: var(--app-card-bg);
+      color: var(--app-text-primary);
+      border-color: var(--app-card-border);
+      box-shadow: var(--app-card-shadow);
+    }
+
+    &.white-chip.active {
+      background: var(--app-white);
+      color: var(--app-neutral-dark);
+      border-color: var(--app-card-border);
+      box-shadow: var(--app-card-shadow);
+    }
+
+    &.black-chip.active {
+      background: var(--app-neutral-dark);
+      color: var(--app-white);
+      border-color: var(--app-card-border);
+    }
+  }
+}
+
+.tabellino-container {
+  margin: 0 10px 10px;
+
+  .pagelle-status-banner {
+    @include flex-center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--app-accent-gold-subtle);
+    border: 1px solid var(--app-accent-gold-border);
+    color: var(--app-accent-gold);
+    font-size: 0.72rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    text-align: center;
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+  }
+
+  .roster-team-section {
+    margin-bottom: 18px;
+
+    .team-roster-banner {
+      @include flex-between;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      gap: 6px;
+
+      &.white-banner {
+        background: var(--app-card-bg);
+        border: 1px solid var(--app-card-border);
+        box-shadow: var(--app-card-shadow);
+        color: var(--app-text-primary);
+      }
+
+      &.black-banner {
+        background: var(--app-neutral-dark);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-white);
+      }
+
+      .roster-banner-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .roster-team-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          &.white-dot { background: var(--app-white); border: 1px solid var(--app-card-border); }
+          &.black-dot { background: var(--app-neutral-dark); border: 1px solid var(--app-white); }
+        }
+
+        .roster-team-name { font-size: 0.8rem; font-weight: 900; }
+      }
+
+      .roster-banner-stats {
+        display: flex;
+        gap: 5px;
+        .stat-chip {
+          @include pill-badge(var(--app-surface-subtle), var(--app-text-primary), var(--app-border-color));
+          padding: 2px 6px;
+          border-radius: 5px;
+          font-size: 0.68rem;
+          &.mmr-chip { background: var(--app-accent-blue-subtle); color: var(--app-accent-blue); border-color: var(--app-accent-blue-border); }
+        }
+      }
+
+      &.black-banner .roster-banner-stats .stat-chip {
+        background: var(--app-surface-subtle);
+        color: var(--app-white);
+        border-color: var(--app-border-color);
+        &.mmr-chip { background: var(--app-accent-blue-subtle); color: var(--app-accent-blue); border-color: var(--app-accent-blue-border); }
+      }
+    }
+
+    .players-cards-list {
+      @include flex-col(7px);
+    }
+  }
+}

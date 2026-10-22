@@ -1,0 +1,118 @@
+<div class="player-roster-card">
+  <div class="card-top-row">
+    <ion-avatar class="player-avatar">
+      <app-player-avatar [fotoUrl]="player.fotoUrl" [alt]="player.nome"></app-player-avatar>
+    </ion-avatar>
+
+    <div class="player-identity">
+      <div class="identity-name-row">
+        <h4 class="player-name">{{ player.nome }}</h4>
+        @if (player.gol > 0) {
+          <span class="goal-pill">
+            <ion-icon name="football"></ion-icon> {{ player.gol }}
+          </span>
+        }
+        @if (player.assist > 0) {
+          <span
+            class="assist-pill"
+            [class.clickable]="isAdmin"
+            (click)="isAdmin ? assistClick.emit(player) : null"
+            title="Assist vincenti"
+          >
+            👟 {{ player.assist }}
+          </span>
+        }
+        @if (player.autogol > 0) {
+          <span class="autogol-pill">
+            (AG x{{ player.autogol }})
+          </span>
+        }
+        @if (isMvp) {
+          <span class="crown-mini-badge">👑 MVP</span>
+        }
+        @if (isAdmin && (!player.assist || player.assist === 0)) {
+          <button
+            type="button"
+            class="add-assist-admin-btn"
+            (click)="assistClick.emit(player)"
+            title="Aggiungi assist manuale"
+          >
+            +👟
+          </button>
+        }
+      </div>
+
+      <div class="player-deltas-row">
+        <span
+          class="player-delta-badge mmr-badge"
+          [class.positive]="player.mmrDelta > 0"
+          [class.negative]="player.mmrDelta < 0"
+        >
+          {{ player.mmrDelta >= 0 ? '+' : '' }}{{ player.mmrDelta }} MMR
+        </span>
+        <span class="player-delta-badge legacy-badge">
+          +{{ player.legacyDelta }} pt
+        </span>
+      </div>
+    </div>
+
+    <!-- Box Voto -->
+    <div class="player-rating-display">
+      @if (isAdmin) {
+        <input
+          type="number"
+          min="0"
+          max="10"
+          step="0.5"
+          inputmode="decimal"
+          [value]="player.voto && player.voto > 0 ? player.voto : ''"
+          placeholder="-"
+          (change)="voteChange.emit({ player: player, event: $event })"
+          [class]="getRatingClass(player.voto)"
+          class="rating-input"
+        />
+      } @else {
+        <div class="rating-badge-box" [class]="getRatingClass(player.voto)">
+          {{ player.voto && player.voto > 0 ? player.voto : '-' }}
+        </div>
+      }
+      <span class="rating-sub-label">VOTO</span>
+    </div>
+  </div>
+
+  <!-- Commento Pagella: Compatto ed Espandibile su Mobile -->
+  @if (isAdmin) {
+    @if (player.note || isEditingNote()) {
+      <div class="card-comment-row">
+        <ion-textarea
+          placeholder="Scrivi il commento tecnico della pagella..."
+          [value]="player.note || ''"
+          [autoGrow]="true"
+          rows="1"
+          (ionInput)="noteChange.emit({ player: player, note: $event.detail.value || '' })"
+          class="comment-textarea"
+        ></ion-textarea>
+        @if (!player.note) {
+          <button type="button" class="close-note-btn" (click)="toggleNoteEdit()" title="Annulla commento">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="card-note-trigger-row">
+        <button type="button" class="add-note-chip" (click)="toggleNoteEdit()">
+          <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+          <span>+ Commento</span>
+        </button>
+      </div>
+    }
+  } @else {
+    @if (player.note) {
+      <div class="card-comment-row">
+        <div class="comment-view-box">
+          “{{ player.note }}”
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,244 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.player-roster-card {
+  @include card-surface(12px, 10px);
+
+  .card-top-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .player-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      flex-shrink: 0;
+
+      app-player-avatar,
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border-radius: 50%;
+      }
+    }
+
+    .player-identity {
+      @include flex-col(2px);
+      flex: 1;
+      min-width: 0;
+
+      .identity-name-row {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+
+        .player-name {
+          margin: 0;
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+          @include text-ellipsis;
+        }
+
+        .goal-pill {
+          @include pill-badge(var(--app-primary-subtle), var(--app-primary));
+          padding: 1px 5px;
+          border-radius: 5px;
+          font-size: 0.68rem;
+          gap: 2px;
+        }
+
+        .assist-pill {
+          @include pill-badge(var(--app-player1-subtle), var(--app-player1), var(--app-player1-border));
+          padding: 1px 6px;
+          border-radius: 5px;
+          font-size: 0.68rem;
+
+          &.clickable {
+            cursor: pointer;
+            @include btn-press(0.95);
+            &:hover {
+              transform: scale(1.05);
+              background: var(--app-player1-border);
+            }
+          }
+        }
+
+        .add-assist-admin-btn {
+          background: transparent;
+          border: 1px dashed var(--app-player1-border);
+          color: var(--app-player1);
+          border-radius: 4px;
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 0 4px;
+          cursor: pointer;
+          @include btn-press;
+          &:hover {
+            background: var(--app-player1-subtle);
+            border-style: solid;
+          }
+        }
+
+        .autogol-pill {
+          @include pill-badge(var(--app-accent-danger-subtle), var(--app-accent-danger));
+          padding: 1px 5px;
+          border-radius: 5px;
+          font-size: 0.68rem;
+        }
+
+        .crown-mini-badge {
+          @include pill-badge(var(--app-accent-gold-subtle), var(--app-accent-gold));
+          font-size: 0.65rem;
+          font-weight: 900;
+          padding: 1px 5px;
+          border-radius: 5px;
+        }
+      }
+
+      .player-deltas-row {
+        display: flex;
+        gap: 5px;
+
+        .player-delta-badge {
+          font-size: 0.65rem;
+          font-weight: 700;
+          padding: 1px 5px;
+          border-radius: 4px;
+
+          &.mmr-badge {
+            background: var(--app-surface-subtle);
+            color: var(--app-text-secondary);
+            border: 1px solid var(--app-border-color);
+            &.positive { background: var(--app-primary-subtle); color: var(--app-primary); border-color: var(--app-primary-border); }
+            &.negative { background: var(--app-accent-danger-subtle); color: var(--app-accent-danger); border-color: var(--app-accent-danger-border); }
+          }
+
+          &.legacy-badge {
+            background: var(--app-player1-subtle);
+            color: var(--app-player1);
+            border: 1px solid var(--app-player1-border);
+          }
+        }
+      }
+    }
+
+    .player-rating-display {
+      @include flex-col;
+      align-items: center;
+      flex-shrink: 0;
+      width: 44px;
+
+      .rating-input, .rating-badge-box {
+        width: 44px;
+        height: 34px;
+        font-size: 1.05rem;
+        font-weight: 900;
+        text-align: center;
+        border-radius: 8px;
+        @include flex-center;
+        border: 1px solid var(--app-border-color);
+        background: var(--app-surface-subtle);
+        color: var(--app-text-primary);
+        outline: none;
+        transition: all 0.15s ease;
+
+        &:focus {
+          border-color: var(--app-primary);
+          box-shadow: 0 0 8px rgba(var(--app-primary-rgb), 0.3);
+        }
+
+        &::placeholder {
+          color: var(--app-text-muted);
+        }
+
+        &.voto-alto { background: var(--app-primary-subtle); color: var(--app-primary); border-color: var(--app-primary-border); }
+        &.voto-medio { background: var(--app-accent-gold-subtle); color: var(--app-accent-gold); border-color: var(--app-accent-gold-border); }
+        &.voto-basso { background: var(--app-accent-danger-subtle); color: var(--app-accent-danger); border-color: var(--app-accent-danger-border); }
+      }
+
+      .rating-sub-label {
+        font-size: 0.58rem;
+        font-weight: 800;
+        color: var(--app-text-secondary);
+        margin-top: 1px;
+      }
+    }
+  }
+
+  .card-note-trigger-row {
+    margin-top: 6px;
+    display: flex;
+
+    .add-note-chip {
+      background: transparent;
+      border: 1px dashed var(--app-border-color);
+      color: var(--app-text-secondary);
+      border-radius: 12px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      @include btn-press;
+
+      &:hover,
+      &:active {
+        background: var(--app-surface-subtle);
+      }
+    }
+  }
+
+  .card-comment-row {
+    margin-top: 6px;
+    border-top: 1px solid var(--app-divider);
+    padding-top: 6px;
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+
+    .comment-textarea {
+      flex: 1;
+      --background: var(--app-surface-subtle);
+      --color: var(--app-text-primary);
+      --placeholder-color: var(--app-text-muted);
+      font-size: 0.8rem;
+      border-radius: 6px;
+      border: 1px solid var(--app-border-color);
+      padding: 3px 6px;
+    }
+
+    .close-note-btn {
+      background: transparent;
+      border: none;
+      color: var(--app-text-secondary);
+      font-size: 1.1rem;
+      padding: 4px;
+      cursor: pointer;
+      margin-top: 2px;
+      @include btn-press;
+    }
+
+    .comment-view-box {
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--app-text-primary);
+      line-height: 1.35;
+      background: var(--app-surface-subtle);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--app-border-color);
+      border-left: 3px solid var(--app-primary);
+    }
+  }
+}
