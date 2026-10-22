@@ -1,10 +1,11 @@
-import { Component, inject, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, Input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonButton,
   IonIcon,
   IonListHeader,
   IonLabel,
+  IonAvatar,
   ActionSheetController,
   AlertController,
   ToastController,
@@ -22,10 +23,15 @@ import {
   trashOutline, // Aggiunta per il tasto rimuovi
   musicalNotes,
   volumeMute,
+  diceOutline,
+  listOutline,
+  chevronUpOutline,
+  shieldOutline,
 } from 'ionicons/icons';
 import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
 import { EventoGol } from '../../../../../models/partita.model';
+import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
   selector: 'app-step-match',
@@ -38,6 +44,8 @@ import { EventoGol } from '../../../../../models/partita.model';
     IonIcon,
     IonListHeader,
     IonLabel,
+    IonAvatar,
+    PlayerAvatarComponent,
   ],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
@@ -55,6 +63,68 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // Traccia l'ultimo minuto "multiplo di 5" già triggerato per evitare doppioni
   private ultimoCambioMinuto: number = -1;
 
+  isSequenzaAperta = signal<boolean>(false);
+
+  toggleSequenza() {
+    this.isSequenzaAperta.update((v) => !v);
+  }
+
+  async rimescolaPortieri(team?: 'A' | 'B') {
+    if (team === 'A') {
+      this.state.rimescolaSquadra('A');
+      await this.mostraToastFeedback('🎲 Rotazione Bianchi rimescolata');
+    } else if (team === 'B') {
+      this.state.rimescolaSquadra('B');
+      await this.mostraToastFeedback('🎲 Rotazione Neri rimescolata');
+    } else {
+      this.state.inizializzaRotazionePortieri(true);
+      await this.mostraToastFeedback('🎲 Rotazione rimescolata per entrambe le squadre');
+    }
+    await this.state.salvaInDatabase(false);
+  }
+
+  async scambiaOrdine(team: 'A' | 'B', idx1: number, idx2: number) {
+    this.state.scambiaOrdinePortieri(team, idx1, idx2);
+    await this.state.salvaInDatabase(false);
+  }
+
+  async cambiaPortiereFisso(team: 'A' | 'B') {
+    const players = team === 'A' ? this.state.teamA() : this.state.teamB();
+    const teamNome = team === 'A' ? 'Bianchi' : 'Neri';
+    const currFixedId =
+      team === 'A'
+        ? this.state.portieriInfoA().attuale?.id
+        : this.state.portieriInfoB().attuale?.id;
+
+    const buttons: any[] = players.map((p) => {
+      const isDiRuolo = ((p as any)?.ruoloPreferito as string)?.toLowerCase() === 'portiere';
+      const isCurrent = p.id === currFixedId;
+      return {
+        text: `${isCurrent ? '🧤 ' : ''}${p.nome}${isDiRuolo ? ' (👑 Di Ruolo)' : ''}`,
+        role: isCurrent ? 'selected' : undefined,
+        handler: async () => {
+          this.state.impostaPortiereFisso(team, p.id);
+          await this.state.salvaInDatabase(false);
+          await this.mostraToastFeedback(`🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`);
+        },
+      };
+    });
+
+    buttons.push({
+      text: 'Annulla',
+      role: 'cancel',
+      handler: async () => {},
+    });
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `🧤 Sostituisci Portiere Fisso (${teamNome})`,
+      subHeader: 'Chi difenderà la porta tra i pali?',
+      buttons,
+    });
+
+    await actionSheet.present();
+  }
+
   constructor() {
     // Registriamo TUTTE le icone necessarie
     addIcons({
@@ -69,10 +139,17 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       trashOutline,
       musicalNotes,
       volumeMute,
+      diceOutline,
+      listOutline,
+      chevronUpOutline,
+      shieldOutline,
     });
   }
 
   ngOnInit() {
+    if (this.isAdmin && !this.state.rotazionePortieri()) {
+      this.state.inizializzaRotazionePortieri(false);
+    }
     // ─── WAKE LOCK SEMPRE ATTIVO ───────────────────────────────────────
     this.attivaWakeLock();
     if ('wakeLock' in navigator) {
@@ -93,8 +170,12 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         const newCronometro = this.state.accumulatedTime() + diffSec;
         this.state.cronometro.set(newCronometro);
 
-        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti) ───────────────
-        if (this.isAdmin) {
+        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti, solo se c'è almeno una rotazione) ───────────────
+        const hasRotatingTeam =
+          this.state.modalitaPortieriA() === 'rotazione' ||
+          this.state.modalitaPortieriB() === 'rotazione';
+
+        if (this.isAdmin && hasRotatingTeam) {
           const minutiGiocati = Math.floor(newCronometro / 60);
           const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
 
@@ -320,6 +401,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     isAutogoal: boolean,
     assistMan: any | null = null,
   ) {
+    const defendingTeam = teamVantaggio === 'A' ? 'B' : 'A';
+    const portiereInfo =
+      defendingTeam === 'A'
+        ? this.state.portieriInfoA()
+        : this.state.portieriInfoB();
+    const portiereSubito = portiereInfo?.attuale;
+
     const nuovoEvento: EventoGol = {
       idAssegnato: giocatore.id,
       nome: giocatore.nome,
@@ -328,6 +416,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       tempo: this.state.formatTimer(),
       assistId: assistMan ? assistMan.id : null,
       assistNome: assistMan ? assistMan.nome : null,
+      portiereSubitoId: portiereSubito?.id || null,
+      portiereSubitoNome: portiereSubito?.nome || null,
     };
 
     this.state.eventiGol.update((list) => [...list, nuovoEvento]);
@@ -384,13 +474,14 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     await this.state.salvaInDatabase(false);
 
     // Feedback rapido Toast
+    const portiereTag = portiereSubito?.nome ? ` · 🧤 in porta: ${portiereSubito.nome}` : '';
     let feedbackMsg = '';
     if (isAutogoal) {
-      feedbackMsg = `⚠️ Autogol di ${giocatore.nome}!`;
+      feedbackMsg = `⚠️ Autogol di ${giocatore.nome}!${portiereTag}`;
     } else if (assistMan) {
-      feedbackMsg = `⚽ Gol di ${giocatore.nome} (👟 Assist di ${assistMan.nome})`;
+      feedbackMsg = `⚽ Gol di ${giocatore.nome} (👟 Assist di ${assistMan.nome})${portiereTag}`;
     } else {
-      feedbackMsg = `⚽ Gol di ${giocatore.nome} (⚡ Azione Personale)`;
+      feedbackMsg = `⚽ Gol di ${giocatore.nome} (⚡ Azione Personale)${portiereTag}`;
     }
     await this.mostraToastFeedback(feedbackMsg);
   }

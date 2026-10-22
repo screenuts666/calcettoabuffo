@@ -73,6 +73,7 @@
         [worst]="report().worst"
         [eventiGol]="state.eventiGol()"
         [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [gkSummary]="gkSummary()"
         (shareClick)="apriCondivisione()"
         (editAssistClick)="modificaAssistEvento($event)"
       ></app-prestazioni-tab-sintesi>
@@ -109,6 +110,7 @@
         (commentoChange)="onCommentoPartitaChange($event)"
         (saveCommentoClick)="salvaCommentoPartita($event)"
         (generateCronacaClick)="generaCronaca($event)"
+        (insertGkNotesClick)="inserisciNotePortieri()"
       ></app-prestazioni-tab-spogliatoio>
     }
 

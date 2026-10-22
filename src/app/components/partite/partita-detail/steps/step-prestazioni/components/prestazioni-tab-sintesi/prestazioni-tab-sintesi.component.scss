@@ -311,6 +311,86 @@
   }
 }
 
+// ==========================================
+// CARD RENDIMENTO PORTIERI 🧤
+// ==========================================
+.gk-summary-card {
+  background: var(--app-card-bg);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  margin: 12px 14px;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  .section-card-header {
+    margin-bottom: 12px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .gk-summary-emoji {
+        font-size: 1.4rem;
+        filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.3));
+      }
+
+      .section-title {
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+  }
+
+  .gk-summary-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .gk-team-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+
+      .gk-team-badge {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+
+        &.white {
+          background: #f8fafc;
+          color: #0f172a;
+          border: 1px solid #cbd5e1;
+        }
+
+        &.black {
+          background: #0f172a;
+          color: #f8fafc;
+          border: 1px solid #334155;
+        }
+      }
+
+      .gk-team-text {
+        font-size: 0.8rem;
+        color: var(--app-text-primary);
+        line-height: 1.35;
+        margin: 2px 0 0 0;
+      }
+    }
+  }
+}
+
 // CTA WHATSAPP
 .report-share-cta-card {
   margin: 14px 14px 20px;

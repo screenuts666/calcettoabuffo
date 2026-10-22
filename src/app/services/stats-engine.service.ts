@@ -2,7 +2,7 @@ import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
-import { Giocatore, GiocatoreConPunti } from '../models/giocatore.model';
+import { Giocatore, GiocatoreConPunti, PortiereStats } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
 import {
   MmrCalculationResult,
@@ -287,6 +287,11 @@ export class StatsEngineService {
         ? Math.round((wins / partiteGiocate) * 1000) / 10
         : 0;
 
+    const portiereStats = StatsEngineService.calculateGoalkeeperStatsForPlayer(
+      g.id,
+      partiteStagione,
+    );
+
     return {
       ...g,
       fotoUrl: getAvatarUrl(g.fotoUrl),
@@ -316,6 +321,7 @@ export class StatsEngineService {
       chemistry,
       seasonStartMmr,
       pastSeasonsBanners,
+      portiereStats,
     };
   }
 
@@ -384,6 +390,361 @@ export class StatsEngineService {
       favoriteTeam,
       favoriteMargin: Math.round(margin * 10) / 10,
     };
+  }
+
+  /**
+   * Calcola le statistiche da portiere (minuti, turni, gol subiti, clean sheet, media gol/50min)
+   * per un singolo giocatore analizzando l'elenco delle partite fornite.
+   */
+  static calculateGoalkeeperStatsForPlayer(
+    playerId: string,
+    matches: Partita[],
+  ): PortiereStats {
+    let minutiInPorta = 0;
+    let turniInPorta = 0;
+    let golSubiti = 0;
+    let cleanSheetTurni = 0;
+    let cleanSheetPartite = 0;
+
+    for (const p of matches) {
+      const rot = p.rotazionePortieri;
+      const hasRotation =
+        !!rot && (Array.isArray(rot.teamA) || Array.isArray(rot.teamB));
+      const durataTurno = rot?.durataTurnoMinuti || 5;
+      const durataTurnoSec = durataTurno * 60;
+      const cronometroTotale =
+        p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+
+      let playerTeam: 'A' | 'B' | null = null;
+      let orderList: string[] = [];
+
+      if (hasRotation) {
+        if (rot.teamA?.includes(playerId)) {
+          playerTeam = 'A';
+          orderList = rot.teamA;
+        } else if (rot.teamB?.includes(playerId)) {
+          playerTeam = 'B';
+          orderList = rot.teamB;
+        }
+      } else {
+        if (p.teamA?.some((pl) => pl.id === playerId)) playerTeam = 'A';
+        else if (p.teamB?.some((pl) => pl.id === playerId)) playerTeam = 'B';
+      }
+
+      if (!playerTeam) continue;
+
+      const modalita =
+        playerTeam === 'A'
+          ? rot?.modalitaA || 'rotazione'
+          : rot?.modalitaB || 'rotazione';
+      const fixedId =
+        playerTeam === 'A'
+          ? rot?.portiereFissoAId || rot?.teamA?.[0]
+          : rot?.portiereFissoBId || rot?.teamB?.[0];
+
+      if (modalita === 'fisso') {
+        if (playerId !== fixedId) {
+          continue;
+        }
+        const totalTurni = Math.max(
+          1,
+          Math.ceil(cronometroTotale / durataTurnoSec),
+        );
+        const secondiEffettivi = cronometroTotale;
+        minutiInPorta += Math.round(secondiEffettivi / 60);
+        turniInPorta += totalTurni;
+
+        const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
+        const eventi = p.eventiGol || [];
+        const matchGolSubiti = eventi.filter((eg: any) => {
+          if (eg.portiereSubitoId) {
+            return (
+              eg.portiereSubitoId === playerId &&
+              eg.teamVantaggio === teamAvversario
+            );
+          }
+          return eg.teamVantaggio === teamAvversario;
+        }).length;
+
+        golSubiti += matchGolSubiti;
+        if (matchGolSubiti === 0 && secondiEffettivi >= 600) {
+          cleanSheetPartite++;
+          cleanSheetTurni += totalTurni;
+        }
+        continue;
+      }
+
+      if (hasRotation && orderList.length > 0) {
+        const playerIndices: number[] = [];
+        orderList.forEach((id, idx) => {
+          if (id === playerId) playerIndices.push(idx);
+        });
+
+        if (playerIndices.length === 0) continue;
+
+        const totalTurni = Math.max(
+          1,
+          Math.ceil(cronometroTotale / durataTurnoSec),
+        );
+        let matchTurniGiocati = 0;
+        let matchGolSubiti = 0;
+        let matchCleanSheetTurni = 0;
+
+        for (let turno = 0; turno < totalTurni; turno++) {
+          const idxInOrder = turno % orderList.length;
+          if (playerIndices.includes(idxInOrder)) {
+            matchTurniGiocati++;
+            const inizioSec = turno * durataTurnoSec;
+            const fineSec = Math.min(
+              cronometroTotale,
+              (turno + 1) * durataTurnoSec,
+            );
+            const secondiEffettivi = Math.max(0, fineSec - inizioSec);
+            minutiInPorta += Math.round(secondiEffettivi / 60);
+
+            const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
+            const eventi = p.eventiGol || [];
+
+            const golNelTurno = eventi.filter((eg: any) => {
+              if (eg.portiereSubitoId) {
+                return (
+                  eg.portiereSubitoId === playerId &&
+                  eg.teamVantaggio === teamAvversario
+                );
+              }
+              if (eg.teamVantaggio === teamAvversario && eg.tempo) {
+                const [mStr, sStr] = eg.tempo.split(':');
+                const golSec =
+                  (parseInt(mStr, 10) || 0) * 60 + (parseInt(sStr, 10) || 0);
+                return golSec >= inizioSec && golSec < fineSec;
+              }
+              return false;
+            }).length;
+
+            matchGolSubiti += golNelTurno;
+            if (golNelTurno === 0 && secondiEffettivi >= 120) {
+              matchCleanSheetTurni++;
+            }
+          }
+        }
+
+        if (matchTurniGiocati > 0) {
+          turniInPorta += matchTurniGiocati;
+          golSubiti += matchGolSubiti;
+          cleanSheetTurni += matchCleanSheetTurni;
+          if (matchGolSubiti === 0) {
+            cleanSheetPartite++;
+          }
+        }
+      } else {
+        const eventi = p.eventiGol || [];
+        const golSubitiDiretti = eventi.filter(
+          (eg: any) => eg.portiereSubitoId === playerId,
+        ).length;
+        if (golSubitiDiretti > 0) {
+          turniInPorta += 1;
+          minutiInPorta += 5;
+          golSubiti += golSubitiDiretti;
+        }
+      }
+    }
+
+    const isClassificabile = minutiInPorta >= 5;
+    const mediaGolSubiti50m =
+      minutiInPorta > 0
+        ? Math.round((golSubiti / (minutiInPorta / 50)) * 100) / 100
+        : 0;
+
+    return {
+      minutiInPorta,
+      turniInPorta,
+      golSubiti,
+      cleanSheetTurni,
+      cleanSheetPartite,
+      mediaGolSubiti50m,
+      isClassificabile,
+    };
+  }
+
+  /**
+   * Calcola le statistiche da portiere relative a una singola partita
+   */
+  static calculateGoalkeeperStatsForMatch(
+    playerId: string,
+    match: Partita,
+    playerTeam: 'A' | 'B',
+  ): { turniGiocati: number; golSubiti: number; cleanSheetTurni: number } {
+    const rot = match.rotazionePortieri;
+    if (!rot) return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+
+    const modalita =
+      playerTeam === 'A'
+        ? rot.modalitaA || 'rotazione'
+        : rot.modalitaB || 'rotazione';
+    const fixedId =
+      playerTeam === 'A'
+        ? rot.portiereFissoAId || rot.teamA?.[0]
+        : rot.portiereFissoBId || rot.teamB?.[0];
+    const cronometroTotale =
+      match.cronometro || (match.accumulatedTime ?? 0) || 3000;
+    const durataTurno = rot.durataTurnoMinuti || 5;
+    const durataTurnoSec = durataTurno * 60;
+    const totalTurni = Math.max(
+      1,
+      Math.ceil(cronometroTotale / durataTurnoSec),
+    );
+    const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
+    const eventi = match.eventiGol || [];
+
+    if (modalita === 'fisso') {
+      if (playerId !== fixedId) {
+        return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+      }
+      const golSubiti = eventi.filter((eg: any) => {
+        if (eg.portiereSubitoId) {
+          return (
+            eg.portiereSubitoId === playerId &&
+            eg.teamVantaggio === teamAvversario
+          );
+        }
+        return eg.teamVantaggio === teamAvversario;
+      }).length;
+
+      const cleanSheetTurni = golSubiti === 0 ? totalTurni : 0;
+      return { turniGiocati: totalTurni, golSubiti, cleanSheetTurni };
+    }
+
+    const orderList = playerTeam === 'A' ? rot.teamA : rot.teamB;
+    if (!orderList || orderList.length === 0) {
+      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+    }
+
+    const playerIndices: number[] = [];
+    orderList.forEach((id, idx) => {
+      if (id === playerId) playerIndices.push(idx);
+    });
+    if (playerIndices.length === 0) {
+      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+    }
+
+    let turniGiocati = 0;
+    let golSubiti = 0;
+    let cleanSheetTurni = 0;
+
+    for (let turno = 0; turno < totalTurni; turno++) {
+      const idxInOrder = turno % orderList.length;
+      if (playerIndices.includes(idxInOrder)) {
+        turniGiocati++;
+        const inizioSec = turno * durataTurnoSec;
+        const fineSec = Math.min(cronometroTotale, (turno + 1) * durataTurnoSec);
+
+        const golNelTurno = eventi.filter((eg: any) => {
+          if (eg.portiereSubitoId) {
+            return (
+              eg.portiereSubitoId === playerId &&
+              eg.teamVantaggio === teamAvversario
+            );
+          }
+          if (eg.teamVantaggio === teamAvversario && eg.tempo) {
+            const [mStr, sStr] = eg.tempo.split(':');
+            const golSec =
+              (parseInt(mStr, 10) || 0) * 60 + (parseInt(sStr, 10) || 0);
+            return golSec >= inizioSec && golSec < fineSec;
+          }
+          return false;
+        }).length;
+
+        golSubiti += golNelTurno;
+        if (golNelTurno === 0 && fineSec - inizioSec >= 120) {
+          cleanSheetTurni++;
+        }
+      }
+    }
+
+    return { turniGiocati, golSubiti, cleanSheetTurni };
+  }
+
+  /**
+   * Genera un resoconto testuale approfondito delle prestazioni dei portieri di un match,
+   * ideale per note post-partita e per l'arricchimento del prompt telecronaca di Pablo.
+   */
+  static generateGoalkeeperMatchSummary(match: Partita): {
+    summaryA: string;
+    summaryB: string;
+    notesPrompt: string;
+  } {
+    const rot = match.rotazionePortieri;
+    const teamA = match.teamA || [];
+    const teamB = match.teamB || [];
+    const eventi = match.eventiGol || [];
+
+    const getTeamSummary = (team: 'A' | 'B', players: any[]) => {
+      const teamNome = team === 'A' ? 'BIANCHI' : 'NERI';
+      const modalita =
+        team === 'A'
+          ? rot?.modalitaA || 'rotazione'
+          : rot?.modalitaB || 'rotazione';
+      const fixedId =
+        team === 'A'
+          ? rot?.portiereFissoAId || rot?.teamA?.[0]
+          : rot?.portiereFissoBId || rot?.teamB?.[0];
+
+      if (modalita === 'fisso') {
+        const fixedP = players.find((p) => p.id === fixedId) || players[0];
+        const nome = fixedP?.nome || 'Portiere';
+        const isDiRuolo =
+          ((fixedP as any)?.ruoloPreferito as string)?.toLowerCase() ===
+          'portiere';
+        const stats = fixedP
+          ? StatsEngineService.calculateGoalkeeperStatsForMatch(
+              fixedP.id,
+              match,
+              team,
+            )
+          : { golSubiti: 0, turniGiocati: 1, cleanSheetTurni: 0 };
+
+        const tag = isDiRuolo ? '👑 Portiere di Ruolo' : '🧤 Portiere Fisso';
+        const comment =
+          stats.golSubiti === 0
+            ? '🛡️ Saracinesca impenetrabile! Clean Sheet completo (0 gol subiti).'
+            : stats.golSubiti <= 2
+              ? `Ottima prestazione: solo ${stats.golSubiti} gol subiti.`
+              : `Serata difficile: ${stats.golSubiti} gol incassati.`;
+
+        return `${teamNome} (${tag}: ${nome}): ${stats.golSubiti} gol subiti su tutta la partita. ${comment}`;
+      } else {
+        // Rotazione
+        const portieriList = players
+          .map((p) => {
+            const s = StatsEngineService.calculateGoalkeeperStatsForMatch(
+              p.id,
+              match,
+              team,
+            );
+            return { nome: p.nome, ...s };
+          })
+          .filter((p) => p.turniGiocati > 0);
+
+        if (portieriList.length === 0) {
+          return `${teamNome}: Portieri a rotazione (nessun turno registrato)`;
+        }
+
+        const details = portieriList
+          .map(
+            (p) =>
+              `${p.nome} (${p.turniGiocati * 5} min, ${p.golSubiti} gol subiti${p.cleanSheetTurni > 0 ? ', ' + p.cleanSheetTurni + ' turni imbattuto' : ''})`,
+          )
+          .join(', ');
+
+        return `${teamNome} (🔄 A Rotazione ogni 5 min): ${details}`;
+      }
+    };
+
+    const summaryA = getTeamSummary('A', teamA);
+    const summaryB = getTeamSummary('B', teamB);
+    const notesPrompt = `NOTE RENDIMENTO PORTIERI:\n• ${summaryA}\n• ${summaryB}`;
+
+    return { summaryA, summaryB, notesPrompt };
   }
 
   /**
@@ -513,7 +874,28 @@ export class StatsEngineService {
           Math.floor(netGoals * 0.8 + assistCount * 0.6),
         );
 
-        let rawDelta = baseTeamDelta + movBonus + voteBonus + contributionBonus;
+        let gkBonus = 0;
+        if (match.rotazionePortieri) {
+          const gkMatch = StatsEngineService.calculateGoalkeeperStatsForMatch(
+            p.id,
+            match,
+            team,
+          );
+          if (gkMatch.turniGiocati > 0) {
+            if (gkMatch.golSubiti === 0) {
+              gkBonus = Math.min(5, 2 + gkMatch.cleanSheetTurni);
+            } else if (gkMatch.golSubiti === 1) {
+              gkBonus = 0;
+            } else if (gkMatch.golSubiti === 2) {
+              gkBonus = -1;
+            } else if (gkMatch.golSubiti >= 3) {
+              gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
+            }
+          }
+        }
+
+        let rawDelta =
+          baseTeamDelta + movBonus + voteBonus + contributionBonus + gkBonus;
         if (mmrBefore >= 1200 && rawDelta > 0) rawDelta = Math.round(rawDelta * 0.75);
         if (mmrBefore >= 1250 && rawDelta < 0) rawDelta = Math.round(rawDelta * 1.15);
 
@@ -1158,13 +1540,35 @@ export class StatsEngineService {
           else if (prospectiveStreak <= -5) streakBonus = -8;
         }
 
+        // 5b. Bonus / Malus Portiere (solo per match con rotazione portieri tracciata)
+        let gkBonus = 0;
+        if (match.rotazionePortieri) {
+          const gkMatch = StatsEngineService.calculateGoalkeeperStatsForMatch(
+            pPerf.id,
+            match,
+            team,
+          );
+          if (gkMatch.turniGiocati > 0) {
+            if (gkMatch.golSubiti === 0) {
+              gkBonus = Math.min(5, 2 + gkMatch.cleanSheetTurni);
+            } else if (gkMatch.golSubiti === 1) {
+              gkBonus = 0;
+            } else if (gkMatch.golSubiti === 2) {
+              gkBonus = -1;
+            } else if (gkMatch.golSubiti >= 3) {
+              gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
+            }
+          }
+        }
+
         // Delta Grezzo prima del freno d'élite e del clamp
         let rawDelta =
           baseTeamDelta +
           movBonus +
           ratingBonus +
           contributionBonus +
-          streakBonus;
+          streakBonus +
+          gkBonus;
 
         // 6. Freno d'Élite / Diminishing Returns ad Alto MMR:
         let eliteBrakeApplied = 0;

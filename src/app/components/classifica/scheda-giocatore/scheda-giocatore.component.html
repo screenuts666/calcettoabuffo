@@ -243,6 +243,42 @@
   </div>
 
   <!-- ============================================== -->
+  <!-- STATISTICHE PORTIERE A ROTAZIONE               -->
+  <!-- ============================================== -->
+  @if (prof?.portiereStats?.isClassificabile) {
+    <div class="section-badge-header">
+      <span class="sec-icon">🧤</span>
+      <span>Portiere a Rotazione</span>
+    </div>
+
+    <div class="mmr-stats-grid">
+      <div class="stat-box">
+        <div class="stat-box-title">MEDIA GOL SUBITI</div>
+        <div class="stat-box-num" style="color: #10b981">
+          {{ prof.portiereStats.mediaGolSubiti50m.toFixed(2) }}
+        </div>
+        <div class="stat-box-sub">Gol ogni 50 minuti</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-box-title">CLEAN SHEET 🛡️</div>
+        <div class="stat-box-num">
+          {{ prof.portiereStats.cleanSheetTurni }}
+        </div>
+        <div class="stat-box-sub">Turni a porta inviolata</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-box-title">TEMPO IN PORTA ⏱️</div>
+        <div class="stat-box-num">
+          {{ prof.portiereStats.minutiInPorta }}'
+        </div>
+        <div class="stat-box-sub">{{ prof.portiereStats.turniInPorta }} turni ({{ prof.portiereStats.golSubiti }} gol subiti)</div>
+      </div>
+    </div>
+  }
+
+  <!-- ============================================== -->
   <!-- ALBO D'ORO STAGIONI (SEASON BANNERS LoL STYLE) -->
   <!-- ============================================== -->
   @if (prof?.pastSeasonsBanners?.length) {

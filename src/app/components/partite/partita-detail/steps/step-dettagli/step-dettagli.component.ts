@@ -76,6 +76,14 @@ export class StepDettagliComponent {
     });
   }
 
+  toggleModalitaA(modalita: 'rotazione' | 'fisso') {
+    this.state.impostaModalitaPortiere('A', modalita);
+  }
+
+  toggleModalitaB(modalita: 'rotazione' | 'fisso') {
+    this.state.impostaModalitaPortiere('B', modalita);
+  }
+
   vaiASquadre() {
     if (!this.state.isDettagliValidi()) return;
     const scelti = this.state.convocati();

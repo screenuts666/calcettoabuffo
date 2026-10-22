@@ -242,6 +242,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       });
       this.state.teamA.set((matchData.teamA || []).map(normalizePlayer));
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));
+      this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
 
       if (!this.state.isDettagliValidi()) this.state.step.set('dettagli');
       else if (
@@ -260,6 +261,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.fotoUrl.set(null);
       this.state.fotoPath.set(null);
       this.state.commentoPartita.set('');
+      this.state.rotazionePortieri.set(null);
       this.state.resetMatchState();
       this.state.step.set('convocati');
     }

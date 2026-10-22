@@ -7,16 +7,26 @@
       <span class="pablo-author-badge">di Pablo</span>
     </div>
     @if (isAdmin) {
-      <button
-        type="button"
-        class="save-commento-btn"
-        (click)="saveCommentoClick.emit(false)"
-        [disabled]="isSavingCommento"
-        title="Salva le note a bordocampo"
-      >
-        <ion-icon [name]="isSavingCommento ? 'hourglass-outline' : 'save-outline'"></ion-icon>
-        <span>{{ isSavingCommento ? 'Salvataggio...' : 'Salva Note' }}</span>
-      </button>
+      <div class="header-admin-actions">
+        <button
+          type="button"
+          class="insert-gk-btn"
+          (click)="insertGkNotesClick.emit()"
+          title="Inserisci automaticamente le note statistiche sui portieri"
+        >
+          <span>🧤 + Note Portieri</span>
+        </button>
+        <button
+          type="button"
+          class="save-commento-btn"
+          (click)="saveCommentoClick.emit(false)"
+          [disabled]="isSavingCommento"
+          title="Salva le note a bordocampo"
+        >
+          <ion-icon [name]="isSavingCommento ? 'hourglass-outline' : 'save-outline'"></ion-icon>
+          <span>{{ isSavingCommento ? 'Salvataggio...' : 'Salva Note' }}</span>
+        </button>
+      </div>
     }
   </div>
 

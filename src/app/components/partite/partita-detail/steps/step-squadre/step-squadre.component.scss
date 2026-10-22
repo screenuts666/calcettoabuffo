@@ -293,3 +293,160 @@
     text-align: center;
   }
 }
+
+// ==========================================
+// BARRE SELEZIONE PORTIERE NELLA FORMAZIONE
+// ==========================================
+.gk-fixed-selector-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 12px 4px;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(251, 191, 36, 0.15);
+    border-color: rgba(251, 191, 36, 0.6);
+  }
+
+  .fixed-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .fixed-icon {
+      font-size: 1.4rem;
+      filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.4));
+    }
+
+    .fixed-info {
+      display: flex;
+      flex-direction: column;
+
+      .fixed-title {
+        font-size: 0.82rem;
+        color: var(--app-text-primary);
+
+        strong {
+          color: #fbbf24;
+          font-weight: 800;
+        }
+      }
+
+      .fixed-sub {
+        font-size: 0.68rem;
+        color: var(--app-text-muted);
+        margin-top: 1px;
+      }
+    }
+  }
+
+  .fixed-change-btn {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.15);
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+}
+
+.gk-rotation-hint-bar {
+  margin: 6px 12px 2px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  display: inline-block;
+}
+
+// ==========================================
+// BADGE E AURA PORTIERE NEI GIOCATORI
+// ==========================================
+.avatar-wrapper.is-fixed-gk {
+  ion-avatar {
+    border-color: #fbbf24 !important;
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6), inset 0 0 4px rgba(251, 191, 36, 0.5) !important;
+    transform: scale(1.05);
+  }
+}
+
+.avatar-wrapper.is-pure-gk:not(.is-fixed-gk) {
+  ion-avatar {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
+  }
+}
+
+.fixed-gk-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  font-size: 14px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fbbf24;
+  color: #000;
+  @include flex-center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+  animation: pulse-aura 2.5s infinite ease-in-out;
+}
+
+.pure-gk-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #10b981;
+  color: #fff;
+  @include flex-center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  z-index: 10;
+}
+
+.gk-role-tag {
+  display: block;
+  font-size: 8px;
+  font-weight: 800;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 1px 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  margin-top: 2px;
+  max-width: 65px;
+  margin-left: auto;
+  margin-right: auto;
+  @include text-ellipsis;
+
+  &.pure {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+}
+
+@keyframes pulse-aura {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.9);
+  }
+}

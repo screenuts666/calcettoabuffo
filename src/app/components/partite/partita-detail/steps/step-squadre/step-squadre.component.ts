@@ -6,6 +6,7 @@ import {
   IonFabButton,
   IonIcon,
   ToastController,
+  ActionSheetController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -50,6 +51,7 @@ export class StepSquadreComponent {
   private matchmakingService = inject(MatchmakingService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
+  private actionSheetCtrl = inject(ActionSheetController);
 
   getAvatar(fotoUrl?: string | null): string {
     return getAvatarUrl(fotoUrl);
@@ -196,7 +198,62 @@ export class StepSquadreComponent {
     }
   }
 
+  isDiRuolo(giocatore: any): boolean {
+    return (giocatore?.ruoloPreferito as string)?.toLowerCase() === 'portiere';
+  }
+
+  isPortiereFisso(team: 'A' | 'B', playerId: string): boolean {
+    if (team === 'A') {
+      return (
+        this.state.modalitaPortieriA() === 'fisso' &&
+        this.state.portieriInfoA().attuale?.id === playerId
+      );
+    } else {
+      return (
+        this.state.modalitaPortieriB() === 'fisso' &&
+        this.state.portieriInfoB().attuale?.id === playerId
+      );
+    }
+  }
+
+  async apriSelettorePortiereFisso(team: 'A' | 'B') {
+    const players = team === 'A' ? this.state.teamA() : this.state.teamB();
+    const teamNome = team === 'A' ? 'Bianchi' : 'Neri';
+    const currFixedId =
+      team === 'A'
+        ? this.state.portieriInfoA().attuale?.id
+        : this.state.portieriInfoB().attuale?.id;
+
+    const buttons = players.map((p) => {
+      const diRuolo = this.isDiRuolo(p);
+      const isCurrent = p.id === currFixedId;
+      return {
+        text: `${isCurrent ? '🧤 ' : ''}${p.nome}${diRuolo ? ' (👑 Portiere di Ruolo)' : ''}`,
+        role: isCurrent ? 'selected' : undefined,
+        handler: () => {
+          this.state.impostaPortiereFisso(team, p.id);
+          this.state.salvaInDatabase(false);
+        },
+      };
+    });
+
+    buttons.push({
+      text: 'Annulla',
+      role: 'cancel',
+      handler: () => {},
+    });
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `🧤 Scegli Portiere Fisso (${teamNome})`,
+      subHeader: 'Chi difenderà la porta per tutta la gara?',
+      buttons,
+    });
+
+    await actionSheet.present();
+  }
+
   confermaSquadre() {
+    this.state.inizializzaRotazionePortieri(false);
     this.state.status.set('pronta');
     this.state.salvaInDatabase(false);
     this.state.step.set('match');

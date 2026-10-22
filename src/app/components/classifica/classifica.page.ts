@@ -88,6 +88,7 @@ import {
 export type CriterioOrdinamento =
   | 'mmr'
   | 'punti'
+  | 'portieri'
   | 'presenze'
   | 'gol'
   | 'assist'
@@ -104,6 +105,7 @@ export interface CriterioOption {
 export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'mmr', label: 'MMR Elo', icon: 'shield-outline', unit: 'MMR' },
   { id: 'punti', label: 'Punti Classici', icon: 'trophy', unit: 'PUNTI' },
+  { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'MATCH' },
   { id: 'gol', label: 'Gol', icon: 'football', unit: 'GOL' },
   { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
@@ -338,6 +340,11 @@ export class ClassificaPage {
           ? Math.round((wins / partiteGiocate) * 1000) / 10
           : 0;
 
+      const portiereStats = StatsEngineService.calculateGoalkeeperStatsForPlayer(
+        g.id,
+        partiteStagione,
+      );
+
       return {
         ...g,
         fotoUrl: getAvatarUrl(g.fotoUrl),
@@ -367,6 +374,7 @@ export class ClassificaPage {
         chemistry,
         seasonStartMmr,
         pastSeasonsBanners,
+        portiereStats,
       };
     });
 
@@ -448,15 +456,41 @@ export class ClassificaPage {
           }
           return b.puntiVal - a.puntiVal;
 
+        case 'portieri':
+          const gkA = a.portiereStats;
+          const gkB = b.portiereStats;
+          const eligA = !!gkA?.isClassificabile;
+          const eligB = !!gkB?.isClassificabile;
+          if (eligA !== eligB) {
+            return eligA ? -1 : 1;
+          }
+          if (gkA && gkB) {
+            if (gkA.mediaGolSubiti50m !== gkB.mediaGolSubiti50m) {
+              return gkA.mediaGolSubiti50m - gkB.mediaGolSubiti50m;
+            }
+            if (gkB.cleanSheetTurni !== gkA.cleanSheetTurni) {
+              return gkB.cleanSheetTurni - gkA.cleanSheetTurni;
+            }
+            if (gkA.golSubiti !== gkB.golSubiti) {
+              return gkA.golSubiti - gkB.golSubiti;
+            }
+            return gkB.minutiInPorta - gkA.minutiInPorta;
+          }
+          return 0;
+
         default:
           return b.mmrVal - a.mmrVal;
       }
     });
 
-    // Assegna la posizione reale in classifica solo ai giocatori classificati (1+ match)
+    // Assegna la posizione reale in classifica solo ai giocatori eleggibili
     let rankCounter = 1;
     ordinata.forEach((item) => {
-      if (item.isRanked) {
+      const isEligible =
+        crit === 'portieri'
+          ? !!item.portiereStats?.isClassificabile
+          : item.isRanked;
+      if (isEligible) {
         item.rankAssoluto = rankCounter++;
       } else {
         item.rankAssoluto = 0;
@@ -479,16 +513,26 @@ export class ClassificaPage {
   });
 
   /**
-   * Giocatori ufficialmente classificati (>= 1 partita giocata)
+   * Giocatori ufficialmente classificati (>= 1 partita giocata o >= 1 turno in porta per classifica portieri)
    */
   giocatoriClassificati = computed<GiocatoreConPunti[]>(() => {
+    if (this.criterioOrdinamento() === 'portieri') {
+      return this.classificaCalcolata().filter(
+        (g) => g.portiereStats && g.portiereStats.isClassificabile,
+      );
+    }
     return this.classificaCalcolata().filter((g) => g.isRanked);
   });
 
   /**
-   * Giocatori Non Classificati (0 partite giocate) mostrati in sezione dedicata
+   * Giocatori Non Classificati (0 partite giocate o non ancora impiegati in porta)
    */
   giocatoriNonClassificati = computed<GiocatoreConPunti[]>(() => {
+    if (this.criterioOrdinamento() === 'portieri') {
+      return this.classificaCalcolata().filter(
+        (g) => !g.portiereStats || !g.portiereStats.isClassificabile,
+      );
+    }
     if (this.filtroTierOForma() !== 'all') {
       return [];
     }
@@ -675,6 +719,13 @@ export class ClassificaPage {
         return { valore: g.isRanked ? g.mediaVotoDisplay : '—', etichetta: 'MEDIA' };
       case 'wins':
         return { valore: g.wins, etichetta: 'VITTORIE' };
+      case 'portieri':
+        return {
+          valore: g.portiereStats?.isClassificabile
+            ? g.portiereStats.mediaGolSubiti50m.toFixed(2)
+            : '—',
+          etichetta: 'GOL/50m',
+        };
       case 'punti':
       default:
         return { valore: g.puntiDisplay, etichetta: 'PUNTI' };
@@ -760,6 +811,9 @@ export class ClassificaPage {
         msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
       } else if (this.criterioOrdinamento() === 'wins') {
         msg += `   └ 🔥 *${g.wins} Vittorie* (V${g.wins}-P${g.draws}-S${g.losses}) | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
+      } else if (this.criterioOrdinamento() === 'portieri') {
+        const ps = g.portiereStats;
+        msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPorta}' (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
       } else {
         msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 🛡️ ${g.mmrVal} MMR${trendStr} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
       }

@@ -57,6 +57,29 @@
     text-transform: uppercase;
   }
 
+  .header-admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .insert-gk-btn {
+    @include pill-badge(rgba(251, 191, 36, 0.12), #fbbf24, rgba(251, 191, 36, 0.35));
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 750;
+    cursor: pointer;
+    @include btn-press;
+
+    &:hover {
+      background: rgba(251, 191, 36, 0.22);
+      border-color: #fbbf24;
+      transform: translateY(-1px);
+    }
+  }
+
   .save-commento-btn {
     @include pill-badge(var(--app-accent-purple-subtle), var(--app-accent-purple), var(--app-accent-purple-border));
     padding: 6px 14px;

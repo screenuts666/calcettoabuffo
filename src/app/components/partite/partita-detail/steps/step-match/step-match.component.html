@@ -11,7 +11,18 @@
     <div class="cambio-pulse-ring"></div>
     <div class="cambio-content">
       <ion-icon name="musical-notes"></ion-icon>
-      <span>⏱️ CAMBIO!</span>
+      <div class="cambio-text-group">
+        <span class="cambio-title">⏱️ CAMBIO PORTIERE!</span>
+        <small class="cambio-gk-names">
+          @if (state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione') {
+            In porta: {{ state.portieriInfoA().attuale?.nome }} (Bianchi) & {{ state.portieriInfoB().attuale?.nome }} (Neri)
+          } @else if (state.modalitaPortieriA() === 'rotazione') {
+            In porta: {{ state.portieriInfoA().attuale?.nome }} (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso 🧤)
+          } @else {
+            In porta: {{ state.portieriInfoB().attuale?.nome }} (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso 🧤)
+          }
+        </small>
+      </div>
     </div>
     <button class="cambio-stop-btn" (click)="fermaCambio()">
       <ion-icon name="volume-mute"></ion-icon>
@@ -35,6 +46,276 @@
     {{ state.isTimerRunning() ? "PAUSA" : "AVVIA" }}
   </ion-button>
 </div>
+
+<!-- ─── SEZIONE ROTAZIONE PORTIERI (SOLO SUPERUSER) ─────────── -->
+@if (isAdmin) {
+  <div class="gk-rotation-section">
+    <div class="gk-panel-header">
+      <div class="gk-header-left">
+        <span class="gk-badge-icon">🧤</span>
+        <div class="gk-header-text">
+          @if (state.modalitaPortieriA() === 'fisso' && state.modalitaPortieriB() === 'fisso') {
+            <span class="gk-header-title">Portieri Fissi di Ruolo 🧤</span>
+            <span class="gk-header-sub">Entrambe le formazioni con portiere fisso tutta la gara</span>
+          } @else {
+            <span class="gk-header-title">Rotazione Portieri (Ogni 5 min)</span>
+            <span class="gk-header-sub">
+              Prossimo cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
+            </span>
+          }
+        </div>
+      </div>
+      <div class="gk-header-actions">
+        @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
+          <button
+            type="button"
+            class="gk-ctrl-btn"
+            (click)="rimescolaPortieri()"
+            title="Rimescola casualmente i portieri a rotazione"
+          >
+            <ion-icon name="dice-outline"></ion-icon>
+            <span>Rimescola</span>
+          </button>
+          <button
+            type="button"
+            class="gk-ctrl-btn"
+            [class.active]="isSequenzaAperta()"
+            (click)="toggleSequenza()"
+            title="Mostra la sequenza completa dei turni"
+          >
+            <ion-icon [name]="isSequenzaAperta() ? 'chevron-up-outline' : 'list-outline'"></ion-icon>
+            <span>{{ isSequenzaAperta() ? 'Chiudi' : 'Turni' }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="gk-teams-grid">
+      <!-- SQUADRA A (BIANCHI) -->
+      <div class="gk-team-box team-a" [class.is-fisso]="state.modalitaPortieriA() === 'fisso'">
+        <div class="gk-team-header">
+          <span class="gk-team-name">BIANCHI</span>
+          @if (state.modalitaPortieriA() === 'rotazione') {
+            <button
+              type="button"
+              class="gk-team-reroll"
+              (click)="rimescolaPortieri('A')"
+              title="Rimescola solo Bianchi"
+            >
+              <ion-icon name="dice-outline"></ion-icon>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="gk-team-switch"
+              (click)="cambiaPortiereFisso('A')"
+              title="Sostituisci portiere fisso"
+            >
+              <span>Cambia</span>
+            </button>
+          }
+        </div>
+
+        @if (state.modalitaPortieriA() === 'fisso') {
+          <!-- Portiere Fisso Bianchi -->
+          <div class="gk-card-slot current fixed-slot">
+            <span class="slot-badge badge-fixed">
+              @if (state.portieriInfoA().isDiRuolo) {
+                👑 PORTIERE DI RUOLO · Saracinesca
+              } @else {
+                🧤 PORTIERE FISSO · Tutta la gara
+              }
+            </span>
+            <div class="slot-player">
+              <ion-avatar class="slot-avatar" [class.pure-gk-glow]="state.portieriInfoA().isDiRuolo">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoA().attuale?.fotoUrl"
+                  [alt]="state.portieriInfoA().attuale?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <div class="slot-player-details">
+                <span class="slot-player-name">{{ state.portieriInfoA().attuale?.nome || '—' }}</span>
+                <small class="slot-fixed-sub">🛡️ 50 min saracinesca tra i pali</small>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <!-- Portiere Attuale Rotazione -->
+          <div class="gk-card-slot current">
+            <span class="slot-badge badge-now">
+              🧤 IN PORTA ORA · {{ state.portieriInfoA().turnoAttualeNumero }}° portiere
+            </span>
+            <div class="slot-player">
+              <ion-avatar class="slot-avatar">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoA().attuale?.fotoUrl"
+                  [alt]="state.portieriInfoA().attuale?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <span class="slot-player-name">{{ state.portieriInfoA().attuale?.nome || '—' }}</span>
+            </div>
+          </div>
+
+          <!-- Prossimo Portiere -->
+          <div class="gk-card-slot next">
+            <span class="slot-badge badge-next">
+              ⏱️ Prossimo al cambio · {{ state.portieriInfoA().turnoProssimoNumero }}° portiere
+            </span>
+            <div class="slot-player mini">
+              <ion-avatar class="slot-avatar mini">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoA().prossimo?.fotoUrl"
+                  [alt]="state.portieriInfoA().prossimo?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <span class="slot-player-name mini">{{ state.portieriInfoA().prossimo?.nome || '—' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- SQUADRA B (NERI) -->
+      <div class="gk-team-box team-b" [class.is-fisso]="state.modalitaPortieriB() === 'fisso'">
+        <div class="gk-team-header">
+          <span class="gk-team-name">NERI</span>
+          @if (state.modalitaPortieriB() === 'rotazione') {
+            <button
+              type="button"
+              class="gk-team-reroll"
+              (click)="rimescolaPortieri('B')"
+              title="Rimescola solo Neri"
+            >
+              <ion-icon name="dice-outline"></ion-icon>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="gk-team-switch"
+              (click)="cambiaPortiereFisso('B')"
+              title="Sostituisci portiere fisso"
+            >
+              <span>Cambia</span>
+            </button>
+          }
+        </div>
+
+        @if (state.modalitaPortieriB() === 'fisso') {
+          <!-- Portiere Fisso Neri -->
+          <div class="gk-card-slot current fixed-slot">
+            <span class="slot-badge badge-fixed">
+              @if (state.portieriInfoB().isDiRuolo) {
+                👑 PORTIERE DI RUOLO · Saracinesca
+              } @else {
+                🧤 PORTIERE FISSO · Tutta la gara
+              }
+            </span>
+            <div class="slot-player">
+              <ion-avatar class="slot-avatar" [class.pure-gk-glow]="state.portieriInfoB().isDiRuolo">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoB().attuale?.fotoUrl"
+                  [alt]="state.portieriInfoB().attuale?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <div class="slot-player-details">
+                <span class="slot-player-name">{{ state.portieriInfoB().attuale?.nome || '—' }}</span>
+                <small class="slot-fixed-sub">🛡️ 50 min saracinesca tra i pali</small>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <!-- Portiere Attuale Rotazione -->
+          <div class="gk-card-slot current">
+            <span class="slot-badge badge-now">
+              🧤 IN PORTA ORA · {{ state.portieriInfoB().turnoAttualeNumero }}° portiere
+            </span>
+            <div class="slot-player">
+              <ion-avatar class="slot-avatar">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoB().attuale?.fotoUrl"
+                  [alt]="state.portieriInfoB().attuale?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <span class="slot-player-name">{{ state.portieriInfoB().attuale?.nome || '—' }}</span>
+            </div>
+          </div>
+
+          <!-- Prossimo Portiere -->
+          <div class="gk-card-slot next">
+            <span class="slot-badge badge-next">
+              ⏱️ Prossimo al cambio · {{ state.portieriInfoB().turnoProssimoNumero }}° portiere
+            </span>
+            <div class="slot-player mini">
+              <ion-avatar class="slot-avatar mini">
+                <app-player-avatar
+                  [fotoUrl]="state.portieriInfoB().prossimo?.fotoUrl"
+                  [alt]="state.portieriInfoB().prossimo?.nome"
+                ></app-player-avatar>
+              </ion-avatar>
+              <span class="slot-player-name mini">{{ state.portieriInfoB().prossimo?.nome || '—' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- SEQUENZA COMPLETA DEI TURNI CICLICI (apribile se ci sono squadre a rotazione) -->
+    @if (isSequenzaAperta()) {
+      <div class="gk-sequence-drawer">
+        <div class="seq-columns-wrapper">
+          <div class="seq-col">
+            <span class="seq-col-title">Sequenza Bianchi</span>
+            @if (state.modalitaPortieriA() === 'fisso') {
+              <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
+            } @else {
+              <div class="seq-items-list">
+                @for (p of state.portieriInfoA().lista; track p.id; let i = $index) {
+                  <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
+                    <span class="seq-order-pill">{{ p.ordine }}°</span>
+                    <span class="seq-player-name">{{ p.nome }}</span>
+                    @if (p.isAttuale) {
+                      <span class="seq-tag tag-curr">In Porta</span>
+                    } @else if (p.isProssimo) {
+                      <span class="seq-tag tag-prox">Prossimo</span>
+                    }
+                    <div class="seq-swap-btns">
+                      <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('A', i, i - 1)">▲</button>
+                      <button type="button" [disabled]="i === state.portieriInfoA().lista.length - 1" (click)="scambiaOrdine('A', i, i + 1)">▼</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="seq-col">
+            <span class="seq-col-title">Sequenza Neri</span>
+            @if (state.modalitaPortieriB() === 'fisso') {
+              <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
+            } @else {
+              <div class="seq-items-list">
+                @for (p of state.portieriInfoB().lista; track p.id; let i = $index) {
+                  <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
+                    <span class="seq-order-pill">{{ p.ordine }}°</span>
+                    <span class="seq-player-name">{{ p.nome }}</span>
+                    @if (p.isAttuale) {
+                      <span class="seq-tag tag-curr">In Porta</span>
+                    } @else if (p.isProssimo) {
+                      <span class="seq-tag tag-prox">Prossimo</span>
+                    }
+                    <div class="seq-swap-btns">
+                      <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('B', i, i - 1)">▲</button>
+                      <button type="button" [disabled]="i === state.portieriInfoB().lista.length - 1" (click)="scambiaOrdine('B', i, i + 1)">▼</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
 
 <div class="score-grid">
   <div class="score-card team-a">
@@ -95,6 +376,9 @@
               <span class="autogol-text">(Autogol)</span>
             } @else if (gol.assistNome) {
               <span class="assist-text">👟 {{ gol.assistNome }}</span>
+            }
+            @if (gol.portiereSubitoNome) {
+              <span class="gk-subito-text">🧤 in porta: {{ gol.portiereSubitoNome }}</span>
             }
           </span>
         </div>

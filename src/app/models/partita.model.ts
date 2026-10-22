@@ -9,6 +9,20 @@ export interface EventoGol {
   tempo?: string;
   assistId?: string | null;
   assistNome?: string | null;
+  portiereSubitoId?: string | null;
+  portiereSubitoNome?: string | null;
+}
+
+export type ModalitaPortiere = 'rotazione' | 'fisso';
+
+export interface RotazionePortieri {
+  modalitaA?: ModalitaPortiere; // default: 'rotazione'
+  modalitaB?: ModalitaPortiere; // default: 'rotazione'
+  portiereFissoAId?: string | null;
+  portiereFissoBId?: string | null;
+  teamA: string[]; // array di playerId ordinati (1°, 2°, 3°, ...)
+  teamB: string[]; // array di playerId ordinati (1°, 2°, 3°, ...)
+  durataTurnoMinuti?: number; // default 5 minuti
 }
 
 export interface Partita {
@@ -23,6 +37,7 @@ export interface Partita {
   scoreA: number;
   scoreB: number;
   eventiGol?: EventoGol[];
+  rotazionePortieri?: RotazionePortieri | null;
   matchConcluso: boolean;
   pagelleInserite: boolean;
   cronometro?: number;

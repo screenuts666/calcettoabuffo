@@ -40,6 +40,7 @@ export class PrestazioniTabSpogliatoioComponent {
   @Output() commentoChange = new EventEmitter<Event>();
   @Output() saveCommentoClick = new EventEmitter<boolean>();
   @Output() generateCronacaClick = new EventEmitter<boolean>();
+  @Output() insertGkNotesClick = new EventEmitter<void>();
 
   readonly formatAiMarkdown = formatAiMarkdown;
 

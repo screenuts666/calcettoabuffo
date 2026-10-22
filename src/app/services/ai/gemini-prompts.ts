@@ -137,6 +137,44 @@ export function buildCronacaPrompts(
     ? `- NOTE & RETROSCENA A BORDOCAMPO DI PABLO (L'ORGANIZZATORE):\n"${commentoBordocampo}"\n(CRUCIALE: L'organizzatore della serata Pablo ha annotato questi retroscena. DEVI integrarli, citarli, commentarli e massacrare/esaltare i protagonisti con sarcasmo romano spietato!)`
     : '';
 
+  // Dettagli specifici sui portieri (Fissi di ruolo vs a rotazione)
+  const gkDetails: string[] = [];
+  const rot = partita.rotazionePortieri;
+  if (rot) {
+    const modA = rot.modalitaA || 'rotazione';
+    const modB = rot.modalitaB || 'rotazione';
+    const fixA = rot.portiereFissoAId;
+    const fixB = rot.portiereFissoBId;
+    const pA = (partita.teamA || []).find((p) => p.id === fixA) || (partita.teamA || [])[0];
+    const pB = (partita.teamB || []).find((p) => p.id === fixB) || (partita.teamB || [])[0];
+    const nomeFixA = pA?.nome || 'Portiere Bianchi';
+    const nomeFixB = pB?.nome || 'Portiere Neri';
+
+    if (modA === 'fisso') {
+      const golA = partita.scoreB ?? 0;
+      gkDetails.push(
+        `• BIANCHI con PORTIERE FISSO DI RUOLO (${nomeFixA}): ${golA} gol subiti su 50'${golA === 0 ? ' [CLEAN SHEET / SARACINESCA INVIOLATA 🛡️]' : ''}`,
+      );
+    } else {
+      gkDetails.push(
+        `• BIANCHI con portieri a rotazione ogni 5 min (${partita.scoreB ?? 0} gol subiti totali)`,
+      );
+    }
+
+    if (modB === 'fisso') {
+      const golB = partita.scoreA ?? 0;
+      gkDetails.push(
+        `• NERI con PORTIERE FISSO DI RUOLO (${nomeFixB}): ${golB} gol subiti su 50'${golB === 0 ? ' [CLEAN SHEET / SARACINESCA INVIOLATA 🛡️]' : ''}`,
+      );
+    } else {
+      gkDetails.push(
+        `• NERI con portieri a rotazione ogni 5 min (${partita.scoreA ?? 0} gol subiti totali)`,
+      );
+    }
+  }
+  const gkPrompt =
+    gkDetails.length > 0 ? `- RENDIMENTO E MODALITÀ PORTIERI:\n${gkDetails.join('\n')}\n` : '';
+
   const commenti = allMatchPlayers
     .filter((p) => p.note && p.note.trim().length > 0)
     .map((p) => `• ${formatPlayerBio(p)} [Voto ${p.voto}]: "${p.note}"`)
@@ -150,11 +188,12 @@ REGOLE FONDAMENTALI:
 - NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole esatte che dici al microfono.
 - INIZIA SUBITO: Parti direttamente con la prima frase della telecronaca, senza titoli ("Cronaca:"), saluti o preamboli.
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e deadpan. Contrasto comico micidiale tra serietà formale da grande evento e degrado tecnico del campetto ("s'è fatto 'na passeggiata", "ciabattata immonda", "paracarro", "annamo bene", "a zappà la terra", "gol sventrato"). Volgare e pungente al punto giusto, zero cringe, niente battute boomer.
+- RENDIMENTO PORTIERI E SARACINESCHE: Prendi di mira la gestione dei portieri (chi era portiere fisso 'di ruolo' o se c'era la rotazione ogni 5 minuti). Se c'è stato un portiere fisso esaltalo se ha parato tutto ("saracinesca umana", "un muro de cinta") o perculalo ferocemente se ha preso imbarcate ("saponetta", "braccia corte come 'n tirannosauro", "ha parato solo er sole"). Se c'era la rotazione casuale, percula la girandola continua di improvvisati tra i pali!
 - RETROSCENA A BORDOCAMPO DI PABLO: Se l'organizzatore Pablo ha lasciato delle note o retroscena sulla partita ("NOTE & RETROSCENA A BORDOCAMPO DI PABLO"), considerale ORO COLATO. Integrale al 100% nella telecronaca: prendi di mira i fatti raccontati (litigi, scivoloni, giocate imbarazzanti, condizioni meteo, perle dello spogliatoio) e commentali con il tuo inconfondibile sarcasmo romano.
 - DETTAGLI PERSONALI A SPOT: sfrutta a tradimento e a spot i dettagli personali dei protagonisti presenti nei tag delle bio (mestiere, quartiere, stato civile, vizi come fumo/alcool) per umiliare il bidone della serata o esaltare l'MVP (es. "il geometra di Centocelle che fuma come un vaporetto e al decimo minuto chiedeva l'ossigeno", "padre di famiglia irreprensibile di giorno, paracarro immondo di notte"). Usali con naturalezza senza elenchi forzati.
 
 STRUTTURA DEL COMMENTO:
-1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, autogol comici e i retroscena segnalati da Pablo).
+1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, papere dei portieri o miracoli da saracinesca, e i retroscena segnalati da Pablo).
 2. L'esaltazione dell'MVP della serata (l'unico che si salva in mezzo a questa banda).
 3. Il massacro del peggiore in campo / bidone d'oro, umiliato senza pietà basandoti sulle pagelle e commenti dei compagni.`;
 
@@ -164,7 +203,7 @@ STRUTTURA DEL COMMENTO:
 - Tabellino Gol & Marcatori:
 ${marcatori ? '• ' + marcatori : 'Nessun gol registrato'}
 ${assistMenList ? `- Assist-man della serata: ${assistMenList}` : ''}
-- ${mvpStr}
+${gkPrompt}- ${mvpStr}
 - ${worstStr}
 ${commentoBordocampoPrompt ? commentoBordocampoPrompt + '\n' : ''}- Pagelle e commenti dei compagni:
 ${commenti || 'Nessun commento particolare registrato'}

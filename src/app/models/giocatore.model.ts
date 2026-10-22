@@ -66,5 +66,18 @@ export interface GiocatoreConPunti extends Giocatore {
 
   // Albo d'Oro / Medaglieri stagioni passate
   pastSeasonsBanners?: PastSeasonBanner[];
+
+  // Statistiche Portiere (a rotazione)
+  portiereStats?: PortiereStats;
+}
+
+export interface PortiereStats {
+  minutiInPorta: number;
+  turniInPorta: number;
+  golSubiti: number;
+  cleanSheetTurni: number;
+  cleanSheetPartite: number;
+  mediaGolSubiti50m: number;
+  isClassificabile: boolean;
 }
 

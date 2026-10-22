@@ -42,19 +42,53 @@
   }
 </div>
 
+<!-- BARRA SELEZIONE PORTIERE FISSO O ROTAZIONE BIANCHI -->
+@if (state.modalitaPortieriA() === 'fisso') {
+  <div class="gk-fixed-selector-bar team-a" (click)="apriSelettorePortiereFisso('A')" title="Tocca per scegliere chi va in porta per tutta la gara">
+    <div class="fixed-bar-left">
+      <span class="fixed-icon">🧤</span>
+      <div class="fixed-info">
+        <span class="fixed-title">Portiere Fisso: <strong>{{ state.portieriInfoA().attuale?.nome || 'Tocca per scegliere' }}</strong></span>
+        <small class="fixed-sub">
+          @if (state.portieriInfoA().isDiRuolo) {
+            👑 Portiere di Ruolo (Saracinesca)
+          } @else {
+            Tocca per cambiare portiere nei Bianchi
+          }
+        </small>
+      </div>
+    </div>
+    <span class="fixed-change-btn">Cambia ▾</span>
+  </div>
+} @else {
+  <div class="gk-rotation-hint-bar">
+    <span>🔄 Portieri a rotazione casuale ogni 5 minuti</span>
+  </div>
+}
+
 <div
   class="selected-avatars-grid"
   style="border-bottom: none; min-height: 100px"
 >
   @for (g of state.teamA(); track g.id) {
     <div class="avatar-item" (click)="spostaIn(g, 'B')" title="Tocca per spostare in Neri">
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" [class.is-fixed-gk]="isPortiereFisso('A', g.id)" [class.is-pure-gk]="isDiRuolo(g)">
         <ion-avatar>
           <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
+        @if (isPortiereFisso('A', g.id)) {
+          <span class="fixed-gk-badge" title="Portiere Fisso Designato">🧤</span>
+        } @else if (isDiRuolo(g)) {
+          <span class="pure-gk-badge" title="Portiere di Ruolo">👑</span>
+        }
         <span class="swap-hint">⇄</span>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
+      @if (isPortiereFisso('A', g.id)) {
+        <span class="gk-role-tag">🧤 In Porta</span>
+      } @else if (isDiRuolo(g)) {
+        <span class="gk-role-tag pure">👑 Di Ruolo</span>
+      }
     </div>
   }
   @if (state.teamA().length === 0) {
@@ -75,19 +109,53 @@
   }
 </div>
 
+<!-- BARRA SELEZIONE PORTIERE FISSO O ROTAZIONE NERI -->
+@if (state.modalitaPortieriB() === 'fisso') {
+  <div class="gk-fixed-selector-bar team-b" (click)="apriSelettorePortiereFisso('B')" title="Tocca per scegliere chi va in porta per tutta la gara">
+    <div class="fixed-bar-left">
+      <span class="fixed-icon">🧤</span>
+      <div class="fixed-info">
+        <span class="fixed-title">Portiere Fisso: <strong>{{ state.portieriInfoB().attuale?.nome || 'Tocca per scegliere' }}</strong></span>
+        <small class="fixed-sub">
+          @if (state.portieriInfoB().isDiRuolo) {
+            👑 Portiere di Ruolo (Saracinesca)
+          } @else {
+            Tocca per cambiare portiere nei Neri
+          }
+        </small>
+      </div>
+    </div>
+    <span class="fixed-change-btn">Cambia ▾</span>
+  </div>
+} @else {
+  <div class="gk-rotation-hint-bar">
+    <span>🔄 Portieri a rotazione casuale ogni 5 minuti</span>
+  </div>
+}
+
 <div
   class="selected-avatars-grid"
   style="border-bottom: none; min-height: 100px"
 >
   @for (g of state.teamB(); track g.id) {
     <div class="avatar-item" (click)="spostaIn(g, 'A')" title="Tocca per spostare in Bianchi">
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" [class.is-fixed-gk]="isPortiereFisso('B', g.id)" [class.is-pure-gk]="isDiRuolo(g)">
         <ion-avatar>
           <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
+        @if (isPortiereFisso('B', g.id)) {
+          <span class="fixed-gk-badge" title="Portiere Fisso Designato">🧤</span>
+        } @else if (isDiRuolo(g)) {
+          <span class="pure-gk-badge" title="Portiere di Ruolo">👑</span>
+        }
         <span class="swap-hint">⇄</span>
       </div>
       <small>{{ g.nome.split(" ")[0] }}</small>
+      @if (isPortiereFisso('B', g.id)) {
+        <span class="gk-role-tag">🧤 In Porta</span>
+      } @else if (isDiRuolo(g)) {
+        <span class="gk-role-tag pure">👑 Di Ruolo</span>
+      }
     </div>
   }
   @if (state.teamB().length === 0) {

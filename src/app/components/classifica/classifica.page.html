@@ -202,6 +202,20 @@
         </div>
       </div>
     }
+
+    <!-- BANNER INFORMATIVO CLASSIFICA PORTIERI -->
+    @if (criterioOrdinamento() === 'portieri') {
+      <div class="portieri-info-banner">
+        <div class="banner-icon">🧤</div>
+        <div class="banner-text">
+          <strong>Classifica Portieri a Rotazione</strong>
+          <span>
+            Ordinata per <em>Minor Media Gol Subiti (parametrata su 50 min)</em>. Include solo chi ha parato almeno un turno da 5 min.
+          </span>
+        </div>
+      </div>
+    }
+
     <ion-list lines="full" class="classifica-list">
       <!-- GIOCATORI UFFICIALMENTE CLASSIFICATI (1+ MATCH) -->
       @for (g of giocatoriClassificati(); track g.id; let i = $index) {
@@ -304,15 +318,29 @@
             </div>
 
             <!-- Riga 3: Statistiche di contorno (Media, Gol, Assist, Match) -->
-            <p class="stats-sub-row">
-              <span>⭐ {{ g.mediaVotoDisplay }}</span>
-              <span class="dot-sep">•</span>
-              <span>⚽ {{ g.golTotali }} gol</span>
-              <span class="dot-sep">•</span>
-              <span>👟 {{ g.assistTotali }} assist</span>
-              <span class="dot-sep">•</span>
-              <span>👥 {{ g.partiteGiocate }} match ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
-            </p>
+            @if (criterioOrdinamento() === 'portieri' && g.portiereStats) {
+              <div class="gk-classification-stats-row">
+                <span class="gk-stat-pill danger">
+                  🧤 {{ g.portiereStats.golSubiti }} gol subiti
+                </span>
+                <span class="gk-stat-pill">
+                  ⏱️ {{ g.portiereStats.minutiInPorta }}' in porta ({{ g.portiereStats.turniInPorta }} turni)
+                </span>
+                <span class="gk-stat-pill success">
+                  🛡️ {{ g.portiereStats.cleanSheetTurni }} clean sheet
+                </span>
+              </div>
+            } @else {
+              <p class="stats-sub-row">
+                <span>⭐ {{ g.mediaVotoDisplay }}</span>
+                <span class="dot-sep">•</span>
+                <span>⚽ {{ g.golTotali }} gol</span>
+                <span class="dot-sep">•</span>
+                <span>👟 {{ g.assistTotali }} assist</span>
+                <span class="dot-sep">•</span>
+                <span>👥 {{ g.partiteGiocate }} match ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
+              </p>
+            }
           </ion-label>
 
           <!-- Box Evidenziato sulla destra in base al criterio attivo -->
@@ -342,7 +370,11 @@
       } @empty {
         @if (giocatoriNonClassificati().length === 0) {
           <div class="ion-padding ion-text-center empty-state">
-            <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
+            @if (criterioOrdinamento() === 'portieri') {
+              <p>🧤 Nessun portiere classificabile in questa stagione.<br><small style="color: var(--app-text-secondary)">Le statistiche partono dalla prossima partita con la rotazione ogni 5 min attiva!</small></p>
+            } @else {
+              <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
+            }
           </div>
         }
       }

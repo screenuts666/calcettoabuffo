@@ -237,6 +237,363 @@
         border: 1px solid var(--app-player1-border);
         display: inline-block;
       }
+
+      // 🧤 STILE PER IL PORTIERE CHE HA SUBITO IL GOL
+      .gk-subito-text {
+        color: var(--app-text-secondary, #94a3b8);
+        font-weight: 600;
+        font-size: 0.72rem;
+        margin-left: 5px;
+        background: rgba(125, 125, 125, 0.1);
+        padding: 1px 6px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+    }
+  }
+}
+
+// ==========================================
+// SEZIONE ROTAZIONE PORTIERI (SUPERUSER)
+// ==========================================
+.gk-rotation-section {
+  margin: 12px 14px 4px;
+  @include card-surface(20px, 14px 16px);
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  .gk-panel-header {
+    @include flex-between;
+    margin-bottom: 12px;
+    gap: 10px;
+
+    .gk-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .gk-badge-icon {
+        font-size: 1.5rem;
+      }
+
+      .gk-header-text {
+        display: flex;
+        flex-direction: column;
+
+        .gk-header-title {
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+        }
+
+        .gk-header-sub {
+          font-size: 0.75rem;
+          color: var(--app-text-secondary);
+
+          strong {
+            color: var(--app-accent-orange);
+            font-weight: 800;
+          }
+        }
+      }
+    }
+
+    .gk-header-actions {
+      display: flex;
+      gap: 6px;
+
+      .gk-ctrl-btn {
+        background: var(--app-card-bg);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-primary);
+        border-radius: 10px;
+        padding: 6px 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+        @include btn-press(0.95);
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+
+        &.active {
+          background: rgba(59, 130, 246, 0.15);
+          border-color: #3b82f6;
+          color: #3b82f6;
+        }
+      }
+    }
+  }
+
+  .gk-teams-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    .gk-team-box {
+      border-radius: 14px;
+      padding: 10px 10px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid var(--app-card-border);
+
+      &.team-a {
+        background: var(--app-surface-default, rgba(255, 255, 255, 0.05));
+      }
+
+      &.team-b {
+        background: var(--app-neutral-dark, #18181b);
+        color: var(--app-white);
+      }
+
+      .gk-team-header {
+        @include flex-between;
+        padding-bottom: 4px;
+        border-bottom: 1px dashed var(--app-card-border);
+
+        .gk-team-name {
+          font-size: 0.75rem;
+          font-weight: 900;
+          letter-spacing: 0.5px;
+          opacity: 0.85;
+        }
+
+        .gk-team-reroll {
+          background: transparent;
+          border: none;
+          color: inherit;
+          opacity: 0.7;
+          cursor: pointer;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          padding: 2px;
+          &:active { opacity: 1; transform: rotate(45deg); }
+        }
+
+        .gk-team-switch {
+          background: rgba(251, 191, 36, 0.15);
+          border: 1px solid rgba(251, 191, 36, 0.4);
+          color: #fbbf24;
+          font-size: 0.68rem;
+          font-weight: 800;
+          border-radius: 6px;
+          padding: 2px 6px;
+          cursor: pointer;
+          &:active { transform: scale(0.95); }
+        }
+      }
+
+      &.is-fisso {
+        border-color: rgba(251, 191, 36, 0.35);
+        background: rgba(251, 191, 36, 0.04);
+      }
+
+      .gk-card-slot {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        &.fixed-slot {
+          background: rgba(251, 191, 36, 0.08);
+          border: 1px solid rgba(251, 191, 36, 0.25);
+          border-radius: 10px;
+          padding: 6px 8px;
+        }
+
+        .slot-badge {
+          font-size: 0.65rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+
+          &.badge-now {
+            color: #10b981;
+          }
+
+          &.badge-next {
+            color: var(--app-text-secondary, #94a3b8);
+          }
+
+          &.badge-fixed {
+            color: #fbbf24;
+            font-size: 0.68rem;
+          }
+        }
+
+        .slot-player {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(125, 125, 125, 0.08);
+          padding: 5px 8px;
+          border-radius: 10px;
+
+          .slot-avatar {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+
+            &.mini {
+              width: 22px;
+              height: 22px;
+            }
+
+            &.pure-gk-glow {
+              border: 1.5px solid #fbbf24;
+              box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+            }
+          }
+
+          .slot-player-details {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+
+            .slot-fixed-sub {
+              font-size: 0.62rem;
+              color: var(--app-text-muted);
+              margin-top: 1px;
+            }
+          }
+
+          .slot-player-name {
+            font-size: 0.85rem;
+            font-weight: 800;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &.mini {
+              font-size: 0.75rem;
+              font-weight: 600;
+              opacity: 0.9;
+            }
+          }
+
+          &.mini {
+            padding: 3px 6px;
+            background: transparent;
+            opacity: 0.85;
+          }
+        }
+      }
+    }
+  }
+
+  .gk-sequence-drawer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--app-card-border);
+    animation: fadeIn 0.2s ease-in-out;
+
+    .seq-columns-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+
+      .seq-col {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .seq-col-title {
+          font-size: 0.72rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          color: var(--app-text-secondary);
+        }
+
+        .seq-fixed-note {
+          font-size: 0.72rem;
+          font-style: italic;
+          color: #fbbf24;
+          background: rgba(251, 191, 36, 0.08);
+          border: 1px dashed rgba(251, 191, 36, 0.3);
+          border-radius: 8px;
+          padding: 8px;
+          text-align: center;
+        }
+
+        .seq-items-list {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .seq-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            border-radius: 8px;
+            background: rgba(125, 125, 125, 0.06);
+            font-size: 0.75rem;
+
+            &.is-current {
+              background: rgba(16, 185, 129, 0.15);
+              border: 1px solid rgba(16, 185, 129, 0.4);
+            }
+
+            &.is-next {
+              background: rgba(245, 158, 11, 0.12);
+              border: 1px solid rgba(245, 158, 11, 0.35);
+            }
+
+            .seq-order-pill {
+              font-size: 0.65rem;
+              font-weight: 900;
+              opacity: 0.7;
+              width: 18px;
+            }
+
+            .seq-player-name {
+              flex: 1;
+              font-weight: 700;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+
+            .seq-tag {
+              font-size: 0.6rem;
+              font-weight: 800;
+              padding: 1px 4px;
+              border-radius: 4px;
+
+              &.tag-curr {
+                background: #10b981;
+                color: #fff;
+              }
+
+              &.tag-prox {
+                background: #f59e0b;
+                color: #fff;
+              }
+            }
+
+            .seq-swap-btns {
+              display: flex;
+              gap: 2px;
+
+              button {
+                background: transparent;
+                border: none;
+                color: var(--app-text-secondary);
+                font-size: 0.65rem;
+                cursor: pointer;
+                padding: 1px 3px;
+                &:disabled { opacity: 0.2; cursor: default; }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

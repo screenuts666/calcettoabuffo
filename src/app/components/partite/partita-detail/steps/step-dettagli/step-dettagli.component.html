@@ -70,6 +70,101 @@
       (ionInput)="state.commentoPartita.set($event.detail.value || '')"
     ></ion-textarea>
   </ion-item>
+
+  <!-- SELEZIONE MODALITÀ PORTIERI (CASUALI VS FISSO) -->
+  <div class="portieri-setup-card ion-margin-bottom">
+    <div class="portieri-setup-header">
+      <div class="header-icon-title">
+        <span class="gk-setup-icon">🧤</span>
+        <div class="gk-setup-titles">
+          <span class="setup-main-title">Modalità Portieri</span>
+          <span class="setup-sub-title">Casuali (5' di turno, default) o Portiere Fisso di Ruolo</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Squadra Bianchi -->
+    <div class="team-portiere-control">
+      <div class="team-label-row">
+        <span class="team-badge-circle white"></span>
+        <strong class="team-name">BIANCHI</strong>
+        @if (state.modalitaPortieriA() === 'fisso') {
+          <span class="di-ruolo-pill">🧤 Portiere Fisso</span>
+        } @else {
+          <span class="rotazione-pill">🔄 Casuali (5')</span>
+        }
+      </div>
+
+      <div class="toggle-mode-group">
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="state.modalitaPortieriA() === 'rotazione'"
+          (click)="toggleModalitaA('rotazione')"
+        >
+          <span class="mode-icon">🔄</span>
+          <div class="mode-text">
+            <strong>Casuali (Default)</strong>
+            <small>Cambio ogni 5 min</small>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="state.modalitaPortieriA() === 'fisso'"
+          (click)="toggleModalitaA('fisso')"
+        >
+          <span class="mode-icon">🧤</span>
+          <div class="mode-text">
+            <strong>Portiere Fisso</strong>
+            <small>Di ruolo / Tutta la gara</small>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Squadra Neri -->
+    <div class="team-portiere-control">
+      <div class="team-label-row">
+        <span class="team-badge-circle black"></span>
+        <strong class="team-name">NERI</strong>
+        @if (state.modalitaPortieriB() === 'fisso') {
+          <span class="di-ruolo-pill">🧤 Portiere Fisso</span>
+        } @else {
+          <span class="rotazione-pill">🔄 Casuali (5')</span>
+        }
+      </div>
+
+      <div class="toggle-mode-group">
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="state.modalitaPortieriB() === 'rotazione'"
+          (click)="toggleModalitaB('rotazione')"
+        >
+          <span class="mode-icon">🔄</span>
+          <div class="mode-text">
+            <strong>Casuali (Default)</strong>
+            <small>Cambio ogni 5 min</small>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          class="mode-btn"
+          [class.active]="state.modalitaPortieriB() === 'fisso'"
+          (click)="toggleModalitaB('fisso')"
+        >
+          <span class="mode-icon">🧤</span>
+          <div class="mode-text">
+            <strong>Portiere Fisso</strong>
+            <small>Di ruolo / Tutta la gara</small>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="ion-padding-horizontal ion-margin-top">

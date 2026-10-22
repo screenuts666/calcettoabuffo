@@ -18,6 +18,7 @@ import {
   trendingUpOutline,
 } from 'ionicons/icons';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
+import { Partita } from '../../../../../models/partita.model';
 import { MatchStateService } from '../../match-state.service';
 import { StatsEngineService } from '../../../../../services/stats-engine.service';
 import { MatchShareModalComponent } from '../../../match-share-modal/match-share-modal.component';
@@ -108,6 +109,43 @@ export class StepPrestazioniComponent {
     const list = this.report()?.playersB || [];
     return list.filter((p) => (p.gol || 0) > 0).map((p) => ({ nome: p.nome, gol: p.gol }));
   });
+
+  gkSummary = computed(() => {
+    const p: Partita = {
+      scoreA: this.state.scoreA(),
+      scoreB: this.state.scoreB(),
+      teamA: this.state.teamA(),
+      teamB: this.state.teamB(),
+      eventiGol: this.state.eventiGol(),
+      rotazionePortieri: this.state.rotazionePortieri(),
+      cronometro: this.state.cronometro(),
+      accumulatedTime: this.state.accumulatedTime(),
+      dataPartita: this.state.dataPartita(),
+      orario: this.state.orario(),
+      luogo: this.state.luogo(),
+      status: this.state.status(),
+      matchConcluso: this.state.matchConcluso(),
+      pagelleInserite: this.state.pagelleInserite(),
+      convocati: this.state.convocati(),
+    };
+    return StatsEngineService.generateGoalkeeperMatchSummary(p);
+  });
+
+  async inserisciNotePortieri() {
+    const summary = this.gkSummary();
+    if (!summary?.notesPrompt) return;
+    const current = this.state.commentoPartita() || '';
+    const updated = current ? `${current}\n\n${summary.notesPrompt}` : summary.notesPrompt;
+    this.state.commentoPartita.set(updated);
+    await this.state.salvaInDatabase(this.state.pagelleInserite(), this.state.matchConcluso());
+    const toast = await this.toastCtrl.create({
+      message: '🧤 Note sui portieri inserite nei retroscena di Pablo!',
+      duration: 2500,
+      color: 'success',
+      position: 'top',
+    });
+    await toast.present();
+  }
 
   onCommentoPartitaChange(event: Event) {
     const val = (event.target as HTMLTextAreaElement)?.value ?? '';

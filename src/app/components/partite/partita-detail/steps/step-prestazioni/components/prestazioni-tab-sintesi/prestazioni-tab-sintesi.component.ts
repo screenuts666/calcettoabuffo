@@ -36,6 +36,7 @@ export class PrestazioniTabSintesiComponent {
   @Input() worst: MatchReportPlayer | null = null;
   @Input() eventiGol: any[] = [];
   @Input() isAdmin: boolean = false;
+  @Input() gkSummary?: { summaryA: string; summaryB: string } | null = null;
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editAssistClick = new EventEmitter<number>();
