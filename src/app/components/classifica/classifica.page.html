@@ -148,7 +148,7 @@
           <div class="guide-title">
             <span class="guide-icon">🏆</span>
             <div>
-              <h3>Regolamento MMR & Piramide Ranghi</h3>
+              <h3>Regolamento Ranghi MMR</h3>
               <p>Stile League of Legends adattato al campionato (11-15 match/anno)</p>
             </div>
           </div>
@@ -446,7 +446,7 @@
       <!-- I GEMELLI DEL GOL (TOP DUOS) -->
       <div class="section-title-bar">
         <ion-icon name="heart" class="icon-partner"></ion-icon>
-        <h4>I Gemelli del Gol 🤝 (Migliori Coppie)</h4>
+        <h4>I Gemelli del Gol 🤝</h4>
       </div>
 
       <div class="duo-grid">
@@ -497,7 +497,7 @@
       <!-- LE BESTIE NERE & RIVALITÀ (TOP NEMESIS) -->
       <div class="section-title-bar rivalry-title-bar">
         <ion-icon name="skull" class="icon-nemesis"></ion-icon>
-        <h4>Le Bestie Nere & Derby 😈 (Rivalità Accese)</h4>
+        <h4>Le Bestie Nere 😈</h4>
       </div>
 
       <div class="duo-grid">
@@ -552,23 +552,5 @@
       </div>
     </div>
   }
-
-  <!-- MODALE DETTAGLIO SCHEDA GIOCATORE CON MMR, CHIMICA E STATISTICHE -->
-  <ion-modal
-    [isOpen]="isModalOpen()"
-    (didDismiss)="chiudiModale()"
-    [initialBreakpoint]="0.9"
-    [breakpoints]="[0, 0.5, 0.9, 1]"
-  >
-    <ng-template>
-      @if (giocatoreSelezionato(); as prof) {
-        <app-scheda-giocatore
-          [prof]="prof"
-          [chiudiModale]="chiudiModale"
-          (selezionaAltroGiocatore)="apriDettagliPerId($event)"
-        >
-        </app-scheda-giocatore>
-      }
-    </ng-template>
-  </ion-modal>
 </ion-content>
+

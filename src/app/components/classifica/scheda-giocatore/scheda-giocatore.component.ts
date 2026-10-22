@@ -6,9 +6,12 @@ import {
   ChangeDetectionStrategy,
   inject,
   signal,
+  computed,
+  OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
   IonToolbar,
@@ -20,8 +23,10 @@ import {
   IonRow,
   IonCol,
   IonSpinner,
+  IonBackButton,
   ToastController,
 } from '@ionic/angular/standalone';
+import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   close,
@@ -50,8 +55,11 @@ import {
   documentTextOutline,
   helpCircleOutline,
   hourglassOutline,
+  arrowBack,
+  createOutline,
 } from 'ionicons/icons';
-import { GiocatoreConPunti } from '../classifica.page';
+import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
+import { AuthService } from 'src/app/services/auth.service';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
@@ -78,6 +86,7 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonButtons,
     IonButton,
     IonIcon,
+    IonBackButton,
     IonRow,
     IonCol,
     IonSpinner,
@@ -85,11 +94,40 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     PlayerAvatarComponent,
   ],
 })
-export class SchedaGiocatoreComponent {
+export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private auth = inject(AuthService);
   private geminiService = inject(GeminiService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
+
+  private routeSub?: Subscription;
+  private routeId = signal<string | null>(null);
+  private _inputProf = signal<GiocatoreConPunti | null>(null);
+
+  @Input() set prof(val: GiocatoreConPunti | any) {
+    this._inputProf.set(val || null);
+  }
+  @Output() selezionaAltroGiocatore = new EventEmitter<string>();
+
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
+  readonly profileData = computed<GiocatoreConPunti | null>(() => {
+    const input = this._inputProf();
+    if (input) return input;
+    const rId = this.routeId();
+    if (rId) {
+      return this.statsEngine.getGiocatoreProfile(rId);
+    }
+    return null;
+  });
+
+  get prof(): GiocatoreConPunti | any {
+    return this.profileData();
+  }
 
   getAvatar(fotoUrl?: string | null): string {
     return getAvatarUrl(fotoUrl);
@@ -100,10 +138,6 @@ export class SchedaGiocatoreComponent {
   }
 
   readonly formatAiMarkdown = formatAiMarkdown;
-
-  @Input() prof: GiocatoreConPunti | any = null;
-  @Input() chiudiModale!: () => void;
-  @Output() selezionaAltroGiocatore = new EventEmitter<string>();
 
   isGeneratingScouting = signal<boolean>(false);
 
@@ -135,8 +169,31 @@ export class SchedaGiocatoreComponent {
       documentTextOutline,
       helpCircleOutline,
       hourglassOutline,
+      arrowBack,
+      createOutline,
     });
   }
+
+  ngOnInit() {
+    this.routeSub = this.route.paramMap.subscribe((params) => {
+      const id = params.get('id');
+      if (id) {
+        this.routeId.set(id);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    this.routeSub?.unsubscribe();
+  }
+
+  modificaGiocatore() {
+    const p = this.prof;
+    if (p?.id) {
+      this.router.navigate(['/giocatori', p.id, 'modifica']);
+    }
+  }
+
 
   async generaScouting(force = false) {
     if (!this.prof?.id || this.isGeneratingScouting()) return;
@@ -188,13 +245,12 @@ export class SchedaGiocatoreComponent {
   apriGiocatore(id?: string) {
     if (id) {
       this.selezionaAltroGiocatore.emit(id);
+      this.routeId.set(id);
+      this.router.navigate(['/giocatori', id]);
     }
   }
 
   confronta(opponentId?: string) {
-    if (this.chiudiModale) {
-      this.chiudiModale();
-    }
     const queryParams: any = {};
     if (this.prof?.id) {
       queryParams.playerA = this.prof.id;
@@ -205,3 +261,5 @@ export class SchedaGiocatoreComponent {
     this.router.navigate(['/confronto'], { queryParams });
   }
 }
+
+export { SchedaGiocatoreComponent as GiocatoreDetailPage };

@@ -1,15 +1,26 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>Scheda Giocatore</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/classifica" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ prof?.nome || 'Scheda Giocatore' }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="chiudiModale()">
-        <ion-icon name="close"></ion-icon>
-      </ion-button>
+      @if (isAdmin && prof?.id) {
+        <ion-button (click)="modificaGiocatore()" title="Modifica Giocatore">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+      }
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding ion-text-center player-profile-content">
+  @if (!prof) {
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh;">
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p style="color: var(--ion-color-medium); margin-top: 14px;">Caricamento profilo giocatore...</p>
+    </div>
+  } @else {
   <!-- AVATAR & HEADER PROFILO -->
   <div
     class="profile-avatar-wrapper"
@@ -172,7 +183,7 @@
   <!-- ============================================== -->
   <div class="section-badge-header">
     <ion-icon name="shield" class="sec-icon mmr-icon"></ion-icon>
-    <span>Rating MMR & Performance</span>
+    <span>Rating & MMR</span>
   </div>
 
   <div class="mmr-stats-grid">
@@ -237,7 +248,7 @@
   @if (prof?.pastSeasonsBanners?.length) {
     <div class="section-badge-header banner-header">
       <ion-icon name="ribbon" class="sec-icon banner-icon"></ion-icon>
-      <span>Albo d'Oro · Banner Stagionali</span>
+      <span>Albo d'Oro Stagioni</span>
     </div>
 
     <div class="season-banners-scroller">
@@ -281,7 +292,7 @@
   <!-- ============================================== -->
   <div class="section-badge-header chemistry-header">
     <ion-icon name="flash" class="sec-icon chem-icon"></ion-icon>
-    <span>Chimica di Coppia & Rivalità</span>
+    <span>Chimica & Rivalità</span>
   </div>
 
   <div class="chemistry-duo-cards">
@@ -514,7 +525,7 @@
   <!-- ============================================== -->
   <div class="section-badge-header legacy-header">
     <ion-icon name="trophy" class="sec-icon legacy-icon"></ion-icon>
-    <span>Punteggio Classico Legacy</span>
+    <span>Punti Classici</span>
   </div>
 
   <ion-row class="ion-text-center">
@@ -569,4 +580,5 @@
   <p class="legend-note">
     Legenda: <b>P</b> (Disputate) / <b>W</b> (Vinte) / <b>D</b> (Pari) / <b>L</b> (Perse)
   </p>
+  }
 </ion-content>

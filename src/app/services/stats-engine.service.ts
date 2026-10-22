@@ -2,7 +2,7 @@ import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Observable } from 'rxjs';
-import { Giocatore } from '../models/giocatore.model';
+import { Giocatore, GiocatoreConPunti } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
 import {
   MmrCalculationResult,
@@ -138,6 +138,187 @@ export class StatsEngineService {
   getPlayerChemistry(playerId: string): PlayerChemistryProfile | undefined {
     return this.statsResult().chemistry.get(playerId);
   }
+
+  /**
+   * Costruisce il profilo completo di un giocatore con punteggio legacy, MMR,
+   * trend, forma e chimica per la scheda del giocatore.
+   */
+  getGiocatoreProfile(
+    playerId: string,
+    stagione: string = ALL_SEASONS,
+  ): GiocatoreConPunti | null {
+    const rawList = this.giocatoriRaw() || [];
+    const g = rawList.find((p) => p.id === playerId);
+    if (!g) return null;
+
+    const partite = this.partiteRaw() || [];
+    const statsRes = this.statsResult();
+    const partiteValide = partite.filter(
+      (p: any) => p['pagelleInserite'] === true,
+    );
+
+    const partiteStagione =
+      stagione === ALL_SEASONS
+        ? partiteValide
+        : partiteValide.filter((p: any) => getStagionePartita(p) === stagione);
+
+    let punti = 0;
+    let golTotali = 0;
+    let assistTotali = 0;
+    let sommaVoti = 0;
+    let partiteGiocate = 0;
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+
+    partiteStagione.forEach((p: any) => {
+      const inTeamA = p.teamA?.find((pl: any) => pl.id === g.id);
+      const inTeamB = p.teamB?.find((pl: any) => pl.id === g.id);
+
+      if (inTeamA || inTeamB) {
+        partiteGiocate++;
+        const scoreA = Number(p.scoreA);
+        const scoreB = Number(p.scoreB);
+        const won =
+          (inTeamA && scoreA > scoreB) || (inTeamB && scoreB > scoreA);
+        const draw = scoreA === scoreB;
+        const lost = !won && !draw;
+
+        punti += 2; // Presenza
+        if (won) {
+          punti += 2;
+          wins++;
+        } else if (draw) {
+          punti += 1;
+          draws++;
+        } else if (lost) {
+          losses++;
+        }
+
+        const eventi = p.eventiGol || [];
+        const golFatti = eventi.filter(
+          (eg: any) =>
+            (eg.idAssegnato === g.id || eg.nome === g.nome) && !eg.isAutogoal,
+        ).length;
+        const autogolFatti = eventi.filter(
+          (eg: any) =>
+            (eg.idAssegnato === g.id || eg.nome === g.nome) && eg.isAutogoal,
+        ).length;
+
+        const playerObj = inTeamA || inTeamB;
+        const assistFatti =
+          eventi.filter(
+            (eg: any) =>
+              eg.assistId === g.id ||
+              (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
+          ).length || (playerObj.assist || 0);
+
+        golTotali += golFatti;
+        assistTotali += assistFatti;
+        punti += golFatti * 1;
+        punti += autogolFatti * -1;
+        punti += assistFatti * 0.5;
+
+        const voto = Number(playerObj.voto) || 0;
+        sommaVoti += voto;
+        punti += voto;
+      }
+    });
+
+    punti = Math.round(punti * 10) / 10;
+    const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
+
+    const playerMmr =
+      stagione === ALL_SEASONS
+        ? statsRes.allTime.get(g.id)
+        : statsRes.bySeason.get(stagione)?.get(g.id);
+
+    const allTimeMmr = statsRes.allTime.get(g.id);
+    const isRanked = partiteGiocate > 0;
+    const seasonStartMmr = playerMmr?.seasonStartMmr ?? BASE_INITIAL_MMR;
+    const mmrVal =
+      isRanked && playerMmr
+        ? Math.round(playerMmr.currentMmr)
+        : seasonStartMmr;
+    const mmrDisplay = isRanked ? mmrVal.toString() : '—';
+    const tier = isRanked && playerMmr ? playerMmr.tier : UNRANKED_TIER;
+    const peakMmr = isRanked
+      ? (allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? mmrVal))
+      : 0;
+    const pastSeasonsBanners =
+      playerMmr?.pastSeasonsBanners ||
+      allTimeMmr?.pastSeasonsBanners ||
+      [];
+    const form =
+      isRanked && playerMmr?.form
+        ? playerMmr.form
+        : {
+            currentStreak: 0,
+            status: 'neutral' as const,
+            statusLabel: 'Costante',
+            emoji: '➖',
+            multiplier: 1.0,
+            bestWinStreak: 0,
+            worstLossStreak: 0,
+            recentForm: [],
+          };
+
+    const history = isRanked ? playerMmr?.history || [] : [];
+    const lastMatch = history.length > 0 ? history[history.length - 1] : null;
+    const lastDelta = lastMatch ? lastMatch.delta : null;
+    const lastDeltaDisplay =
+      lastDelta !== null
+        ? lastDelta > 0
+          ? `+${lastDelta}`
+          : `${lastDelta}`
+        : null;
+    const trendDirection: 'up' | 'down' | 'neutral' | 'none' =
+      lastDelta === null
+        ? 'none'
+        : lastDelta > 0
+          ? 'up'
+          : lastDelta < 0
+            ? 'down'
+            : 'neutral';
+
+    const chemistry = statsRes.chemistry.get(g.id);
+    const winRate =
+      partiteGiocate > 0
+        ? Math.round((wins / partiteGiocate) * 1000) / 10
+        : 0;
+
+    return {
+      ...g,
+      fotoUrl: getAvatarUrl(g.fotoUrl),
+      puntiVal: punti,
+      puntiDisplay: Number.isInteger(punti)
+        ? punti.toString()
+        : punti.toFixed(1),
+      golTotali,
+      assistTotali,
+      mediaVotoVal: mediaVoto,
+      mediaVotoDisplay: mediaVoto.toFixed(2),
+      partiteGiocate,
+      wins,
+      draws,
+      losses,
+      isRanked,
+      mmrVal,
+      mmrDisplay,
+      tier,
+      peakMmr,
+      lastDelta,
+      lastDeltaDisplay,
+      trendDirection,
+      form,
+      winRate,
+      rankAssoluto: 0,
+      chemistry,
+      seasonStartMmr,
+      pastSeasonsBanners,
+    };
+  }
+
 
   /**
    * Prevede l'esito di un match ipotetico dati gli ID dei giocatori delle due squadre
@@ -552,6 +733,7 @@ export class StatsEngineService {
       chemistryNotes: chemistryNotes.slice(0, 4),
       cronacaAi: match.cronacaAi,
       pronosticoAi: match.pronosticoAi,
+      commentoPartita: match.commentoPartita || null,
     };
   }
 
@@ -578,6 +760,9 @@ export class StatsEngineService {
       playersA: [],
       playersB: [],
       chemistryNotes: [],
+      cronacaAi: undefined,
+      pronosticoAi: undefined,
+      commentoPartita: null,
     };
   }
 
