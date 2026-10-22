@@ -1,42 +1,155 @@
 // =============================================================================
-// CALCETTO A BUFFONE - DESIGN SYSTEM TOKENS (LIGHT & DARK THEMES)
+// CALCETTO A BUFFONE - DESIGN SYSTEM DESIGN TOKENS & COLOR PALETTE
+// =============================================================================
+// TUTTI i colori dell'applicazione (tema chiaro e tema scuro)
+// si gestiscono ESCLUSIVAMENTE in questo file. Nessun colore hardcoded nei componenti.
 // =============================================================================
 
 :root {
-  // --- Colori Primari e Accenti ---
-  --ion-color-success: #25d366;
-  --ion-color-success-rgb: 37, 211, 102;
-  --ion-color-success-contrast: #000000;
-  --ion-color-success-contrast-rgb: 0, 0, 0;
-  --ion-color-success-shade: #20bd5a;
-  --ion-color-success-tint: #3bd775;
+  // ---------------------------------------------------------------------------
+  // 1. BRAND PALETTE (Light / Default)
+  // ---------------------------------------------------------------------------
+  --app-primary: #25d366;
+  --app-primary-rgb: 37, 211, 102;
+  --app-primary-contrast: #ffffff;
+  --app-primary-shade: #20bd5a;
+  --app-primary-tint: #3bd775;
+  --app-primary-subtle: rgba(37, 211, 102, 0.12);
+  --app-primary-border: rgba(37, 211, 102, 0.35);
 
-  // --- Modalità Chiara (Default / Light Mode) ---
+  // ---------------------------------------------------------------------------
+  // 2. ACCENT & SEMANTIC PALETTE (Light Mode)
+  // ---------------------------------------------------------------------------
+  --app-accent-gold: #f59e0b;
+  --app-accent-gold-rgb: 245, 158, 11;
+  --app-accent-gold-subtle: rgba(245, 158, 11, 0.12);
+  --app-accent-gold-border: rgba(245, 158, 11, 0.35);
+
+  --app-accent-purple: #8b5cf6;
+  --app-accent-purple-rgb: 139, 92, 246;
+  --app-accent-purple-subtle: rgba(139, 92, 246, 0.12);
+  --app-accent-purple-border: rgba(139, 92, 246, 0.35);
+
+  --app-accent-blue: #38bdf8;
+  --app-accent-blue-rgb: 56, 189, 248;
+  --app-accent-blue-subtle: rgba(56, 189, 248, 0.12);
+  --app-accent-blue-border: rgba(56, 189, 248, 0.35);
+
+  --app-accent-danger: #ef4444;
+  --app-accent-danger-rgb: 239, 68, 68;
+  --app-accent-danger-subtle: rgba(239, 68, 68, 0.12);
+  --app-accent-danger-border: rgba(239, 68, 68, 0.35);
+
+  --app-accent-orange: #ff5722;
+  --app-accent-orange-rgb: 255, 87, 34;
+  --app-accent-orange-subtle: rgba(255, 87, 34, 0.12);
+  --app-accent-orange-border: rgba(255, 87, 34, 0.35);
+
+  // ---------------------------------------------------------------------------
+  // 3. CONFRONTO 1v1 HEAD-TO-HEAD PLAYERS & GRADIENTS
+  // ---------------------------------------------------------------------------
+  --app-player1: #00b4d8;
+  --app-player1-rgb: 0, 180, 216;
+  --app-player1-subtle: rgba(0, 180, 216, 0.15);
+  --app-player1-border: rgba(0, 180, 216, 0.4);
+
+  --app-player2: #f72585;
+  --app-player2-rgb: 247, 37, 133;
+  --app-player2-subtle: rgba(247, 37, 133, 0.15);
+  --app-player2-border: rgba(247, 37, 133, 0.4);
+
+  --app-clash-gradient: linear-gradient(135deg, #f72585, #7209b7, #00b4d8);
+  --app-ai-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  --app-ai-purple-gradient: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+
+  // ---------------------------------------------------------------------------
+  // 4. SQUADRE & MATCHMAKING
+  // ---------------------------------------------------------------------------
+  --app-team-verde: var(--app-primary);
+  --app-team-verde-subtle: var(--app-primary-subtle);
+  --app-team-verde-border: var(--app-primary-border);
+
+  --app-team-nera: #f59e0b;
+  --app-team-nera-rgb: 245, 158, 11;
+  --app-team-nera-subtle: rgba(245, 158, 11, 0.14);
+  --app-team-nera-border: rgba(245, 158, 11, 0.4);
+
+  // ---------------------------------------------------------------------------
+  // 5. TIERS & RANKS
+  // ---------------------------------------------------------------------------
+  --app-tier-bronze: #cd7f32;
+  --app-tier-silver: #c0c0c0;
+  --app-tier-gold: #ffd700;
+  --app-tier-platinum: #00e5ff;
+  --app-tier-diamond: #b9f2ff;
+  --app-tier-master: #a855f7;
+  --app-tier-unranked: #71717a;
+  --app-tier-placement: #eab308;
+
+  // ---------------------------------------------------------------------------
+  // 6. VALORI BASE & NEUTRI CONDIVISI
+  // ---------------------------------------------------------------------------
+  --app-white: #ffffff;
+  --app-black: #000000;
+  --app-neutral-gray: #8e8e93;
+  --app-neutral-gray-subtle: rgba(142, 142, 147, 0.15);
+  --app-neutral-dark: #1f2937;
+  --app-overlay-dark: rgba(0, 0, 0, 0.65);
+  --app-overlay-light: rgba(255, 255, 255, 0.15);
+
+  // ---------------------------------------------------------------------------
+  // 7. SUPERFICI, SFONDI & TESTI (LIGHT MODE)
+  // ---------------------------------------------------------------------------
   --app-bg: #f4f6fa;
+  --app-surface: #ffffff;
   --app-card-bg: #ffffff;
   --app-card-border: rgba(0, 0, 0, 0.08);
   --app-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   --app-surface-subtle: #edf1f7;
   --app-surface-hover: #e4e9f2;
+
   --app-text-primary: #121826;
   --app-text-secondary: #586174;
   --app-text-muted: #8a94a6;
+  --app-text-inverse: #ffffff;
+
   --app-border-color: rgba(0, 0, 0, 0.09);
   --app-divider: rgba(0, 0, 0, 0.06);
   --app-toolbar-bg: #ffffff;
   --app-toolbar-border: rgba(0, 0, 0, 0.08);
 
-  --ion-background-color: #f4f6fa;
+  // ---------------------------------------------------------------------------
+  // 8. MAPPATURA SISTEMA IONIC (LIGHT MODE)
+  // ---------------------------------------------------------------------------
+  --ion-color-primary: var(--app-primary);
+  --ion-color-primary-rgb: var(--app-primary-rgb);
+  --ion-color-primary-contrast: var(--app-primary-contrast);
+  --ion-color-primary-shade: var(--app-primary-shade);
+  --ion-color-primary-tint: var(--app-primary-tint);
+
+  --ion-color-success: var(--app-primary);
+  --ion-color-success-rgb: var(--app-primary-rgb);
+  --ion-color-success-contrast: var(--app-primary-contrast);
+  --ion-color-success-shade: var(--app-primary-shade);
+  --ion-color-success-tint: var(--app-primary-tint);
+
+  --ion-color-danger: var(--app-accent-danger);
+  --ion-color-warning: var(--app-accent-gold);
+  --ion-color-medium: var(--app-text-muted);
+
+  --ion-background-color: var(--app-bg);
   --ion-background-color-rgb: 244, 246, 250;
-  --ion-text-color: #121826;
+  --ion-text-color: var(--app-text-primary);
   --ion-text-color-rgb: 18, 24, 38;
   --ion-item-background: transparent;
-  --ion-toolbar-background: #ffffff;
-  --ion-tab-bar-background: #ffffff;
-  --ion-card-background: #ffffff;
+  --ion-toolbar-background: var(--app-toolbar-bg);
+  --ion-tab-bar-background: var(--app-toolbar-bg);
+  --ion-card-background: var(--app-card-bg);
 }
 
-// --- Modalità Scura (Dark Mode via .ion-palette-dark, .dark o prefers-color-scheme) ---
+// =============================================================================
+// MODALITÀ SCURA (DARK MODE)
+// =============================================================================
 .ion-palette-dark,
 :root.ion-palette-dark,
 body.ion-palette-dark,
@@ -44,53 +157,204 @@ body.ion-palette-dark,
 :root.dark,
 body.dark,
 [data-theme="dark"] {
+  // Brand Dark
+  --app-primary: #2dd36f;
+  --app-primary-rgb: 45, 211, 111;
+  --app-primary-contrast: #000000;
+  --app-primary-shade: #28ba62;
+  --app-primary-tint: #42d77d;
+  --app-primary-subtle: rgba(45, 211, 111, 0.16);
+  --app-primary-border: rgba(45, 211, 111, 0.45);
+
+  // Accent & Semantic Dark
+  --app-accent-gold: #fbbf24;
+  --app-accent-gold-rgb: 251, 191, 36;
+  --app-accent-gold-subtle: rgba(251, 191, 36, 0.16);
+  --app-accent-gold-border: rgba(251, 191, 36, 0.45);
+
+  --app-accent-purple: #a855f7;
+  --app-accent-purple-rgb: 168, 85, 247;
+  --app-accent-purple-subtle: rgba(168, 85, 247, 0.18);
+  --app-accent-purple-border: rgba(168, 85, 247, 0.45);
+
+  --app-accent-blue: #38bdf8;
+  --app-accent-blue-rgb: 56, 189, 248;
+  --app-accent-blue-subtle: rgba(56, 189, 248, 0.16);
+  --app-accent-blue-border: rgba(56, 189, 248, 0.45);
+
+  --app-accent-danger: #f87171;
+  --app-accent-danger-rgb: 248, 113, 113;
+  --app-accent-danger-subtle: rgba(248, 113, 113, 0.16);
+  --app-accent-danger-border: rgba(248, 113, 113, 0.45);
+
+  --app-accent-orange: #ff7043;
+  --app-accent-orange-rgb: 255, 112, 67;
+  --app-accent-orange-subtle: rgba(255, 112, 67, 0.16);
+  --app-accent-orange-border: rgba(255, 112, 67, 0.45);
+
+  // Confronto 1v1 Players & Gradients Dark
+  --app-player1: #00b4d8;
+  --app-player1-rgb: 0, 180, 216;
+  --app-player1-subtle: rgba(0, 180, 216, 0.2);
+  --app-player1-border: rgba(0, 180, 216, 0.5);
+
+  --app-player2: #f72585;
+  --app-player2-rgb: 247, 37, 133;
+  --app-player2-subtle: rgba(247, 37, 133, 0.2);
+  --app-player2-border: rgba(247, 37, 133, 0.5);
+
+  // Squadre Dark
+  --app-team-verde: var(--app-primary);
+  --app-team-verde-subtle: var(--app-primary-subtle);
+  --app-team-verde-border: var(--app-primary-border);
+
+  --app-team-nera: #fbbf24;
+  --app-team-nera-rgb: 251, 191, 36;
+  --app-team-nera-subtle: rgba(251, 191, 36, 0.18);
+  --app-team-nera-border: rgba(251, 191, 36, 0.45);
+
+  // Superfici, Sfondi & Testi Dark
   --app-bg: #0d0f14;
+  --app-surface: #151821;
   --app-card-bg: #151821;
   --app-card-border: rgba(255, 255, 255, 0.08);
   --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   --app-surface-subtle: #1a1e2a;
   --app-surface-hover: #222736;
+
   --app-text-primary: #ffffff;
   --app-text-secondary: #9ea5b8;
   --app-text-muted: #6b7385;
+  --app-text-inverse: #0d0f14;
+
   --app-border-color: rgba(255, 255, 255, 0.08);
   --app-divider: rgba(255, 255, 255, 0.06);
   --app-toolbar-bg: #141720;
   --app-toolbar-border: rgba(255, 255, 255, 0.06);
 
-  --ion-background-color: #0d0f14;
+  // Mappatura Ionic Dark
+  --ion-color-primary: var(--app-primary);
+  --ion-color-primary-rgb: var(--app-primary-rgb);
+  --ion-color-primary-contrast: var(--app-primary-contrast);
+  --ion-color-primary-shade: var(--app-primary-shade);
+  --ion-color-primary-tint: var(--app-primary-tint);
+
+  --ion-color-success: var(--app-primary);
+  --ion-color-success-rgb: var(--app-primary-rgb);
+  --ion-color-success-contrast: var(--app-primary-contrast);
+  --ion-color-success-shade: var(--app-primary-shade);
+  --ion-color-success-tint: var(--app-primary-tint);
+
+  --ion-color-danger: var(--app-accent-danger);
+  --ion-color-warning: var(--app-accent-gold);
+  --ion-color-medium: var(--app-text-muted);
+
+  --ion-background-color: var(--app-bg);
   --ion-background-color-rgb: 13, 15, 20;
-  --ion-text-color: #ffffff;
+  --ion-text-color: var(--app-text-primary);
   --ion-text-color-rgb: 255, 255, 255;
   --ion-item-background: transparent;
-  --ion-toolbar-background: #141720;
-  --ion-tab-bar-background: #141720;
-  --ion-card-background: #151821;
+  --ion-toolbar-background: var(--app-toolbar-bg);
+  --ion-tab-bar-background: var(--app-toolbar-bg);
+  --ion-card-background: var(--app-card-bg);
 }
 
+// Media query fallback per sistema operativo
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not([data-theme="light"]):not(.ion-palette-light) {
+    --app-primary: #2dd36f;
+    --app-primary-rgb: 45, 211, 111;
+    --app-primary-contrast: #000000;
+    --app-primary-shade: #28ba62;
+    --app-primary-tint: #42d77d;
+    --app-primary-subtle: rgba(45, 211, 111, 0.16);
+    --app-primary-border: rgba(45, 211, 111, 0.45);
+
+    --app-accent-gold: #fbbf24;
+    --app-accent-gold-rgb: 251, 191, 36;
+    --app-accent-gold-subtle: rgba(251, 191, 36, 0.16);
+    --app-accent-gold-border: rgba(251, 191, 36, 0.45);
+
+    --app-accent-purple: #a855f7;
+    --app-accent-purple-rgb: 168, 85, 247;
+    --app-accent-purple-subtle: rgba(168, 85, 247, 0.18);
+    --app-accent-purple-border: rgba(168, 85, 247, 0.45);
+
+    --app-accent-blue: #38bdf8;
+    --app-accent-blue-rgb: 56, 189, 248;
+    --app-accent-blue-subtle: rgba(56, 189, 248, 0.16);
+    --app-accent-blue-border: rgba(56, 189, 248, 0.45);
+
+    --app-accent-danger: #f87171;
+    --app-accent-danger-rgb: 248, 113, 113;
+    --app-accent-danger-subtle: rgba(248, 113, 113, 0.16);
+    --app-accent-danger-border: rgba(248, 113, 113, 0.45);
+
+    --app-accent-orange: #ff7043;
+    --app-accent-orange-rgb: 255, 112, 67;
+    --app-accent-orange-subtle: rgba(255, 112, 67, 0.16);
+    --app-accent-orange-border: rgba(255, 112, 67, 0.45);
+
+    --app-player1: #00b4d8;
+    --app-player1-rgb: 0, 180, 216;
+    --app-player1-subtle: rgba(0, 180, 216, 0.2);
+    --app-player1-border: rgba(0, 180, 216, 0.5);
+
+    --app-player2: #f72585;
+    --app-player2-rgb: 247, 37, 133;
+    --app-player2-subtle: rgba(247, 37, 133, 0.2);
+    --app-player2-border: rgba(247, 37, 133, 0.5);
+
+    --app-team-verde: var(--app-primary);
+    --app-team-verde-subtle: var(--app-primary-subtle);
+    --app-team-verde-border: var(--app-primary-border);
+
+    --app-team-nera: #fbbf24;
+    --app-team-nera-rgb: 251, 191, 36;
+    --app-team-nera-subtle: rgba(251, 191, 36, 0.18);
+    --app-team-nera-border: rgba(251, 191, 36, 0.45);
+
     --app-bg: #0d0f14;
+    --app-surface: #151821;
     --app-card-bg: #151821;
     --app-card-border: rgba(255, 255, 255, 0.08);
     --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     --app-surface-subtle: #1a1e2a;
     --app-surface-hover: #222736;
+
     --app-text-primary: #ffffff;
     --app-text-secondary: #9ea5b8;
     --app-text-muted: #6b7385;
+    --app-text-inverse: #0d0f14;
+
     --app-border-color: rgba(255, 255, 255, 0.08);
     --app-divider: rgba(255, 255, 255, 0.06);
     --app-toolbar-bg: #141720;
     --app-toolbar-border: rgba(255, 255, 255, 0.06);
 
-    --ion-background-color: #0d0f14;
+    --ion-color-primary: var(--app-primary);
+    --ion-color-primary-rgb: var(--app-primary-rgb);
+    --ion-color-primary-contrast: var(--app-primary-contrast);
+    --ion-color-primary-shade: var(--app-primary-shade);
+    --ion-color-primary-tint: var(--app-primary-tint);
+
+    --ion-color-success: var(--app-primary);
+    --ion-color-success-rgb: var(--app-primary-rgb);
+    --ion-color-success-contrast: var(--app-primary-contrast);
+    --ion-color-success-shade: var(--app-primary-shade);
+    --ion-color-success-tint: var(--app-primary-tint);
+
+    --ion-color-danger: var(--app-accent-danger);
+    --ion-color-warning: var(--app-accent-gold);
+    --ion-color-medium: var(--app-text-muted);
+
+    --ion-background-color: var(--app-bg);
     --ion-background-color-rgb: 13, 15, 20;
-    --ion-text-color: #ffffff;
+    --ion-text-color: var(--app-text-primary);
     --ion-text-color-rgb: 255, 255, 255;
     --ion-item-background: transparent;
-    --ion-toolbar-background: #141720;
-    --ion-tab-bar-background: #141720;
-    --ion-card-background: #151821;
+    --ion-toolbar-background: var(--app-toolbar-bg);
+    --ion-tab-bar-background: var(--app-toolbar-bg);
+    --ion-card-background: var(--app-card-bg);
   }
 }
