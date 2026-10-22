@@ -5,9 +5,6 @@ import {
   IonIcon,
   IonInput,
   IonTextarea,
-  IonAvatar,
-  IonFab,
-  IonFabButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -19,6 +16,10 @@ import {
   alertCircleOutline,
   sparklesOutline,
   chatboxEllipsesOutline,
+  swapHorizontalOutline,
+  createOutline,
+  peopleOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import {
@@ -43,9 +44,6 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
     IonIcon,
     IonInput,
     IonTextarea,
-    IonAvatar,
-    IonFab,
-    IonFabButton,
     PlayerAvatarComponent,
   ],
 })
@@ -73,15 +71,51 @@ export class StepDettagliComponent {
       alertCircleOutline,
       sparklesOutline,
       chatboxEllipsesOutline,
+      swapHorizontalOutline,
+      createOutline,
+      peopleOutline,
+      informationCircleOutline,
     });
   }
 
-  toggleModalitaA(modalita: 'rotazione' | 'fisso') {
-    this.state.impostaModalitaPortiere('A', modalita);
+  formatFormatoPartita(): string {
+    const tot = this.state.totaleConvocati();
+    if (tot === 0) return '0 giocatori';
+    const half1 = Math.floor(tot / 2);
+    const half2 = Math.ceil(tot / 2);
+    return `${half1} vs ${half2}`;
   }
 
-  toggleModalitaB(modalita: 'rotazione' | 'fisso') {
-    this.state.impostaModalitaPortiere('B', modalita);
+  getMessaggioValidazione(): string {
+    if (!this.state.luogo().trim()) {
+      return 'Inserisci il luogo del match per continuare';
+    }
+    if (!this.state.dataPartita()) {
+      return 'Seleziona la data della partita';
+    }
+    if (!this.state.orario()) {
+      return "Inserisci l'orario del match";
+    }
+    if (!this.state.isDataStagioneValida()) {
+      return 'La data selezionata non appartiene alla stagione corrente';
+    }
+    return '';
+  }
+
+  tornaAConvocati() {
+    this.state.step.set('convocati');
+  }
+
+  toggleModalitaA(modalita?: 'rotazione' | 'fisso') {
+    const next =
+      modalita ?? (this.state.modalitaPortieriA() === 'fisso' ? 'rotazione' : 'fisso');
+    this.state.impostaModalitaPortiere('A', next);
+  }
+
+  toggleModalitaB(modalita?: 'rotazione' | 'fisso') {
+    const next =
+      modalita ?? (this.state.modalitaPortieriB() === 'fisso' ? 'rotazione' : 'fisso');
+    this.state.impostaModalitaPortiere('B', next);
   }
 
   vaiASquadre() {

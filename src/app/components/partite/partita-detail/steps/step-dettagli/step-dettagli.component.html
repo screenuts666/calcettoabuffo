@@ -1,203 +1,232 @@
-<div class="ion-padding">
-  <h2
-    style="
-      font-weight: bold;
-      margin-bottom: 20px;
-      color: var(--ion-color-success);
-    "
-  >
-    Dettagli Partita
-  </h2>
+<div class="dettagli-wrapper ion-padding">
 
-  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
-    <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-    <ion-input
-      label="Luogo Partita *"
-      labelPlacement="stacked"
-      placeholder="Es. Campetto dei Pioppi"
-      [value]="state.luogo()"
-      (ionInput)="state.luogo.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  <ion-item lines="none" class="elegant-input-item ion-margin-bottom" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
-    <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
-    <ion-input
-      type="date"
-      label="Data *"
-      labelPlacement="stacked"
-      [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
-      [value]="state.dataPartita()"
-      (ionInput)="state.dataPartita.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  @if (!state.isDataStagioneValida() && state.dataPartita()) {
-    <div class="season-warning-card">
-      <ion-icon name="alert-circle-outline"></ion-icon>
-      <div class="warning-text">
-        <strong>Stagione non valida</strong>
-        <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+  <!-- 1. CARD RIEPILOGO CONVOCATI (TOP) -->
+  <div class="convocati-summary-card ion-margin-bottom" (click)="tornaAConvocati()" title="Tocca per modificare i convocati">
+    <div class="summary-left">
+      <div class="avatars-overlap-row">
+        @for (g of state.convocati().slice(0, 5); track g.id) {
+          <div class="overlap-avatar">
+            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+          </div>
+        }
+        @if (state.convocati().length > 5) {
+          <div class="overlap-more-badge">
+            +{{ state.convocati().length - 5 }}
+          </div>
+        }
       </div>
-    </div>
-  } @else if (state.dataPartita()) {
-    <div class="season-valid-pill">
-      <ion-icon name="sparkles-outline"></ion-icon>
-      <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
-    </div>
-  }
-
-  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
-    <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
-    <ion-input
-      type="time"
-      label="Orario *"
-      labelPlacement="stacked"
-      [value]="state.orario()"
-      (ionInput)="state.orario.set($event.detail.value || '')"
-    ></ion-input>
-  </ion-item>
-
-  <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
-    <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
-    <ion-textarea
-      label="Note Partita / Retroscena (Pablo)"
-      labelPlacement="stacked"
-      autoGrow="true"
-      rows="2"
-      placeholder="Es. Campo bagnato, lisci clamorosi... (utilizzate dall'AI per i commenti)"
-      [value]="state.commentoPartita()"
-      (ionInput)="state.commentoPartita.set($event.detail.value || '')"
-    ></ion-textarea>
-  </ion-item>
-
-  <!-- SELEZIONE MODALITÀ PORTIERI (CASUALI VS FISSO) -->
-  <div class="portieri-setup-card ion-margin-bottom">
-    <div class="portieri-setup-header">
-      <div class="header-icon-title">
-        <span class="gk-setup-icon">🧤</span>
-        <div class="gk-setup-titles">
-          <span class="setup-main-title">Modalità Portieri</span>
-          <span class="setup-sub-title">Casuali (5' di turno, default) o Portiere Fisso di Ruolo</span>
+      <div class="summary-text">
+        <div class="summary-title-line">
+          <strong class="summary-count">{{ state.totaleConvocati() }} Convocati</strong>
+          <span class="summary-format-badge">{{ formatFormatoPartita() }}</span>
         </div>
+        <span class="summary-sub">Tocca per modificare i convocati</span>
       </div>
     </div>
 
-    <!-- Squadra Bianchi -->
-    <div class="team-portiere-control">
-      <div class="team-label-row">
-        <span class="team-badge-circle white"></span>
-        <strong class="team-name">BIANCHI</strong>
-        @if (state.modalitaPortieriA() === 'fisso') {
-          <span class="di-ruolo-pill">🧤 Portiere Fisso</span>
-        } @else {
-          <span class="rotazione-pill">🔄 Casuali (5')</span>
-        }
-      </div>
+    <button type="button" class="btn-edit-convocati" (click)="$event.stopPropagation(); tornaAConvocati()">
+      <ion-icon name="create-outline"></ion-icon>
+      <span>Modifica</span>
+    </button>
+  </div>
 
-      <div class="toggle-mode-group">
-        <button
-          type="button"
-          class="mode-btn"
-          [class.active]="state.modalitaPortieriA() === 'rotazione'"
-          (click)="toggleModalitaA('rotazione')"
-        >
-          <span class="mode-icon">🔄</span>
-          <div class="mode-text">
-            <strong>Casuali (Default)</strong>
-            <small>Cambio ogni 5 min</small>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          class="mode-btn"
-          [class.active]="state.modalitaPortieriA() === 'fisso'"
-          (click)="toggleModalitaA('fisso')"
-        >
-          <span class="mode-icon">🧤</span>
-          <div class="mode-text">
-            <strong>Portiere Fisso</strong>
-            <small>Di ruolo / Tutta la gara</small>
-          </div>
-        </button>
+  <!-- 2. SEZIONE COORDINATE MATCH (LUOGO, DATA, ORARIO) -->
+  <div class="details-section-card ion-margin-bottom">
+    <div class="section-card-header">
+      <span class="section-icon">📍</span>
+      <div class="section-header-text">
+        <h3 class="section-title">Coordinate Match</h3>
+        <span class="section-sub">Dove e quando si disputa la partita</span>
       </div>
     </div>
 
-    <!-- Squadra Neri -->
-    <div class="team-portiere-control">
-      <div class="team-label-row">
-        <span class="team-badge-circle black"></span>
-        <strong class="team-name">NERI</strong>
-        @if (state.modalitaPortieriB() === 'fisso') {
-          <span class="di-ruolo-pill">🧤 Portiere Fisso</span>
-        } @else {
-          <span class="rotazione-pill">🔄 Casuali (5')</span>
-        }
+    <div class="section-card-body">
+      <!-- LUOGO -->
+      <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
+        <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+        <ion-input
+          label="Luogo Partita *"
+          labelPlacement="stacked"
+          placeholder="Es. Campetto dei Pioppi"
+          [value]="state.luogo()"
+          (ionInput)="state.luogo.set($event.detail.value || '')"
+        ></ion-input>
+      </ion-item>
+
+      <!-- DATA E ORARIO AFFIANCATI SU 2 COLONNE -->
+      <div class="datetime-grid ion-margin-bottom">
+        <!-- DATA -->
+        <ion-item lines="none" class="elegant-input-item" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
+          <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
+          <ion-input
+            type="date"
+            label="Data *"
+            labelPlacement="stacked"
+            [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
+            [value]="state.dataPartita()"
+            (ionInput)="state.dataPartita.set($event.detail.value || '')"
+          ></ion-input>
+        </ion-item>
+
+        <!-- ORARIO -->
+        <ion-item lines="none" class="elegant-input-item">
+          <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+          <ion-input
+            type="time"
+            label="Orario *"
+            labelPlacement="stacked"
+            [value]="state.orario()"
+            (ionInput)="state.orario.set($event.detail.value || '')"
+          ></ion-input>
+        </ion-item>
       </div>
 
-      <div class="toggle-mode-group">
+      <!-- FEEDBACK STAGIONE -->
+      @if (!state.isDataStagioneValida() && state.dataPartita()) {
+        <div class="season-warning-card">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <div class="warning-text">
+            <strong>Stagione non valida</strong>
+            <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+          </div>
+        </div>
+      } @else if (state.dataPartita()) {
+        <div class="season-valid-pill">
+          <ion-icon name="sparkles-outline"></ion-icon>
+          <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- 3. SEZIONE REGOLE PORTIERI -->
+  <div class="details-section-card ion-margin-bottom">
+    <div class="section-card-header">
+      <span class="section-icon">🧤</span>
+      <div class="section-header-text">
+        <h3 class="section-title">Modalità Portieri</h3>
+        <span class="section-sub">Tocca la squadra per alternare Casuali (5') o Portiere Fisso</span>
+      </div>
+    </div>
+
+    <div class="section-card-body">
+      <div class="portieri-teams-row">
+        <!-- BIANCHI -->
         <button
           type="button"
-          class="mode-btn"
-          [class.active]="state.modalitaPortieriB() === 'rotazione'"
-          (click)="toggleModalitaB('rotazione')"
+          class="team-mode-card"
+          [class.is-fisso]="state.modalitaPortieriA() === 'fisso'"
+          (click)="toggleModalitaA()"
+          aria-label="Alterna modalità portiere Squadra Bianchi"
         >
-          <span class="mode-icon">🔄</span>
-          <div class="mode-text">
-            <strong>Casuali (Default)</strong>
-            <small>Cambio ogni 5 min</small>
+          <div class="card-team-header">
+            <div class="team-identity">
+              <span class="team-badge-circle white"></span>
+              <strong class="team-name">BIANCHI</strong>
+            </div>
+            <ion-icon name="swap-horizontal-outline" class="switch-icon"></ion-icon>
+          </div>
+
+          <div class="card-mode-content">
+            @if (state.modalitaPortieriA() === 'fisso') {
+              <span class="mode-emoji">🧤</span>
+              <div class="mode-info">
+                <span class="mode-title">Fisso</span>
+                <span class="mode-sub">Di ruolo</span>
+              </div>
+            } @else {
+              <span class="mode-emoji">🔄</span>
+              <div class="mode-info">
+                <span class="mode-title">Casuali</span>
+                <span class="mode-sub">Turno 5'</span>
+              </div>
+            }
           </div>
         </button>
 
+        <!-- NERI -->
         <button
           type="button"
-          class="mode-btn"
-          [class.active]="state.modalitaPortieriB() === 'fisso'"
-          (click)="toggleModalitaB('fisso')"
+          class="team-mode-card"
+          [class.is-fisso]="state.modalitaPortieriB() === 'fisso'"
+          (click)="toggleModalitaB()"
+          aria-label="Alterna modalità portiere Squadra Neri"
         >
-          <span class="mode-icon">🧤</span>
-          <div class="mode-text">
-            <strong>Portiere Fisso</strong>
-            <small>Di ruolo / Tutta la gara</small>
+          <div class="card-team-header">
+            <div class="team-identity">
+              <span class="team-badge-circle black"></span>
+              <strong class="team-name">NERI</strong>
+            </div>
+            <ion-icon name="swap-horizontal-outline" class="switch-icon"></ion-icon>
+          </div>
+
+          <div class="card-mode-content">
+            @if (state.modalitaPortieriB() === 'fisso') {
+              <span class="mode-emoji">🧤</span>
+              <div class="mode-info">
+                <span class="mode-title">Fisso</span>
+                <span class="mode-sub">Di ruolo</span>
+              </div>
+            } @else {
+              <span class="mode-emoji">🔄</span>
+              <div class="mode-info">
+                <span class="mode-title">Casuali</span>
+                <span class="mode-sub">Turno 5'</span>
+              </div>
+            }
           </div>
         </button>
       </div>
     </div>
   </div>
-</div>
 
-<div class="ion-padding-horizontal ion-margin-top">
-  <h3 style="font-weight: bold; color: var(--ion-color-medium)">
-    Convocati ({{ state.totaleConvocati() }})
-  </h3>
-</div>
-
-<div class="selected-avatars-grid ion-padding-bottom">
-  @for (g of state.convocati(); track g.id) {
-    <div class="avatar-item">
-      <div class="avatar-wrapper">
-        <div class="fixed-check-badge">
-          <ion-icon name="checkmark" color="light"></ion-icon>
+  <!-- 4. SEZIONE RETROSCENA PABLO AI (OPZIONALE) -->
+  <div class="details-section-card ai-notes-section ion-margin-bottom">
+    <div class="section-card-header">
+      <span class="section-icon">🎙️</span>
+      <div class="section-header-text">
+        <div class="title-with-badge">
+          <h3 class="section-title">Retroscena Pablo AI</h3>
+          <span class="optional-badge">Opzionale</span>
         </div>
-        <ion-avatar>
-          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
-        </ion-avatar>
+        <span class="section-sub">Dettagli o clima usati dall'AI per pagelle e commenti</span>
       </div>
-      <small>{{ g.nome.split(" ")[0] }}</small>
     </div>
-  }
-</div>
 
-@if (state.isDettagliValidi()) {
-  <ion-fab
-    vertical="bottom"
-    horizontal="end"
-    slot="fixed"
-    style="margin-bottom: 20px; margin-right: 10px"
-  >
-    <ion-fab-button color="success" (click)="vaiASquadre()">
+    <div class="section-card-body">
+      <ion-item lines="none" class="elegant-input-item">
+        <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
+        <ion-textarea
+          label="Note Pre-partita"
+          labelPlacement="stacked"
+          autoGrow="true"
+          rows="2"
+          placeholder="Es. Campo bagnato, lisci clamorosi, clima da derby..."
+          [value]="state.commentoPartita()"
+          (ionInput)="state.commentoPartita.set($event.detail.value || '')"
+        ></ion-textarea>
+      </ion-item>
+    </div>
+  </div>
+
+  <!-- 5. PULSANTE / BARRA DI AVANZAMENTO CONTINUA -->
+  <div class="bottom-action-container">
+    @if (!state.isDettagliValidi()) {
+      <div class="validation-hint">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <span>{{ getMessaggioValidazione() }}</span>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="btn-continue-squadre"
+      [disabled]="!state.isDettagliValidi()"
+      (click)="vaiASquadre()"
+    >
+      <span>Continua alle Squadre</span>
       <ion-icon name="arrow-forward"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
-}
+    </button>
+  </div>
+
+</div>

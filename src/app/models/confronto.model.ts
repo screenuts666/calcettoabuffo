@@ -4,6 +4,7 @@ export interface PlayerComparisonProfile {
   id: string;
   nome: string;
   soprannome?: string;
+  soprannomeAi?: string;
   annoNascita?: string;
   peso?: string;
   altezza?: string;

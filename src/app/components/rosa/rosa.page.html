@@ -52,11 +52,16 @@
           <ion-label>
             <div class="name-row">
               <h3>{{ g.nome }}</h3>
-              @if (g.soprannomeAi || g.soprannome) {
-                <span class="nickname">"{{ g.soprannome || g.soprannomeAi }}"</span>
-                @if (g.soprannomeAi && !g.soprannome) {
-                  <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
+              @if (g.soprannome) {
+                <span class="nickname">"{{ g.soprannome }}"</span>
+                @if (g.soprannomeAi && g.soprannomeAi !== g.soprannome) {
+                  <span class="ai-nick-extra" [title]="'Soprannome spogliatoio AI: ' + g.soprannomeAi">
+                    ✨ "{{ g.soprannomeAi }}"
+                  </span>
                 }
+              } @else if (g.soprannomeAi) {
+                <span class="nickname">"{{ g.soprannomeAi }}"</span>
+                <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
               }
             </div>
             <div class="player-stats">

@@ -33,6 +33,60 @@
           : 'Nuova Partita'
     }}</ion-title>
   </ion-toolbar>
+
+  @if (!state.matchConcluso() && (state.step() === 'convocati' || state.step() === 'dettagli' || state.step() === 'squadre')) {
+    <div class="wizard-stepper-bar">
+      <button
+        type="button"
+        class="step-node"
+        [class.active]="state.step() === 'convocati'"
+        [class.completed]="state.totaleConvocati() >= 2 && state.step() !== 'convocati'"
+        (click)="state.step.set('convocati')"
+      >
+        <span class="node-circle">
+          @if (state.totaleConvocati() >= 2 && state.step() !== 'convocati') {
+            <ion-icon name="checkmark"></ion-icon>
+          } @else {
+            1
+          }
+        </span>
+        <span class="node-label">Convocati</span>
+      </button>
+
+      <div class="step-connector" [class.filled]="state.totaleConvocati() >= 2"></div>
+
+      <button
+        type="button"
+        class="step-node"
+        [class.active]="state.step() === 'dettagli'"
+        [class.completed]="state.isDettagliValidi() && state.step() === 'squadre'"
+        [disabled]="state.totaleConvocati() < 2"
+        (click)="state.totaleConvocati() >= 2 ? state.step.set('dettagli') : null"
+      >
+        <span class="node-circle">
+          @if (state.isDettagliValidi() && state.step() === 'squadre') {
+            <ion-icon name="checkmark"></ion-icon>
+          } @else {
+            2
+          }
+        </span>
+        <span class="node-label">Dettagli</span>
+      </button>
+
+      <div class="step-connector" [class.filled]="state.isDettagliValidi() && state.step() === 'squadre'"></div>
+
+      <button
+        type="button"
+        class="step-node"
+        [class.active]="state.step() === 'squadre'"
+        [disabled]="!state.isDettagliValidi() || state.totaleConvocati() < 2"
+        (click)="state.isDettagliValidi() && state.totaleConvocati() >= 2 ? state.step.set('squadre') : null"
+      >
+        <span class="node-circle">3</span>
+        <span class="node-label">Squadre</span>
+      </button>
+    </div>
+  }
 </ion-header>
 
 <ion-content>

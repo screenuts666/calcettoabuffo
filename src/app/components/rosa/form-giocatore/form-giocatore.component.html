@@ -38,13 +38,19 @@
 
     <ion-item lines="none" class="custom-input-item">
       <ion-input
-        label="Soprannome"
+        label="Soprannome (Ufficiale)"
         labelPlacement="stacked"
         placeholder="Es. Er Pupone"
         [value]="soprannome()"
         (ionInput)="soprannome.set($event.detail.value || '')"
         [readonly]="!isAdmin"
       ></ion-input>
+      @if (giocatore?.soprannomeAi) {
+        <div class="ai-alias-hint">
+          <span class="ai-badge-chip">✨ Alias Spogliatoio AI</span>
+          <span class="ai-alias-name">"{{ giocatore?.soprannomeAi }}"</span>
+        </div>
+      }
     </ion-item>
 
     <div class="grid-row">

@@ -1,55 +1,58 @@
 @use 'mixins' as *;
 @use 'animations' as *;
 
-// ==========================================
-// INPUT ELEGANTI (STILE CARD)
-// ==========================================
-.elegant-input-item {
-  --background: var(--app-card-bg);
-  --color: var(--app-text-primary);
-  --border-radius: 12px;
-  border-radius: 12px;
-  border: 1px solid var(--app-card-border);
-  box-shadow: var(--app-card-shadow);
-  padding-top: 5px;
-  padding-bottom: 5px;
-
-  ion-icon {
-    font-size: 1.5em;
-    margin-right: 15px;
-  }
-
-  ion-input {
-    font-weight: bold;
-    font-size: 1.1em;
-  }
+.dettagli-wrapper {
+  max-width: 680px;
+  margin: 0 auto;
 }
 
 // ==========================================
-// GRIGLIA AVATAR - FISSA A 5
+// 1. CARD RIEPILOGO CONVOCATI (TOP)
 // ==========================================
-.selected-avatars-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 15px 5px;
-  padding: 15px 5px;
-  border-bottom: 1px solid var(--app-border-color);
-  justify-items: center;
+.convocati-summary-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--app-card-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-  .avatar-item {
-    text-align: center;
-    width: 100%;
+  &:hover {
+    transform: translateY(-1px);
+    border-color: rgba(var(--app-primary-rgb), 0.4);
+  }
 
-    .avatar-wrapper {
-      position: relative;
-      display: inline-block;
+  &:active {
+    transform: scale(0.98);
+  }
 
-      ion-avatar {
-        width: 50px;
-        height: 50px;
-        margin: 0 auto;
-        border: 2px solid var(--ion-color-success);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  .summary-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+
+    .avatars-overlap-row {
+      display: flex;
+      align-items: center;
+
+      .overlap-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid var(--app-card-bg);
+        margin-left: -10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px var(--app-overlay-light);
+
+        &:first-child {
+          margin-left: 0;
+        }
 
         app-player-avatar,
         img {
@@ -61,36 +64,187 @@
         }
       }
 
-      .fixed-check-badge {
-        position: absolute;
-        top: -4px;
-        right: -4px;
-        background: var(--ion-color-success);
+      .overlap-more-badge {
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        @include flex-center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        z-index: 10;
-
-        ion-icon {
-          font-size: 14px;
-          font-weight: bold;
-        }
+        background: var(--app-surface-subtle);
+        border: 2px solid var(--app-card-bg);
+        color: var(--app-text-primary);
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: -10px;
+        z-index: 6;
       }
     }
 
-    small {
-      font-size: 10px;
-      font-weight: bold;
-      color: var(--app-text-secondary);
-      display: block;
-      margin-top: 6px;
-      @include text-ellipsis;
-      max-width: 65px;
-      margin-left: auto;
-      margin-right: auto;
+    .summary-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .summary-title-line {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .summary-count {
+          font-size: 0.92rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+        }
+
+        .summary-format-badge {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: var(--app-primary);
+          background: var(--app-primary-subtle);
+          padding: 2px 7px;
+          border-radius: 10px;
+          border: 1px solid var(--app-primary-border);
+        }
+      }
+
+      .summary-sub {
+        font-size: 0.72rem;
+        color: var(--app-text-muted);
+        margin-top: 2px;
+        @include text-ellipsis;
+      }
     }
+  }
+
+  .btn-edit-convocati {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 10px;
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
+      border-color: var(--app-border-color);
+    }
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// ==========================================
+// 2. SEZIONI A CARD STRUTTURATE
+// ==========================================
+.details-section-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--app-card-shadow);
+
+  .section-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+
+    .section-icon {
+      font-size: 1.45rem;
+      filter: drop-shadow(0 2px 4px var(--app-overlay-light));
+      flex-shrink: 0;
+    }
+
+    .section-header-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .title-with-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .section-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        margin: 0;
+      }
+
+      .section-sub {
+        font-size: 0.72rem;
+        color: var(--app-text-muted);
+        margin-top: 2px;
+      }
+
+      .optional-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--app-text-muted);
+        background: var(--app-surface-subtle);
+        border: 1px solid var(--app-card-border);
+        padding: 1px 6px;
+        border-radius: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+    }
+  }
+
+  .section-card-body {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+// ==========================================
+// INPUT ELEGANTI (STILE CARD)
+// ==========================================
+.elegant-input-item {
+  --background: var(--app-surface-subtle);
+  --color: var(--app-text-primary);
+  --border-radius: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--app-card-border);
+  box-shadow: 0 1px 3px var(--app-overlay-light);
+  padding-top: 4px;
+  padding-bottom: 4px;
+
+  ion-icon {
+    font-size: 1.4em;
+    margin-right: 12px;
+  }
+
+  ion-input,
+  ion-textarea {
+    font-weight: 700;
+    font-size: 1rem;
+  }
+}
+
+// DATA & ORARIO AFFIANCATI SU 2 COLONNE
+.datetime-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .elegant-input-item {
+    margin-bottom: 0;
   }
 }
 
@@ -98,6 +252,7 @@
   border: 1px solid var(--app-accent-danger) !important;
 }
 
+// FEEDBACK STAGIONE
 .season-warning-card {
   display: flex;
   align-items: flex-start;
@@ -106,11 +261,11 @@
   border: 1px solid var(--app-accent-danger-border);
   border-radius: 12px;
   padding: 12px 14px;
-  margin-bottom: 16px;
+  margin-top: 4px;
   animation: tabFadeIn 0.25s ease-in-out;
 
   ion-icon {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     color: var(--app-accent-danger);
     flex-shrink: 0;
     margin-top: 2px;
@@ -120,13 +275,13 @@
     strong {
       display: block;
       color: var(--app-accent-danger);
-      font-size: 0.9rem;
-      margin-bottom: 4px;
+      font-size: 0.88rem;
+      margin-bottom: 3px;
     }
 
     p {
       margin: 0;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       color: var(--app-text-primary);
       line-height: 1.35;
     }
@@ -137,175 +292,241 @@
   @include pill-badge-primary;
   padding: 5px 12px;
   border-radius: 16px;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  margin-bottom: 16px;
+  margin-top: 4px;
+  width: fit-content;
 
   ion-icon {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 }
 
 // ==========================================
-// CARD SELEZIONE MODALITÀ PORTIERI
+// 3. CARD SELEZIONE MODALITÀ PORTIERI
 // ==========================================
-.portieri-setup-card {
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  border-radius: 14px;
-  padding: 16px;
-  box-shadow: var(--app-card-shadow);
+.portieri-teams-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
 
-  .portieri-setup-header {
-    margin-bottom: 14px;
+  .team-mode-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 76px;
+    padding: 10px 12px;
+    background: var(--app-surface-subtle);
+    border: 1.5px solid var(--app-accent-blue-border);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 
-    .header-icon-title {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    &:hover {
+      border-color: var(--app-accent-blue);
+      background: var(--app-accent-blue-subtle);
+      transform: translateY(-1px);
 
-      .gk-setup-icon {
-        font-size: 1.8rem;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+      .switch-icon {
+        transform: rotate(180deg);
+        color: var(--app-accent-blue);
+        opacity: 1;
+      }
+    }
+
+    &:active {
+      transform: scale(0.97);
+    }
+
+    &.is-fisso {
+      border-color: var(--app-accent-gold-border);
+      background: var(--app-accent-gold-subtle);
+      box-shadow: 0 0 10px rgba(var(--app-accent-gold-rgb), 0.15);
+
+      &:hover {
+        border-color: var(--app-accent-gold);
+        background: var(--app-accent-gold-subtle);
+
+        .switch-icon {
+          color: var(--app-accent-gold);
+          opacity: 1;
+        }
       }
 
-      .gk-setup-titles {
-        display: flex;
-        flex-direction: column;
+      .mode-title {
+        color: var(--app-accent-gold);
+      }
+    }
 
-        .setup-main-title {
-          font-size: 1rem;
-          font-weight: 800;
-          color: var(--app-text-primary);
+    .card-team-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+
+      .team-identity {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .team-badge-circle {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          display: inline-block;
+          flex-shrink: 0;
+
+          &.white {
+            background: var(--app-team-bianchi);
+            border: 1px solid var(--app-team-bianchi-border);
+            box-shadow: 0 0 4px var(--app-team-bianchi-glow);
+          }
+
+          &.black {
+            background: var(--app-team-neri);
+            border: 1px solid var(--app-team-neri-border);
+            box-shadow: 0 0 4px var(--app-team-neri-glow);
+          }
         }
 
-        .setup-sub-title {
-          font-size: 0.75rem;
+        .team-name {
+          font-size: 0.8rem;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          color: var(--app-text-primary);
+        }
+      }
+
+      .switch-icon {
+        font-size: 0.95rem;
+        color: var(--app-text-muted);
+        transition: transform 0.25s ease, color 0.2s ease, opacity 0.2s ease;
+        opacity: 0.7;
+      }
+    }
+
+    .card-mode-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+
+      .mode-emoji {
+        font-size: 1.35rem;
+        line-height: 1;
+        filter: drop-shadow(0 1px 2px var(--app-overlay-light));
+        flex-shrink: 0;
+      }
+
+      .mode-info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        .mode-title {
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: var(--app-accent-blue);
+          line-height: 1.15;
+          @include text-ellipsis;
+        }
+
+        .mode-sub {
+          font-size: 0.68rem;
           color: var(--app-text-muted);
+          line-height: 1.1;
           margin-top: 2px;
+          @include text-ellipsis;
         }
       }
     }
   }
+}
 
-  .team-portiere-control {
-    background: rgba(var(--ion-color-step-100-rgb, 255, 255, 255), 0.03);
-    border: 1px solid var(--app-card-border);
-    border-radius: 12px;
-    padding: 12px;
+// ==========================================
+// 4. RETROSCENA PABLO AI
+// ==========================================
+.ai-notes-section {
+  .elegant-input-item {
+    margin-bottom: 0;
+  }
+}
+
+// ==========================================
+// 5. PULSANTE / BARRA DI AVANZAMENTO CONTINUA
+// ==========================================
+.bottom-action-container {
+  margin-top: 20px;
+  padding-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .validation-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--app-accent-gold);
     margin-bottom: 12px;
+    text-align: center;
+    animation: tabFadeIn 0.2s ease;
 
-    &:last-child {
-      margin-bottom: 0;
+    ion-icon {
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .btn-continue-squadre {
+    width: 100%;
+    height: 50px;
+    border-radius: 14px;
+    border: none;
+    font-size: 0.98rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+
+    ion-icon {
+      font-size: 1.2rem;
+      transition: transform 0.2s ease;
     }
 
-    .team-label-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
+    &:not(:disabled) {
+      background: var(--app-primary);
+      color: var(--app-primary-contrast);
+      box-shadow: 0 4px 16px rgba(var(--app-primary-rgb), 0.35);
 
-      .team-badge-circle {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        display: inline-block;
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(var(--app-primary-rgb), 0.45);
 
-        &.white {
-          background: #f8fafc;
-          border: 1px solid #cbd5e1;
-        }
-
-        &.black {
-          background: #1e293b;
-          border: 1px solid #475569;
+        ion-icon {
+          transform: translateX(3px);
         }
       }
 
-      .team-name {
-        font-size: 0.85rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        color: var(--app-text-primary);
-      }
-
-      .rotazione-pill {
-        margin-left: auto;
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #38bdf8;
-        background: rgba(56, 189, 248, 0.12);
-        padding: 2px 8px;
-        border-radius: 12px;
-        border: 1px solid rgba(56, 189, 248, 0.3);
-      }
-
-      .di-ruolo-pill {
-        margin-left: auto;
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #fbbf24;
-        background: rgba(251, 191, 36, 0.15);
-        padding: 2px 8px;
-        border-radius: 12px;
-        border: 1px solid rgba(251, 191, 36, 0.35);
-        box-shadow: 0 0 8px rgba(251, 191, 36, 0.2);
+      &:active {
+        transform: scale(0.98);
       }
     }
 
-    .toggle-mode-group {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-
-      .mode-btn {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        background: var(--app-card-bg);
-        border: 1.5px solid var(--app-card-border);
-        border-radius: 10px;
-        color: var(--app-text-secondary);
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: left;
-
-        .mode-icon {
-          font-size: 1.3rem;
-          flex-shrink: 0;
-        }
-
-        .mode-text {
-          display: flex;
-          flex-direction: column;
-
-          strong {
-            font-size: 0.8rem;
-            color: var(--app-text-primary);
-          }
-
-          small {
-            font-size: 0.68rem;
-            color: var(--app-text-muted);
-            line-height: 1.1;
-          }
-        }
-
-        &:hover {
-          border-color: rgba(var(--ion-color-success-rgb), 0.5);
-        }
-
-        &.active {
-          background: rgba(var(--ion-color-success-rgb), 0.1);
-          border-color: var(--ion-color-success);
-          box-shadow: 0 0 10px rgba(var(--ion-color-success-rgb), 0.2);
-
-          .mode-text strong {
-            color: var(--ion-color-success);
-          }
-        }
-      }
+    &:disabled {
+      background: var(--app-surface-subtle);
+      color: var(--app-text-muted);
+      border: 1px solid var(--app-card-border);
+      cursor: not-allowed;
+      opacity: 0.65;
     }
   }
 }

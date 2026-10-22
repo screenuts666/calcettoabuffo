@@ -256,8 +256,14 @@
             <!-- Riga 1: Nome, Soprannome e Badge Tier -->
             <div class="name-tier-row">
               <span class="player-name">{{ g.nome }}</span>
-              @if (g.soprannomeAi || g.soprannome) {
-                <span class="nickname-span">"{{ g.soprannomeAi || g.soprannome }}"</span>
+              @if (g.soprannome) {
+                <span class="nickname-span">"{{ g.soprannome }}"</span>
+                @if (g.soprannomeAi && g.soprannomeAi !== g.soprannome) {
+                  <span class="ai-pill-tiny" [title]="'Alias AI: ' + g.soprannomeAi">✨ {{ g.soprannomeAi }}</span>
+                }
+              } @else if (g.soprannomeAi) {
+                <span class="nickname-span">"{{ g.soprannomeAi }}"</span>
+                <span class="ai-pill-tiny" title="Soprannome coniato da Gemini AI">✨ AI</span>
               }
 
               <!-- Badge Tier MMR -->
@@ -423,8 +429,14 @@
                   <ion-label class="ion-text-wrap player-info-label">
                     <div class="name-tier-row">
                       <span class="player-name">{{ ug.nome }}</span>
-                      @if (ug.soprannomeAi || ug.soprannome) {
-                        <span class="nickname-span">"{{ ug.soprannomeAi || ug.soprannome }}"</span>
+                      @if (ug.soprannome) {
+                        <span class="nickname-span">"{{ ug.soprannome }}"</span>
+                        @if (ug.soprannomeAi && ug.soprannomeAi !== ug.soprannome) {
+                          <span class="ai-pill-tiny" [title]="'Alias AI: ' + ug.soprannomeAi">✨ {{ ug.soprannomeAi }}</span>
+                        }
+                      } @else if (ug.soprannomeAi) {
+                        <span class="nickname-span">"{{ ug.soprannomeAi }}"</span>
+                        <span class="ai-pill-tiny" title="Soprannome coniato da Gemini AI">✨ AI</span>
                       }
                       <span class="tier-pill unranked-pill">
                         <ion-icon name="help-circle-outline"></ion-icon>

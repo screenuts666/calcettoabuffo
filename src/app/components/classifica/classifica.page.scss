@@ -493,6 +493,20 @@
   color: var(--app-text-muted);
 }
 
+.ai-pill-tiny {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-style: italic;
+  padding: 1px 5px;
+  border-radius: 6px;
+  background: var(--app-accent-purple-subtle);
+  border: 1px solid var(--app-accent-purple-border);
+  color: var(--app-accent-purple);
+  white-space: nowrap;
+}
+
 // Pill del Tier
 .tier-pill {
   display: inline-flex;

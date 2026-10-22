@@ -27,7 +27,7 @@ import {
 } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { arrowBack, close, arrowForward } from 'ionicons/icons';
+import { arrowBack, close, arrowForward, checkmark } from 'ionicons/icons';
 
 import { AuthService } from '../../../services/auth.service';
 import { MatchStateService } from './match-state.service';
@@ -79,7 +79,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private routeSub?: Subscription;
 
   constructor() {
-    addIcons({ arrowBack, close, arrowForward });
+    addIcons({ arrowBack, close, arrowForward, checkmark });
   }
 
   async ngOnInit() {

@@ -58,6 +58,48 @@
   font-style: italic;
 }
 
+.player-nickname-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px 0;
+
+  .player-nickname {
+    margin: 0;
+  }
+}
+
+.player-nickname-ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-style: italic;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--app-accent-purple-subtle);
+  border: 1px solid var(--app-accent-purple-border);
+  color: var(--app-accent-purple);
+}
+
+.ai-nick-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-style: normal;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--app-accent-purple-subtle);
+  border: 1px solid var(--app-accent-purple-border);
+  color: var(--app-accent-purple);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
 .spacer-8 {
   height: 8px;
 }

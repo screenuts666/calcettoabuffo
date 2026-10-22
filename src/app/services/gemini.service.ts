@@ -215,14 +215,19 @@ export class GeminiService {
   formatPlayerBio(p: any): string {
     if (!p) return 'Sconosciuto';
     const nome = (p.nome || 'Giocatore').trim();
-    const soprannome = (p.soprannome || p.soprannomeAi || '').trim();
     const ruolo = (p.ruoloPreferito || p.ruolo || 'Jolly').trim();
     const eta = this.calcolaEta(p.annoNascita);
     const peso = p.peso ? `${p.peso}kg` : '';
     const altezza = p.altezza ? `${p.altezza}cm` : '';
 
     const tags: string[] = [];
-    if (soprannome) tags.push(`detto "${soprannome}"`);
+    if (p.soprannome && p.soprannomeAi && p.soprannome !== p.soprannomeAi) {
+      tags.push(`soprannome: "${p.soprannome}" (alias spogliatoio AI: "${p.soprannomeAi}")`);
+    } else if (p.soprannome) {
+      tags.push(`soprannome: "${p.soprannome}"`);
+    } else if (p.soprannomeAi) {
+      tags.push(`soprannome AI: "${p.soprannomeAi}"`);
+    }
     if (p.mmr) tags.push(`MMR: ${p.mmr}`);
     tags.push(`Ruolo: ${ruolo}`);
     if (eta !== null) tags.push(`Età: ${eta} anni (classe ${p.annoNascita})`);
@@ -487,7 +492,7 @@ export class GeminiService {
       giocatore.scoutingReportAi.trim().length > 0
     ) {
       return {
-        nickname: giocatore.soprannomeAi || giocatore.soprannome || '',
+        nickname: giocatore.soprannomeAi || '',
         scouting: giocatore.scoutingReportAi,
       };
     }
@@ -501,7 +506,7 @@ export class GeminiService {
 
     const rawResult = await this.callGemini(userPrompt, systemPrompt);
 
-    let nickname = giocatore.soprannome || '';
+    let nickname = '';
     let scouting = rawResult;
 
     const nickMatch = rawResult.match(/SOPRANNOME:\s*(.+)/i);
@@ -514,21 +519,36 @@ export class GeminiService {
       scouting = scoutMatch[1].trim();
     }
 
+    // Accumula nello storico dei soprannomi AI senza duplicati
+    const existingList: string[] = Array.isArray((giocatore as any).soprannomiAi)
+      ? [...(giocatore as any).soprannomiAi]
+      : [];
+    if (nickname && !existingList.includes(nickname)) {
+      existingList.push(nickname);
+    }
+
     // Caching intelligente su Firestore (documento giocatore)
+    // NOTA: il campo `soprannome` manuale NON viene MAI toccato o sovrascritto!
     if (giocatore.id) {
       try {
         await updateDoc(doc(this.firestore, `giocatori/${giocatore.id}`), {
           soprannomeAi: nickname,
+          soprannomiAi: existingList,
           scoutingReportAi: scouting,
           aiUpdatedAt: new Date().toISOString(),
         });
         giocatore.soprannomeAi = nickname;
+        giocatore.soprannomiAi = existingList;
         giocatore.scoutingReportAi = scouting;
       } catch (e) {
         console.warn('Errore salvataggio scouting su Firestore:', e);
       }
     }
 
-    return { nickname, scouting };
+    // Ritorna l'alias AI generato (il soprannome manuale resta intatto su giocatore.soprannome)
+    return {
+      nickname,
+      scouting,
+    };
   }
 }

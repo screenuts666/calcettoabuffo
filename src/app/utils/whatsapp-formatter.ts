@@ -177,7 +177,7 @@ export function formatMatchForWhatsApp(
     }
   }
 
-  // Note a bordocampo dell'organizzatore (Pablo)
+  // Note a bordocampo dell'organizzatore
   const commentoPartita = (partita.commentoPartita || (partita as any)?.commento || reportData?.commentoPartita)?.trim();
   if (options.includeCommentoPartita !== false && commentoPartita) {
     parts.push('');

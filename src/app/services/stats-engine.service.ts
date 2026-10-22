@@ -67,20 +67,20 @@ export class StatsEngineService {
 
     this.giocatoriRaw = this.firestore
       ? toSignal<Giocatore[], Giocatore[]>(
-          collectionData(collection(this.firestore, 'giocatori'), {
-            idField: 'id',
-          }) as Observable<Giocatore[]>,
-          { initialValue: [] },
-        )
+        collectionData(collection(this.firestore, 'giocatori'), {
+          idField: 'id',
+        }) as Observable<Giocatore[]>,
+        { initialValue: [] },
+      )
       : signal<Giocatore[]>([]);
 
     this.partiteRaw = this.firestore
       ? toSignal<Partita[], Partita[]>(
-          collectionData(collection(this.firestore, 'partite'), {
-            idField: 'id',
-          }) as Observable<Partita[]>,
-          { initialValue: [] },
-        )
+        collectionData(collection(this.firestore, 'partite'), {
+          idField: 'id',
+        }) as Observable<Partita[]>,
+        { initialValue: [] },
+      )
       : signal<Partita[]>([]);
 
     this.statsResult = computed<MmrCalculationResult>(() => {
@@ -253,15 +253,15 @@ export class StatsEngineService {
       isRanked && playerMmr?.form
         ? playerMmr.form
         : {
-            currentStreak: 0,
-            status: 'neutral' as const,
-            statusLabel: 'Costante',
-            emoji: '➖',
-            multiplier: 1.0,
-            bestWinStreak: 0,
-            worstLossStreak: 0,
-            recentForm: [],
-          };
+          currentStreak: 0,
+          status: 'neutral' as const,
+          statusLabel: 'Costante',
+          emoji: '➖',
+          multiplier: 1.0,
+          bestWinStreak: 0,
+          worstLossStreak: 0,
+          recentForm: [],
+        };
 
     const history = isRanked ? playerMmr?.history || [] : [];
     const lastMatch = history.length > 0 ? history[history.length - 1] : null;
@@ -666,7 +666,7 @@ export class StatsEngineService {
 
   /**
    * Genera un resoconto testuale approfondito delle prestazioni dei portieri di un match,
-   * ideale per note post-partita e per l'arricchimento del prompt telecronaca di Pablo.
+   * ideale per note post-partita e per l'arricchimento del prompt telecronaca.
    */
   static generateGoalkeeperMatchSummary(match: Partita): {
     summaryA: string;
@@ -697,10 +697,10 @@ export class StatsEngineService {
           'portiere';
         const stats = fixedP
           ? StatsEngineService.calculateGoalkeeperStatsForMatch(
-              fixedP.id,
-              match,
-              team,
-            )
+            fixedP.id,
+            match,
+            team,
+          )
           : { golSubiti: 0, turniGiocati: 1, cleanSheetTurni: 0 };
 
         const tag = isDiRuolo ? '👑 Portiere di Ruolo' : '🧤 Portiere Fisso';
@@ -772,18 +772,18 @@ export class StatsEngineService {
       const avgA =
         teamA.length > 0
           ? teamA.reduce(
-              (sum: number, p: any) =>
-                sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
-              0,
-            ) / teamA.length
+            (sum: number, p: any) =>
+              sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
+            0,
+          ) / teamA.length
           : BASE_INITIAL_MMR;
       const avgB =
         teamB.length > 0
           ? teamB.reduce(
-              (sum: number, p: any) =>
-                sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
-              0,
-            ) / teamB.length
+            (sum: number, p: any) =>
+              sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
+            0,
+          ) / teamB.length
           : BASE_INITIAL_MMR;
       odds = StatsEngineService.calculateOdds(avgA, avgB);
     }
@@ -955,31 +955,31 @@ export class StatsEngineService {
     const teamAvgMmrDeltaA =
       playersA.length > 0
         ? Math.round(
-            playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersA.length,
-          )
+          playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersA.length,
+        )
         : 0;
     const teamAvgMmrDeltaB =
       playersB.length > 0
         ? Math.round(
-            playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersB.length,
-          )
+          playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersB.length,
+        )
         : 0;
 
     const teamLegacyDeltaA =
       playersA.length > 0
         ? Math.round(
-            (playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
-              playersA.length) *
-              10,
-          ) / 10
+          (playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
+            playersA.length) *
+          10,
+        ) / 10
         : 0;
     const teamLegacyDeltaB =
       playersB.length > 0
         ? Math.round(
-            (playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
-              playersB.length) *
-              10,
-          ) / 10
+          (playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
+            playersB.length) *
+          10,
+        ) / 10
         : 0;
 
     // Voti Medi Squadra
@@ -987,14 +987,14 @@ export class StatsEngineService {
     const votoMedioA =
       votiA.length > 0
         ? Math.round((votiA.reduce((sum: number, v: number) => sum + v, 0) / votiA.length) * 10) /
-          10
+        10
         : 0;
 
     const votiB: number[] = playersB.filter((p: MatchReportPlayer) => (p.voto ?? 0) > 0).map((p: MatchReportPlayer) => p.voto!);
     const votoMedioB =
       votiB.length > 0
         ? Math.round((votiB.reduce((sum: number, v: number) => sum + v, 0) / votiB.length) * 10) /
-          10
+        10
         : 0;
 
     // 4. MVP del Match e Peggiore (goliardico)
@@ -1671,7 +1671,7 @@ export class StatsEngineService {
                 streakBonus +
                 movBonus +
                 eliteBrakeApplied) *
-                10,
+              10,
             ) / 10,
           },
           streakBefore,
@@ -1964,7 +1964,7 @@ export class StatsEngineService {
           playerId,
           partnerId,
           partnerNome: pMeta?.nome || 'Sconosciuto',
-          partnerSoprannome: pMeta?.soprannome,
+          partnerSoprannome: pMeta?.soprannome || pMeta?.soprannomeAi,
           partnerFotoUrl: getAvatarUrl(pMeta?.fotoUrl),
           matchesTogether: t.matches,
           winsTogether: t.wins,
@@ -1990,7 +1990,7 @@ export class StatsEngineService {
           playerId,
           opponentId: oppId,
           opponentNome: oMeta?.nome || 'Sconosciuto',
-          opponentSoprannome: oMeta?.soprannome,
+          opponentSoprannome: oMeta?.soprannome || oMeta?.soprannomeAi,
           opponentFotoUrl: getAvatarUrl(oMeta?.fotoUrl),
           matchesAgainst: ag.matches,
           winsAgainst: ag.wins,

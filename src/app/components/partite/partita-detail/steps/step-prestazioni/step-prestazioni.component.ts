@@ -139,7 +139,7 @@ export class StepPrestazioniComponent {
     this.state.commentoPartita.set(updated);
     await this.state.salvaInDatabase(this.state.pagelleInserite(), this.state.matchConcluso());
     const toast = await this.toastCtrl.create({
-      message: '🧤 Note sui portieri inserite nei retroscena di Pablo!',
+      message: '🧤 Note sui portieri inserite nei retroscena!',
       duration: 2500,
       color: 'success',
       position: 'top',

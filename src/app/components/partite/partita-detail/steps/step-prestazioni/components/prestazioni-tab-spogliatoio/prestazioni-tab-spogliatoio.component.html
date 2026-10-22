@@ -1,64 +1,50 @@
-<!-- NOTE & RETROSCENA DELLA PARTITA (COMMENTO DI PABLO) -->
+<!-- NOTE & RETROSCENA DELLA PARTITA (COMMENTO) -->
 <div class="report-section-card commento-partita-card">
   <div class="section-card-header">
     <div class="header-left">
       <ion-icon name="chatbox-ellipses-outline" class="section-icon commento-icon"></ion-icon>
       <span class="section-title">Note a Bordocampo</span>
-      <span class="pablo-author-badge">di Pablo</span>
+      <span class="author-badge">di</span>
     </div>
     @if (isAdmin) {
-      <div class="header-admin-actions">
-        <button
-          type="button"
-          class="insert-gk-btn"
-          (click)="insertGkNotesClick.emit()"
-          title="Inserisci automaticamente le note statistiche sui portieri"
-        >
-          <span>🧤 + Note Portieri</span>
-        </button>
-        <button
-          type="button"
-          class="save-commento-btn"
-          (click)="saveCommentoClick.emit(false)"
-          [disabled]="isSavingCommento"
-          title="Salva le note a bordocampo"
-        >
-          <ion-icon [name]="isSavingCommento ? 'hourglass-outline' : 'save-outline'"></ion-icon>
-          <span>{{ isSavingCommento ? 'Salvataggio...' : 'Salva Note' }}</span>
-        </button>
-      </div>
+    <div class="header-admin-actions">
+      <button type="button" class="insert-gk-btn" (click)="insertGkNotesClick.emit()"
+        title="Inserisci automaticamente le note statistiche sui portieri">
+        <span>🧤 + Note Portieri</span>
+      </button>
+      <button type="button" class="save-commento-btn" (click)="saveCommentoClick.emit(false)"
+        [disabled]="isSavingCommento" title="Salva le note a bordocampo">
+        <ion-icon [name]="isSavingCommento ? 'hourglass-outline' : 'save-outline'"></ion-icon>
+        <span>{{ isSavingCommento ? 'Salvataggio...' : 'Salva Note' }}</span>
+      </button>
+    </div>
     }
   </div>
 
   @if (isAdmin) {
-    <div class="commento-editor-wrapper">
-      <textarea
-        class="commento-custom-textarea"
-        rows="3"
-        placeholder="Es. Mario ha litigato sul rigore, campo scivolosissimo, tunnel clamoroso di Pablo a Simone al 40'..."
-        [value]="commentoPartita"
-        (input)="commentoChange.emit($event)"
-        (blur)="saveCommentoClick.emit(true)"
-      ></textarea>
-      <div class="commento-ai-feedback">
-        <ion-icon name="sparkles" class="sparkle-hint-icon"></ion-icon>
-        <span>L'AI prenderà queste note per arricchire la telecronaca ignorante e i commenti della partita!</span>
-      </div>
+  <div class="commento-editor-wrapper">
+    <textarea class="commento-custom-textarea" rows="3"
+      placeholder="Es. Mario ha litigato sul rigore, campo scivolosissimo, tunnel clamoroso a Simone al 40'..."
+      [value]="commentoPartita" (input)="commentoChange.emit($event)" (blur)="saveCommentoClick.emit(true)"></textarea>
+    <div class="commento-ai-feedback">
+      <ion-icon name="sparkles" class="sparkle-hint-icon"></ion-icon>
+      <span>L'AI prenderà queste note per arricchire la telecronaca ignorante e i commenti della partita!</span>
     </div>
+  </div>
   } @else {
-    @if (commentoPartita.trim()) {
-      <div class="commento-view-wrapper">
-        <div class="commento-bubble">
-          <span class="quote-sign">“</span>
-          <p class="commento-body-text">{{ commentoPartita }}</p>
-        </div>
-      </div>
-    } @else {
-      <div class="commento-empty-state">
-        <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-        <span>Nessun retroscena o commento inserito a bordocampo per questa partita.</span>
-      </div>
-    }
+  @if (commentoPartita.trim()) {
+  <div class="commento-view-wrapper">
+    <div class="commento-bubble">
+      <span class="quote-sign">“</span>
+      <p class="commento-body-text">{{ commentoPartita }}</p>
+    </div>
+  </div>
+  } @else {
+  <div class="commento-empty-state">
+    <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+    <span>Nessun retroscena o commento inserito a bordocampo per questa partita.</span>
+  </div>
+  }
   }
 </div>
 
@@ -70,79 +56,67 @@
       <span class="section-title">Telecronaca Ignorante</span>
     </div>
     @if (cronacaAi) {
-      <div class="header-actions">
-        <app-ai-tts-button
-          [text]="cronacaAi"
-          [id]="'cronaca-' + (matchId || 'temp')"
-          label="Ascolta Telecronaca"
-          shareTitle="Telecronaca Ignorante Partita"
-        ></app-ai-tts-button>
-        <button
-          type="button"
-          class="ai-refresh-btn"
-          (click)="generateCronacaClick.emit(true)"
-          [disabled]="isGeneratingCronaca"
-          title="Rigenera la cronaca con Gemini"
-        >
-          <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca"></ion-icon>
-          <span>{{ isGeneratingCronaca ? 'Riscrivo...' : '🔄 Rigenera AI' }}</span>
-        </button>
-      </div>
+    <div class="header-actions">
+      <app-ai-tts-button [text]="cronacaAi" [id]="'cronaca-' + (matchId || 'temp')" label="Ascolta Telecronaca"
+        shareTitle="Telecronaca Ignorante Partita"></app-ai-tts-button>
+      <button type="button" class="ai-refresh-btn" (click)="generateCronacaClick.emit(true)"
+        [disabled]="isGeneratingCronaca" title="Rigenera la cronaca con Gemini">
+        <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca"></ion-icon>
+        <span>{{ isGeneratingCronaca ? 'Riscrivo...' : '🔄 Rigenera AI' }}</span>
+      </button>
+    </div>
     }
   </div>
 
   @if (cronacaAi) {
-    <div class="cronaca-content-box">
-      <div class="cronaca-bubble">
-        <div class="cronaca-text" [innerHTML]="formatAiMarkdown(cronacaAi)"></div>
-      </div>
-      <div class="cronaca-footer">
-        <span class="cronaca-hint">💾 Salvata nel DB · Inclusa nel report WhatsApp</span>
-      </div>
+  <div class="cronaca-content-box">
+    <div class="cronaca-bubble">
+      <div class="cronaca-text" [innerHTML]="formatAiMarkdown(cronacaAi)"></div>
     </div>
+    <div class="cronaca-footer">
+      <span class="cronaca-hint">💾 Salvata nel DB · Inclusa nel report WhatsApp</span>
+    </div>
+  </div>
   } @else {
-    <div class="ai-empty-cronaca">
-      <div class="empty-icon">📢</div>
-      <div class="empty-info">
-        <h4>Nessuna telecronaca ancora generata</h4>
-        <p>Lascia che Gemini commenti marcatori, voti, lisci e il Bidone della serata con stile ignorante da spogliatoio!</p>
-      </div>
-      <button
-        type="button"
-        class="ai-generate-cronaca-btn"
-        (click)="generateCronacaClick.emit(false)"
-        [disabled]="isGeneratingCronaca"
-      >
-        @if (isGeneratingCronaca) {
-          <ion-spinner name="crescent"></ion-spinner>
-          <span>Generazione telecronaca in corso...</span>
-        } @else {
-          <ion-icon name="sparkles"></ion-icon>
-          <span>🎙️ Genera Cronaca Ignorante AI</span>
-        }
-      </button>
+  <div class="ai-empty-cronaca">
+    <div class="empty-icon">📢</div>
+    <div class="empty-info">
+      <h4>Nessuna telecronaca ancora generata</h4>
+      <p>Lascia che Gemini commenti marcatori, voti, lisci e il Bidone della serata con stile ignorante da spogliatoio!
+      </p>
     </div>
+    <button type="button" class="ai-generate-cronaca-btn" (click)="generateCronacaClick.emit(false)"
+      [disabled]="isGeneratingCronaca">
+      @if (isGeneratingCronaca) {
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Generazione telecronaca in corso...</span>
+      } @else {
+      <ion-icon name="sparkles"></ion-icon>
+      <span>🎙️ Genera Cronaca Ignorante AI</span>
+      }
+    </button>
+  </div>
   }
 </div>
 
 <!-- CHIMICA & DUELLI IN CAMPO -->
 @if (chemistryNotes.length > 0) {
-  <div class="report-section-card chemistry-section-card">
-    <div class="section-card-header">
-      <div class="header-left">
-        <ion-icon name="sparkles" class="section-icon chemistry-icon"></ion-icon>
-        <span class="section-title">Chimica & Duelli</span>
-      </div>
-    </div>
-
-    <div class="chemistry-notes-list">
-      @for (chem of chemistryNotes; track chem.title) {
-        <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
-          <div class="chem-badge-pill">{{ chem.badge }}</div>
-          <div class="chem-note-title">{{ chem.title }}</div>
-          <div class="chem-note-desc">{{ chem.description }}</div>
-        </div>
-      }
+<div class="report-section-card chemistry-section-card">
+  <div class="section-card-header">
+    <div class="header-left">
+      <ion-icon name="sparkles" class="section-icon chemistry-icon"></ion-icon>
+      <span class="section-title">Chimica & Duelli</span>
     </div>
   </div>
+
+  <div class="chemistry-notes-list">
+    @for (chem of chemistryNotes; track chem.title) {
+    <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
+      <div class="chem-badge-pill">{{ chem.badge }}</div>
+      <div class="chem-note-title">{{ chem.title }}</div>
+      <div class="chem-note-desc">{{ chem.description }}</div>
+    </div>
+    }
+  </div>
+</div>
 }

@@ -58,6 +58,11 @@
             <h3 class="player-name">{{ comp.playerA.nome }}</h3>
             @if (comp.playerA.soprannome) {
               <span class="player-nick">"{{ comp.playerA.soprannome }}"</span>
+              @if (comp.playerA.soprannomeAi && comp.playerA.soprannomeAi !== comp.playerA.soprannome) {
+                <span class="player-nick-ai" [title]="'Alias AI: ' + comp.playerA.soprannomeAi">✨ {{ comp.playerA.soprannomeAi }}</span>
+              }
+            } @else if (comp.playerA.soprannomeAi) {
+              <span class="player-nick">"{{ comp.playerA.soprannomeAi }}"</span>
             }
             <div class="tier-pill" [style.color]="comp.playerA.tier.color">
               <ion-icon [name]="comp.playerA.tier.icon"></ion-icon>
@@ -114,6 +119,11 @@
             <h3 class="player-name">{{ comp.playerB.nome }}</h3>
             @if (comp.playerB.soprannome) {
               <span class="player-nick">"{{ comp.playerB.soprannome }}"</span>
+              @if (comp.playerB.soprannomeAi && comp.playerB.soprannomeAi !== comp.playerB.soprannome) {
+                <span class="player-nick-ai" [title]="'Alias AI: ' + comp.playerB.soprannomeAi">✨ {{ comp.playerB.soprannomeAi }}</span>
+              }
+            } @else if (comp.playerB.soprannomeAi) {
+              <span class="player-nick">"{{ comp.playerB.soprannomeAi }}"</span>
             }
             <div class="tier-pill" [style.color]="comp.playerB.tier.color">
               <ion-icon [name]="comp.playerB.tier.icon"></ion-icon>
@@ -599,6 +609,11 @@
                 <span class="picker-name"><b>{{ g.nome }}</b></span>
                 @if (g.soprannome) {
                   <span class="picker-nick">"{{ g.soprannome }}"</span>
+                  @if (g.soprannomeAi && g.soprannomeAi !== g.soprannome) {
+                    <span class="picker-nick-ai">✨ "{{ g.soprannomeAi }}"</span>
+                  }
+                } @else if (g.soprannomeAi) {
+                  <span class="picker-nick">"{{ g.soprannomeAi }}"</span>
                 }
               </div>
 

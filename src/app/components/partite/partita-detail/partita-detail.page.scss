@@ -1,0 +1,90 @@
+.wizard-stepper-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 20px 10px;
+  background: var(--app-toolbar-bg);
+  border-bottom: 1px solid var(--app-toolbar-border);
+
+  .step-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
+    }
+
+    .node-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--app-surface-subtle);
+      border: 1.5px solid var(--app-card-border);
+      color: var(--app-text-muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 0.82rem;
+      }
+    }
+
+    .node-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--app-text-muted);
+      transition: color 0.2s ease;
+    }
+
+    &.active {
+      .node-circle {
+        background: rgba(var(--app-primary-rgb), 0.15);
+        border-color: var(--app-primary);
+        color: var(--app-primary);
+        box-shadow: 0 0 10px rgba(var(--app-primary-rgb), 0.3);
+      }
+
+      .node-label {
+        color: var(--app-primary);
+        font-weight: 800;
+      }
+    }
+
+    &.completed {
+      .node-circle {
+        background: var(--app-primary);
+        border-color: var(--app-primary);
+        color: var(--app-primary-contrast);
+      }
+
+      .node-label {
+        color: var(--app-text-primary);
+      }
+    }
+  }
+
+  .step-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--app-card-border);
+    margin: 0 8px 14px;
+    transition: background 0.3s ease;
+
+    &.filled {
+      background: var(--app-primary);
+    }
+  }
+}

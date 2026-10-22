@@ -479,7 +479,8 @@ export class ConfrontoService {
     return {
       id: g.id,
       nome: g.nome,
-      soprannome: g.soprannome || g.soprannomeAi,
+      soprannome: g.soprannome,
+      soprannomeAi: g.soprannomeAi,
       annoNascita: g.annoNascita,
       peso: g.peso,
       altezza: g.altezza,

@@ -15,17 +15,13 @@
     <!-- Mini Match Header Card -->
     <div class="match-summary-card">
       @if (partita.fotoUrl) {
-        <div
-          class="summary-thumb"
-          [class.thumb-active]="includeFoto()"
-          (click)="toggleOption('foto')"
-          title="Tocca per includere/escludere la foto"
-        >
-          <img [src]="partita.fotoUrl" alt="Foto partita" />
-          <div class="thumb-badge" [class.badge-active]="includeFoto()">
-            <ion-icon [name]="includeFoto() ? 'checkmark-circle' : 'image-outline'"></ion-icon>
-          </div>
+      <div class="summary-thumb" [class.thumb-active]="includeFoto()" (click)="toggleOption('foto')"
+        title="Tocca per includere/escludere la foto">
+        <img [src]="partita.fotoUrl" alt="Foto partita" />
+        <div class="thumb-badge" [class.badge-active]="includeFoto()">
+          <ion-icon [name]="includeFoto() ? 'checkmark-circle' : 'image-outline'"></ion-icon>
         </div>
+      </div>
       }
       <div class="summary-info">
         <div class="summary-meta">
@@ -34,11 +30,11 @@
         </div>
         <div class="summary-score-row">
           @if (partita.status === 'conclusa') {
-            <span class="score-pill">
-              Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
-            </span>
+          <span class="score-pill">
+            Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
+          </span>
           } @else {
-            <span class="status-pill">{{ partita.status === 'in_corso' ? '⚡ IN CORSO' : '⚽ PROGRAMMATA' }}</span>
+          <span class="status-pill">{{ partita.status === 'in_corso' ? '⚡ IN CORSO' : '⚽ PROGRAMMATA' }}</span>
           }
         </div>
       </div>
@@ -48,107 +44,64 @@
     <div class="options-bar">
       <div class="options-hint">Personalizza contenuto:</div>
       <div class="chips-scroll-track">
-        <ion-chip
-          [class.chip-active]="includeRisultato()"
-          (click)="toggleOption('risultato')"
-        >
-          <ion-icon
-            [name]="includeRisultato() ? 'checkmark-circle' : 'trophy-outline'"
-            [color]="includeRisultato() ? 'success' : 'medium'"
-          ></ion-icon>
+        <ion-chip [class.chip-active]="includeRisultato()" (click)="toggleOption('risultato')">
+          <ion-icon [name]="includeRisultato() ? 'checkmark-circle' : 'trophy-outline'"
+            [color]="includeRisultato() ? 'success' : 'medium'"></ion-icon>
           <ion-label>Risultato</ion-label>
         </ion-chip>
 
-        <ion-chip
-          [class.chip-active]="includeMarcatori()"
-          (click)="toggleOption('marcatori')"
-        >
-          <ion-icon
-            [name]="includeMarcatori() ? 'checkmark-circle' : 'football-outline'"
-            [color]="includeMarcatori() ? 'success' : 'medium'"
-          ></ion-icon>
+        <ion-chip [class.chip-active]="includeMarcatori()" (click)="toggleOption('marcatori')">
+          <ion-icon [name]="includeMarcatori() ? 'checkmark-circle' : 'football-outline'"
+            [color]="includeMarcatori() ? 'success' : 'medium'"></ion-icon>
           <ion-label>Marcatori</ion-label>
         </ion-chip>
 
-        <ion-chip
-          [class.chip-active]="includePagelle()"
-          (click)="toggleOption('pagelle')"
-        >
-          <ion-icon
-            [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
-            [color]="includePagelle() ? 'success' : 'medium'"
-          ></ion-icon>
+        <ion-chip [class.chip-active]="includePagelle()" (click)="toggleOption('pagelle')">
+          <ion-icon [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
+            [color]="includePagelle() ? 'success' : 'medium'"></ion-icon>
           <ion-label>Pagelle</ion-label>
         </ion-chip>
 
         @if (partita.fotoUrl) {
-          <ion-chip
-            [class.chip-active]="includeFoto()"
-            (click)="toggleOption('foto')"
-          >
-            <ion-icon
-              [name]="includeFoto() ? 'checkmark-circle' : 'image-outline'"
-              [color]="includeFoto() ? 'success' : 'medium'"
-            ></ion-icon>
-            <ion-label>Foto</ion-label>
-          </ion-chip>
+        <ion-chip [class.chip-active]="includeFoto()" (click)="toggleOption('foto')">
+          <ion-icon [name]="includeFoto() ? 'checkmark-circle' : 'image-outline'"
+            [color]="includeFoto() ? 'success' : 'medium'"></ion-icon>
+          <ion-label>Foto</ion-label>
+        </ion-chip>
         }
 
-        <ion-chip
-          [class.chip-active]="includeLink()"
-          (click)="toggleOption('link')"
-        >
-          <ion-icon
-            [name]="includeLink() ? 'checkmark-circle' : 'link-outline'"
-            [color]="includeLink() ? 'success' : 'medium'"
-          ></ion-icon>
+        <ion-chip [class.chip-active]="includeLink()" (click)="toggleOption('link')">
+          <ion-icon [name]="includeLink() ? 'checkmark-circle' : 'link-outline'"
+            [color]="includeLink() ? 'success' : 'medium'"></ion-icon>
           <ion-label>Link App</ion-label>
         </ion-chip>
 
         @if (hasCommentoDisponibile()) {
-          <ion-chip
-            [class.chip-active]="includeCommentoPartita()"
-            (click)="toggleOption('commento')"
-            class="commento-chip"
-          >
-            <ion-icon
-              [name]="includeCommentoPartita() ? 'checkmark-circle' : 'chatbox-ellipses-outline'"
-              [color]="includeCommentoPartita() ? 'success' : 'medium'"
-            ></ion-icon>
-            <ion-label>📝 Note Pablo</ion-label>
-          </ion-chip>
+        <ion-chip [class.chip-active]="includeCommentoPartita()" (click)="toggleOption('commento')"
+          class="commento-chip">
+          <ion-icon [name]="includeCommentoPartita() ? 'checkmark-circle' : 'chatbox-ellipses-outline'"
+            [color]="includeCommentoPartita() ? 'success' : 'medium'"></ion-icon>
+          <ion-label>📝 Note</ion-label>
+        </ion-chip>
         }
 
         @if (hasCronacaDisponibile()) {
-          <ion-chip
-            [class.chip-active]="includeCronacaAi()"
-            (click)="toggleOption('cronaca')"
-            class="ai-chip"
-          >
-            <ion-icon
-              [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"
-              [color]="includeCronacaAi() ? 'success' : 'medium'"
-            ></ion-icon>
-            <ion-label>🎙️ Cronaca AI</ion-label>
-          </ion-chip>
+        <ion-chip [class.chip-active]="includeCronacaAi()" (click)="toggleOption('cronaca')" class="ai-chip">
+          <ion-icon [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"
+            [color]="includeCronacaAi() ? 'success' : 'medium'"></ion-icon>
+          <ion-label>🎙️ Cronaca AI</ion-label>
+        </ion-chip>
 
-          <ion-chip
-            (click)="inviaAudioCronacaWhatsApp()"
-            class="ai-chip audio-direct-chip"
-            [disabled]="isSharingAudio()"
-            title="Invia direttamente l'audio della telecronaca su WhatsApp"
-          >
-            <ion-icon name="logo-whatsapp" color="success"></ion-icon>
-            <ion-label>{{ isSharingAudio() ? 'Preparazione...' : '🎧 Audio WhatsApp' }}</ion-label>
-          </ion-chip>
+        <ion-chip (click)="inviaAudioCronacaWhatsApp()" class="ai-chip audio-direct-chip" [disabled]="isSharingAudio()"
+          title="Invia direttamente l'audio della telecronaca su WhatsApp">
+          <ion-icon name="logo-whatsapp" color="success"></ion-icon>
+          <ion-label>{{ isSharingAudio() ? 'Preparazione...' : '🎧 Audio WhatsApp' }}</ion-label>
+        </ion-chip>
         } @else {
-          <ion-chip
-            (click)="generaCronaca()"
-            class="ai-chip generate-chip"
-          >
-            <ion-icon name="sparkles" color="warning"></ion-icon>
-            <ion-label>{{ isGeneratingCronaca() ? 'Generazione...' : '🎙️ + Cronaca AI' }}</ion-label>
-          </ion-chip>
+        <ion-chip (click)="generaCronaca()" class="ai-chip generate-chip">
+          <ion-icon name="sparkles" color="warning"></ion-icon>
+          <ion-label>{{ isGeneratingCronaca() ? 'Generazione...' : '🎙️ + Cronaca AI' }}</ion-label>
+        </ion-chip>
         }
       </div>
     </div>
@@ -161,10 +114,10 @@
           <span>Anteprima Messaggio</span>
         </div>
         @if (includeFoto() && partita.fotoUrl) {
-          <span class="preview-photo-tag">
-            <ion-icon name="image"></ion-icon>
-            Foto allegata
-          </span>
+        <span class="preview-photo-tag">
+          <ion-icon name="image"></ion-icon>
+          Foto allegata
+        </span>
         }
       </div>
 
@@ -179,54 +132,33 @@
 <!-- FOOTER FISSO: Sempre visibile in basso a portata di pollice! -->
 <ion-footer class="share-modal-footer ion-no-border">
   <div class="footer-actions-container">
-    <ion-button
-      expand="block"
-      color="success"
-      class="whatsapp-primary-btn"
-      [disabled]="isSharingNative() || isSharingAudio()"
-      (click)="inviaWhatsApp()"
-    >
+    <ion-button expand="block" color="success" class="whatsapp-primary-btn"
+      [disabled]="isSharingNative() || isSharingAudio()" (click)="inviaWhatsApp()">
       <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
       <span>{{ includeFoto() && partita.fotoUrl ? 'Invia Foto + Report su WhatsApp' : 'Invia su WhatsApp' }}</span>
     </ion-button>
 
     @if (hasCronacaDisponibile()) {
-      <ion-button
-        expand="block"
-        class="whatsapp-audio-action-btn"
-        [disabled]="isSharingAudio() || isSharingNative()"
-        (click)="inviaAudioCronacaWhatsApp()"
-      >
-        @if (isSharingAudio()) {
-          <ion-spinner name="crescent" slot="start"></ion-spinner>
-          <span>Preparazione audio WhatsApp...</span>
-        } @else {
-          <ion-icon name="volume-high-outline" slot="start"></ion-icon>
-          <span>🎧 Invia Audio Telecronaca su WhatsApp</span>
-        }
-      </ion-button>
+    <ion-button expand="block" class="whatsapp-audio-action-btn" [disabled]="isSharingAudio() || isSharingNative()"
+      (click)="inviaAudioCronacaWhatsApp()">
+      @if (isSharingAudio()) {
+      <ion-spinner name="crescent" slot="start"></ion-spinner>
+      <span>Preparazione audio WhatsApp...</span>
+      } @else {
+      <ion-icon name="volume-high-outline" slot="start"></ion-icon>
+      <span>🎧 Invia Audio Telecronaca su WhatsApp</span>
+      }
+    </ion-button>
     }
 
     <div class="secondary-actions-row">
-      <ion-button
-        expand="block"
-        fill="outline"
-        color="light"
-        class="sub-action-btn"
-        [disabled]="isSharingNative() || isSharingAudio()"
-        (click)="condividiNativo()"
-      >
+      <ion-button expand="block" fill="outline" color="light" class="sub-action-btn"
+        [disabled]="isSharingNative() || isSharingAudio()" (click)="condividiNativo()">
         <ion-icon name="share-social-outline" slot="start"></ion-icon>
         <span>{{ includeFoto() && (partita.fotoUrl || partita.fotoPath) ? 'Condividi con Foto' : 'Condividi' }}</span>
       </ion-button>
 
-      <ion-button
-        expand="block"
-        fill="outline"
-        color="light"
-        class="sub-action-btn"
-        (click)="copiaTesto()"
-      >
+      <ion-button expand="block" fill="outline" color="light" class="sub-action-btn" (click)="copiaTesto()">
         <ion-icon name="copy-outline" slot="start"></ion-icon>
         <span>Copia Testo</span>
       </ion-button>

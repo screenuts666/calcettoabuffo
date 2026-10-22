@@ -40,12 +40,19 @@
 
   <h2 class="player-name">{{ prof?.nome }}</h2>
 
-  @if (prof?.soprannomeAi || prof?.soprannome) {
+  @if (prof?.soprannome && prof?.soprannomeAi && prof.soprannome !== prof.soprannomeAi) {
+    <div class="player-nickname-wrapper">
+      <span class="player-nickname">"{{ prof.soprannome }}"</span>
+      <span class="player-nickname-ai-tag" title="Soprannome aggiuntivo coniato da Gemini AI">
+        ✨ "{{ prof.soprannomeAi }}"
+      </span>
+    </div>
+  } @else if (prof?.soprannome) {
+    <p class="player-nickname">"{{ prof.soprannome }}"</p>
+  } @else if (prof?.soprannomeAi) {
     <p class="player-nickname">
-      "{{ prof.soprannomeAi || prof.soprannome }}"
-      @if (prof.soprannomeAi) {
-        <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
-      }
+      "{{ prof.soprannomeAi }}"
+      <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
     </p>
   } @else {
     <div class="spacer-8"></div>

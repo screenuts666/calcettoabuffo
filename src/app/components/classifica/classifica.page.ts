@@ -788,7 +788,9 @@ export class ClassificaPage {
               ? '🥉'
               : `${idx + 1}°`;
 
-      const soprannome = g.soprannome ? ` ("${g.soprannome}")` : '';
+      const soprannome = g.soprannome
+        ? (g.soprannomeAi && g.soprannomeAi !== g.soprannome ? ` ("${g.soprannome}" / ✨"${g.soprannomeAi}")` : ` ("${g.soprannome}")`)
+        : (g.soprannomeAi ? ` (✨"${g.soprannomeAi}")` : '');
       const formIcon =
         g.form.status === 'on_fire'
           ? ' 🔥'

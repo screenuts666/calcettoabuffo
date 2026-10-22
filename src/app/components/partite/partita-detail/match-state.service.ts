@@ -77,12 +77,14 @@ export class MatchStateService {
     return this.tutti().filter((g) => {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
+      const soprannomeAi = (g.soprannomeAi || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
       const piede = (g.piedePreferito as string || '').toLowerCase();
       const ruolo = (g.ruoloPreferito as string || '').toLowerCase();
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
+        soprannomeAi.includes(f) ||
         anno.includes(f) ||
         piede.includes(f) ||
         ruolo.includes(f)

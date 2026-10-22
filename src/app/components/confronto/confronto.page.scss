@@ -150,6 +150,23 @@
       text-overflow: ellipsis;
     }
 
+    .player-nick-ai {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-style: italic;
+      padding: 1px 6px;
+      border-radius: 8px;
+      background: var(--app-accent-purple-subtle);
+      border: 1px solid var(--app-accent-purple-border);
+      color: var(--app-accent-purple);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
     .tier-pill {
       display: inline-flex;
       align-items: center;
@@ -932,6 +949,13 @@
           font-size: 0.75rem;
           color: var(--app-text-muted);
         }
+
+        .picker-nick-ai {
+          font-size: 0.68rem;
+          font-weight: 600;
+          font-style: italic;
+          color: var(--app-accent-purple);
+        }
       }
 
       .picker-stats-pill {
@@ -1254,6 +1278,13 @@
           font-size: 0.75rem;
           color: var(--app-text-muted);
           font-style: italic;
+        }
+
+        .picker-nick-ai {
+          font-size: 0.68rem;
+          font-weight: 600;
+          font-style: italic;
+          color: var(--app-accent-purple);
         }
       }
     }

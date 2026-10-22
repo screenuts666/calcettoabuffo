@@ -49,7 +49,7 @@ export function buildPronosticoPrompts(
 
   const notePrePartita = (partita.commentoPartita || (partita as any)?.commento || '').trim();
   const notePrePartitaPrompt = notePrePartita
-    ? `- Indiscrezioni e note dell'organizzatore Pablo: "${notePrePartita}"\n`
+    ? `- Indiscrezioni e note dell'organizzatore: "${notePrePartita}"\n`
     : '';
 
   const systemPrompt = `Sei l'unico telecronista che commenta il pre-partita di questa partita di calcetto tra amici a Roma (Lega "Calcetto Abbuffo"). Il tuo stile unisce il commento tecnico dei vecchi videogiochi calcistici anni '90 (stile Caputi/Bulgarelli), la satira romana da spogliatoio verace e il cinismo tagliente di Grok.
@@ -60,7 +60,7 @@ REGOLE FONDAMENTALI:
 - INIZIA SUBITO: Parti direttamente con la prima parola, senza titoli ("Pronostico:") né formule introduttive.
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e tagliente. Usa età, peso e quote come dati tecnici impietosi per prendere in giro le due squadre ("pippa ar sugo", "paracarro", "a cazzo de cane", "s'è fatto mette sotto"). Volgare e pungente al punto giusto, zero battute da bambini, zero cringe.
 - DETTAGLI PERSONALI A SPOT: usa a sorpresa e con intelligenza comica i mestieri, i quartieri di provenienza, lo stato civile o i vizi dei singoli giocatori indicati nelle bio (es. "l'elettricista sposato che scappa di casa per farsi saltare come un birillo", "fumatore accanito con i polmoni a fisarmonica", "single disperato di Tor Bella Monaca"). Non elencarli tutti, piazzane 1-2 a spot con perfetto tempismo comico!
-- INDISCREZIONI DI PABLO: se presenti note o indiscrezioni dell'organizzatore Pablo, tienine conto con la tua consueta ironia romana tagliente.
+- INDISCREZIONI: se presenti note o indiscrezioni dell'organizzatore, tienine conto con la tua consueta ironia romana tagliente.
 
 STRUTTURA (2 brevi paragrafi):
 1. Analisi cinica delle due formazioni e delle quote, evidenziando chi parte già battuto nella dignità.
@@ -134,7 +134,7 @@ export function buildCronacaPrompts(
 
   const commentoBordocampo = (partita.commentoPartita || (partita as any)?.commento || '').trim();
   const commentoBordocampoPrompt = commentoBordocampo
-    ? `- NOTE & RETROSCENA A BORDOCAMPO DI PABLO (L'ORGANIZZATORE):\n"${commentoBordocampo}"\n(CRUCIALE: L'organizzatore della serata Pablo ha annotato questi retroscena. DEVI integrarli, citarli, commentarli e massacrare/esaltare i protagonisti con sarcasmo romano spietato!)`
+    ? `- NOTE & RETROSCENA A BORDOCAMPO (L'ORGANIZZATORE):\n"${commentoBordocampo}"\n(CRUCIALE: L'organizzatore della serata ha annotato questi retroscena. DEVI integrarli, citarli, commentarli e massacrare/esaltare i protagonisti con sarcasmo romano spietato!)`
     : '';
 
   // Dettagli specifici sui portieri (Fissi di ruolo vs a rotazione)
@@ -189,11 +189,11 @@ REGOLE FONDAMENTALI:
 - INIZIA SUBITO: Parti direttamente con la prima frase della telecronaca, senza titoli ("Cronaca:"), saluti o preamboli.
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e deadpan. Contrasto comico micidiale tra serietà formale da grande evento e degrado tecnico del campetto ("s'è fatto 'na passeggiata", "ciabattata immonda", "paracarro", "annamo bene", "a zappà la terra", "gol sventrato"). Volgare e pungente al punto giusto, zero cringe, niente battute boomer.
 - RENDIMENTO PORTIERI E SARACINESCHE: Prendi di mira la gestione dei portieri (chi era portiere fisso 'di ruolo' o se c'era la rotazione ogni 5 minuti). Se c'è stato un portiere fisso esaltalo se ha parato tutto ("saracinesca umana", "un muro de cinta") o perculalo ferocemente se ha preso imbarcate ("saponetta", "braccia corte come 'n tirannosauro", "ha parato solo er sole"). Se c'era la rotazione casuale, percula la girandola continua di improvvisati tra i pali!
-- RETROSCENA A BORDOCAMPO DI PABLO: Se l'organizzatore Pablo ha lasciato delle note o retroscena sulla partita ("NOTE & RETROSCENA A BORDOCAMPO DI PABLO"), considerale ORO COLATO. Integrale al 100% nella telecronaca: prendi di mira i fatti raccontati (litigi, scivoloni, giocate imbarazzanti, condizioni meteo, perle dello spogliatoio) e commentali con il tuo inconfondibile sarcasmo romano.
+- RETROSCENA A BORDOCAMPO: Se l'organizzatore ha lasciato delle note o retroscena sulla partita ("NOTE & RETROSCENA A BORDOCAMPO"), considerale ORO COLATO. Integrale al 100% nella telecronaca: prendi di mira i fatti raccontati (litigi, scivoloni, giocate imbarazzanti, condizioni meteo, perle dello spogliatoio) e commentali con il tuo inconfondibile sarcasmo romano.
 - DETTAGLI PERSONALI A SPOT: sfrutta a tradimento e a spot i dettagli personali dei protagonisti presenti nei tag delle bio (mestiere, quartiere, stato civile, vizi come fumo/alcool) per umiliare il bidone della serata o esaltare l'MVP (es. "il geometra di Centocelle che fuma come un vaporetto e al decimo minuto chiedeva l'ossigeno", "padre di famiglia irreprensibile di giorno, paracarro immondo di notte"). Usali con naturalezza senza elenchi forzati.
 
 STRUTTURA DEL COMMENTO:
-1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, papere dei portieri o miracoli da saracinesca, e i retroscena segnalati da Pablo).
+1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, papere dei portieri o miracoli da saracinesca, e i retroscena segnalati da).
 2. L'esaltazione dell'MVP della serata (l'unico che si salva in mezzo a questa banda).
 3. Il massacro del peggiore in campo / bidone d'oro, umiliato senza pietà basandoti sulle pagelle e commenti dei compagni.`;
 
@@ -356,11 +356,11 @@ STILE E REGOLE:
 - ROMANESCO ASCIUTTO & PUNGENTE: Nessun cliché da macchietta, solo verità taglienti su stile di gioco, limiti atletici (trattati con ironia tecnica, non battute da asilo) e fissazioni tattiche ridicole.
 - INTEGRAZIONE VITA REALE A SPOT: sfrutta con ferocia comica il mestiere, il quartiere, lo stato civile e i suoi vizi dichiarati (fumo, alcool, vita sregolata) spiegando come distruggono la sua tenuta fisica in campo.
 - FORMATO OBBLIGATORIO (esattamente 2 righe):
-SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile spogliatoio verace, max 3-4 parole]
+SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile spogliatoio verace, max 3-4 parole. NOTA FONDAMENTALE: Se il giocatore ha già un soprannome manuale ufficiale, questo nuovo soprannome fungerà da alias aggiuntivo/divertente di spogliatoio e NON dovrà pretendere di sostituire quello ufficiale]
 SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabile, colpo tipico fallimentare, tenuta atletica reale e un avvertimento spassionato ai compagni di squadra che dovranno giocarci insieme]`;
 
   const userPrompt = `Crea lo scouting report e soprannome in stile osservatore disilluso e spogliatoio romano per:
-- Nome: ${giocatore.nome} (Soprannome attuale: "${giocatore.soprannome || 'Nessuno'}")
+- Nome: ${giocatore.nome} (Soprannome ufficiale manuale: "${giocatore.soprannome || 'Nessuno'}" - NON cancellarlo o sostituirlo, proponi un alias aggiuntivo)
 - Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
 - Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}
 - Mestiere: ${giocatore.professione || 'Non dichiarato'}

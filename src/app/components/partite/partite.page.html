@@ -11,12 +11,8 @@
   <!-- SELETTORE STAGIONE -->
   <div class="season-filter-bar">
     @for (stg of stagioniList(); track stg.id) {
-    <button
-      type="button"
-      class="season-filter-chip"
-      [class.active]="stagioneSelezionata() === stg.id"
-      (click)="selezionaStagione(stg.id)"
-    >
+    <button type="button" class="season-filter-chip" [class.active]="stagioneSelezionata() === stg.id"
+      (click)="selezionaStagione(stg.id)">
       <ion-icon [name]="stg.icon"></ion-icon>
       <span class="season-name">{{ stg.label }}</span>
       <span class="season-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
@@ -29,22 +25,18 @@
     <ion-icon name="time-outline"></ion-icon>
     <div class="banner-content">
       <span class="banner-title">Archivio Stagione {{ PREVIOUS_SEASON }}</span>
-      <span class="banner-sub"
-        >Stagione conclusa • Solo consultazione storica</span
-      >
+      <span class="banner-sub">Stagione conclusa • Solo consultazione storica</span>
     </div>
   </div>
   } @if (partite() === undefined) {
-  <div
-    style="
+  <div style="
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100%;
       width: 100%;
-    "
-  >
+    ">
     <ion-spinner name="crescent" color="success"></ion-spinner>
     <p style="color: var(--ion-color-medium); margin-top: 10px">
       Caricamento partite in corso...
@@ -53,10 +45,7 @@
   } @else if ((partiteInCorso().length + partitePronte().length +
   partiteDaVotare().length + partiteArchiviate().length) === 0) {
   <div class="ion-padding ion-text-center empty-season-box">
-    <ion-icon
-      name="calendar-clear-outline"
-      style="font-size: 2.5rem; color: var(--ion-color-medium)"
-    ></ion-icon>
+    <ion-icon name="calendar-clear-outline" style="font-size: 2.5rem; color: var(--ion-color-medium)"></ion-icon>
     <p style="margin-top: 8px; color: var(--ion-color-medium)">
       Nessuna partita trovata per questa selezione. @if (isAdmin &&
       stagioneSelezionata() !== PREVIOUS_SEASON) {
@@ -70,17 +59,9 @@
   <ion-list mode="ios" style="background: transparent">
     @for (m of partiteInCorso(); track m.id) {
     <ion-item-sliding #slidingItem>
-      <ion-item
-        (click)="apriPartita(m)"
-        lines="none"
-        class="match-card-item"
-      >
-        <div
-          class="match-card"
-          [ngClass]="stagioneCardClass(m)"
-          [class.highlight-active]="highlightMatchId() === m.id"
-          [id]="'match-card-' + m.id"
-        >
+      <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id">
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -109,10 +90,7 @@
           </div>
 
           @if (m.fotoUrl) {
-          <div
-            class="match-photo-banner"
-            (click)="$event.stopPropagation(); apriFotoViewer(m)"
-          >
+          <div class="match-photo-banner" (click)="$event.stopPropagation(); apriFotoViewer(m)">
             <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
             <div class="photo-banner-overlay">
               <div class="photo-pill-badge">
@@ -136,24 +114,18 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.commentoPartita) {
-            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+            <div class="info-pill comment-pill" title="Note a bordocampo">
               <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-              <span>Note Pablo</span>
+              <span>Note</span>
             </div>
             }
             @if (m.fotoUrl) {
-            <div
-              class="info-pill photo-pill"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
+            <div class="info-pill photo-pill" (click)="$event.stopPropagation(); apriFotoViewer(m)">
               <ion-icon name="image-outline"></ion-icon>
               <span>Foto</span>
             </div>
             }
-            <div
-              class="info-pill share-pill"
-              (click)="$event.stopPropagation(); apriCondivisione(m)"
-            >
+            <div class="info-pill share-pill" (click)="$event.stopPropagation(); apriCondivisione(m)">
               <ion-icon name="logo-whatsapp"></ion-icon>
               <span>Condividi</span>
             </div>
@@ -163,10 +135,7 @@
 
       @if (isAdmin) {
       <ion-item-options side="end">
-        <ion-item-option
-          color="danger"
-          (click)="confermaEliminazione(m, slidingItem)"
-        >
+        <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-item-option>
       </ion-item-options>
@@ -181,17 +150,9 @@
   <ion-list mode="ios" style="background: transparent">
     @for (m of partitePronte(); track m.id) {
     <ion-item-sliding #slidingItem>
-      <ion-item
-        (click)="apriPartita(m)"
-        lines="none"
-        class="match-card-item"
-      >
-        <div
-          class="match-card"
-          [ngClass]="stagioneCardClass(m)"
-          [class.highlight-active]="highlightMatchId() === m.id"
-          [id]="'match-card-' + m.id"
-        >
+      <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id">
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -220,10 +181,7 @@
           </div>
 
           @if (m.fotoUrl) {
-          <div
-            class="match-photo-banner"
-            (click)="$event.stopPropagation(); apriFotoViewer(m)"
-          >
+          <div class="match-photo-banner" (click)="$event.stopPropagation(); apriFotoViewer(m)">
             <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
             <div class="photo-banner-overlay">
               <div class="photo-pill-badge">
@@ -247,24 +205,18 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.commentoPartita) {
-            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+            <div class="info-pill comment-pill" title="Note a bordocampo">
               <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-              <span>Note Pablo</span>
+              <span>Note</span>
             </div>
             }
             @if (m.fotoUrl) {
-            <div
-              class="info-pill photo-pill"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
+            <div class="info-pill photo-pill" (click)="$event.stopPropagation(); apriFotoViewer(m)">
               <ion-icon name="image-outline"></ion-icon>
               <span>Foto</span>
             </div>
             }
-            <div
-              class="info-pill share-pill"
-              (click)="$event.stopPropagation(); apriCondivisione(m)"
-            >
+            <div class="info-pill share-pill" (click)="$event.stopPropagation(); apriCondivisione(m)">
               <ion-icon name="logo-whatsapp"></ion-icon>
               <span>Condividi</span>
             </div>
@@ -274,10 +226,7 @@
 
       @if (isAdmin) {
       <ion-item-options side="end">
-        <ion-item-option
-          color="danger"
-          (click)="confermaEliminazione(m, slidingItem)"
-        >
+        <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-item-option>
       </ion-item-options>
@@ -292,17 +241,9 @@
   <ion-list mode="ios" style="background: transparent">
     @for (m of partiteDaVotare(); track m.id) {
     <ion-item-sliding #slidingItem>
-      <ion-item
-        (click)="apriPartita(m)"
-        lines="none"
-        class="match-card-item"
-      >
-        <div
-          class="match-card"
-          [ngClass]="stagioneCardClass(m)"
-          [class.highlight-active]="highlightMatchId() === m.id"
-          [id]="'match-card-' + m.id"
-        >
+      <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id">
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -331,10 +272,7 @@
           </div>
 
           @if (m.fotoUrl) {
-          <div
-            class="match-photo-banner"
-            (click)="$event.stopPropagation(); apriFotoViewer(m)"
-          >
+          <div class="match-photo-banner" (click)="$event.stopPropagation(); apriFotoViewer(m)">
             <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
             <div class="photo-banner-overlay">
               <div class="photo-pill-badge">
@@ -358,24 +296,18 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.commentoPartita) {
-            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+            <div class="info-pill comment-pill" title="Note a bordocampo">
               <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-              <span>Note Pablo</span>
+              <span>Note</span>
             </div>
             }
             @if (m.fotoUrl) {
-            <div
-              class="info-pill photo-pill"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
+            <div class="info-pill photo-pill" (click)="$event.stopPropagation(); apriFotoViewer(m)">
               <ion-icon name="image-outline"></ion-icon>
               <span>Foto</span>
             </div>
             }
-            <div
-              class="info-pill share-pill"
-              (click)="$event.stopPropagation(); apriCondivisione(m)"
-            >
+            <div class="info-pill share-pill" (click)="$event.stopPropagation(); apriCondivisione(m)">
               <ion-icon name="logo-whatsapp"></ion-icon>
               <span>Condividi</span>
             </div>
@@ -385,10 +317,7 @@
 
       @if (isAdmin) {
       <ion-item-options side="end">
-        <ion-item-option
-          color="danger"
-          (click)="confermaEliminazione(m, slidingItem)"
-        >
+        <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-item-option>
       </ion-item-options>
@@ -404,17 +333,9 @@
   <ion-list mode="ios" style="background: transparent">
     @for (m of partiteArchiviate(); track m.id) {
     <ion-item-sliding #slidingItem>
-      <ion-item
-        (click)="apriPartita(m)"
-        lines="none"
-        class="match-card-item"
-      >
-        <div
-          class="match-card"
-          [ngClass]="stagioneCardClass(m)"
-          [class.highlight-active]="highlightMatchId() === m.id"
-          [id]="'match-card-' + m.id"
-        >
+      <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
+        <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
+          [id]="'match-card-' + m.id">
           <div class="match-header">
             <div class="match-header-left">
               <div class="match-date">
@@ -443,10 +364,7 @@
           </div>
 
           @if (m.fotoUrl) {
-          <div
-            class="match-photo-banner"
-            (click)="$event.stopPropagation(); apriFotoViewer(m)"
-          >
+          <div class="match-photo-banner" (click)="$event.stopPropagation(); apriFotoViewer(m)">
             <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
             <div class="photo-banner-overlay">
               <div class="photo-pill-badge">
@@ -470,24 +388,18 @@
               {{ m.convocati?.length || 0 }} Giocatori
             </div>
             @if (m.commentoPartita) {
-            <div class="info-pill comment-pill" title="Note a bordocampo di Pablo">
+            <div class="info-pill comment-pill" title="Note a bordocampo">
               <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-              <span>Note Pablo</span>
+              <span>Note</span>
             </div>
             }
             @if (m.fotoUrl) {
-            <div
-              class="info-pill photo-pill"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
+            <div class="info-pill photo-pill" (click)="$event.stopPropagation(); apriFotoViewer(m)">
               <ion-icon name="image-outline"></ion-icon>
               <span>Foto</span>
             </div>
             }
-            <div
-              class="info-pill share-pill"
-              (click)="$event.stopPropagation(); apriCondivisione(m)"
-            >
+            <div class="info-pill share-pill" (click)="$event.stopPropagation(); apriCondivisione(m)">
               <ion-icon name="logo-whatsapp"></ion-icon>
               <span>Condividi</span>
             </div>
@@ -497,10 +409,7 @@
 
       @if (isAdmin) {
       <ion-item-options side="end">
-        <ion-item-option
-          color="danger"
-          (click)="confermaEliminazione(m, slidingItem)"
-        >
+        <ion-item-option color="danger" (click)="confermaEliminazione(m, slidingItem)">
           <ion-icon name="trash" slot="icon-only"></ion-icon>
         </ion-item-option>
       </ion-item-options>

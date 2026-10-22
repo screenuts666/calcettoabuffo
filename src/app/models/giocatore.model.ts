@@ -10,7 +10,7 @@ import {
 export interface Giocatore {
   id: string;
   nome: string;
-  soprannome?: string;
+  soprannome?: string; // Soprannome ufficiale/manuale (MAI sovrascritto dall'AI)
   annoNascita?: string;
   piedePreferito?: PiedePreferito;
   ruoloPreferito?: RuoloPreferito;
@@ -23,7 +23,8 @@ export interface Giocatore {
   punti: number;
   mediaVoto: number;
   partiteGiocate: number;
-  soprannomeAi?: string;
+  soprannomeAi?: string; // Ultimo soprannome coniato dall'AI (aggiuntivo)
+  soprannomiAi?: string[]; // Storico/elenco di tutti i soprannomi coniati dall'AI
   scoutingReportAi?: string;
   aiUpdatedAt?: string;
 
