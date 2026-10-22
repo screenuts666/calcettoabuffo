@@ -1,3 +1,5 @@
+@use 'mixins' as *;
+
 // ==========================================
 // CONTENITORE E LISTA GENERALE
 // ==========================================
@@ -36,10 +38,7 @@
   padding: 6px 4px 14px 4px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  @include hide-scrollbar;
 }
 
 .season-filter-chip {
@@ -75,14 +74,14 @@
   }
 
   &.active {
-    background: rgba(37, 211, 102, 0.15);
+    background: var(--app-primary-subtle);
     border-color: var(--ion-color-success);
     color: var(--ion-color-success);
-    box-shadow: 0 2px 10px rgba(37, 211, 102, 0.2);
+    box-shadow: 0 2px 10px var(--app-primary-subtle);
 
     .season-count {
       background: var(--ion-color-success);
-      color: #000;
+      color: var(--app-black);
     }
   }
 
@@ -113,13 +112,13 @@
   }
 
   &.card-season-old {
-    border-left: 4px solid #555;
+    border-left: 4px solid var(--app-text-muted);
     opacity: 0.95;
   }
 
   &.highlight-active {
     animation: card-glow 1s ease-in-out infinite alternate;
-    border-color: #25d366 !important;
+    border-color: var(--app-primary) !important;
   }
 
   &:active {
@@ -130,12 +129,12 @@
 
 @keyframes card-glow {
   0% {
-    box-shadow: 0 0 10px rgba(37, 211, 102, 0.35);
-    border-color: rgba(37, 211, 102, 0.5);
+    box-shadow: 0 0 10px rgba(var(--app-primary-rgb), 0.35);
+    border-color: rgba(var(--app-primary-rgb), 0.5);
   }
   100% {
-    box-shadow: 0 0 24px rgba(37, 211, 102, 0.85);
-    border-color: #25d366;
+    box-shadow: 0 0 24px rgba(var(--app-primary-rgb), 0.85);
+    border-color: var(--app-primary);
   }
 }
 
@@ -162,9 +161,9 @@
 }
 
 .share-icon-btn {
-  background: rgba(37, 211, 102, 0.12);
-  color: #25d366;
-  border: 1px solid rgba(37, 211, 102, 0.3);
+  background: var(--app-primary-subtle);
+  color: var(--app-primary);
+  border: 1px solid var(--app-primary-border);
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -177,11 +176,11 @@
 
   ion-icon {
     font-size: 1.15rem;
-    color: #25d366;
+    color: var(--app-primary);
   }
 
   &:hover {
-    background: rgba(37, 211, 102, 0.25);
+    background: rgba(var(--app-primary-rgb), 0.25);
     transform: scale(1.08);
   }
 
@@ -211,15 +210,15 @@
   letter-spacing: 0.3px;
 
   &.badge-season-current {
-    background: rgba(45, 211, 111, 0.2);
-    color: var(--ion-color-success, #2dd36f);
-    border: 1px solid rgba(45, 211, 111, 0.4);
+    background: var(--app-primary-subtle);
+    color: var(--app-primary);
+    border: 1px solid var(--app-primary-border);
   }
 
   &.badge-season-old {
-    background: rgba(140, 140, 160, 0.15);
-    color: #9ea0b5;
-    border: 1px solid rgba(140, 140, 160, 0.25);
+    background: var(--app-surface-subtle);
+    color: var(--app-text-muted);
+    border: 1px solid var(--app-card-border);
   }
 }
 
@@ -248,33 +247,33 @@
 }
 
 .badge-success {
-  background: rgba(45, 211, 111, 0.15);
+  background: var(--app-primary-subtle);
   color: var(--ion-color-success);
-  border: 1px solid rgba(45, 211, 111, 0.3);
+  border: 1px solid var(--app-primary-border);
 }
 
 .badge-warning {
-  background: rgba(255, 196, 9, 0.15);
-  color: var(--ion-color-warning);
-  border: 1px solid rgba(255, 196, 9, 0.3);
+  background: var(--app-accent-gold-subtle);
+  color: var(--app-accent-gold);
+  border: 1px solid var(--app-accent-gold-border);
 }
 
 .badge-danger {
-  background: rgba(235, 68, 90, 0.15); // Rosso trasparente
-  color: var(--ion-color-danger);
-  border: 1px solid rgba(235, 68, 90, 0.3);
+  background: var(--app-accent-danger-subtle);
+  color: var(--app-accent-danger);
+  border: 1px solid var(--app-accent-danger-border);
 }
 
 .badge-primary {
-  background: rgba(56, 128, 255, 0.15);
-  color: var(--ion-color-primary);
-  border: 1px solid rgba(56, 128, 255, 0.3);
+  background: var(--app-accent-blue-subtle);
+  color: var(--app-accent-blue);
+  border: 1px solid var(--app-accent-blue-border);
 }
 
 .badge-medium {
-  background: rgba(146, 146, 146, 0.15);
+  background: var(--app-neutral-gray-subtle);
   color: var(--ion-color-medium);
-  border: 1px solid rgba(146, 146, 146, 0.3);
+  border: 1px solid var(--app-card-border);
 }
 
 // Animazione per il badge LIVE
@@ -344,24 +343,35 @@
 }
 
 .share-pill {
-  background: rgba(37, 211, 102, 0.12) !important;
-  color: #25d366 !important;
-  border: 1px solid rgba(37, 211, 102, 0.35) !important;
+  background: var(--app-primary-subtle) !important;
+  color: var(--app-primary) !important;
+  border: 1px solid var(--app-primary-border) !important;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
 
   ion-icon {
-    color: #25d366 !important;
+    color: var(--app-primary) !important;
   }
 
   &:hover {
-    background: rgba(37, 211, 102, 0.22) !important;
+    background: rgba(var(--app-primary-rgb), 0.22) !important;
     transform: translateY(-1px);
   }
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+.comment-pill {
+  background: var(--app-accent-purple-subtle) !important;
+  color: var(--app-accent-purple) !important;
+  border: 1px solid var(--app-accent-purple-border) !important;
+  font-weight: 700;
+
+  ion-icon {
+    color: var(--app-accent-purple) !important;
   }
 }
 
@@ -376,7 +386,7 @@
   overflow: hidden;
   margin: 10px 0 12px 0;
   cursor: pointer;
-  background: #111;
+  background: var(--app-surface-subtle);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 
   img {
@@ -417,8 +427,8 @@
   gap: 5px;
   font-size: 0.75rem;
   font-weight: 700;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.6);
+  color: var(--app-white);
+  background: var(--app-overlay-dark);
   backdrop-filter: blur(6px);
   padding: 3px 8px;
   border-radius: 12px;
@@ -426,7 +436,7 @@
 
   ion-icon {
     font-size: 0.95rem;
-    color: var(--ion-color-success, #2dd36f);
+    color: var(--app-primary);
   }
 }
 
@@ -434,38 +444,38 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.65);
+  background: var(--app-overlay-dark);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--app-white);
   font-size: 0.95rem;
   transition: transform 0.2s ease, background 0.2s ease;
 
   &:hover {
     transform: scale(1.1);
-    background: var(--ion-color-success, #2dd36f);
-    color: #000;
+    background: var(--app-primary);
+    color: var(--app-black);
   }
 }
 
 .photo-pill {
-  background: rgba(45, 211, 111, 0.15) !important;
-  color: var(--ion-color-success, #2dd36f) !important;
-  border: 1px solid rgba(45, 211, 111, 0.3);
+  background: var(--app-primary-subtle) !important;
+  color: var(--app-primary) !important;
+  border: 1px solid var(--app-primary-border);
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
 
   ion-icon {
-    color: var(--ion-color-success, #2dd36f);
+    color: var(--app-primary);
   }
 
   &:active {
     transform: scale(0.95);
-    background: rgba(45, 211, 111, 0.3) !important;
+    background: rgba(var(--app-primary-rgb), 0.3) !important;
   }
 }
 
@@ -488,7 +498,7 @@ ion-item-option {
   height: calc(100% - 16px);
 
   --background: var(--ion-color-danger);
-  --color: #000;
+  --color: var(--app-white);
 
   ion-icon {
     font-size: 1.6rem;
@@ -537,9 +547,9 @@ ion-item-option {
 // 📱 CONDIVIDI SU WHATSAPP (PILL LISTA)
 // ==========================================
 .share-pill {
-  background: rgba(37, 211, 102, 0.16) !important;
-  color: #25d366 !important;
-  border: 1px solid rgba(37, 211, 102, 0.38) !important;
+  background: var(--app-primary-subtle) !important;
+  color: var(--app-primary) !important;
+  border: 1px solid var(--app-primary-border) !important;
   font-weight: 700 !important;
   cursor: pointer;
   display: inline-flex;
@@ -548,15 +558,15 @@ ion-item-option {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   ion-icon {
-    color: #25d366 !important;
+    color: var(--app-primary) !important;
     font-size: 1.15rem;
   }
 
   &:hover {
-    background: rgba(37, 211, 102, 0.28) !important;
-    border-color: #25d366 !important;
+    background: rgba(var(--app-primary-rgb), 0.28) !important;
+    border-color: var(--app-primary) !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+    box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.35);
   }
 
   &:active {
@@ -568,21 +578,21 @@ ion-item-option {
 // 🎯 EVIDENZIAZIONE DEEP LINK (/partite/:id)
 // ==========================================
 .match-card.highlight-active {
-  border-color: #ffd700 !important;
-  box-shadow: 0 0 25px rgba(255, 215, 0, 0.45), 0 0 10px rgba(45, 211, 111, 0.35) !important;
+  border-color: var(--app-tier-gold) !important;
+  box-shadow: 0 0 25px rgba(var(--app-accent-gold-rgb), 0.45), 0 0 10px rgba(var(--app-primary-rgb), 0.35) !important;
   animation: deepLinkPulse 1.8s ease-in-out infinite;
   transform: scale(1.01);
 }
 
 @keyframes deepLinkPulse {
   0% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.35), 0 0 5px rgba(45, 211, 111, 0.25);
+    box-shadow: 0 0 15px rgba(var(--app-accent-gold-rgb), 0.35), 0 0 5px rgba(var(--app-primary-rgb), 0.25);
   }
   50% {
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.65), 0 0 16px rgba(45, 211, 111, 0.55);
+    box-shadow: 0 0 30px rgba(var(--app-accent-gold-rgb), 0.65), 0 0 16px rgba(var(--app-primary-rgb), 0.55);
   }
   100% {
-    box-shadow: 0 0 15px rgba(255, 215, 0, 0.35), 0 0 5px rgba(45, 211, 111, 0.25);
+    box-shadow: 0 0 15px rgba(var(--app-accent-gold-rgb), 0.35), 0 0 5px rgba(var(--app-primary-rgb), 0.25);
   }
 }
 

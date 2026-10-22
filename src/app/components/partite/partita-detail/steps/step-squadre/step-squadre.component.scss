@@ -1,0 +1,295 @@
+@use 'mixins' as *;
+
+// ==========================================
+// CONTENITORE PULSANTE MATCHMAKING
+// ==========================================
+.matchmaking-container {
+  padding: 12px 14px 6px;
+  background: transparent;
+
+  .matchmaking-cta-btn {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(135deg, var(--app-neutral-dark) 0%, var(--app-black) 100%);
+    border: 1.5px solid var(--app-accent-blue-border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 0 4px 18px var(--app-accent-blue-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    @include btn-press(0.98);
+
+    &:hover {
+      border-color: var(--app-accent-blue);
+      box-shadow: 0 6px 24px var(--app-accent-blue-border);
+      transform: translateY(-1px);
+    }
+
+    .cta-glow {
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      @include flex-between;
+      gap: 10px;
+
+      .cta-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+
+        .cta-emoji {
+          font-size: 1.8rem;
+          line-height: 1;
+          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .cta-text {
+          .cta-title {
+            display: block;
+            font-size: 0.96rem;
+            font-weight: 800;
+            color: var(--app-white);
+            letter-spacing: 0.2px;
+            line-height: 1.2;
+          }
+
+          .cta-sub {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--app-text-muted);
+            margin-top: 2px;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .cta-right {
+        .sparkle-icon {
+          font-size: 1.4rem;
+          color: var(--app-accent-blue);
+          filter: drop-shadow(0 0 6px var(--app-accent-blue-border));
+          animation: pulse-sparkle 2.5s infinite ease-in-out;
+        }
+      }
+    }
+  }
+
+  // LIVE BALANCE CHIP
+  .live-balance-chip {
+    margin-top: 8px;
+    padding: 6px 12px;
+    border-radius: 10px;
+    @include flex-between;
+    font-size: 0.72rem;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    .chip-main {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+
+      .chip-label {
+        color: var(--app-text-secondary);
+      }
+
+      .chip-val {
+        font-weight: 700;
+      }
+    }
+
+    .chip-details {
+      color: var(--app-text-muted);
+      font-size: 0.68rem;
+    }
+
+    &.balanced {
+      border-color: rgba(52, 211, 153, 0.3);
+      .chip-dot {
+        background: var(--app-primary);
+        box-shadow: 0 0 8px rgba(var(--app-primary-rgb), 0.6);
+      }
+      .chip-val {
+        color: var(--app-primary);
+      }
+    }
+
+    &.unbalanced {
+      border-color: var(--app-accent-gold-border);
+      .chip-dot {
+        background: var(--app-accent-gold);
+        box-shadow: 0 0 8px rgba(var(--app-accent-gold-rgb), 0.6);
+      }
+      .chip-val {
+        color: var(--app-accent-gold);
+      }
+    }
+  }
+}
+
+@keyframes pulse-sparkle {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.15) rotate(10deg);
+    opacity: 1;
+  }
+}
+
+// ==========================================
+// BARRE SQUADRE CUSTOM
+// ==========================================
+.team-header {
+  @include flex-between;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  border-top: 1px solid var(--app-border-color);
+  border-bottom: 1px solid var(--app-border-color);
+  margin-top: 6px;
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .count-tag {
+      font-size: 0.72rem;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+  }
+
+  .team-mmr-sub {
+    font-size: 0.74rem;
+    font-weight: 700;
+    opacity: 0.9;
+  }
+}
+
+.team-bianchi {
+  background-color: var(--app-white);
+  color: var(--app-neutral-dark);
+
+  .count-tag {
+    background: var(--app-neutral-dark);
+    color: var(--app-white);
+  }
+
+  .team-mmr-sub {
+    color: var(--app-neutral-dark);
+  }
+}
+
+.team-neri {
+  background-color: var(--app-neutral-dark);
+  color: var(--app-white);
+  border-top: 1px solid var(--app-card-border);
+  border-bottom: 1px solid var(--app-card-border);
+
+  .count-tag {
+    background: var(--app-surface-subtle);
+    color: var(--app-text-primary);
+  }
+
+  .team-mmr-sub {
+    color: var(--app-accent-gold);
+  }
+}
+
+// ==========================================
+// GRIGLIA AVATAR (con effetto click)
+// ==========================================
+.selected-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px 6px;
+  padding: 14px 6px;
+  justify-items: center;
+  position: relative;
+
+  .avatar-item {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100%;
+
+    &:active {
+      transform: scale(0.88);
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+
+      ion-avatar {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto;
+        border: 2px solid var(--ion-color-success);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+
+        app-player-avatar,
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+
+      .swap-hint {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--app-neutral-dark);
+        color: var(--app-accent-blue);
+        font-size: 10px;
+        @include flex-center;
+        border: 1px solid var(--app-border-color);
+      }
+    }
+
+    small {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--app-text-secondary);
+      display: block;
+      margin-top: 5px;
+      @include text-ellipsis;
+      max-width: 58px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .empty-team-placeholder {
+    grid-column: 1 / -1;
+    padding: 24px 10px;
+    color: var(--app-text-muted);
+    font-size: 0.82rem;
+    font-style: italic;
+    text-align: center;
+  }
+}

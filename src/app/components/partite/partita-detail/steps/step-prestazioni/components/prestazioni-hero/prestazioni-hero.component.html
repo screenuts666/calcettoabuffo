@@ -1,0 +1,102 @@
+<!-- 1. TOP BAR / AZIONI RAPIDE -->
+<div class="report-top-bar">
+  <div class="match-meta-info">
+    <div class="meta-item">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ dataPartita | date:'dd/MM/yyyy' }}</span>
+    </div>
+    <div class="meta-item">
+      <ion-icon name="location-outline"></ion-icon>
+      <span>{{ luogo }}</span>
+    </div>
+    <div class="meta-item duration-item">
+      <ion-icon name="stopwatch-outline"></ion-icon>
+      <span>{{ timerFormatted }}</span>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="quick-whatsapp-btn"
+    (click)="shareClick.emit()"
+    title="Condividi Report su WhatsApp"
+  >
+    <ion-icon name="logo-whatsapp"></ion-icon>
+    <span>Condividi</span>
+  </button>
+</div>
+
+<!-- 2. SCOREBOARD HERO -->
+<div class="scoreboard-hero">
+  <!-- Status Badge Spazioso & Chiaro in Cima -->
+  <div class="hero-status-pill" [class.archived]="pagelleInserite">
+    <span class="status-icon">{{ pagelleInserite ? '✓' : '⏳' }}</span>
+    <span class="status-text">{{ pagelleInserite ? 'Partita Archiviata' : 'Pagelle da Votare' }}</span>
+  </div>
+
+  <div class="scoreboard-main">
+    <div class="team-side white-side">
+      <div class="team-badge-circle white">⚪</div>
+      <div class="team-title">BIANCHI</div>
+      <div class="team-score-num">{{ scoreA }}</div>
+    </div>
+
+    <div class="score-vs-divider">
+      <span class="vs-text">VS</span>
+    </div>
+
+    <div class="team-side black-side">
+      <div class="team-score-num">{{ scoreB }}</div>
+      <div class="team-title">NERI</div>
+      <div class="team-badge-circle black">⚫</div>
+    </div>
+  </div>
+
+  <!-- Marcatori Rapidi Sotto al Risultato -->
+  @if (scorersA.length > 0 || scorersB.length > 0) {
+    <div class="hero-scorers-bar">
+      <div class="scorers-col white-scorers">
+        @for (s of scorersA; track s.nome) {
+          <span class="scorer-tag white-tag">
+            ⚽ <strong>{{ s.nome }}</strong>
+            @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
+          </span>
+        }
+      </div>
+      <div class="scorers-divider"></div>
+      <div class="scorers-col black-scorers">
+        @for (s of scorersB; track s.nome) {
+          <span class="scorer-tag black-tag">
+            ⚽ <strong>{{ s.nome }}</strong>
+            @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (isAdmin) {
+    <button
+      class="edit-score-btn"
+      (click)="editScoreClick.emit()"
+      type="button"
+      title="Modifica manuale risultato"
+    >
+      <ion-icon name="create-outline"></ion-icon>
+      <span>Modifica Risultato</span>
+    </button>
+  }
+</div>
+
+<!-- 3. UPSET BANNER -->
+@if (isUpset) {
+  <div class="upset-banner-wrapper">
+    <div class="upset-card">
+      <div class="upset-flame-icon">🔥</div>
+      <div class="upset-content">
+        <div class="upset-title">UPSET CLAMOROSO!</div>
+        <div class="upset-desc">{{ upsetDescription }}</div>
+      </div>
+    </div>
+  </div>
+}

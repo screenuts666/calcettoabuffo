@@ -1,0 +1,251 @@
+@use 'mixins' as *;
+
+// ==========================================
+// BANNER CAMBIO (solo admin)
+// ==========================================
+.cambio-banner {
+  position: relative;
+  margin: 10px 16px 0;
+  background: linear-gradient(135deg, var(--app-accent-danger), var(--app-accent-orange));
+  border-radius: 18px;
+  padding: 14px 16px;
+  @include flex-between;
+  overflow: hidden;
+  box-shadow: 0 6px 30px var(--app-accent-danger-subtle);
+  animation: cambio-slide-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .cambio-pulse-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    animation: cambio-pulse 1.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .cambio-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--app-white);
+    letter-spacing: 1px;
+
+    ion-icon {
+      font-size: 1.5rem;
+      animation: icon-shake 0.6s ease-in-out infinite alternate;
+    }
+  }
+
+  .cambio-stop-btn {
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    color: var(--app-white);
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    @include glass(8px);
+    @include btn-press(0.94);
+    z-index: 1;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &:active {
+      background: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
+@keyframes cambio-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cambio-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(255, 59, 48, 0);
+  }
+}
+
+@keyframes icon-shake {
+  from { transform: rotate(-12deg); }
+  to   { transform: rotate(12deg); }
+}
+
+// ==========================================
+// TIMER E INFO IN ALTO
+// ==========================================
+.giant-timer {
+  font-size: 6rem;
+  font-weight: 900;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -3px;
+  color: var(--app-text-primary);
+}
+
+// ==========================================
+// GRIGLIA PUNTEGGIO E SQUADRE
+// ==========================================
+.score-grid {
+  display: flex;
+  padding: 10px;
+  gap: 15px;
+
+  .score-card {
+    flex: 1;
+    @include card-surface(24px, 20px 10px);
+    @include flex-col;
+    align-items: center;
+
+    .tag {
+      @include pill-badge;
+      padding: 4px 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      font-size: 0.75rem;
+    }
+    &.team-a .tag {
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      border: 1px solid var(--app-card-border);
+    }
+    &.team-b .tag {
+      background: var(--app-neutral-dark);
+      color: var(--app-white);
+      border: 1px solid var(--app-card-border);
+    }
+
+    .number {
+      font-size: 5rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 20px;
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+// ==========================================
+// BOTTONI AZIONE (GOL / RIMUOVI)
+// ==========================================
+.action-stack {
+  width: 100%;
+  @include flex-col(8px);
+
+  .goal-btn {
+    background: var(--ion-color-success);
+    color: var(--app-black);
+    border: none;
+    border-radius: 14px;
+    height: 48px;
+    font-weight: 900;
+    font-size: 1rem;
+    @include flex-center;
+    gap: 5px;
+    width: 100%;
+    @include btn-press(0.96);
+
+    // 🛑 STILE QUANDO IL TIMER È A ZERO O IN PAUSA
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  .undo-btn {
+    background: transparent;
+    color: var(--ion-color-medium);
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 600;
+    @include flex-center;
+    gap: 4px;
+    opacity: 0.6;
+    height: 30px;
+
+    ion-icon {
+      font-size: 1rem;
+    }
+    &:disabled {
+      display: none;
+    }
+    &:active {
+      color: var(--ion-color-danger);
+      opacity: 1;
+    }
+  }
+}
+
+// ==========================================
+// CRONACA DELLA PARTITA E AUTOGOL
+// ==========================================
+.log-container {
+  padding: 10px 20px;
+
+  .log-entry {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+
+    &.is-right {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .l-time {
+      font-weight: 800;
+      color: var(--ion-color-medium);
+      font-size: 0.8rem;
+    }
+
+    .l-player {
+      // 🚨 STILE PER L'AUTOGOL ROSSO
+      .autogol-text {
+        color: var(--ion-color-danger);
+        font-weight: 800;
+        font-size: 0.75rem;
+        margin-left: 4px;
+      }
+
+      // 👟 STILE PER L'ASSIST-MAN
+      .assist-text {
+        color: var(--app-player1);
+        font-weight: 700;
+        font-size: 0.76rem;
+        margin-left: 5px;
+        background: var(--app-player1-subtle);
+        padding: 1px 6px;
+        border-radius: 8px;
+        border: 1px solid var(--app-player1-border);
+        display: inline-block;
+      }
+    }
+  }
+}
+
+// ==========================================
+// TASTO FISCHIO FINALE
+// ==========================================
+.main-end-btn {
+  height: 55px;
+  --border-radius: 16px;
+  font-weight: bold;
+}

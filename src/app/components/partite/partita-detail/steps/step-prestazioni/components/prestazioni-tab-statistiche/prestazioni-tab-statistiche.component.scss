@@ -1,0 +1,291 @@
+@use 'mixins' as *;
+@use 'animations' as *;
+
+:host {
+  display: block;
+}
+
+.report-section-card {
+  margin: 12px 14px;
+  @include card-surface(14px, 12px 14px);
+
+  .section-card-header {
+    @include flex-between;
+    margin-bottom: 10px;
+    gap: 6px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .section-icon {
+        font-size: 1.1rem;
+        &.odds-icon { color: var(--app-primary); }
+        &.flash-icon { color: var(--app-accent-gold); }
+        &.fire-icon { color: var(--app-accent-orange); }
+      }
+
+      .section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .favorite-pill {
+      @include pill-badge(var(--app-surface-subtle));
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+
+      &.white-fav {
+        background: var(--app-white);
+        color: var(--app-neutral-dark);
+        border: 1px solid var(--app-border-color);
+      }
+
+      &.black-fav {
+        background: var(--app-neutral-dark);
+        color: var(--app-accent-blue);
+        border: 1px solid var(--app-card-border);
+      }
+    }
+  }
+}
+
+// 4. ODDS
+.odds-bar-container {
+  @include flex-col(5px);
+
+  .odds-labels-row {
+    @include flex-between;
+    font-size: 0.8rem;
+    color: var(--app-text-primary);
+    strong { font-size: 0.92rem; }
+  }
+
+  .odds-progress-track {
+    display: flex;
+    height: 12px;
+    background: var(--app-surface-subtle);
+    border-radius: 6px;
+    overflow: hidden;
+
+    .odds-progress-fill {
+      height: 100%;
+      &.white-fill { background: linear-gradient(90deg, var(--app-neutral-gray), var(--app-white)); }
+      &.black-fill { background: linear-gradient(90deg, var(--app-neutral-dark), var(--app-black)); }
+    }
+  }
+
+  .odds-mmr-sub {
+    @include flex-between;
+    font-size: 0.68rem;
+    color: var(--app-text-secondary);
+  }
+}
+
+// 5. SHIFTS
+.shifts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .team-shift-box {
+    @include flex-col(6px);
+    padding: 10px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-border-color);
+
+    &.white-shift { border-left: 3px solid var(--app-neutral-gray); }
+    &.black-shift { border-left: 3px solid var(--app-neutral-dark); }
+
+    .shift-team-name {
+      font-size: 0.75rem;
+      font-weight: 900;
+      color: var(--app-text-primary);
+    }
+
+    .shift-stat-item {
+      @include flex-col;
+
+      .stat-name {
+        font-size: 0.65rem;
+        color: var(--app-text-secondary);
+        font-weight: 600;
+      }
+
+      .stat-val {
+        font-size: 0.85rem;
+        font-weight: 800;
+
+        &.val-positive { color: var(--app-primary); }
+        &.val-negative { color: var(--app-accent-danger); }
+        &.legacy-val { color: var(--app-primary); }
+      }
+    }
+  }
+}
+
+// 7. ON FIRE RADAR
+.onfire-tags-container {
+  @include flex-col(5px);
+
+  .onfire-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+
+    &.entered {
+      background: var(--app-accent-orange-subtle);
+      border: 1px solid var(--app-accent-orange-border);
+      strong { color: var(--app-accent-orange); }
+    }
+
+    &.exited {
+      background: var(--app-accent-blue-subtle);
+      border: 1px solid var(--app-accent-blue-border);
+      strong { color: var(--app-accent-blue); }
+    }
+
+    &.maintained {
+      background: var(--app-accent-gold-subtle);
+      border: 1px solid var(--app-accent-gold-border);
+      strong { color: var(--app-accent-gold); }
+    }
+  }
+}
+
+// PRONOSTICO DEL MISTER
+.ai-pronostico-card {
+  margin-top: 14px;
+  background: linear-gradient(135deg, var(--app-accent-purple-subtle) 0%, var(--app-card-bg) 100%);
+  border: 1px solid var(--app-accent-purple-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--app-card-shadow);
+
+  .ai-pronostico-header {
+    @include flex-between;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+
+    .ai-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .ai-header-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .ai-magic-badge {
+        font-size: 0.65rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        background: var(--app-ai-purple-gradient);
+        color: var(--app-white);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      .ai-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+  }
+
+  .ai-pronostico-body {
+    .ai-quote-text {
+      margin: 0;
+      font-size: 0.92rem;
+      color: var(--app-text-primary);
+      line-height: 1.6;
+      word-break: break-word;
+
+      .ai-p {
+        margin: 0 0 10px 0;
+        &:last-child { margin-bottom: 0; }
+      }
+
+      .ai-h3, .ai-h4 {
+        margin: 12px 0 6px 0;
+        color: var(--app-accent-purple);
+        font-weight: 800;
+      }
+
+      strong {
+        color: var(--app-text-primary);
+        font-weight: 750;
+      }
+
+      em {
+        color: var(--app-accent-purple);
+        font-style: italic;
+      }
+    }
+  }
+
+  .ai-empty-prompt {
+    @include flex-col;
+    align-items: center;
+    text-align: center;
+    padding: 6px 0;
+
+    p {
+      margin: 0 0 10px 0;
+      font-size: 0.78rem;
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+.ai-generate-main-btn {
+  background: var(--app-ai-purple-gradient);
+  color: var(--app-white);
+  border: none;
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  @include btn-press;
+
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.ai-refresh-btn {
+  @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  @include btn-press;
+
+  &:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text-primary);
+  }
+
+  ion-icon.spin {
+    animation: spin 1s linear infinite;
+  }
+}

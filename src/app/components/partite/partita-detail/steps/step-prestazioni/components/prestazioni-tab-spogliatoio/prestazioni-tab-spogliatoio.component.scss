@@ -1,0 +1,339 @@
+@use 'mixins' as *;
+@use 'animations' as *;
+
+:host {
+  display: block;
+}
+
+.report-section-card {
+  margin: 12px 14px;
+  @include card-surface(14px, 12px 14px);
+
+  .section-card-header {
+    @include flex-between;
+    margin-bottom: 10px;
+    gap: 6px;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .section-icon {
+        font-size: 1.1rem;
+        &.commento-icon { color: var(--app-accent-purple); }
+        &.mic-icon { color: var(--app-accent-gold); }
+        &.chemistry-icon { color: var(--app-accent-purple); }
+      }
+
+      .section-title {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+// NOTE & RETROSCENA A BORDOCAMPO DI PABLO
+.commento-partita-card {
+  background: linear-gradient(135deg, var(--app-accent-purple-subtle) 0%, var(--app-card-bg) 100%);
+  border: 1px solid var(--app-accent-purple-border);
+  margin-bottom: 16px;
+
+  .pablo-author-badge {
+    @include pill-badge(var(--app-accent-purple-subtle), var(--app-accent-purple));
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .save-commento-btn {
+    @include pill-badge(var(--app-accent-purple-subtle), var(--app-accent-purple), var(--app-accent-purple-border));
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 750;
+    cursor: pointer;
+    @include btn-press;
+
+    ion-icon {
+      font-size: 0.95rem;
+      color: var(--app-accent-purple);
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--app-accent-purple-border);
+      border-color: var(--app-accent-purple);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  .commento-editor-wrapper {
+    margin-top: 10px;
+
+    .commento-custom-textarea {
+      width: 100%;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-border-color);
+      border-radius: 10px;
+      color: var(--app-text-primary);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      padding: 12px 14px;
+      resize: vertical;
+      min-height: 78px;
+      box-sizing: border-box;
+      font-family: inherit;
+      transition: all 0.2s ease;
+
+      &::placeholder {
+        color: var(--app-text-muted);
+        font-style: italic;
+        font-size: 0.85rem;
+      }
+
+      &:focus {
+        border-color: var(--app-accent-purple);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--app-accent-purple-subtle);
+        background: var(--app-card-bg);
+      }
+    }
+
+    .commento-ai-feedback {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 8px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--app-accent-purple);
+
+      .sparkle-hint-icon {
+        font-size: 0.95rem;
+        color: var(--app-accent-purple);
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .commento-view-wrapper {
+    margin-top: 10px;
+
+    .commento-bubble {
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-border-color);
+      border-left: 4px solid var(--app-accent-purple);
+      border-radius: 0 12px 12px 0;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+
+      .quote-sign {
+        font-size: 1.8rem;
+        font-family: Georgia, serif;
+        color: var(--app-accent-purple);
+        line-height: 0.8;
+        font-weight: bold;
+      }
+
+      .commento-body-text {
+        margin: 0;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--app-text-primary);
+        font-style: italic;
+        word-break: break-word;
+      }
+    }
+  }
+
+  .commento-empty-state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 12px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-border-color);
+    border-radius: 8px;
+    margin-top: 10px;
+    color: var(--app-text-secondary);
+    font-size: 0.82rem;
+
+    ion-icon {
+      font-size: 1.1rem;
+      opacity: 0.6;
+    }
+  }
+}
+
+// CRONACA SPORTIVA IGNORANTE SECTION
+.cronaca-section-card {
+  background: linear-gradient(135deg, var(--app-accent-gold-subtle) 0%, var(--app-card-bg) 100%);
+  border: 1px solid var(--app-accent-gold-border);
+
+  .cronaca-content-box {
+    margin-top: 8px;
+
+    .cronaca-bubble {
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-border-color);
+      border-left: 4px solid var(--app-accent-gold);
+      border-radius: 0 12px 12px 0;
+      padding: 14px 16px;
+
+      .cronaca-text {
+        margin: 0;
+        font-size: 0.92rem;
+        line-height: 1.65;
+        color: var(--app-text-primary);
+        word-break: break-word;
+
+        .ai-p {
+          margin: 0 0 12px 0;
+          &:last-child { margin-bottom: 0; }
+        }
+
+        .ai-h3, .ai-h4 {
+          margin: 14px 0 6px 0;
+          font-weight: 800;
+          color: var(--app-accent-gold);
+        }
+
+        strong {
+          color: var(--app-text-primary);
+          font-weight: 750;
+        }
+
+        em {
+          color: var(--app-accent-gold);
+          font-style: italic;
+        }
+
+        .ai-ul {
+          margin: 6px 0 10px 0;
+          padding-left: 18px;
+        }
+
+        .ai-li {
+          margin-bottom: 4px;
+        }
+      }
+    }
+
+    .cronaca-footer {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+
+      .cronaca-hint {
+        font-size: 0.68rem;
+        color: var(--app-text-muted);
+        font-weight: 600;
+      }
+    }
+  }
+
+  .ai-empty-cronaca {
+    @include flex-col;
+    align-items: center;
+    text-align: center;
+    padding: 12px 4px 6px;
+
+    .empty-icon {
+      font-size: 2.2rem;
+      margin-bottom: 6px;
+    }
+
+    .empty-info {
+      h4 {
+        margin: 0 0 4px 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      p {
+        margin: 0 0 14px 0;
+        font-size: 0.78rem;
+        color: var(--app-text-secondary);
+        max-width: 380px;
+        line-height: 1.4;
+      }
+    }
+
+    .ai-generate-cronaca-btn {
+      background: linear-gradient(135deg, var(--app-accent-gold) 0%, var(--app-accent-orange) 100%);
+      color: var(--app-black);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      @include flex-center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--app-accent-gold-subtle);
+      @include btn-press(0.97);
+
+      ion-spinner {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+}
+
+.ai-refresh-btn {
+  @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  @include btn-press;
+
+  &:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text-primary);
+  }
+
+  ion-icon.spin {
+    animation: spin 1s linear infinite;
+  }
+}
+
+// CHIMICA
+.chemistry-notes-list {
+  @include flex-col(6px);
+
+  .chem-note-card {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-border-color);
+
+    .chem-badge-pill { font-size: 0.65rem; font-weight: 900; }
+    .chem-note-title { font-size: 0.8rem; font-weight: 800; color: var(--app-text-primary); }
+    .chem-note-desc { font-size: 0.72rem; color: var(--app-text-secondary); line-height: 1.3; }
+
+    &.chem-synergy { border-left: 3px solid var(--app-primary); }
+    &.chem-rivalry { border-left: 3px solid var(--app-accent-danger); }
+  }
+}

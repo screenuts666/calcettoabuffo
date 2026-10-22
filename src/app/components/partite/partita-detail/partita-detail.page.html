@@ -1,0 +1,84 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      @if (state.step() === "dettagli" && !state.matchConcluso()) {
+        <ion-button (click)="state.step.set('convocati')"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+      @if (state.step() === "squadre" && !state.matchConcluso()) {
+        <ion-button (click)="state.step.set('dettagli')"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+      @if (
+        state.step() === "match" &&
+        !state.isTimerRunning() &&
+        !state.matchConcluso()
+      ) {
+        <ion-button (click)="confermaTornaASquadre()"
+          ><ion-icon name="arrow-back"></ion-icon
+        ></ion-button>
+      }
+      @if (state.step() === 'convocati' || state.step() === 'prestazioni') {
+        <ion-back-button defaultHref="/partite" text=""></ion-back-button>
+      }
+    </ion-buttons>
+
+    <ion-title>{{
+      state.step() === 'prestazioni'
+        ? (state.matchConcluso() ? 'Report Partita' : 'Pagelle')
+        : state.matchId()
+          ? 'Gestione Match'
+          : 'Nuova Partita'
+    }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  @if (isLoading()) {
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 70%;
+        gap: 12px;
+      "
+    >
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p style="color: var(--app-text-secondary, #94a3b8); font-size: 0.9rem">
+        Caricamento partita in corso...
+      </p>
+    </div>
+  } @else {
+    @if (state.step() === "convocati") {
+      <app-step-convocati></app-step-convocati>
+    }
+
+    @if (state.step() === "dettagli") {
+      <app-step-dettagli></app-step-dettagli>
+    }
+
+    @if (state.step() === "squadre") {
+      <app-step-squadre></app-step-squadre>
+    }
+
+    @if (state.step() === "match") {
+      <app-step-match [isAdmin]="isAdmin"></app-step-match>
+    }
+
+    @if (state.step() === "prestazioni") {
+      <app-step-prestazioni></app-step-prestazioni>
+    }
+
+    @if (state.step() === 'convocati' && state.totaleConvocati() >= 2) {
+      <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+        <ion-fab-button color="success" (click)="state.step.set('dettagli')">
+          <ion-icon name="arrow-forward"></ion-icon>
+        </ion-fab-button>
+      </ion-fab>
+    }
+  }
+</ion-content>
