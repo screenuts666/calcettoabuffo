@@ -1,9 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar>
-    <ion-title>{{ giocatore ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="close.emit()">Annulla</ion-button>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/rosa" text=""></ion-back-button>
     </ion-buttons>
+    <ion-title>{{ giocatore ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
   </ion-toolbar>
 </ion-header>
 

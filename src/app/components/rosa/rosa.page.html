@@ -45,7 +45,7 @@
     <ion-list mode="ios" class="giocatori-list">
       @for (g of giocatoriFiltrati(); track g.id) {
       <ion-item-sliding #slidingItem>
-        <ion-item lines="full" class="player-item" (click)="apriModale(g)">
+        <ion-item lines="full" class="player-item" (click)="apriDettagliGiocatore(g)">
           <ion-avatar slot="start">
             <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
           </ion-avatar>
@@ -78,6 +78,12 @@
         @if (isAdmin) {
         <ion-item-options side="end">
           <ion-item-option
+            color="primary"
+            (click)="modificaGiocatore(g, slidingItem)"
+          >
+            <ion-icon name="create" slot="icon-only"></ion-icon>
+          </ion-item-option>
+          <ion-item-option
             color="danger"
             (click)="eliminaGiocatore(g.id, slidingItem)"
           >
@@ -92,19 +98,10 @@
   </div>
   @if(isAdmin) {
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="isAdmin">
-    <ion-fab-button color="success" (click)="apriModale()">
+    <ion-fab-button color="success" (click)="creaNuovoGiocatore()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>
   }
-
-  <ion-modal [isOpen]="isModalOpen()" (didDismiss)="chiudiModale()">
-    <ng-template>
-      <app-form-giocatore
-        [giocatore]="giocatoreInModifica()"
-        (close)="chiudiModale()"
-      >
-      </app-form-giocatore>
-    </ng-template>
-  </ion-modal>
 </ion-content>
+

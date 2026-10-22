@@ -314,6 +314,7 @@ export class ConfrontoPage implements OnInit {
       this.playerBId.set(g.id);
     }
     this.chiudiSelettore();
+    this.aggiornaUrl();
   }
 
   // Inverte Giocatore A e Giocatore B
@@ -322,6 +323,19 @@ export class ConfrontoPage implements OnInit {
     const b = this.playerBId();
     this.playerAId.set(b);
     this.playerBId.set(a);
+    this.aggiornaUrl();
+  }
+
+  private aggiornaUrl() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        playerA: this.playerAId(),
+        playerB: this.playerBId(),
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   // Cambio stagione
@@ -368,6 +382,8 @@ export class ConfrontoPage implements OnInit {
     lines.push(``);
     lines.push(`🤝 *Intesa Quando Giocano Insieme:*`);
     lines.push(`   • ${intesa.affinitaEmoji} ${intesa.affinitaLabel} (${intesa.winRate}% vittorie su ${intesa.totalePartite} match)`);
+    lines.push(``);
+    lines.push(`🔗 *Guarda il testa a testa:* ${window.location.origin}/confronto?playerA=${pA.id}&playerB=${pB.id}`);
     lines.push(``);
     lines.push(`_Generato da Calcetto Abbuffo_ ⚽`);
 
