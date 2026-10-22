@@ -3,6 +3,9 @@
  * ----------------------------------------------------------------------------
  */
 
+/* Custom Theme Tokens & Mixins */
+@use './theme' as *;
+
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -21,9 +24,6 @@
 
 /* Ionic Dark Mode (Class-based per pieno controllo con selettore) */
 @import '@ionic/angular/css/palettes/dark.class.css';
-
-/* Custom Theme Tokens */
-@import './theme/variables.scss';
 
 /* =============================================================================
  * UNIFORM THEME OVERRIDES (No Color Clashing in Any Mode)
@@ -83,6 +83,203 @@ ion-item {
 /* Modali con bordi arrotondati e sfondi uniformi */
 ion-modal {
   --background: var(--app-bg);
+}
+
+/* =============================================================================
+ * PALETTE CONTROLS: NO NATIVE IONIC BLUE ANYWHERE
+ * ============================================================================= */
+ion-toolbar {
+  ion-back-button {
+    --color: var(--app-text-primary);
+    color: var(--app-text-primary);
+    font-weight: 600;
+    transition: color 0.15s ease, opacity 0.15s ease;
+
+    &:hover,
+    &:active {
+      --color: var(--app-primary);
+      color: var(--app-primary);
+    }
+  }
+
+  ion-button {
+    --color: var(--app-text-primary);
+    color: var(--app-text-primary);
+    font-weight: 600;
+    transition: color 0.15s ease, opacity 0.15s ease;
+
+    &:hover,
+    &:active {
+      --color: var(--app-primary);
+      color: var(--app-primary);
+    }
+  }
+}
+
+/* Select, Popover & Picker Custom Styling */
+ion-select {
+  --placeholder-color: var(--app-text-muted);
+  --placeholder-opacity: 1;
+
+  &::part(icon) {
+    color: var(--app-primary);
+    opacity: 0.9;
+  }
+  &::part(text) {
+    color: var(--app-text-primary);
+    font-weight: 600;
+  }
+}
+
+ion-select-popover {
+  --background: var(--app-card-bg);
+
+  ion-item {
+    --color: var(--app-text-primary);
+    &[aria-checked="true"] {
+      --color: var(--app-primary) !important;
+      font-weight: 700;
+
+      ion-icon,
+      ion-radio,
+      ion-checkbox {
+        color: var(--app-primary) !important;
+      }
+    }
+  }
+}
+
+/* Picker (Pulsanti sopra i select / ruote di selezione) */
+.picker-wrapper,
+ion-picker {
+  --background: var(--app-card-bg) !important;
+  background: var(--app-card-bg) !important;
+}
+
+.picker-toolbar {
+  border-bottom: 1px solid var(--app-card-border) !important;
+  background: var(--app-card-bg) !important;
+}
+
+.picker-toolbar-button {
+  .picker-button {
+    color: var(--app-primary) !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+  }
+
+  &.picker-toolbar-cancel .picker-button,
+  &:first-child .picker-button {
+    color: var(--app-text-secondary) !important;
+    font-weight: 500 !important;
+  }
+}
+
+.picker-opt {
+  color: var(--app-text-secondary) !important;
+  &.picker-opt-selected {
+    color: var(--app-text-primary) !important;
+    font-weight: 800 !important;
+  }
+}
+
+/* Alert Controller Popups */
+.alert-wrapper {
+  --background: var(--app-card-bg) !important;
+  background: var(--app-card-bg) !important;
+  border: 1px solid var(--app-card-border) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--app-card-shadow) !important;
+}
+
+.alert-head {
+  .alert-title {
+    color: var(--app-text-primary) !important;
+    font-weight: 800 !important;
+    font-size: 1.15rem !important;
+  }
+  .alert-sub-title,
+  .alert-message {
+    color: var(--app-text-secondary) !important;
+    font-size: 0.88rem !important;
+  }
+}
+
+.alert-button-group {
+  padding: 8px 12px 12px !important;
+}
+
+.alert-button {
+  color: var(--app-primary) !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+
+  &.alert-button-role-cancel {
+    color: var(--app-text-secondary) !important;
+    font-weight: 500 !important;
+  }
+
+  &.alert-button-role-destructive {
+    color: var(--app-accent-danger) !important;
+  }
+}
+
+.alert-radio-label,
+.alert-checkbox-label {
+  color: var(--app-text-primary) !important;
+}
+
+[aria-checked="true"] {
+  .alert-radio-label,
+  .alert-checkbox-label {
+    color: var(--app-primary) !important;
+    font-weight: 700 !important;
+  }
+
+  .alert-radio-icon {
+    border-color: var(--app-primary) !important;
+    .alert-radio-inner {
+      background-color: var(--app-primary) !important;
+    }
+  }
+
+  .alert-checkbox-icon {
+    background-color: var(--app-primary) !important;
+    border-color: var(--app-primary) !important;
+  }
+}
+
+/* Action Sheet Popups */
+.action-sheet-wrapper {
+  --background: var(--app-card-bg) !important;
+  background: var(--app-card-bg) !important;
+}
+
+.action-sheet-title {
+  color: var(--app-text-primary) !important;
+  font-weight: 800 !important;
+}
+
+.action-sheet-sub-title {
+  color: var(--app-text-secondary) !important;
+}
+
+.action-sheet-button {
+  color: var(--app-text-primary) !important;
+  font-weight: 600 !important;
+
+  &.ion-activated {
+    background: var(--app-surface-hover) !important;
+  }
+
+  &.action-sheet-cancel {
+    color: var(--app-text-secondary) !important;
+    font-weight: 500 !important;
+  }
+
+  &.action-sheet-destructive {
+    color: var(--app-accent-danger) !important;
+  }
 }
 
 /* =============================================================================

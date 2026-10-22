@@ -40,6 +40,12 @@
           "src/global.scss",
           "src/theme/variables.scss"
         ],
+        "stylePreprocessorOptions": {
+          "includePaths": [
+            "src/theme",
+            "src"
+          ]
+        },
         "scripts": [],
         "browser": "src/main.ts"
       },
@@ -137,6 +143,12 @@
           "src/global.scss",
           "src/theme/variables.scss"
         ],
+        "stylePreprocessorOptions": {
+          "includePaths": [
+            "src/theme",
+            "src"
+          ]
+        },
         "scripts": []
       },
       "configurations": {

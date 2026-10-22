@@ -1,20 +1,22 @@
+@use 'mixins' as *;
+
 ion-header ion-toolbar {
-  --background: #0f1117;
-  --color: #ffffff;
-  --border-color: rgba(255, 255, 255, 0.08);
+  --background: var(--app-toolbar-bg);
+  --color: var(--app-text-primary);
+  --border-color: var(--app-toolbar-border);
 
   ion-title {
-    color: #ffffff;
+    color: var(--app-text-primary);
     font-weight: 700;
   }
 
   ion-button {
-    --color: #dce0ed;
+    --color: var(--app-text-secondary);
   }
 }
 
 .viewer-content {
-  --background: #000;
+  --background: var(--app-black);
   display: flex;
   flex-direction: column;
 }
@@ -26,7 +28,7 @@ ion-header ion-toolbar {
   align-items: center;
   min-height: 100%;
   padding: 12px;
-  background: radial-gradient(circle at center, #181818 0%, #050505 100%);
+  background: radial-gradient(circle at center, var(--app-surface) 0%, var(--app-bg) 100%);
 }
 
 .match-meta-bar {
@@ -41,25 +43,23 @@ ion-header ion-toolbar {
 .meta-item {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--app-white);
+  background: var(--app-overlay-light);
   padding: 5px 12px;
   border-radius: 20px;
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
 
   &.risultato {
-    background: rgba(45, 211, 111, 0.2);
-    border-color: rgba(45, 211, 111, 0.4);
-    color: var(--ion-color-success, #2dd36f);
+    background: var(--app-primary-subtle);
+    border-color: var(--app-primary-border);
+    color: var(--app-primary);
     font-weight: 700;
   }
 }
 
 .image-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include flex-center;
   width: 100%;
   max-width: 900px;
   max-height: 75vh;
@@ -85,6 +85,6 @@ ion-header ion-toolbar {
 
 .viewer-hint {
   font-size: 0.75rem;
-  color: var(--ion-color-medium, #999);
+  color: var(--app-text-muted);
   margin: 0;
 }
