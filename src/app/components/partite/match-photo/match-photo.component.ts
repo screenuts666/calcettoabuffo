@@ -32,7 +32,7 @@ import {
   imageOutline,
   cloudUploadOutline,
 } from 'ionicons/icons';
-import { MatchStateService } from '../match-modal/match-state.service';
+import { MatchStateService } from '../partita-detail/match-state.service';
 import { AuthService } from '../../../services/auth.service';
 import { FotoViewerModalComponent } from '../foto-viewer-modal/foto-viewer-modal.component';
 import { compressImage } from '../../../utils/image-utils';

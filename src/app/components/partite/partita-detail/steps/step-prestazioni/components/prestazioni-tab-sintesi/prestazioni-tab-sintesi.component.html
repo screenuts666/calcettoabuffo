@@ -1,0 +1,184 @@
+<!-- SPOTLIGHT AWARDS: MVP & BIDONE DELLA SERATA -->
+<div class="spotlight-awards-container">
+
+  <!-- MVP DEL MATCH 👑 -->
+  @if (mvp) {
+    <div class="award-card mvp-award-card">
+      <div class="award-glow-bg"></div>
+      <div class="award-badge-ribbon mvp-ribbon">
+        <ion-icon name="trophy"></ion-icon>
+        <span>MVP DELLA PARTITA</span>
+      </div>
+
+      <div class="award-player-body">
+        <div class="award-avatar-wrap">
+          <ion-avatar class="award-avatar mvp-avatar">
+            <app-player-avatar [fotoUrl]="mvp.fotoUrl" [alt]="mvp.nome"></app-player-avatar>
+          </ion-avatar>
+          <div class="mvp-crown-badge">👑</div>
+        </div>
+
+        <div class="award-details">
+          <div class="award-player-name">{{ mvp.nome }}</div>
+          <div class="award-team-tag" [class.white]="mvp.team === 'A'" [class.black]="mvp.team === 'B'">
+            {{ mvp.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+          </div>
+
+          <div class="award-metrics-row">
+            <span class="award-rating-pill">
+              ⭐ Voto <strong>{{ mvp.voto }}</strong>
+            </span>
+            @if ((mvp.gol || 0) > 0) {
+              <span class="award-goals-pill">
+                ⚽ {{ mvp.gol }} Gol
+              </span>
+            }
+            <span class="award-mmr-pill">
+              {{ (mvp.mmrDelta || 0) >= 0 ? '+' : '' }}{{ mvp.mmrDelta }} MMR
+            </span>
+          </div>
+
+          @if (mvp.note) {
+            <div class="award-quote-box">
+              <span class="quote-mark">“</span>
+              <span class="quote-text">{{ mvp.note }}</span>
+              <span class="quote-mark">”</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- BADGE GOLIARDICO: BIDONE DELLA SERATA 🩴 -->
+  @if (worst) {
+    <div class="award-card worst-award-card">
+      <div class="award-badge-ribbon worst-ribbon">
+        <span>🩴 BIDONE DELLA SERATA</span>
+      </div>
+
+      <div class="award-player-body">
+        <div class="award-avatar-wrap">
+          <ion-avatar class="award-avatar worst-avatar">
+            <app-player-avatar [fotoUrl]="worst.fotoUrl" [alt]="worst.nome"></app-player-avatar>
+          </ion-avatar>
+          <div class="worst-flipflop-badge">🩴</div>
+        </div>
+
+        <div class="award-details">
+          <div class="award-player-name">{{ worst.nome }}</div>
+          <div class="award-team-tag" [class.white]="worst.team === 'A'" [class.black]="worst.team === 'B'">
+            {{ worst.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+          </div>
+
+          <div class="award-metrics-row">
+            <span class="worst-rating-pill">
+              Voto <strong>{{ worst.voto }}</strong>
+            </span>
+            <span class="worst-humor-pill">🍕 Serata No</span>
+          </div>
+
+          @if (worst.note) {
+            <div class="award-quote-box worst-quote">
+              <span class="quote-mark">“</span>
+              <span class="quote-text">{{ worst.note }}</span>
+              <span class="quote-mark">”</span>
+            </div>
+          } @else {
+            <div class="worst-comfort-note">
+              Tanti lisci e passaggi agli avversari... ci si rifà alla prossima birra! 🍻
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- CRONOLOGIA GOL & ASSIST -->
+@if (eventiGol.length > 0) {
+  <div class="report-section-card goals-timeline-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon name="football" class="section-icon goals-icon"></ion-icon>
+        <span class="section-title">Cronologia Gol</span>
+      </div>
+      @if (isAdmin) {
+        <span class="timeline-edit-hint">Tocca un gol per modificare l'assist</span>
+      }
+    </div>
+
+    <div class="timeline-goals-list">
+      @for (gol of eventiGol; track $index) {
+        <div
+          class="timeline-goal-item"
+          [class.team-b-goal]="gol.teamVantaggio === 'B'"
+          [class.clickable]="isAdmin && !gol.isAutogoal"
+          (click)="isAdmin && !gol.isAutogoal ? editAssistClick.emit($index) : null"
+        >
+          <div class="timeline-goal-time">{{ gol.tempo || '--:--' }}</div>
+          <div
+            class="timeline-team-badge"
+            [class.white]="gol.teamVantaggio === 'A'"
+            [class.black]="gol.teamVantaggio === 'B'"
+          >
+            {{ gol.teamVantaggio === 'A' ? '⚪ Bianchi' : '⚫ Neri' }}
+          </div>
+          <div class="timeline-goal-info">
+            <span class="timeline-scorer">
+              @if (gol.isAutogoal) {
+                ⚠️ <strong>{{ gol.nome }}</strong> <em class="autogol-tag">(Autogol)</em>
+              } @else {
+                ⚽ <strong>{{ gol.nome }}</strong>
+              }
+            </span>
+
+            @if (!gol.isAutogoal) {
+              <span class="timeline-assist">
+                @if (gol.assistNome) {
+                  <span class="assist-tag">👟 Assist: <strong>{{ gol.assistNome }}</strong></span>
+                } @else {
+                  <span class="no-assist-tag">⚡ Azione personale</span>
+                }
+              </span>
+            }
+          </div>
+
+          @if (isAdmin && !gol.isAutogoal) {
+            <div class="timeline-edit-icon" title="Modifica assist">
+              <ion-icon name="create-outline"></ion-icon>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="report-section-card empty-goals-card">
+    <div class="empty-goals-inner">
+      <span class="empty-icon">⚽</span>
+      <div class="empty-text">Nessun gol registrato per questa partita.</div>
+    </div>
+  </div>
+}
+
+<!-- FOTO DI GRUPPO DELLA PARTITA -->
+<app-match-photo></app-match-photo>
+
+<!-- BANNER CONDIVISIONE WHATSAPP -->
+<div class="report-share-cta-card">
+  <div class="cta-text-content">
+    <div class="cta-title">Condividi con il Gruppo</div>
+    <div class="cta-subtitle">Invia tabellino, pagelle, MVP e link diretto su WhatsApp</div>
+  </div>
+
+  <button
+    type="button"
+    class="whatsapp-full-share-btn"
+    (click)="shareClick.emit()"
+  >
+    <ion-icon name="logo-whatsapp"></ion-icon>
+    <span>Condividi su WhatsApp</span>
+  </button>
+</div>

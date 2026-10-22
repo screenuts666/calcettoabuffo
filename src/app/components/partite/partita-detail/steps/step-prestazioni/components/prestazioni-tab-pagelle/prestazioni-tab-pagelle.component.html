@@ -1,0 +1,101 @@
+<!-- SUB-FILTER SQUADRE -->
+<div class="pagelle-team-filter-bar">
+  <button
+    type="button"
+    class="team-filter-chip"
+    [class.active]="teamPagelleFilter() === 'all'"
+    (click)="teamPagelleFilter.set('all')"
+  >
+    <span>Tutti ({{ playersA.length + playersB.length }})</span>
+  </button>
+  <button
+    type="button"
+    class="team-filter-chip white-chip"
+    [class.active]="teamPagelleFilter() === 'A'"
+    (click)="teamPagelleFilter.set('A')"
+  >
+    <span>⚪ Bianchi ({{ playersA.length }})</span>
+  </button>
+  <button
+    type="button"
+    class="team-filter-chip black-chip"
+    [class.active]="teamPagelleFilter() === 'B'"
+    (click)="teamPagelleFilter.set('B')"
+  >
+    <span>⚫ Neri ({{ playersB.length }})</span>
+  </button>
+</div>
+
+<div class="tabellino-container">
+  @if (pagelleInserite && isAdmin) {
+    <div class="pagelle-status-banner">
+      <ion-icon name="create-outline"></ion-icon>
+      <span>Sessione archiviata · Modifica admin abilitata</span>
+    </div>
+  }
+
+  <!-- SQUADRA A: BIANCHI -->
+  @if (teamPagelleFilter() === 'all' || teamPagelleFilter() === 'A') {
+    <div class="roster-team-section white-team-section">
+      <div class="team-roster-banner white-banner">
+        <div class="roster-banner-left">
+          <div class="roster-team-dot white-dot"></div>
+          <span class="roster-team-name">TEAM BIANCHI</span>
+        </div>
+        <div class="roster-banner-stats">
+          <span class="stat-chip">⭐ Media {{ votoMedioA > 0 ? votoMedioA : '-' }}</span>
+          <span class="stat-chip">⚽ {{ scoreA }} Gol</span>
+          <span class="stat-chip mmr-chip">
+            {{ teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ teamAvgMmrDeltaA }} MMR
+          </span>
+        </div>
+      </div>
+
+      <div class="players-cards-list">
+        @for (g of playersA; track g.id) {
+          <app-prestazioni-player-card
+            [player]="g"
+            [isAdmin]="isAdmin"
+            [isMvp]="mvpId === g.id"
+            (voteChange)="voteChange.emit($event)"
+            (noteChange)="noteChange.emit($event)"
+            (assistClick)="editAssist.emit($event)"
+          ></app-prestazioni-player-card>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- SQUADRA B: NERI -->
+  @if (teamPagelleFilter() === 'all' || teamPagelleFilter() === 'B') {
+    <div class="roster-team-section black-team-section">
+      <div class="team-roster-banner black-banner">
+        <div class="roster-banner-left">
+          <div class="roster-team-dot black-dot"></div>
+          <span class="roster-team-name">TEAM NERI</span>
+        </div>
+        <div class="roster-banner-stats">
+          <span class="stat-chip">⭐ Media {{ votoMedioB > 0 ? votoMedioB : '-' }}</span>
+          <span class="stat-chip">⚽ {{ scoreB }} Gol</span>
+          <span class="stat-chip mmr-chip">
+            {{ teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ teamAvgMmrDeltaB }} MMR
+          </span>
+        </div>
+      </div>
+
+      <div class="players-cards-list">
+        @for (g of playersB; track g.id) {
+          <app-prestazioni-player-card
+            [player]="g"
+            [isAdmin]="isAdmin"
+            [isMvp]="mvpId === g.id"
+            (voteChange)="voteChange.emit($event)"
+            (noteChange)="noteChange.emit($event)"
+            (assistClick)="editAssist.emit($event)"
+          ></app-prestazioni-player-card>
+        }
+      </div>
+    </div>
+  }
+
+</div>

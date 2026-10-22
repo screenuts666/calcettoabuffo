@@ -29,7 +29,7 @@ import {
   IonButtons,
 } from '@ionic/angular/standalone';
 import { CommonModule, Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
@@ -67,8 +67,8 @@ import {
   globeOutline,
   logoWhatsapp,
   shareSocialOutline,
+  chatboxEllipsesOutline,
 } from 'ionicons/icons';
-import { MatchModalComponent } from './match-modal/match-modal.component';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
@@ -117,11 +117,10 @@ export class PartitePage {
   private toastController = inject(ToastController);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private location = inject(Location);
 
   highlightMatchId = signal<string | null>(null);
-  currentRouteId = signal<string | null>(null);
-  private deepLinkHandled = false;
 
   partite = toSignal<any[]>(
     collectionData(
@@ -249,51 +248,7 @@ export class PartitePage {
       globeOutline,
       logoWhatsapp,
       shareSocialOutline,
-    });
-
-    this.route.paramMap.subscribe((params) => {
-      const id = params.get('id');
-      if (id && id !== this.currentRouteId()) {
-        this.currentRouteId.set(id);
-        this.deepLinkHandled = false;
-      }
-    });
-
-    effect(() => {
-      const list = this.partite();
-      const targetId =
-        this.currentRouteId() || this.route.snapshot.paramMap.get('id');
-      if (!list || !targetId || this.deepLinkHandled) return;
-
-      const match = list.find((m: any) => m.id === targetId);
-      if (match) {
-        this.deepLinkHandled = true;
-        const s = getStagionePartita(match);
-        if (
-          this.stagioneSelezionata() !== s &&
-          this.stagioneSelezionata() !== this.ALL_SEASONS
-        ) {
-          this.stagioneSelezionata.set(s);
-        }
-        this.highlightMatchId.set(match.id);
-
-        setTimeout(() => {
-          const el = document.getElementById(`match-card-${match.id}`);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-          this.apriModalePartita(match);
-        }, 350);
-
-        setTimeout(() => {
-          if (this.highlightMatchId() === match.id) {
-            this.highlightMatchId.set(null);
-          }
-        }, 3500);
-      } else if (list.length > 0) {
-        this.deepLinkHandled = true;
-        this.mostraToastPartitaNonTrovata();
-      }
+      chatboxEllipsesOutline,
     });
   }
 
@@ -378,7 +333,7 @@ export class PartitePage {
     }
   }
 
-  async apriModalePartita(partita?: any) {
+  async apriPartita(partita?: any) {
     if (!partita && this.stagioneSelezionata() === this.PREVIOUS_SEASON) {
       const alert = await this.alertController.create({
         header: 'Stagione Conclusa',
@@ -389,42 +344,11 @@ export class PartitePage {
       return;
     }
 
-    const tutti = this.giocatori() ?? [];
-    const data = partita
-      ? JSON.parse(JSON.stringify(partita))
-      : {
-          id: null,
-          scoreA: 0,
-          scoreB: 0,
-          teamA: [],
-          teamB: [],
-          convocati: [],
-          status: 'pronta',
-        };
-
-    data.isAdmin = this.isAdmin;
-
-    data.tuttiGiocatori = tutti.map((g: any) => ({
-      ...g,
-      selezionato: false,
-      voto: null,
-      gol: 0,
-      note: '',
-    }));
-
     if (partita?.id) {
-      this.location.replaceState(`/partite/${partita.id}`);
+      await this.router.navigate(['/partite', partita.id]);
+    } else {
+      await this.router.navigate(['/partite', 'nuova']);
     }
-
-    const modal = await this.modalCtrl.create({
-      component: MatchModalComponent,
-      componentProps: { matchData: data },
-    });
-    await modal.present();
-    await modal.onDidDismiss();
-    this.location.replaceState('/partite');
-    this.currentRouteId.set(null);
-    return;
   }
 
   async confermaEliminazione(match: any, slidingItem: IonItemSliding) {

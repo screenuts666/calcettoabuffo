@@ -21,11 +21,11 @@ import {
   IonSearchbar,
   AlertController,
   IonFab,
-  IonModal,
   IonFabButton,
   IonButtons,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
@@ -48,7 +48,6 @@ import {
   closeCircle,
   people,
 } from 'ionicons/icons';
-import { FormGiocatoreComponent } from './form-giocatore/form-giocatore.component';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
 import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
@@ -84,8 +83,6 @@ import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component'
     IonSearchbar,
     IonFab,
     IonFabButton,
-    IonModal,
-    FormGiocatoreComponent,
     IonButtons,
     ThemeToggleComponent,
     PlayerAvatarComponent,
@@ -95,6 +92,7 @@ export class RosaPage {
   private firestore = inject(Firestore);
   private alertController = inject(AlertController);
   private auth = inject(AuthService);
+  private router = inject(Router);
 
   readonly DEFAULT_AVATAR = DEFAULT_AVATAR;
 
@@ -107,8 +105,6 @@ export class RosaPage {
   }
 
   filtro = signal('');
-  isModalOpen = signal(false);
-  giocatoreInModifica = signal<Giocatore | null>(null);
 
   tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>(
     collectionData(
@@ -145,13 +141,17 @@ export class RosaPage {
     return this.auth.isAdmin();
   }
 
-  apriModale(g?: Giocatore) {
-    this.giocatoreInModifica.set(g || null);
-    this.isModalOpen.set(true);
+  apriDettagliGiocatore(g: Giocatore) {
+    this.router.navigate(['/giocatori', g.id]);
   }
 
-  chiudiModale() {
-    this.isModalOpen.set(false);
+  creaNuovoGiocatore() {
+    this.router.navigate(['/giocatori', 'nuovo']);
+  }
+
+  modificaGiocatore(g: Giocatore, slidingItem?: IonItemSliding) {
+    slidingItem?.close();
+    this.router.navigate(['/giocatori', g.id, 'modifica']);
   }
 
   async eliminaGiocatore(id: string, slidingItem: IonItemSliding) {

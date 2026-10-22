@@ -9,7 +9,7 @@
   aspect-ratio: 1 / 1;
   border-radius: 50%;
   overflow: hidden;
-  background-color: #242b35;
+  background-color: var(--app-surface-subtle);
   user-select: none;
   flex-shrink: 0;
   vertical-align: middle;

@@ -105,6 +105,20 @@
           <ion-label>Link App</ion-label>
         </ion-chip>
 
+        @if (hasCommentoDisponibile()) {
+          <ion-chip
+            [class.chip-active]="includeCommentoPartita()"
+            (click)="toggleOption('commento')"
+            class="commento-chip"
+          >
+            <ion-icon
+              [name]="includeCommentoPartita() ? 'checkmark-circle' : 'chatbox-ellipses-outline'"
+              [color]="includeCommentoPartita() ? 'success' : 'medium'"
+            ></ion-icon>
+            <ion-label>📝 Note Pablo</ion-label>
+          </ion-chip>
+        }
+
         @if (hasCronacaDisponibile()) {
           <ion-chip
             [class.chip-active]="includeCronacaAi()"

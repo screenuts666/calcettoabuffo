@@ -18,9 +18,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: rgba(56, 128, 255, 0.12);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: var(--app-accent-blue-subtle);
+  color: var(--app-accent-blue);
+  border: 1px solid var(--app-accent-blue-border);
   border-radius: 9999px;
   padding: 4px 10px;
   font-size: 0.74rem;
@@ -35,10 +35,10 @@
   -webkit-tap-highlight-color: transparent;
 
   &:hover:not(:disabled) {
-    background: rgba(56, 128, 255, 0.22);
-    border-color: rgba(56, 189, 248, 0.6);
+    background: rgba(var(--app-accent-blue-rgb), 0.22);
+    border-color: rgba(var(--app-accent-blue-rgb), 0.6);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+    box-shadow: 0 4px 12px rgba(var(--app-accent-blue-rgb), 0.25);
   }
 
   &:active:not(:disabled) {
@@ -56,7 +56,7 @@
     flex-shrink: 0;
 
     &.play-icon {
-      color: #38bdf8;
+      color: var(--app-accent-blue);
     }
   }
 
@@ -69,17 +69,17 @@
   // STATO: CARICAMENTO (GENERAZIONE AI AUDIO)
   // ==========================================
   &.is-loading {
-    background: rgba(245, 158, 11, 0.16);
-    border-color: rgba(245, 158, 11, 0.55);
-    color: #fbbf24;
+    background: var(--app-accent-gold-subtle);
+    border-color: var(--app-accent-gold-border);
+    color: var(--app-accent-gold);
     cursor: wait;
-    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 0 12px rgba(var(--app-accent-gold-rgb), 0.25);
     animation: pulseBorder 1.5s ease-in-out infinite;
 
     .tts-spinner {
       width: 14px;
       height: 14px;
-      color: #fbbf24;
+      color: var(--app-accent-gold);
     }
   }
 
@@ -87,20 +87,20 @@
   // STATO: IN RIPRODUZIONE (PLAYING)
   // ==========================================
   &.is-playing {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(244, 63, 94, 0.22) 100%);
-    border-color: rgba(244, 63, 94, 0.7);
-    color: #fda4af;
-    box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+    background: var(--app-accent-danger-subtle);
+    border-color: var(--app-accent-danger-border);
+    color: var(--app-accent-danger);
+    box-shadow: 0 0 14px rgba(var(--app-accent-danger-rgb), 0.4);
     animation: playingGlow 2s ease-in-out infinite alternate;
 
     .stop-icon {
       font-size: 1rem;
-      color: #f43f5e;
+      color: var(--app-accent-danger);
     }
 
     &:hover {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(244, 63, 94, 0.35) 100%);
-      border-color: #f43f5e;
+      background: rgba(var(--app-accent-danger-rgb), 0.25);
+      border-color: var(--app-accent-danger);
     }
   }
 
@@ -117,7 +117,7 @@
     .bar {
       width: 2.5px;
       border-radius: 2px;
-      background: #f43f5e;
+      background: var(--app-accent-danger);
       animation: soundBars 0.75s ease-in-out infinite alternate;
 
       &.bar-1 {
@@ -153,9 +153,9 @@
   align-items: center;
   justify-content: center;
   gap: 5px;
-  background: rgba(37, 211, 102, 0.14);
-  color: #4ade80;
-  border: 1px solid rgba(37, 211, 102, 0.38);
+  background: var(--app-primary-subtle);
+  color: var(--app-primary);
+  border: 1px solid var(--app-primary-border);
   border-radius: 9999px;
   padding: 4px 8px;
   font-size: 0.74rem;
@@ -170,11 +170,11 @@
   -webkit-tap-highlight-color: transparent;
 
   &:hover:not(:disabled) {
-    background: rgba(37, 211, 102, 0.26);
-    border-color: rgba(37, 211, 102, 0.75);
-    color: #86efac;
+    background: rgba(var(--app-primary-rgb), 0.26);
+    border-color: var(--app-primary);
+    color: var(--app-primary);
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(37, 211, 102, 0.32);
+    box-shadow: 0 4px 14px rgba(var(--app-primary-rgb), 0.32);
   }
 
   &:active:not(:disabled) {
@@ -188,7 +188,7 @@
 
   .whatsapp-icon {
     font-size: 0.95rem;
-    color: #25d366;
+    color: var(--app-primary);
     flex-shrink: 0;
   }
 
@@ -199,15 +199,15 @@
   }
 
   &.is-sharing {
-    background: rgba(37, 211, 102, 0.25);
-    border-color: rgba(74, 222, 128, 0.8);
+    background: rgba(var(--app-primary-rgb), 0.25);
+    border-color: var(--app-primary);
     cursor: wait;
     animation: waSharingPulse 1.4s ease-in-out infinite;
 
     .whatsapp-spinner {
       width: 14px;
       height: 14px;
-      color: #4ade80;
+      color: var(--app-primary);
     }
   }
 
@@ -223,12 +223,12 @@
 
 @keyframes waSharingPulse {
   0%, 100% {
-    box-shadow: 0 0 6px rgba(37, 211, 102, 0.25);
-    border-color: rgba(37, 211, 102, 0.4);
+    box-shadow: 0 0 6px rgba(var(--app-primary-rgb), 0.25);
+    border-color: rgba(var(--app-primary-rgb), 0.4);
   }
   50% {
-    box-shadow: 0 0 16px rgba(37, 211, 102, 0.6);
-    border-color: rgba(74, 222, 128, 0.95);
+    box-shadow: 0 0 16px rgba(var(--app-primary-rgb), 0.6);
+    border-color: var(--app-primary);
   }
 }
 

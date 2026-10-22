@@ -1,0 +1,147 @@
+@use 'mixins' as *;
+@use 'animations' as *;
+
+// ==========================================
+// INPUT ELEGANTI (STILE CARD)
+// ==========================================
+.elegant-input-item {
+  --background: var(--app-card-bg);
+  --color: var(--app-text-primary);
+  --border-radius: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
+  padding-top: 5px;
+  padding-bottom: 5px;
+
+  ion-icon {
+    font-size: 1.5em;
+    margin-right: 15px;
+  }
+
+  ion-input {
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+}
+
+// ==========================================
+// GRIGLIA AVATAR - FISSA A 5
+// ==========================================
+.selected-avatars-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px 5px;
+  padding: 15px 5px;
+  border-bottom: 1px solid var(--app-border-color);
+  justify-items: center;
+
+  .avatar-item {
+    text-align: center;
+    width: 100%;
+
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+
+      ion-avatar {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto;
+        border: 2px solid var(--ion-color-success);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+
+        app-player-avatar,
+        img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+
+      .fixed-check-badge {
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        background: var(--ion-color-success);
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        @include flex-center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+
+        ion-icon {
+          font-size: 14px;
+          font-weight: bold;
+        }
+      }
+    }
+
+    small {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--app-text-secondary);
+      display: block;
+      margin-top: 6px;
+      @include text-ellipsis;
+      max-width: 65px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+.input-error {
+  border: 1px solid var(--app-accent-danger) !important;
+}
+
+.season-warning-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--app-accent-danger-subtle);
+  border: 1px solid var(--app-accent-danger-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  animation: tabFadeIn 0.25s ease-in-out;
+
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--app-accent-danger);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .warning-text {
+    strong {
+      display: block;
+      color: var(--app-accent-danger);
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--app-text-primary);
+      line-height: 1.35;
+    }
+  }
+}
+
+.season-valid-pill {
+  @include pill-badge-primary;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+}

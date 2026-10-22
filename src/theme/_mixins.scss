@@ -1,0 +1,124 @@
+// =============================================================================
+// CALCETTO A BUFFONE - REUSABLE SASS MIXINS
+// =============================================================================
+
+/// Layout Flex Helpers
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-col($gap: 0) {
+  display: flex;
+  flex-direction: column;
+  @if $gap != 0 {
+    gap: $gap;
+  }
+}
+
+/// Text Truncation with Ellipsis
+@mixin text-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/// Hide Native Scrollbars (Cross-browser)
+@mixin hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/// Standard App Card Surface
+@mixin card-surface($radius: 14px, $padding: 12px 14px) {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: $radius;
+  padding: $padding;
+  box-shadow: var(--app-card-shadow);
+}
+
+/// Pill / Badge Base
+@mixin pill-badge($bg: var(--app-surface-subtle), $color: var(--app-text-primary), $border: null) {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: $bg;
+  color: $color;
+
+  @if $border {
+    border: 1px solid $border;
+  }
+}
+
+/// Semantic Badge Presets linked to Design Tokens
+@mixin pill-badge-primary {
+  @include pill-badge(var(--app-primary-subtle), var(--app-primary), var(--app-primary-border));
+}
+
+@mixin pill-badge-gold {
+  @include pill-badge(var(--app-accent-gold-subtle), var(--app-accent-gold), var(--app-accent-gold-border));
+}
+
+@mixin pill-badge-purple {
+  @include pill-badge(var(--app-accent-purple-subtle), var(--app-accent-purple), var(--app-accent-purple-border));
+}
+
+@mixin pill-badge-danger {
+  @include pill-badge(var(--app-accent-danger-subtle), var(--app-accent-danger), var(--app-accent-danger-border));
+}
+
+/// Dynamic Brand Glow using RGB Token
+@mixin brand-glow($opacity: 0.25, $radius: 12px) {
+  box-shadow: 0 0 $radius rgba(var(--app-primary-rgb), $opacity);
+}
+
+/// Interactive Micro-Interactions
+@mixin btn-press($scale: 0.96) {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.15s ease,
+              box-shadow 0.15s ease;
+
+  &:active:not(:disabled) {
+    transform: scale($scale);
+  }
+}
+
+/// Glassmorphism Effect
+@mixin glass($blur: 16px) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+/// Mobile Safe Area Spacers
+@mixin safe-area-bottom($top-or-extra: 20px, $x: null) {
+  @if $x != null {
+    padding-top: $top-or-extra;
+    padding-left: $x;
+    padding-right: $x;
+    padding-bottom: calc(#{$top-or-extra} + env(safe-area-inset-bottom, 0px));
+  } @else {
+    padding-bottom: calc(#{$top-or-extra} + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@mixin safe-area-bottom-pos($extra: 20px) {
+  bottom: calc(#{$extra} + env(safe-area-inset-bottom, 0px));
+}

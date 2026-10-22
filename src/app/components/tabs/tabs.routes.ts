@@ -12,10 +12,6 @@ export const routes: Routes = [
         component: PartitePage,
       },
       {
-        path: 'partite/:id',
-        component: PartitePage,
-      },
-      {
         path: 'classifica',
         loadComponent: () =>
           import('../classifica/classifica.page').then((m) => m.ClassificaPage),

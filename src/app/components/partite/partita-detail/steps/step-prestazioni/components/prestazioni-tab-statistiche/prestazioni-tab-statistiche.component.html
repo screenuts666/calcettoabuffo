@@ -1,0 +1,207 @@
+<!-- IMPATTO CLASSIFICA & VALORI (MMR & PUNTI LEGACY) -->
+<div class="report-section-card shifts-section-card">
+  <div class="section-card-header">
+    <div class="header-left">
+      <ion-icon name="flash" class="section-icon flash-icon"></ion-icon>
+      <span class="section-title">Impatto Classifica</span>
+    </div>
+  </div>
+
+  <div class="shifts-grid">
+    <!-- Colonna Bianchi -->
+    <div class="team-shift-box white-shift">
+      <div class="shift-team-name">⚪ TEAM BIANCHI</div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Spostamento MMR</span>
+        <span
+          class="stat-val mmr-val"
+          [class.val-positive]="report.teamAvgMmrDeltaA > 0"
+          [class.val-negative]="report.teamAvgMmrDeltaA < 0"
+        >
+          {{ report.teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ report.teamAvgMmrDeltaA }} MMR
+        </span>
+      </div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Media Punti Legacy</span>
+        <span class="stat-val legacy-val text-success">
+          +{{ report.teamLegacyDeltaA }} pt
+        </span>
+      </div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Voto Medio</span>
+        <span class="stat-val vote-val">
+          ⭐ {{ report.votoMedioA > 0 ? report.votoMedioA : '-' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Colonna Neri -->
+    <div class="team-shift-box black-shift">
+      <div class="shift-team-name">⚫ TEAM NERI</div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Spostamento MMR</span>
+        <span
+          class="stat-val mmr-val"
+          [class.val-positive]="report.teamAvgMmrDeltaB > 0"
+          [class.val-negative]="report.teamAvgMmrDeltaB < 0"
+        >
+          {{ report.teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ report.teamAvgMmrDeltaB }} MMR
+        </span>
+      </div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Media Punti Legacy</span>
+        <span class="stat-val legacy-val text-success">
+          +{{ report.teamLegacyDeltaB }} pt
+        </span>
+      </div>
+      <div class="shift-stat-item">
+        <span class="stat-name">Voto Medio</span>
+        <span class="stat-val vote-val">
+          ⭐ {{ report.votoMedioB > 0 ? report.votoMedioB : '-' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RADAR ON FIRE -->
+@if (report.onFireEntered.length > 0 || report.onFireExited.length > 0 || report.onFireMaintained.length > 0) {
+  <div class="report-section-card onfire-section-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon name="flame" class="section-icon fire-icon"></ion-icon>
+        <span class="section-title">Radar On Fire</span>
+      </div>
+    </div>
+
+    <div class="onfire-tags-container">
+      @for (p of report.onFireEntered; track p.id) {
+        <div class="onfire-chip entered">
+          <span class="chip-emoji">🔥</span>
+          <span class="chip-text">
+            <strong>{{ p.nome }}</strong> ENTRA ON FIRE! ({{ p.streakAfter }}V di fila)
+          </span>
+        </div>
+      }
+
+      @for (p of report.onFireExited; track p.id) {
+        <div class="onfire-chip exited">
+          <span class="chip-emoji">❄️</span>
+          <span class="chip-text">
+            <strong>{{ p.nome }}</strong> Striscia interrotta! (Esce da On Fire)
+          </span>
+        </div>
+      }
+
+      @for (p of report.onFireMaintained; track p.id) {
+        <div class="onfire-chip maintained">
+          <span class="chip-emoji">🔥</span>
+          <span class="chip-text">
+            <strong>{{ p.nome }}</strong> Inarrestabile! ({{ p.streakAfter }}V consecutive)
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- PRONOSTICO & QUOTE PRE-MATCH -->
+<div class="report-section-card odds-section-card">
+  <div class="section-card-header">
+    <div class="header-left">
+      <ion-icon name="trending-up-outline" class="section-icon odds-icon"></ion-icon>
+      <span class="section-title">Pronostico Pre-Match</span>
+    </div>
+    <div class="favorite-pill" [class.white-fav]="report.odds.favoriteTeam === 'A'" [class.black-fav]="report.odds.favoriteTeam === 'B'">
+      @if (report.odds.favoriteTeam === 'A') {
+        <span>⚪ Favoriti Bianchi (+{{ report.odds.favoriteMargin }}%)</span>
+      } @else if (report.odds.favoriteTeam === 'B') {
+        <span>⚫ Favoriti Neri (+{{ report.odds.favoriteMargin }}%)</span>
+      } @else {
+        <span>⚖️ Partita Equilibrata</span>
+      }
+    </div>
+  </div>
+
+  <!-- Barra Percentuale Pre-Match -->
+  <div class="odds-bar-container">
+    <div class="odds-labels-row">
+      <span class="odds-label white-label">
+        ⚪ Bianchi <strong>{{ report.odds.probAPercent }}%</strong>
+      </span>
+      <span class="odds-label black-label">
+        <strong>{{ report.odds.probBPercent }}%</strong> Neri ⚫
+      </span>
+    </div>
+
+    <div class="odds-progress-track">
+      <div
+        class="odds-progress-fill white-fill"
+        [style.width.%]="report.odds.probAPercent"
+      ></div>
+      <div
+        class="odds-progress-fill black-fill"
+        [style.width.%]="report.odds.probBPercent"
+      ></div>
+    </div>
+
+    <div class="odds-mmr-sub">
+      <span>MMR medio iniziale: {{ report.odds.mmrA }}</span>
+      <span>MMR medio iniziale: {{ report.odds.mmrB }}</span>
+    </div>
+  </div>
+
+  <!-- PRONOSTICO DEL MISTER (GEMINI AI) -->
+  <div class="ai-pronostico-card">
+    <div class="ai-pronostico-header">
+      <div class="ai-header-tag">
+        <span class="ai-magic-badge">✨ GEMINI AI</span>
+        <span class="ai-title">🧙‍♂️ Il Pronostico del Mister</span>
+      </div>
+      @if (pronosticoAi) {
+        <div class="ai-header-actions">
+          <app-ai-tts-button
+            [text]="pronosticoAi"
+            [id]="'pronostico-' + (matchId || 'temp')"
+            label="Ascolta Pronostico"
+            shareTitle="Pronostico del Mister"
+          ></app-ai-tts-button>
+          <button
+            type="button"
+            class="ai-refresh-btn"
+            (click)="generatePronosticoClick.emit(true)"
+            [disabled]="isGeneratingPronostico"
+            title="Rigenera il pronostico con Gemini"
+          >
+            <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico"></ion-icon>
+            <span>{{ isGeneratingPronostico ? 'Ricalcolo...' : '🔄 Rigenera AI' }}</span>
+          </button>
+        </div>
+      }
+    </div>
+
+    @if (pronosticoAi) {
+      <div class="ai-pronostico-body">
+        <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(pronosticoAi)"></div>
+      </div>
+    } @else {
+      <div class="ai-empty-prompt">
+        <p>Scopri l'analisi del Mister su questa sfida tra Bianchi e Neri!</p>
+        <button
+          type="button"
+          class="ai-generate-main-btn"
+          (click)="generatePronosticoClick.emit(false)"
+          [disabled]="isGeneratingPronostico"
+        >
+          @if (isGeneratingPronostico) {
+            <ion-spinner name="crescent"></ion-spinner>
+            <span>Il Mister sta analizzando le rose...</span>
+          } @else {
+            <ion-icon name="sparkles"></ion-icon>
+            <span>🔮 Chiedi il Pronostico al Mister</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+</div>

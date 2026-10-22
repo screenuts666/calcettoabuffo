@@ -14,7 +14,6 @@ import {
   IonItem,
   IonAvatar,
   IonLabel,
-  IonModal,
   ToastController,
   AlertController,
   IonIcon,
@@ -26,7 +25,6 @@ import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Firestore, collection, collectionData } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
-import { SchedaGiocatoreComponent } from './scheda-giocatore/scheda-giocatore.component';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { addIcons } from 'ionicons';
@@ -63,7 +61,7 @@ import {
   informationCircleOutline,
   filter,
 } from 'ionicons/icons';
-import { Giocatore } from 'src/app/models/giocatore.model';
+import { Giocatore, GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { StatsEngineService, BASE_INITIAL_MMR } from 'src/app/services/stats-engine.service';
 import {
@@ -112,40 +110,7 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
 ];
-
-export interface GiocatoreConPunti extends Giocatore {
-  // Punteggio Legacy
-  puntiVal: number;
-  puntiDisplay: string;
-  golTotali: number;
-  assistTotali: number;
-  mediaVotoVal: number;
-  mediaVotoDisplay: string;
-  partiteGiocate: number;
-  wins: number;
-  draws: number;
-  losses: number;
-
-  // Nuovo Motore MMR & Statistiche
-  isRanked: boolean;
-  seasonStartMmr?: number;
-  mmrVal: number;
-  mmrDisplay: string;
-  tier: MmrTier;
-  peakMmr: number;
-  lastDelta: number | null;
-  lastDeltaDisplay: string | null;
-  trendDirection: 'up' | 'down' | 'neutral' | 'none';
-  form: PlayerFormStreak;
-  winRate: number;
-  rankAssoluto: number;
-
-  // Profilo Chimica di Coppia
-  chemistry?: PlayerChemistryProfile;
-
-  // Albo d'Oro / Medaglieri stagioni passate
-  pastSeasonsBanners?: PastSeasonBanner[];
-}
+export { GiocatoreConPunti };
 
 @Component({
   selector: 'app-classifica',
@@ -163,10 +128,8 @@ export interface GiocatoreConPunti extends Giocatore {
     IonItem,
     IonAvatar,
     IonLabel,
-    IonModal,
     IonButtons,
     IonButton,
-    SchedaGiocatoreComponent,
     IonIcon,
     ThemeToggleComponent,
     PlayerAvatarComponent,
@@ -213,9 +176,6 @@ export class ClassificaPage {
   stagioniList = computed(() => {
     return getStagioniDisponibili(this.partiteRaw());
   });
-
-  isModalOpen = signal(false);
-  giocatoreSelezionato = signal<GiocatoreConPunti | null>(null);
 
   isAdmin = this.authService.isAdmin;
 
@@ -722,26 +682,18 @@ export class ClassificaPage {
   }
 
   apriDettagliGiocatore(giocatore: GiocatoreConPunti) {
-    this.giocatoreSelezionato.set(giocatore);
-    this.isModalOpen.set(true);
+    if (giocatore?.id) {
+      this.router.navigate(['/giocatori', giocatore.id]);
+    }
   }
 
   apriDettagliPerId(giocatoreId: string) {
-    const g = this.classificaCalcolata().find((p) => p.id === giocatoreId);
-    if (g) {
-      this.giocatoreSelezionato.set(g);
-      this.isModalOpen.set(true);
+    if (giocatoreId) {
+      this.router.navigate(['/giocatori', giocatoreId]);
     }
   }
 
-  chiudiModale = () => {
-    this.isModalOpen.set(false);
-  };
-
   apriConfronto(playerAId?: string, playerBId?: string) {
-    if (this.isModalOpen()) {
-      this.chiudiModale();
-    }
     const queryParams: any = {};
     if (playerAId) queryParams.playerA = playerAId;
     if (playerBId) queryParams.playerB = playerBId;
