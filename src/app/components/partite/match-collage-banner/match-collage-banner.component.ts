@@ -1,10 +1,10 @@
 import {
   Component,
-  Input,
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
   computed,
+  input,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -29,11 +29,11 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
   imports: [CommonModule, IonIcon, PlayerAvatarComponent],
 })
 export class MatchCollageBannerComponent {
-  @Input({ required: true }) match: any;
-  @Input() height = '150px';
-  @Input() interactive = true;
-  @Input() showUploadButton = false;
-  @Input() isAdmin = false;
+  readonly match = input<any>(null);
+  readonly height = input<string>('150px');
+  readonly interactive = input<boolean>(true);
+  readonly showUploadButton = input<boolean>(false);
+  readonly isAdmin = input<boolean>(false);
 
   @Output() bannerClick = new EventEmitter<void>();
   @Output() uploadPhotoClick = new EventEmitter<Event>();
@@ -50,19 +50,41 @@ export class MatchCollageBannerComponent {
     });
   }
 
+  private unwrapField(val: any): any {
+    if (!val) return null;
+    if (typeof val === 'function') {
+      try {
+        return val();
+      } catch {
+        return null;
+      }
+    }
+    return val;
+  }
+
+  private unwrapList(val: any): any[] {
+    const res = this.unwrapField(val);
+    return Array.isArray(res) ? res : [];
+  }
+
+  readonly currentMatch = computed(() => {
+    const raw = this.match();
+    return this.unwrapField(raw) || {};
+  });
+
   readonly teamAPlayers = computed(() => {
-    const list = this.match?.teamA || [];
-    return Array.isArray(list) ? list : [];
+    const m = this.currentMatch();
+    return this.unwrapList(m.teamA);
   });
 
   readonly teamBPlayers = computed(() => {
-    const list = this.match?.teamB || [];
-    return Array.isArray(list) ? list : [];
+    const m = this.currentMatch();
+    return this.unwrapList(m.teamB);
   });
 
   readonly convocatiPlayers = computed(() => {
-    const list = this.match?.convocati || [];
-    return Array.isArray(list) ? list : [];
+    const m = this.currentMatch();
+    return this.unwrapList(m.convocati);
   });
 
   readonly hasTeams = computed(() => {
@@ -91,8 +113,23 @@ export class MatchCollageBannerComponent {
     Math.max(0, this.convocatiPlayers().length - 8),
   );
 
+  readonly scoreA = computed(() => {
+    const m = this.currentMatch();
+    return this.unwrapField(m.scoreA);
+  });
+
+  readonly scoreB = computed(() => {
+    const m = this.currentMatch();
+    return this.unwrapField(m.scoreB);
+  });
+
+  readonly matchStatus = computed(() => {
+    const m = this.currentMatch();
+    return this.unwrapField(m.status);
+  });
+
   onBannerClick() {
-    if (this.interactive) {
+    if (this.interactive()) {
       this.bannerClick.emit();
     }
   }

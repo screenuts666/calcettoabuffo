@@ -1,7 +1,7 @@
 <div
   class="match-collage-container"
-  [style.height]="height"
-  [class.clickable]="interactive"
+  [style.height]="height()"
+  [class.clickable]="interactive()"
   (click)="onBannerClick()"
 >
   <!-- Sfondo stadio con illuminazione e righe tattiche -->
@@ -26,18 +26,18 @@
         </div>
 
         <div class="avatars-cluster-wrap left-wing">
-          @for (p of visibleTeamA(); track p.id; let idx = $index) {
+          @for (p of visibleTeamA(); track p?.id || p?.nome || $index; let idx = $index) {
             <div
               class="avatar-token-wrap"
               [style.z-index]="10 - idx"
-              [title]="p.nome"
+              [title]="p?.nome || 'Giocatore'"
             >
               <app-player-avatar
-                [fotoUrl]="p.fotoUrl"
-                [alt]="p.nome"
+                [fotoUrl]="p?.fotoUrl || p?.foto"
+                [alt]="p?.nome || 'Giocatore'"
                 class="cluster-avatar white-glow"
               ></app-player-avatar>
-              <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+              <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
             </div>
           }
           @if (excessTeamACount() > 0) {
@@ -51,11 +51,11 @@
       <!-- CENTRO: VS O PUNTEGGIO -->
       <div class="epicentre-wrap">
         <div class="vs-crest-badge">
-          @if (match?.scoreA !== undefined && match?.scoreB !== undefined && match?.status !== 'pronta' && match?.status !== 'da_definire') {
+          @if (scoreA() !== undefined && scoreA() !== null && scoreB() !== undefined && scoreB() !== null && matchStatus() !== 'pronta' && matchStatus() !== 'da_definire') {
             <div class="live-score">
-              <span class="sc-val">{{ match.scoreA }}</span>
+              <span class="sc-val">{{ scoreA() }}</span>
               <span class="sc-dash">-</span>
-              <span class="sc-val">{{ match.scoreB }}</span>
+              <span class="sc-val">{{ scoreB() }}</span>
             </div>
           } @else {
             <div class="vs-emblem">VS</div>
@@ -73,18 +73,18 @@
         </div>
 
         <div class="avatars-cluster-wrap right-wing">
-          @for (p of visibleTeamB(); track p.id; let idx = $index) {
+          @for (p of visibleTeamB(); track p?.id || p?.nome || $index; let idx = $index) {
             <div
               class="avatar-token-wrap"
               [style.z-index]="10 - idx"
-              [title]="p.nome"
+              [title]="p?.nome || 'Giocatore'"
             >
               <app-player-avatar
-                [fotoUrl]="p.fotoUrl"
-                [alt]="p.nome"
+                [fotoUrl]="p?.fotoUrl || p?.foto"
+                [alt]="p?.nome || 'Giocatore'"
                 class="cluster-avatar black-glow"
               ></app-player-avatar>
-              <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+              <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
             </div>
           }
           @if (excessTeamBCount() > 0) {
@@ -104,14 +104,14 @@
       </div>
 
       <div class="convocati-avatars-row">
-        @for (p of visibleConvocati(); track p.id; let idx = $index) {
-          <div class="avatar-token-wrap" [style.z-index]="15 - idx" [title]="p.nome">
+        @for (p of visibleConvocati(); track p?.id || p?.nome || $index; let idx = $index) {
+          <div class="avatar-token-wrap" [style.z-index]="15 - idx" [title]="p?.nome || 'Giocatore'">
             <app-player-avatar
-              [fotoUrl]="p.fotoUrl"
-              [alt]="p.nome"
+              [fotoUrl]="p?.fotoUrl || p?.foto"
+              [alt]="p?.nome || 'Giocatore'"
               class="cluster-avatar gold-glow"
             ></app-player-avatar>
-            <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+            <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
           </div>
         }
         @if (excessConvocatiCount() > 0) {
@@ -139,7 +139,7 @@
   </div>
 
   <!-- SE ADMIN E RICHIESTO: TASTO AGGIUNGI FOTO UFFICIALE -->
-  @if (showUploadButton && isAdmin) {
+  @if (showUploadButton() && isAdmin()) {
     <button
       type="button"
       class="upload-official-photo-btn"
