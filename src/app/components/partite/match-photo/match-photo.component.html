@@ -6,50 +6,96 @@
   style="display: none"
 />
 
-@if (state.fotoUrl()) {
-  <div class="photo-card-container">
-    <div class="photo-card">
-      <div class="image-box" (click)="apriFotoViewer()">
-        <img [src]="state.fotoUrl()" alt="Foto di gruppo della partita" loading="lazy" />
-        <div class="image-gradient-overlay">
-          <div class="photo-tag">
-            <ion-icon name="image-outline"></ion-icon>
-            <span>Foto di Gruppo</span>
-          </div>
-          <div class="tap-hint">
-            <ion-icon name="expand-outline"></ion-icon>
-            <span>Tocca per ingrandire</span>
+<input
+  #fileInput
+  type="file"
+  accept="image/*"
+  (change)="onFileSelected($event)"
+  style="display: none"
+/>
+
+<div class="photo-card-container">
+  @if (state.fotoUrl()) {
+    <!-- SELETTORE VISTA: FOTO UFFICIALE VS POSTER COLLAGE -->
+    <div class="photo-view-switch-bar">
+      <button
+        type="button"
+        class="switch-btn"
+        [class.active]="vistaSelezionata() === 'foto'"
+        (click)="vistaSelezionata.set('foto')"
+      >
+        <ion-icon name="image-outline"></ion-icon>
+        <span>Foto Ufficiale</span>
+      </button>
+      <button
+        type="button"
+        class="switch-btn"
+        [class.active]="vistaSelezionata() === 'collage'"
+        (click)="vistaSelezionata.set('collage')"
+      >
+        <ion-icon name="sparkles"></ion-icon>
+        <span>Poster Squadre</span>
+      </button>
+    </div>
+
+    @if (vistaSelezionata() === 'foto') {
+      <div class="photo-card">
+        <div class="image-box" (click)="apriFotoViewer()">
+          <img [src]="state.fotoUrl()" alt="Foto di gruppo della partita" loading="lazy" />
+          <div class="image-gradient-overlay">
+            <div class="photo-tag">
+              <ion-icon name="image-outline"></ion-icon>
+              <span>Foto di Gruppo</span>
+            </div>
+            <div class="tap-hint">
+              <ion-icon name="expand-outline"></ion-icon>
+              <span>Tocca per ingrandire</span>
+            </div>
           </div>
         </div>
+
+        @if (isAdmin) {
+          <div class="photo-actions-bar">
+            <button class="action-btn change-btn" (click)="apriFilePicker()" type="button">
+              <ion-icon name="camera-outline"></ion-icon>
+              <span>Cambia Foto</span>
+            </button>
+
+            <button class="action-btn delete-btn" (click)="confermaRimozioneFoto()" type="button">
+              <ion-icon name="trash-outline"></ion-icon>
+              <span>Elimina</span>
+            </button>
+          </div>
+        }
       </div>
+    } @else {
+      <!-- POSTER COLLAGE CON FORMAZIONI -->
+      <app-match-collage-banner
+        [match]="state"
+        height="185px"
+        [showUploadButton]="isAdmin"
+        [isAdmin]="isAdmin"
+        (uploadPhotoClick)="apriFilePicker()"
+      ></app-match-collage-banner>
+    }
+  } @else {
+    <!-- QUANDO NON C'È ANCORA LA FOTO UFFICIALE: IL COLLAGE È IL POSTER DI DEFAULT! -->
+    <div class="default-collage-wrap">
+      <app-match-collage-banner
+        [match]="state"
+        height="185px"
+        [showUploadButton]="isAdmin"
+        [isAdmin]="isAdmin"
+        (uploadPhotoClick)="apriFilePicker()"
+      ></app-match-collage-banner>
+    </div>
 
-      @if (isAdmin) {
-        <div class="photo-actions-bar">
-          <button class="action-btn change-btn" (click)="apriFilePicker()" type="button">
-            <ion-icon name="camera-outline"></ion-icon>
-            <span>Cambia Foto</span>
-          </button>
+    @if (isAdmin) {
+      <div class="empty-upload-hint-box" (click)="apriFilePicker()">
+        <ion-icon name="camera-outline"></ion-icon>
+        <span>Hai scattato la foto a fine partita? <b>Tocca qui per caricare la foto ufficiale di gruppo</b></span>
+      </div>
+    }
+  }
+</div>
 
-          <button class="action-btn delete-btn" (click)="confermaRimozioneFoto()" type="button">
-            <ion-icon name="trash-outline"></ion-icon>
-            <span>Elimina</span>
-          </button>
-        </div>
-      }
-    </div>
-  </div>
-} @else if (isAdmin) {
-  <div class="empty-upload-card" (click)="apriFilePicker()">
-    <div class="upload-icon-circle">
-      <ion-icon name="camera"></ion-icon>
-    </div>
-    <div class="upload-text-group">
-      <h4 class="upload-title">Foto di Gruppo</h4>
-      <p class="upload-desc">Tocca qui per scattare o caricare la foto della partita</p>
-    </div>
-    <button class="upload-trigger-btn" type="button">
-      <ion-icon name="cloud-upload-outline"></ion-icon>
-      <span>Carica Foto</span>
-    </button>
-  </div>
-}

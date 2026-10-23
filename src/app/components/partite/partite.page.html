@@ -102,6 +102,10 @@
               </div>
             </div>
           </div>
+          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
+          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
+            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          </div>
           }
 
           <div class="match-footer">
@@ -192,6 +196,10 @@
                 <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
+          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
+          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
+            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
           </div>
           }
 
@@ -284,6 +292,10 @@
               </div>
             </div>
           </div>
+          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
+          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
+            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          </div>
           }
 
           <div class="match-footer">
@@ -375,6 +387,10 @@
                 <ion-icon name="expand-outline"></ion-icon>
               </div>
             </div>
+          </div>
+          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
+          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
+            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
           </div>
           }
 

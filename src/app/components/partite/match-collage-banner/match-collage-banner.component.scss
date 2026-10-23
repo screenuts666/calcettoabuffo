@@ -1,0 +1,442 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.match-collage-container {
+  position: relative;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #09121d 0%, #062e22 55%, #09121d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+  box-sizing: border-box;
+  padding: 8px 12px;
+
+  &.clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:active {
+      transform: scale(0.985);
+    }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// SFONDO STADIO & ILLUMINAZIONE
+// ──────────────────────────────────────────────────────────────────────────
+.field-bg-pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+
+  .field-lighting {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+  }
+
+  .pitch-tactical-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// BADGE TAG POSTER IN ALTO A SINISTRA
+// ──────────────────────────────────────────────────────────────────────────
+.banner-top-left-tag {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #34d399;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  z-index: 5;
+
+  ion-icon {
+    font-size: 0.75rem;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// TASTO UPLOAD FOTO UFFICIALE (PER ADMIN)
+// ──────────────────────────────────────────────────────────────────────────
+.upload-official-photo-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #059669, #047857);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// MODALITÀ SQUADRE BIANCHI VS NERI
+// ──────────────────────────────────────────────────────────────────────────
+.collage-matchup-layout {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.team-wing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+
+  &.team-white {
+    align-items: flex-start;
+  }
+
+  &.team-black {
+    align-items: flex-end;
+  }
+}
+
+.team-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  margin-bottom: 6px;
+  backdrop-filter: blur(6px);
+
+  .team-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+
+    &.white {
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+    }
+
+    &.black {
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+    }
+  }
+
+  .team-count {
+    opacity: 0.75;
+    font-size: 0.65rem;
+  }
+}
+
+.team-white .team-header-pill {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.team-black .team-header-pill {
+  background: rgba(15, 23, 42, 0.9);
+  color: #f8fafc;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+// Cluster avatar con sovrapposizione ordinata
+.avatars-cluster-wrap {
+  display: flex;
+  align-items: center;
+
+  &.left-wing {
+    .avatar-token-wrap:not(:first-child) {
+      margin-left: -12px;
+    }
+  }
+
+  &.right-wing {
+    flex-direction: row-reverse;
+    .avatar-token-wrap:not(:first-child) {
+      margin-right: -12px;
+    }
+  }
+}
+
+.avatar-token-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px) scale(1.1);
+    z-index: 20 !important;
+  }
+}
+
+.cluster-avatar {
+  --avatar-size: 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #1e293b;
+
+  &.white-glow {
+    border: 2px solid #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+  }
+
+  &.black-glow {
+    border: 2px solid #f59e0b;
+    box-shadow: 0 3px 8px rgba(245, 158, 11, 0.35);
+  }
+
+  &.gold-glow {
+    border: 2px solid #10b981;
+    box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
+  }
+}
+
+.player-micro-name {
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 42px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.avatar-excess-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  z-index: 1;
+
+  &.white-badge {
+    background: #ffffff;
+    color: #0f172a;
+    border: 2px solid #94a3b8;
+    margin-left: -10px;
+  }
+
+  &.black-badge {
+    background: #0f172a;
+    color: #f59e0b;
+    border: 2px solid #f59e0b;
+    margin-right: -10px;
+  }
+
+  &.gold-badge {
+    background: #064e3b;
+    color: #34d399;
+    border: 2px solid #10b981;
+    margin-left: -8px;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// EPICENTRO: VS O PUNTEGGIO
+// ──────────────────────────────────────────────────────────────────────────
+.epicentre-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  flex-shrink: 0;
+}
+
+.vs-crest-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(16, 185, 129, 0.5);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+
+  .vs-emblem {
+    font-size: 1.05rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, #34d399, #f59e0b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .live-score {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #ffffff;
+
+    .sc-dash {
+      color: #10b981;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+.epicentre-sub {
+  font-size: 0.55rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.08em;
+  margin-top: 3px;
+  text-transform: uppercase;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// MODALITÀ SOLO CONVOCATI
+// ──────────────────────────────────────────────────────────────────────────
+.convocati-mosaic-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.convocati-header-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #34d399;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.convocati-avatars-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .avatar-token-wrap:not(:first-child) {
+    margin-left: -10px;
+  }
+}
+
+.convocati-sub-hint {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// STATO VUOTO
+// ──────────────────────────────────────────────────────────────────────────
+.empty-match-layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  .empty-ball-icon {
+    font-size: 1.8rem;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 4px;
+  }
+
+  .empty-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  .empty-sub {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.55);
+  }
+}
+
+// Media queries per schermi stretti
+@media (max-width: 360px) {
+  .cluster-avatar {
+    --avatar-size: 34px;
+    width: 34px;
+    height: 34px;
+  }
+  .player-micro-name {
+    font-size: 0.52rem;
+    max-width: 34px;
+  }
+  .avatars-cluster-wrap.left-wing .avatar-token-wrap:not(:first-child) {
+    margin-left: -8px;
+  }
+  .avatars-cluster-wrap.right-wing .avatar-token-wrap:not(:first-child) {
+    margin-right: -8px;
+  }
+}

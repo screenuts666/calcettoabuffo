@@ -1,0 +1,153 @@
+<div
+  class="match-collage-container"
+  [style.height]="height"
+  [class.clickable]="interactive"
+  (click)="onBannerClick()"
+>
+  <!-- Sfondo stadio con illuminazione e righe tattiche -->
+  <div class="field-bg-pattern">
+    <div class="field-lighting"></div>
+    <svg class="pitch-tactical-lines" viewBox="0 0 400 150" preserveAspectRatio="none" aria-hidden="true">
+      <line x1="200" y1="0" x2="200" y2="150" stroke="rgba(255,255,255,0.07)" stroke-width="2" />
+      <circle cx="200" cy="75" r="45" stroke="rgba(255,255,255,0.07)" stroke-width="2" fill="none" />
+      <circle cx="200" cy="75" r="4" fill="rgba(255,255,255,0.12)" />
+    </svg>
+  </div>
+
+  @if (hasTeams()) {
+    <!-- MODALITÀ SQUADRE BIANCHI VS NERI -->
+    <div class="collage-matchup-layout">
+      <!-- SQUADRA A (BIANCHI) -->
+      <div class="team-wing team-white">
+        <div class="team-header-pill">
+          <span class="team-dot white"></span>
+          <span class="team-label">BIANCHI</span>
+          <span class="team-count">({{ teamAPlayers().length }})</span>
+        </div>
+
+        <div class="avatars-cluster-wrap left-wing">
+          @for (p of visibleTeamA(); track p.id; let idx = $index) {
+            <div
+              class="avatar-token-wrap"
+              [style.z-index]="10 - idx"
+              [title]="p.nome"
+            >
+              <app-player-avatar
+                [fotoUrl]="p.fotoUrl"
+                [alt]="p.nome"
+                class="cluster-avatar white-glow"
+              ></app-player-avatar>
+              <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+            </div>
+          }
+          @if (excessTeamACount() > 0) {
+            <div class="avatar-excess-badge white-badge" [title]="'+' + excessTeamACount() + ' altri giocatori'">
+              +{{ excessTeamACount() }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- CENTRO: VS O PUNTEGGIO -->
+      <div class="epicentre-wrap">
+        <div class="vs-crest-badge">
+          @if (match?.scoreA !== undefined && match?.scoreB !== undefined && match?.status !== 'pronta' && match?.status !== 'da_definire') {
+            <div class="live-score">
+              <span class="sc-val">{{ match.scoreA }}</span>
+              <span class="sc-dash">-</span>
+              <span class="sc-val">{{ match.scoreB }}</span>
+            </div>
+          } @else {
+            <div class="vs-emblem">VS</div>
+          }
+        </div>
+        <span class="epicentre-sub">SFIDA LIVE</span>
+      </div>
+
+      <!-- SQUADRA B (NERI) -->
+      <div class="team-wing team-black">
+        <div class="team-header-pill">
+          <span class="team-dot black"></span>
+          <span class="team-label">NERI</span>
+          <span class="team-count">({{ teamBPlayers().length }})</span>
+        </div>
+
+        <div class="avatars-cluster-wrap right-wing">
+          @for (p of visibleTeamB(); track p.id; let idx = $index) {
+            <div
+              class="avatar-token-wrap"
+              [style.z-index]="10 - idx"
+              [title]="p.nome"
+            >
+              <app-player-avatar
+                [fotoUrl]="p.fotoUrl"
+                [alt]="p.nome"
+                class="cluster-avatar black-glow"
+              ></app-player-avatar>
+              <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+            </div>
+          }
+          @if (excessTeamBCount() > 0) {
+            <div class="avatar-excess-badge black-badge" [title]="'+' + excessTeamBCount() + ' altri giocatori'">
+              +{{ excessTeamBCount() }}
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  } @else if (hasConvocatiOnly()) {
+    <!-- MODALITÀ SOLO CONVOCATI (Formazioni in attesa) -->
+    <div class="convocati-mosaic-layout">
+      <div class="convocati-header-tag">
+        <ion-icon name="people"></ion-icon>
+        <span>{{ convocatiPlayers().length }} CONVOCATI ALLA SFIDA</span>
+      </div>
+
+      <div class="convocati-avatars-row">
+        @for (p of visibleConvocati(); track p.id; let idx = $index) {
+          <div class="avatar-token-wrap" [style.z-index]="15 - idx" [title]="p.nome">
+            <app-player-avatar
+              [fotoUrl]="p.fotoUrl"
+              [alt]="p.nome"
+              class="cluster-avatar gold-glow"
+            ></app-player-avatar>
+            <span class="player-micro-name">{{ p.nome?.split(' ')?.[0] }}</span>
+          </div>
+        }
+        @if (excessConvocatiCount() > 0) {
+          <div class="avatar-excess-badge gold-badge">
+            +{{ excessConvocatiCount() }}
+          </div>
+        }
+      </div>
+
+      <span class="convocati-sub-hint">Formazioni in definizione prima del fischio d'inizio</span>
+    </div>
+  } @else {
+    <!-- STATO VUOTO -->
+    <div class="empty-match-layout">
+      <ion-icon name="football" class="empty-ball-icon"></ion-icon>
+      <span class="empty-title">Sfida di Calcetto in Programma</span>
+      <span class="empty-sub">In attesa delle convocazioni e delle squadre</span>
+    </div>
+  }
+
+  <!-- BADGE SUPERIORE SINISTRO DI TIPO POSTER -->
+  <div class="banner-top-left-tag">
+    <ion-icon name="sparkles"></ion-icon>
+    <span>Poster Squadra</span>
+  </div>
+
+  <!-- SE ADMIN E RICHIESTO: TASTO AGGIUNGI FOTO UFFICIALE -->
+  @if (showUploadButton && isAdmin) {
+    <button
+      type="button"
+      class="upload-official-photo-btn"
+      (click)="onUploadClick($event)"
+      title="Aggiungi o scatta la foto ufficiale a fine partita"
+    >
+      <ion-icon name="camera"></ion-icon>
+      <span>+ Foto Ufficiale</span>
+    </button>
+  }
+</div>

@@ -71,6 +71,7 @@ import {
 } from 'ionicons/icons';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
+import { MatchCollageBannerComponent } from './match-collage-banner/match-collage-banner.component';
 import { AuthService } from 'src/app/services/auth.service';
 import {
   CURRENT_SEASON,
@@ -107,6 +108,7 @@ import {
     IonSpinner,
     IonButtons,
     ThemeToggleComponent,
+    MatchCollageBannerComponent,
   ],
 })
 export class PartitePage {

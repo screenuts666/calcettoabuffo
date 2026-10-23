@@ -404,6 +404,14 @@
   &:active img {
     transform: scale(0.98);
   }
+
+  &.collage-banner-wrap {
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 14px;
+    padding: 0;
+  }
 }
 
 .photo-banner-overlay {
