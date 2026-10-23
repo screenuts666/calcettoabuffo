@@ -1,0 +1,19 @@
+<button
+  type="button"
+  class="sync-pill"
+  [class.compact]="compact"
+  [class]="'status-' + syncService.syncState()"
+  (click)="mostraDettaglioSync()"
+  [attr.title]="syncService.label() + ' (Clicca per info)'"
+>
+  <span class="icon-wrap">
+    <ion-icon
+      [name]="syncService.iconName()"
+      [class.spin]="syncService.syncState() === 'syncing'"
+    ></ion-icon>
+  </span>
+  <span class="status-indicator-dot"></span>
+  @if (!compact) {
+    <span class="sync-text">{{ syncService.shortLabel() }}</span>
+  }
+</button>

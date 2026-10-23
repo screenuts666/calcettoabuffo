@@ -76,3 +76,91 @@ export async function compressImage(
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Comprime e ritaglia centralmente un'immagine del giocatore per l'avatar.
+ * Produce un'immagine quadrata ottimizzata (default 384x384px @ 82% quality)
+ * riducendo il peso da ~10MB a ~30-50KB, eliminando lag e jank su mobile.
+ */
+export async function compressAvatar(
+  file: File,
+  size = 384,
+  quality = 0.82
+): Promise<Blob> {
+  if (!file.type.startsWith('image/') || file.type.includes('svg') || file.type.includes('gif')) {
+    return file;
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      const dataUrl = event.target?.result as string;
+      if (!dataUrl) {
+        resolve(file);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        const naturalWidth = img.naturalWidth || img.width;
+        const naturalHeight = img.naturalHeight || img.height;
+
+        if (naturalWidth <= 0 || naturalHeight <= 0) {
+          resolve(file);
+          return;
+        }
+
+        // Calcola ritaglio centrale quadrato per non distorcere il viso
+        const minSide = Math.min(naturalWidth, naturalHeight);
+        const sourceX = Math.round((naturalWidth - minSide) / 2);
+        const sourceY = Math.round((naturalHeight - minSide) / 2);
+
+        // Risoluzione finale (max 384px o dimensione originale se inferiore)
+        const targetSize = Math.min(size, minSide);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetSize;
+        canvas.height = targetSize;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(
+          img,
+          sourceX,
+          sourceY,
+          minSide,
+          minSide,
+          0,
+          0,
+          targetSize,
+          targetSize
+        );
+
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          quality
+        );
+      };
+
+      img.onerror = () => resolve(file);
+      img.src = dataUrl;
+    };
+
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+

@@ -26,5 +26,18 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "firebase-storage-images",
+      "urls": [
+        "https://firebasestorage.googleapis.com/**"
+      ],
+      "cacheConfig": {
+        "maxSize": 250,
+        "maxAge": "30d",
+        "strategy": "performance"
+      }
+    }
   ]
 }

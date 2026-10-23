@@ -1,0 +1,130 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  user-select: none;
+  line-height: 1.2;
+
+  &:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  &:active {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+
+  &.compact {
+    padding: 4px 6px;
+    gap: 4px;
+  }
+
+  .icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+
+    ion-icon.spin {
+      animation: spin-kf 1.2s linear infinite;
+    }
+  }
+
+  .status-indicator-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .sync-text {
+    white-space: nowrap;
+  }
+
+  // STATUS: SYNCED (Online & cloud-aligned)
+  &.status-synced {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.08);
+
+    .status-indicator-dot {
+      background-color: #10b981;
+      box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+    }
+  }
+
+  // STATUS: SYNCING (In transmission)
+  &.status-syncing {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.35);
+    background: rgba(245, 158, 11, 0.08);
+
+    .status-indicator-dot {
+      background-color: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+      animation: pulse-dot 1.4s ease-in-out infinite;
+    }
+  }
+
+  // STATUS: SAVED LOCALLY (Pending network)
+  &.status-saved_locally {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.12);
+
+    .status-indicator-dot {
+      background-color: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+    }
+  }
+
+  // STATUS: OFFLINE (Device safe)
+  &.status-offline {
+    color: #94a3b8;
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(148, 163, 184, 0.08);
+
+    .status-indicator-dot {
+      background-color: #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes spin-kf {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.3);
+  }
+}

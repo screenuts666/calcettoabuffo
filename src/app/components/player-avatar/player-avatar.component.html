@@ -3,8 +3,14 @@
     [src]="fotoUrl"
     [alt]="alt || 'Avatar'"
     (error)="onImgError()"
+    (load)="onImgLoad()"
+    [class.is-loaded]="imageLoaded()"
     loading="lazy"
+    decoding="async"
   />
+  @if (!imageLoaded()) {
+    <div class="avatar-skeleton" aria-hidden="true"></div>
+  }
 } @else {
   <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" class="fallback-avatar-svg" aria-hidden="true">
     <circle cx="256" cy="256" r="256" fill="#242b35" />
@@ -12,3 +18,4 @@
     <path fill="#94a3b8" d="M256 294c-66 0-192 34-192 102v70c40 30 88 46 192 46s152-16 192-46v-70c0-68-126-102-192-102z" />
   </svg>
 }
+

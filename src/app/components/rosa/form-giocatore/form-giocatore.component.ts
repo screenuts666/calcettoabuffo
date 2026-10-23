@@ -55,6 +55,7 @@ import {
   getAvatarUrl,
   handleAvatarError,
 } from 'src/app/utils/avatar-utils';
+import { compressAvatar } from 'src/app/utils/image-utils';
 
 import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
 
@@ -223,9 +224,11 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       }
 
       if (this.fileSelezionato) {
-        const path = `avatars/${Date.now()}_${this.fileSelezionato.name}`;
+        // Ottimizza e ridimensiona l'avatar prima dell'upload (max 384x384px, ~30-50KB)
+        const compressedBlob = await compressAvatar(this.fileSelezionato, 384, 0.82);
+        const path = `avatars/${Date.now()}_avatar.jpg`;
         const storageRef = ref(this.storage, path);
-        await uploadBytes(storageRef, this.fileSelezionato);
+        await uploadBytes(storageRef, compressedBlob, { contentType: 'image/jpeg' });
         fotoUrl = await getDownloadURL(storageRef);
       }
 

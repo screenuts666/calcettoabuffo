@@ -32,6 +32,10 @@
           ? 'Gestione Match'
           : 'Nuova Partita'
     }}</ion-title>
+
+    <ion-buttons slot="end">
+      <app-sync-status-badge></app-sync-status-badge>
+    </ion-buttons>
   </ion-toolbar>
 
   @if (!state.matchConcluso() && (state.step() === 'convocati' || state.step() === 'dettagli' || state.step() === 'squadre')) {

@@ -32,6 +32,7 @@ import { doc, updateDoc } from '@angular/fire/firestore';
 import { MatchStateService } from '../../match-state.service';
 import { EventoGol } from '../../../../../models/partita.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
+import { SyncStatusBadgeComponent } from '../../../../sync-status-badge/sync-status-badge.component';
 
 @Component({
   selector: 'app-step-match',
@@ -46,6 +47,7 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
     IonLabel,
     IonAvatar,
     PlayerAvatarComponent,
+    SyncStatusBadgeComponent,
   ],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
@@ -169,6 +171,11 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         const diffSec = Math.floor((Date.now() - start) / 1000);
         const newCronometro = this.state.accumulatedTime() + diffSec;
         this.state.cronometro.set(newCronometro);
+
+        // Salvataggio periodico di sicurezza in locale ogni 5 secondi
+        if (newCronometro % 5 === 0) {
+          this.state.salvaSnapshotLocale();
+        }
 
         // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti, solo se c'è almeno una rotazione) ───────────────
         const hasRotatingTeam =
@@ -307,28 +314,54 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       this.state.timerStartAt.set(null);
       this.state.cronometro.set(nuovoAccumulo);
 
-      await updateDoc(
-        doc(this.state.firestore, `partite/${this.state.matchId()}`),
-        {
-          isTimerRunning: false,
-          accumulatedTime: nuovoAccumulo,
-          timerStartAt: null,
-          cronometro: nuovoAccumulo,
-        },
-      );
+      // Salvataggio immediato in locale
+      this.state.salvaSnapshotLocale();
+
+      try {
+        this.state.syncStatus.notifySyncPending();
+        await updateDoc(
+          doc(this.state.firestore, `partite/${this.state.matchId()}`),
+          {
+            isTimerRunning: false,
+            accumulatedTime: nuovoAccumulo,
+            timerStartAt: null,
+            cronometro: nuovoAccumulo,
+          },
+        );
+        this.state.syncStatus.notifySyncSuccess();
+      } catch (err) {
+        console.warn('Errore sync timer online (salvato in locale):', err);
+        this.state.syncStatus.notifySyncError();
+      }
     } else {
+      const startAt = Date.now();
+      this.state.isTimerRunning.set(true);
+      this.state.timerStartAt.set(startAt);
+
       const payload: any = {
         isTimerRunning: true,
-        timerStartAt: Date.now(),
+        timerStartAt: startAt,
       };
       const currentStatus = this.state.status();
       if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
         payload.status = 'in_corso';
+        this.state.status.set('in_corso');
       }
-      await updateDoc(
-        doc(this.state.firestore, `partite/${this.state.matchId()}`),
-        payload,
-      );
+
+      // Salvataggio immediato in locale
+      this.state.salvaSnapshotLocale();
+
+      try {
+        this.state.syncStatus.notifySyncPending();
+        await updateDoc(
+          doc(this.state.firestore, `partite/${this.state.matchId()}`),
+          payload,
+        );
+        this.state.syncStatus.notifySyncSuccess();
+      } catch (err) {
+        console.warn('Errore sync timer online (salvato in locale):', err);
+        this.state.syncStatus.notifySyncError();
+      }
     }
   }
 

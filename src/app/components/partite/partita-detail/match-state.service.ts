@@ -25,13 +25,16 @@ import {
   CURRENT_SEASON,
   MIN_CURRENT_SEASON_DATE,
 } from '../../../utils/season-utils';
+import { SyncStatusService } from '../../../services/sync-status.service';
 
 export type ConvocatoState = Giocatore & { selezionato?: boolean };
 export type MatchDetailState = Partita & { isAdmin?: boolean };
+export const LOCAL_STORAGE_MATCH_KEY = 'calcettoabbuffo_active_match';
 
 @Injectable()
 export class MatchStateService {
   public firestore = inject(Firestore);
+  public syncStatus = inject(SyncStatusService);
 
   matchId = signal<string | null>(null);
   matchDataOriginale: MatchDetailState | null = null;
@@ -571,6 +574,89 @@ export class MatchStateService {
     if (this.matchSub) this.matchSub.unsubscribe();
   }
 
+  salvaSnapshotLocale() {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      const snapshot = {
+        timestamp: Date.now(),
+        matchId: this.matchId(),
+        step: this.step(),
+        status: this.status(),
+        luogo: this.luogo(),
+        dataPartita: this.dataPartita(),
+        orario: this.orario(),
+        tutti: this.tutti(),
+        teamA: this.teamA(),
+        teamB: this.teamB(),
+        scoreA: this.scoreA(),
+        scoreB: this.scoreB(),
+        eventiGol: this.eventiGol(),
+        cronometro: this.cronometro(),
+        accumulatedTime: this.accumulatedTime(),
+        timerStartAt: this.timerStartAt(),
+        isTimerRunning: this.isTimerRunning(),
+        rotazionePortieri: this.rotazionePortieri(),
+        matchConcluso: this.matchConcluso(),
+        pagelleInserite: this.pagelleInserite(),
+        commentoPartita: this.commentoPartita(),
+      };
+      localStorage.setItem(LOCAL_STORAGE_MATCH_KEY, JSON.stringify(snapshot));
+      this.syncStatus.notifyLocalSave();
+    } catch (e) {
+      console.warn('Errore salvataggio snapshot locale:', e);
+    }
+  }
+
+  rimuoviSnapshotLocale() {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(LOCAL_STORAGE_MATCH_KEY);
+      }
+    } catch {}
+  }
+
+  ripristinaSnapshotLocaleSeRecente(targetMatchId: string | null): boolean {
+    try {
+      if (typeof localStorage === 'undefined') return false;
+      const raw = localStorage.getItem(LOCAL_STORAGE_MATCH_KEY);
+      if (!raw) return false;
+      const snap = JSON.parse(raw);
+      if (!snap || typeof snap !== 'object') return false;
+
+      // Se il matchId corrisponde o se è una nuova partita (targetMatchId null / 'nuova')
+      const isMatchingId =
+        snap.matchId === targetMatchId ||
+        (!targetMatchId && !snap.matchId) ||
+        (targetMatchId === 'nuova' && !snap.matchId);
+
+      // Considera valido se salvato nelle ultime 24 ore e non concluso
+      const isRecent = Date.now() - (snap.timestamp || 0) < 24 * 60 * 60 * 1000;
+
+      if (isMatchingId && isRecent && !snap.matchConcluso) {
+        if (snap.teamA && snap.teamA.length > 0) this.teamA.set(snap.teamA);
+        if (snap.teamB && snap.teamB.length > 0) this.teamB.set(snap.teamB);
+        if (typeof snap.scoreA === 'number') this.scoreA.set(snap.scoreA);
+        if (typeof snap.scoreB === 'number') this.scoreB.set(snap.scoreB);
+        if (Array.isArray(snap.eventiGol)) this.eventiGol.set(snap.eventiGol);
+        if (typeof snap.cronometro === 'number') this.cronometro.set(snap.cronometro);
+        if (typeof snap.accumulatedTime === 'number') this.accumulatedTime.set(snap.accumulatedTime);
+        if (typeof snap.timerStartAt !== 'undefined') this.timerStartAt.set(snap.timerStartAt);
+        if (typeof snap.isTimerRunning === 'boolean') this.isTimerRunning.set(snap.isTimerRunning);
+        if (snap.rotazionePortieri) this.rotazionePortieri.set(snap.rotazionePortieri);
+        if (snap.step && snap.step !== 'convocati') this.step.set(snap.step);
+        if (snap.status) this.status.set(snap.status);
+        if (snap.commentoPartita) this.commentoPartita.set(snap.commentoPartita);
+
+        console.log('🔄 Snapshot locale ripristinato con successo per il match:', snap.matchId || 'nuova');
+        this.syncStatus.notifyLocalSave();
+        return true;
+      }
+    } catch (e) {
+      console.warn('Impossibile ripristinare snapshot locale:', e);
+    }
+    return false;
+  }
+
   async salvaInDatabase(
     pagelleInseriteFlag: boolean,
     matchConclusoFlag: boolean = false,
@@ -584,6 +670,13 @@ export class MatchStateService {
       );
     }
 
+    const isConcluso = matchConclusoFlag || this.matchConcluso();
+    this.pagelleInserite.set(pagelleInseriteFlag);
+    this.matchConcluso.set(isConcluso);
+
+    // 1. SALVATAGGIO LOCALE IMMEDIATO (Safety net istantanea prima della chiamata di rete)
+    this.salvaSnapshotLocale();
+
     const payload: any = {
       dataPartita: this.dataPartita(),
       orario: this.orario(),
@@ -595,7 +688,7 @@ export class MatchStateService {
       scoreB: this.scoreB(),
       eventiGol: this.eventiGol(),
       rotazionePortieri: this.rotazionePortieri() || null,
-      matchConcluso: matchConclusoFlag || this.matchConcluso(),
+      matchConcluso: isConcluso,
       pagelleInserite: pagelleInseriteFlag,
       cronometro: this.cronometro(),
       accumulatedTime: this.accumulatedTime(),
@@ -610,23 +703,35 @@ export class MatchStateService {
       commentoPartita: this.commentoPartita()?.trim() || null,
     };
 
-    this.pagelleInserite.set(pagelleInseriteFlag);
-    this.matchConcluso.set(matchConclusoFlag || this.matchConcluso());
+    try {
+      this.syncStatus.notifySyncPending();
 
-    if (this.matchId()) {
-      await updateDoc(
-        doc(this.firestore, `partite/${this.matchId()}`),
-        payload,
-      );
-    } else {
-      const docRef = await addDoc(collection(this.firestore, 'partite'), {
-        ...payload,
-        dataOra: serverTimestamp(),
-        classificaAggiornata: false,
-      });
-      this.matchId.set(docRef.id);
+      if (this.matchId()) {
+        await updateDoc(
+          doc(this.firestore, `partite/${this.matchId()}`),
+          payload,
+        );
+      } else {
+        const docRef = await addDoc(collection(this.firestore, 'partite'), {
+          ...payload,
+          dataOra: serverTimestamp(),
+          classificaAggiornata: false,
+        });
+        this.matchId.set(docRef.id);
+        this.salvaSnapshotLocale(); // Salva con l'id appena generato
+        this.avviaAscoltoReale();
+      }
 
-      this.avviaAscoltoReale();
+      this.syncStatus.notifySyncSuccess();
+
+      // Se la partita è conclusa, rimuovi lo snapshot attivo
+      if (isConcluso) {
+        this.rimuoviSnapshotLocale();
+      }
+    } catch (err) {
+      console.warn('Salvataggio Firestore non riuscito online (i dati rimangono comunque salvi in locale):', err);
+      this.syncStatus.notifySyncError();
+      // Non rilanciare errore durante la partita se offline per non bloccare l'UI
     }
   }
 
@@ -638,5 +743,6 @@ export class MatchStateService {
     this.accumulatedTime.set(0);
     this.timerStartAt.set(null);
     this.isTimerRunning.set(false);
+    this.rimuoviSnapshotLocale();
   }
 }

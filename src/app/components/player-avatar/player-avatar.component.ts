@@ -22,10 +22,12 @@ export class PlayerAvatarComponent implements OnChanges {
   @Input() alt?: string | null = 'Avatar';
 
   imageError = signal(false);
+  imageLoaded = signal(false);
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['fotoUrl']) {
       this.imageError.set(false);
+      this.imageLoaded.set(false);
     }
   }
 
@@ -43,5 +45,11 @@ export class PlayerAvatarComponent implements OnChanges {
 
   onImgError(): void {
     this.imageError.set(true);
+    this.imageLoaded.set(false);
+  }
+
+  onImgLoad(): void {
+    this.imageLoaded.set(true);
   }
 }
+

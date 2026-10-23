@@ -73,6 +73,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "nx": "23.0.1",
+    "sharp": "^0.35.5",
     "typescript": "~5.9.0"
   },
   "description": "An Ionic project"

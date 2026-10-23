@@ -37,6 +37,7 @@ import { StepDettagliComponent } from './steps/step-dettagli/step-dettagli.compo
 import { StepSquadreComponent } from './steps/step-squadre/step-squadre.component';
 import { StepMatchComponent } from './steps/step-match/step-match.component';
 import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazioni.component';
+import { SyncStatusBadgeComponent } from '../../sync-status-badge/sync-status-badge.component';
 
 @Component({
   selector: 'app-partita-detail',
@@ -61,6 +62,7 @@ import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazi
     StepSquadreComponent,
     StepMatchComponent,
     StepPrestazioniComponent,
+    SyncStatusBadgeComponent,
   ],
   providers: [MatchStateService],
 })
@@ -265,6 +267,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.resetMatchState();
       this.state.step.set('convocati');
     }
+
+    // Ripristina snapshot locale di sicurezza se presente e più recente / offline
+    this.state.ripristinaSnapshotLocaleSeRecente(matchData.id || null);
   }
 
   getProssimoMercoledi(): string {

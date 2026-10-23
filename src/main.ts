@@ -15,7 +15,14 @@ import { AppComponent } from './app/app.component';
 
 // --- IMPORTAZIONI FIREBASE ---
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
-import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { getApp } from 'firebase/app';
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  getFirestore,
+} from 'firebase/firestore';
+import { provideFirestore } from '@angular/fire/firestore';
 // 1. IMPORTA LO STORAGE QUI
 import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideAuth, getAuth } from '@angular/fire/auth';
@@ -32,7 +39,18 @@ bootstrapApplication(AppComponent, {
     
     // --- CONFIGURAZIONE FIREBASE ---
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideFirestore(() => getFirestore()),
+    provideFirestore(() => {
+      const app = getApp();
+      try {
+        return initializeFirestore(app, {
+          localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager(),
+          }),
+        });
+      } catch {
+        return getFirestore(app);
+      }
+    }),
     // 2. AGGIUNGI IL PROVIDER DELLO STORAGE QUI
     provideStorage(() => getStorage()),
     provideAuth(() => getAuth()),
