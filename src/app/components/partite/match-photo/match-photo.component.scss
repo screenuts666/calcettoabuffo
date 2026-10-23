@@ -72,6 +72,12 @@
   }
 }
 
+.default-pitch-wrap {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
 
 .photo-card {
   @include card-surface(16px);

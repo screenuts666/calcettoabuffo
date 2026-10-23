@@ -8,7 +8,7 @@
 
 <div class="photo-card-container">
   @if (state.fotoUrl()) {
-    <!-- SELETTORE VISTA: FOTO UFFICIALE VS POSTER COLLAGE -->
+    <!-- SELETTORE VISTA: FOTO UFFICIALE VS PIANTINA IN CAMPO -->
     <div class="photo-view-switch-bar">
       <button
         type="button"
@@ -22,11 +22,11 @@
       <button
         type="button"
         class="switch-btn"
-        [class.active]="vistaSelezionata() === 'collage'"
-        (click)="vistaSelezionata.set('collage')"
+        [class.active]="vistaSelezionata() === 'pitch'"
+        (click)="vistaSelezionata.set('pitch')"
       >
-        <ion-icon name="sparkles"></ion-icon>
-        <span>Poster Squadre</span>
+        <ion-icon name="football-outline"></ion-icon>
+        <span>Piantina in Campo</span>
       </button>
     </div>
 
@@ -61,25 +61,23 @@
         }
       </div>
     } @else {
-      <!-- POSTER COLLAGE CON FORMAZIONI -->
-      <app-match-collage-banner
+      <!-- PIANTINA TATTICA IN CAMPO -->
+      <app-tactical-pitch
         [match]="state"
-        height="185px"
         [showUploadButton]="isAdmin"
         [isAdmin]="isAdmin"
         (uploadPhotoClick)="apriFilePicker()"
-      ></app-match-collage-banner>
+      ></app-tactical-pitch>
     }
   } @else {
-    <!-- QUANDO NON C'È ANCORA LA FOTO UFFICIALE: IL COLLAGE È IL POSTER DI DEFAULT! -->
-    <div class="default-collage-wrap">
-      <app-match-collage-banner
+    <!-- DEFAULT PER TUTTE LE PARTITE SENZA FOTO UFFICIALE: PIANTINA IN CAMPO CON I PORTIERI E I GIOCATORI! -->
+    <div class="default-pitch-wrap">
+      <app-tactical-pitch
         [match]="state"
-        height="185px"
         [showUploadButton]="isAdmin"
         [isAdmin]="isAdmin"
         (uploadPhotoClick)="apriFilePicker()"
-      ></app-match-collage-banner>
+      ></app-tactical-pitch>
     </div>
 
     @if (isAdmin) {

@@ -1,0 +1,497 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.tactical-pitch-card {
+  width: 100%;
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  user-select: none;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// VIEWPORT DEL CAMPO (ASPECT RATIO REALISTICO 1.65 : 1)
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.65 / 1;
+  min-height: 200px;
+  max-height: 380px;
+  overflow: hidden;
+  background-color: #15803d;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// STRISCE ERBA CAMPO DA GIOCO (Stadio appena tagliato come in allegato 2)
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-grass-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    90deg,
+    #15803d 0%,
+    #15803d 10%,
+    #166534 10%,
+    #166534 20%
+  );
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.45);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(0, 0, 0, 0.3) 100%
+    );
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// LINEE TATTICHE SVG
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-markings-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// BADGE SQUADRE BIANCHI E NERI IN ALTO
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-team-badge {
+  position: absolute;
+  top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(8px);
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+
+  .team-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+
+    &.white {
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+    }
+
+    &.black {
+      background: #f59e0b;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.9);
+    }
+  }
+
+  .team-count {
+    opacity: 0.8;
+    font-size: 0.6rem;
+  }
+
+  &.team-a-badge {
+    left: 10px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  &.team-b-badge {
+    right: 10px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #f8fafc;
+    border: 1px solid rgba(245, 158, 11, 0.6);
+  }
+}
+
+// Punteggio o VS al centro del campo
+.pitch-center-score {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  z-index: 5;
+
+  .sc-num {
+    font-size: 0.8rem;
+    color: #fbbf24;
+  }
+
+  .sc-sep {
+    opacity: 0.6;
+  }
+
+  .vs-text {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// PULSANTE + FOTO UFFICIALE (PER ADMIN)
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-upload-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-size: 0.68rem;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// CANVAS GIOCATORI SCHIERATI
+// ──────────────────────────────────────────────────────────────────────────
+.players-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+// Singolo Token Giocatore posizionato
+.player-pin-token {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0.1s ease;
+  outline: none;
+
+  &:hover,
+  &:active,
+  &.is-selected {
+    transform: translate(-50%, -58%) scale(1.18);
+    z-index: 30 !important;
+  }
+
+  // ──────────────────────────────────────
+  // ANELLO AVATAR
+  // ──────────────────────────────────────
+  .avatar-ring-box {
+    position: relative;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #0f172a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (min-width: 500px) {
+      width: 38px;
+      height: 38px;
+    }
+
+    .pitch-avatar-img {
+      --avatar-size: 100%;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+    }
+
+    // Badge Guanto Portiere
+    .gk-icon-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      font-size: 0.65rem;
+      background: #f59e0b;
+      color: #000;
+      border-radius: 50%;
+      width: 15px;
+      height: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+      border: 1px solid #ffffff;
+      z-index: 2;
+    }
+  }
+
+  // Bordo per SQUADRA BIANCHI
+  &.team-white {
+    .avatar-ring-box {
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  // Bordo per SQUADRA NERI
+  &.team-black {
+    .avatar-ring-box {
+      border: 2px solid #f59e0b;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.75), 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  // Stile speciale PORTIERE
+  &.is-goalkeeper {
+    .avatar-ring-box {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.9), 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+    }
+  }
+
+  // ──────────────────────────────────────
+  // ETICHETTA SOTTO IL TOKEN SUL CAMPO
+  // ──────────────────────────────────────
+  .player-pitch-label {
+    margin-top: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 1px 4px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    max-width: 48px;
+    pointer-events: none;
+
+    .label-name {
+      font-size: 0.55rem;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 44px;
+      line-height: 1.1;
+    }
+
+    .label-role {
+      font-size: 0.45rem;
+      font-weight: 900;
+      color: #38bdf8;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }
+  }
+
+  &.team-black .player-pitch-label .label-role {
+    color: #fbbf24;
+  }
+
+  &.is-goalkeeper .player-pitch-label .label-role {
+    color: #34d399;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// STATO VUOTO
+// ──────────────────────────────────────────────────────────────────────────
+.pitch-empty-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  padding: 15px;
+  text-align: center;
+  z-index: 8;
+
+  .empty-pitch-icon {
+    font-size: 2.2rem;
+    color: #34d399;
+    opacity: 0.8;
+    margin-bottom: 6px;
+  }
+
+  .empty-pitch-title {
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  .empty-pitch-sub {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// POPUP VELOCE GIOCATORE SELEZIONATO
+// ──────────────────────────────────────────────────────────────────────────
+.player-quick-popup {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 280px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  padding: 8px 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  animation: popup-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .popup-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .popup-avatar-wrap {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+
+    .popup-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 1.5px solid #ffffff;
+    }
+  }
+
+  .popup-info {
+    flex: 1;
+    min-width: 0;
+
+    .popup-name {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .popup-team-role {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+
+      .team-tag {
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 4px;
+
+        &.white {
+          background: #ffffff;
+          color: #0f172a;
+        }
+
+        &.black {
+          background: #f59e0b;
+          color: #000000;
+        }
+      }
+
+      .role-tag {
+        font-size: 0.62rem;
+        color: rgba(255, 255, 255, 0.75);
+      }
+    }
+  }
+
+  .popup-close-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: #ffffff;
+    }
+  }
+
+  .popup-stat-row {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+
+    .stat-lbl {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .stat-val.grade {
+      font-weight: 900;
+      color: #10b981;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+@keyframes popup-slide-up {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

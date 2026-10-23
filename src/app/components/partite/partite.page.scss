@@ -414,6 +414,117 @@
   }
 }
 
+// ==========================================
+// ACCORDION PIANTINA TATTICA NELLA CARD
+// ==========================================
+.pitch-accordion-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 10px 0 6px 0;
+  padding: 8px 12px;
+  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--app-surface-hover, rgba(255, 255, 255, 0.08));
+    border-color: rgba(var(--app-primary-rgb, 16, 185, 129), 0.4);
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+
+  &.is-expanded {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.4);
+
+    .pitch-badge-icon {
+      background: var(--ion-color-success, #10b981);
+      color: #000000;
+    }
+
+    .tap-hint-text {
+      color: var(--ion-color-success, #10b981);
+    }
+  }
+
+  .accordion-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    .pitch-badge-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ion-color-success, #10b981);
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .accordion-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--app-text, #ffffff);
+      white-space: nowrap;
+    }
+
+    .formation-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--app-text-muted, #94a3b8);
+      white-space: nowrap;
+    }
+  }
+
+  .accordion-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--app-text-muted, #94a3b8);
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 1rem;
+      transition: transform 0.2s ease;
+    }
+  }
+}
+
+.pitch-accordion-drawer {
+  width: 100%;
+  margin: 4px 0 10px 0;
+  animation: drawer-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawer-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .photo-banner-overlay {
   position: absolute;
   inset: 0;

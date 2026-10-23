@@ -1,0 +1,255 @@
+<div class="tactical-pitch-card">
+  <!-- PREDISPOSIZIONE CAMPO DA CALCETTO -->
+  <div class="pitch-viewport">
+    <!-- SFONDO ERBA A STRISCE E CORNICE -->
+    <div class="pitch-grass-texture"></div>
+
+    <!-- LINEE TATTICHE SVG IN SCALA VETTORIALE -->
+    <svg
+      class="pitch-markings-svg"
+      viewBox="0 0 1000 600"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <!-- Bordo esterno campo -->
+      <rect
+        x="40"
+        y="30"
+        width="920"
+        height="540"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+        rx="8"
+      />
+
+      <!-- Linea di metà campo -->
+      <line
+        x1="500"
+        y1="30"
+        x2="500"
+        y2="570"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+
+      <!-- Cerchio di centrocampo e dischetto -->
+      <circle
+        cx="500"
+        cy="300"
+        r="105"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+      <circle cx="500" cy="300" r="7" fill="#ffffff" />
+
+      <!-- --- SQUADRA A (SINISTRA) --- -->
+      <!-- Porta sinistra -->
+      <rect
+        x="12"
+        y="235"
+        width="28"
+        height="130"
+        fill="rgba(255, 255, 255, 0.15)"
+        stroke="#ffffff"
+        stroke-width="4"
+        rx="3"
+      />
+      <!-- Area di porta (piccola) -->
+      <rect
+        x="40"
+        y="215"
+        width="70"
+        height="170"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+      <!-- Area di rigore grande -->
+      <rect
+        x="40"
+        y="130"
+        width="160"
+        height="340"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+      <!-- Dischetto di rigore -->
+      <circle cx="155" cy="300" r="6" fill="#ffffff" />
+      <!-- Mezzaluna area sinistra -->
+      <path
+        d="M 200 235 A 85 85 0 0 1 200 365"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+
+      <!-- --- SQUADRA B (DESTRA) --- -->
+      <!-- Porta destra -->
+      <rect
+        x="960"
+        y="235"
+        width="28"
+        height="130"
+        fill="rgba(255, 255, 255, 0.15)"
+        stroke="#ffffff"
+        stroke-width="4"
+        rx="3"
+      />
+      <!-- Area di porta (piccola) -->
+      <rect
+        x="890"
+        y="215"
+        width="70"
+        height="170"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+      <!-- Area di rigore grande -->
+      <rect
+        x="800"
+        y="130"
+        width="160"
+        height="340"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+      <!-- Dischetto di rigore -->
+      <circle cx="845" cy="300" r="6" fill="#ffffff" />
+      <!-- Mezzaluna area destra -->
+      <path
+        d="M 800 235 A 85 85 0 0 0 800 365"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="5"
+      />
+
+      <!-- Calci d'angolo (corner arcs) -->
+      <path d="M 40 50 A 20 20 0 0 0 60 30" fill="none" stroke="#ffffff" stroke-width="4" />
+      <path d="M 40 550 A 20 20 0 0 1 60 570" fill="none" stroke="#ffffff" stroke-width="4" />
+      <path d="M 940 30 A 20 20 0 0 0 960 50" fill="none" stroke="#ffffff" stroke-width="4" />
+      <path d="M 940 570 A 20 20 0 0 1 960 550" fill="none" stroke="#ffffff" stroke-width="4" />
+    </svg>
+
+    <!-- INTESTAZIONE SQUADRE & PUNTEGGIO -->
+    <div class="pitch-team-badge team-a-badge">
+      <span class="team-dot white"></span>
+      <span class="team-title">BIANCHI</span>
+      <span class="team-count">({{ normalizedTeams().teamA.length }})</span>
+    </div>
+
+    <div class="pitch-center-score">
+      @if (hasScore()) {
+        <span class="sc-num">{{ scoreA() }}</span>
+        <span class="sc-sep">-</span>
+        <span class="sc-num">{{ scoreB() }}</span>
+      } @else {
+        <span class="vs-text">VS</span>
+      }
+    </div>
+
+    <div class="pitch-team-badge team-b-badge">
+      <span class="team-dot black"></span>
+      <span class="team-title">NERI</span>
+      <span class="team-count">({{ normalizedTeams().teamB.length }})</span>
+    </div>
+
+    <!-- TASTO AGGIUNGI FOTO UFFICIALE (PER ADMIN) -->
+    @if (showUploadButton() && isAdmin()) {
+      <button
+        type="button"
+        class="pitch-upload-btn"
+        (click)="onUploadClick($event)"
+        title="Carica la foto ufficiale di gruppo"
+      >
+        <ion-icon name="camera"></ion-icon>
+        <span>+ Foto Ufficiale</span>
+      </button>
+    }
+
+    <!-- GIOCATORI SCHIERATI SULLA PIANTINA -->
+    @if (hasEnoughPlayers()) {
+      <div class="players-canvas">
+        @for (p of positionedPlayers(); track p.id) {
+          <div
+            class="player-pin-token"
+            [class.team-white]="p.team === 'A'"
+            [class.team-black]="p.team === 'B'"
+            [class.is-goalkeeper]="p.isGoalkeeper"
+            [class.is-selected]="selectedPlayer()?.id === p.id"
+            [style.left.%]="p.xPercent"
+            [style.top.%]="p.yPercent"
+            (click)="onPlayerClick(p, $event)"
+            [title]="p.nome + (p.isGoalkeeper ? ' (Portiere)' : '')"
+          >
+            <!-- TOKEN AVATAR -->
+            <div class="avatar-ring-box">
+              <app-player-avatar
+                [fotoUrl]="p.fotoUrl"
+                [alt]="p.nome"
+                class="pitch-avatar-img"
+              ></app-player-avatar>
+
+              @if (p.isGoalkeeper) {
+                <span class="gk-icon-badge" title="Portiere in Porta">🧤</span>
+              }
+            </div>
+
+            <!-- ETICHETTA NOME GIOCATORE SOTTO IL TOKEN -->
+            <div class="player-pitch-label">
+              <span class="label-name">{{ p.nome.split(' ')[0] }}</span>
+              <span class="label-role">{{ p.roleLabel }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- STATO VUOTO -->
+      <div class="pitch-empty-overlay">
+        <ion-icon name="football" class="empty-pitch-icon"></ion-icon>
+        <span class="empty-pitch-title">Piantina Tattica in Definizione</span>
+        <span class="empty-pitch-sub">Convocazioni o formazioni non ancora registrate</span>
+      </div>
+    }
+
+    <!-- POPUP DETTAGLIO GIOCATORE SELEZIONATO -->
+    @if (selectedPlayer(); as sp) {
+      <div class="player-quick-popup" (click)="$event.stopPropagation()">
+        <div class="popup-header">
+          <div class="popup-avatar-wrap">
+            <app-player-avatar
+              [fotoUrl]="sp.fotoUrl"
+              [alt]="sp.nome"
+              class="popup-avatar"
+            ></app-player-avatar>
+          </div>
+          <div class="popup-info">
+            <div class="popup-name">{{ sp.nome }}</div>
+            <div class="popup-team-role">
+              <span class="team-tag" [class.white]="sp.team === 'A'" [class.black]="sp.team === 'B'">
+                {{ sp.team === 'A' ? 'BIANCHI' : 'NERI' }}
+              </span>
+              <span class="role-tag">
+                {{ sp.isGoalkeeper ? '🧤 Portiere' : sp.originalPlayer.ruoloPreferito || 'Movimento' }}
+              </span>
+            </div>
+          </div>
+          <button type="button" class="popup-close-btn" (click)="closePlayerModal($event)">
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        </div>
+
+        @if (sp.originalPlayer.voto) {
+          <div class="popup-stat-row">
+            <span class="stat-lbl">Voto Pagella:</span>
+            <span class="stat-val grade">{{ sp.originalPlayer.voto }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

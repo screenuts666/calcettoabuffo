@@ -102,10 +102,31 @@
               </div>
             </div>
           </div>
-          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
-          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
-            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          }
+
+          <!-- ACCORDION PIANTINA TATTICA IN CAMPO -->
+          <div
+            class="pitch-accordion-bar"
+            (click)="$event.stopPropagation(); togglePiantina(m.id)"
+            [class.is-expanded]="isPiantinaAperta(m.id)"
+          >
+            <div class="accordion-bar-left">
+              <span class="pitch-badge-icon">
+                <ion-icon name="football-outline"></ion-icon>
+              </span>
+              <span class="accordion-title">Piantina Tattica</span>
+              <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
+            </div>
+            <div class="accordion-bar-right">
+              <span class="tap-hint-text">{{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}</span>
+              <ion-icon [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+            </div>
           </div>
+
+          @if (isPiantinaAperta(m.id)) {
+            <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
+              <app-tactical-pitch [match]="m"></app-tactical-pitch>
+            </div>
           }
 
           <div class="match-footer">
@@ -197,10 +218,31 @@
               </div>
             </div>
           </div>
-          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
-          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
-            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          }
+
+          <!-- ACCORDION PIANTINA TATTICA IN CAMPO -->
+          <div
+            class="pitch-accordion-bar"
+            (click)="$event.stopPropagation(); togglePiantina(m.id)"
+            [class.is-expanded]="isPiantinaAperta(m.id)"
+          >
+            <div class="accordion-bar-left">
+              <span class="pitch-badge-icon">
+                <ion-icon name="football-outline"></ion-icon>
+              </span>
+              <span class="accordion-title">Piantina Tattica</span>
+              <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
+            </div>
+            <div class="accordion-bar-right">
+              <span class="tap-hint-text">{{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}</span>
+              <ion-icon [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+            </div>
           </div>
+
+          @if (isPiantinaAperta(m.id)) {
+            <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
+              <app-tactical-pitch [match]="m"></app-tactical-pitch>
+            </div>
           }
 
           <div class="match-footer">
@@ -292,10 +334,31 @@
               </div>
             </div>
           </div>
-          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
-          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
-            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          }
+
+          <!-- ACCORDION PIANTINA TATTICA IN CAMPO -->
+          <div
+            class="pitch-accordion-bar"
+            (click)="$event.stopPropagation(); togglePiantina(m.id)"
+            [class.is-expanded]="isPiantinaAperta(m.id)"
+          >
+            <div class="accordion-bar-left">
+              <span class="pitch-badge-icon">
+                <ion-icon name="football-outline"></ion-icon>
+              </span>
+              <span class="accordion-title">Piantina Tattica</span>
+              <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
+            </div>
+            <div class="accordion-bar-right">
+              <span class="tap-hint-text">{{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}</span>
+              <ion-icon [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+            </div>
           </div>
+
+          @if (isPiantinaAperta(m.id)) {
+            <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
+              <app-tactical-pitch [match]="m"></app-tactical-pitch>
+            </div>
           }
 
           <div class="match-footer">
@@ -388,10 +451,31 @@
               </div>
             </div>
           </div>
-          } @else if ((m.teamA?.length || 0) > 0 || (m.convocati?.length || 0) > 0) {
-          <div class="match-photo-banner collage-banner-wrap" (click)="$event.stopPropagation(); apriPartita(m)">
-            <app-match-collage-banner [match]="m" height="138px" [interactive]="false"></app-match-collage-banner>
+          }
+
+          <!-- ACCORDION PIANTINA TATTICA IN CAMPO -->
+          <div
+            class="pitch-accordion-bar"
+            (click)="$event.stopPropagation(); togglePiantina(m.id)"
+            [class.is-expanded]="isPiantinaAperta(m.id)"
+          >
+            <div class="accordion-bar-left">
+              <span class="pitch-badge-icon">
+                <ion-icon name="football-outline"></ion-icon>
+              </span>
+              <span class="accordion-title">Piantina Tattica</span>
+              <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
+            </div>
+            <div class="accordion-bar-right">
+              <span class="tap-hint-text">{{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}</span>
+              <ion-icon [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+            </div>
           </div>
+
+          @if (isPiantinaAperta(m.id)) {
+            <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
+              <app-tactical-pitch [match]="m"></app-tactical-pitch>
+            </div>
           }
 
           <div class="match-footer">

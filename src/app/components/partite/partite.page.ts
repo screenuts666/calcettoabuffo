@@ -68,10 +68,12 @@ import {
   logoWhatsapp,
   shareSocialOutline,
   chatboxEllipsesOutline,
+  chevronDown,
+  chevronUp,
 } from 'ionicons/icons';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
-import { MatchCollageBannerComponent } from './match-collage-banner/match-collage-banner.component';
+import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
 import { AuthService } from 'src/app/services/auth.service';
 import {
   CURRENT_SEASON,
@@ -108,7 +110,7 @@ import {
     IonSpinner,
     IonButtons,
     ThemeToggleComponent,
-    MatchCollageBannerComponent,
+    TacticalPitchComponent,
   ],
 })
 export class PartitePage {
@@ -123,6 +125,35 @@ export class PartitePage {
   private location = inject(Location);
 
   highlightMatchId = signal<string | null>(null);
+  openedPitches = signal<Record<string, boolean>>({});
+
+  togglePiantina(matchId?: string) {
+    if (!matchId) return;
+    this.openedPitches.update((prev) => ({
+      ...prev,
+      [matchId]: !prev[matchId],
+    }));
+  }
+
+  isPiantinaAperta(matchId?: string): boolean {
+    if (!matchId) return false;
+    return !!this.openedPitches()[matchId];
+  }
+
+  getFormazioneLabel(m: any): string {
+    const lenA = Array.isArray(m?.teamA) ? m.teamA.length : 0;
+    const lenB = Array.isArray(m?.teamB) ? m.teamB.length : 0;
+    if (lenA > 0 && lenB > 0) {
+      return `${lenA} vs ${lenB}`;
+    }
+    const tot =
+      lenA || lenB || (Array.isArray(m?.convocati) ? m.convocati.length : 0);
+    if (tot >= 2) {
+      const half = Math.ceil(tot / 2);
+      return `${half} vs ${tot - half}`;
+    }
+    return 'Schieramento';
+  }
 
   partite = toSignal<any[]>(
     collectionData(
@@ -251,6 +282,8 @@ export class PartitePage {
       logoWhatsapp,
       shareSocialOutline,
       chatboxEllipsesOutline,
+      chevronDown,
+      chevronUp,
     });
   }
 
