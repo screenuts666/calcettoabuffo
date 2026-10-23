@@ -84,7 +84,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 .upload-official-photo-btn {
   position: absolute;
-  bottom: 8px;
+  top: 8px;
   right: 10px;
   display: inline-flex;
   align-items: center;
@@ -215,18 +215,24 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  transition: transform 0.2s ease;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   &:hover {
-    transform: translateY(-4px) scale(1.1);
-    z-index: 20 !important;
+    transform: translateY(-6px) scale(1.15);
+    z-index: 30 !important;
+
+    .player-tooltip-name {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
   }
 }
 
 .cluster-avatar {
-  --avatar-size: 42px;
-  width: 42px;
-  height: 42px;
+  --avatar-size: 44px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: #1e293b;
 
@@ -246,16 +252,25 @@
   }
 }
 
-.player-micro-name {
-  font-size: 0.58rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
-  max-width: 42px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.player-tooltip-name {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  background: rgba(15, 23, 42, 0.95);
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 0.64rem;
+  font-weight: 800;
   white-space: nowrap;
-  margin-top: 2px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.18s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 40;
 }
 
 .avatar-excess-badge {

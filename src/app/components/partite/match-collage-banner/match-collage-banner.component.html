@@ -37,7 +37,7 @@
                 [alt]="p?.nome || 'Giocatore'"
                 class="cluster-avatar white-glow"
               ></app-player-avatar>
-              <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
+              <span class="player-tooltip-name">{{ p?.nome || 'Giocatore' }}</span>
             </div>
           }
           @if (excessTeamACount() > 0) {
@@ -84,7 +84,7 @@
                 [alt]="p?.nome || 'Giocatore'"
                 class="cluster-avatar black-glow"
               ></app-player-avatar>
-              <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
+              <span class="player-tooltip-name">{{ p?.nome || 'Giocatore' }}</span>
             </div>
           }
           @if (excessTeamBCount() > 0) {
@@ -111,7 +111,7 @@
               [alt]="p?.nome || 'Giocatore'"
               class="cluster-avatar gold-glow"
             ></app-player-avatar>
-            <span class="player-micro-name">{{ (p?.nome || 'Giocatore').split(' ')[0] }}</span>
+            <span class="player-tooltip-name">{{ p?.nome || 'Giocatore' }}</span>
           </div>
         }
         @if (excessConvocatiCount() > 0) {
