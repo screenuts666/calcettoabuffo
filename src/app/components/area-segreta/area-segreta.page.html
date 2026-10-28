@@ -146,6 +146,47 @@
           </p>
         </div>
 
+        <!-- SEZIONE ESCLUSIVA DEV MODE: CLONAZIONE PULITA DB PROD -> DEV -->
+        @if (devDbSync.isDevMode) {
+          <div class="dev-sync-card">
+            <div class="dsc-header">
+              <div class="dsc-title-wrap">
+                <span class="dsc-badge">🛠️ SOLO DEV MODE</span>
+                <h4>Allinea Database DEV da Produzione (PROD → DEV)</h4>
+              </div>
+
+              <button
+                type="button"
+                class="dsc-sync-btn"
+                [disabled]="devDbSync.isSyncing()"
+                (click)="promptSyncProdToDev()"
+              >
+                <ion-icon name="refresh" [class.spin-icon]="devDbSync.isSyncing()"></ion-icon>
+                <span>
+                  {{
+                    devDbSync.isSyncing()
+                      ? (devDbSync.progressMessage() || 'Copia in corso...')
+                      : 'Copia DB PROD → DEV'
+                  }}
+                </span>
+              </button>
+            </div>
+
+            <p class="dsc-desc">
+              Legge in <strong>sola lettura</strong> tutte le collezioni da <code>calcettoabuffone-prod</code> (giocatori, partite, stagioni, pagelle, confronti) e le allinea in modo pulito dentro <code>calcettoabuffone</code> (DEV), rimuovendo eventuali partite o giocatori di test creati solo in DEV. Protetto da <strong>Super-Lock PIN</strong>.
+            </p>
+
+            @if (devDbSync.lastReport(); as rep) {
+              <div class="dsc-report-pill">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                <span>
+                  Ultimo sync ({{ rep.completedAt }}): <strong>{{ rep.giocatoriSynced }}</strong> giocatori, <strong>{{ rep.partiteSynced }}</strong> partite, <strong>{{ rep.stagioniSynced }}</strong> config stagioni allineati ({{ rep.orphansRemoved }} record di test rimossi).
+                </span>
+              </div>
+            }
+          </div>
+        }
+
         <!-- SEZIONE 1: CALCOLO PUNTI CLASSICI (LEGACY CAMPIONATO) -->
         <div class="engine-card">
           <div class="card-head">

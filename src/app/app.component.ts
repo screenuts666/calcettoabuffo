@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
-import { SwUpdate } from '@angular/service-worker';
 import { ThemeService } from './services/theme.service';
+import { AppUpdateService } from './services/app-update.service';
 
 let ariaHiddenFocusGuardInstalled = false;
 
@@ -38,7 +38,7 @@ function installAriaHiddenFocusGuard(): void {
 })
 export class AppComponent {
   private themeService = inject(ThemeService);
-  private swUpdate = inject(SwUpdate);
+  private appUpdateService = inject(AppUpdateService);
   private router = inject(Router);
 
   constructor() {
@@ -51,15 +51,6 @@ export class AppComponent {
       }
     });
 
-    if (this.swUpdate.isEnabled) {
-      this.swUpdate.versionUpdates.subscribe((evt) => {
-        if (evt.type === 'VERSION_READY') {
-          this.swUpdate.activateUpdate().then(() => {
-            document.location.reload();
-          });
-        }
-      });
-      this.swUpdate.checkForUpdate().catch(() => {});
-    }
+    this.appUpdateService.init();
   }
 }

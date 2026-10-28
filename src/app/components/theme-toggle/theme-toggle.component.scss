@@ -1,18 +1,49 @@
 .theme-toggle-btn {
   --color: var(--app-text-primary);
-  font-size: 1.25rem;
+  --padding-start: 4px;
+  --padding-end: 6px;
+  font-size: 1.15rem;
   transition: transform 0.2s ease, opacity 0.2s ease;
   margin-right: 4px;
 
   &:hover {
-    transform: scale(1.08);
+    transform: scale(1.04);
   }
 
   &:active {
-    transform: scale(0.92);
+    transform: scale(0.95);
+  }
+
+  .dev-mode-mini-pill {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    padding: 2px 5px;
+    margin-right: 4px;
+    border-radius: 5px;
+    background: rgba(255, 196, 9, 0.18);
+    color: #ffc409;
+    border: 1px solid rgba(255, 196, 9, 0.45);
+    line-height: 1.1;
+    text-transform: uppercase;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .version-mini-pill {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 2px 5px;
+    margin-right: 5px;
+    border-radius: 6px;
+    background: rgba(45, 211, 111, 0.14);
+    color: #2dd36f;
+    border: 1px solid rgba(45, 211, 111, 0.32);
+    line-height: 1.1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 
   ion-icon {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 }

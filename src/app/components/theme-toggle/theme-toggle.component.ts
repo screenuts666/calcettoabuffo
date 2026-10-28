@@ -16,8 +16,11 @@ import {
   settingsOutline,
   checkmarkCircle,
   closeOutline,
+  refreshOutline,
 } from 'ionicons/icons';
+import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
+import { AppUpdateService } from '../../services/app-update.service';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -29,8 +32,11 @@ import { ThemeService, AppThemeMode } from '../../services/theme.service';
 })
 export class ThemeToggleComponent {
   public themeService = inject(ThemeService);
+  public appUpdate = inject(AppUpdateService);
   private actionSheetCtrl = inject(ActionSheetController);
   private toastCtrl = inject(ToastController);
+
+  readonly isDevEnvironment: boolean = !environment.production;
 
   constructor() {
     addIcons({
@@ -42,6 +48,7 @@ export class ThemeToggleComponent {
       settingsOutline,
       checkmarkCircle,
       closeOutline,
+      refreshOutline,
     });
   }
 
@@ -61,12 +68,20 @@ export class ThemeToggleComponent {
 
   async openThemeMenu() {
     const currentMode = this.themeService.mode();
+    const envLabel = this.isDevEnvironment ? ' · 🛠️ DEV MODE' : ' · 🟢 PROD';
 
     const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Seleziona Tema Visivo',
-      subHeader: `Attuale: ${this.currentLabel}`,
+      header: `Impostazioni & Versione (v${this.appUpdate.version}${envLabel})`,
+      subHeader: `Build: ${this.appUpdate.buildDate} · ${this.currentLabel}`,
       mode: 'ios',
       buttons: [
+        {
+          text: `🔄 Forza Aggiornamento & Svuota Cache (v${this.appUpdate.version})`,
+          icon: 'refresh-outline',
+          handler: () => {
+            this.appUpdate.checkForNewVersion(true);
+          },
+        },
         {
           text: currentMode === 'light' ? '☀️ Tema Chiaro (Attivo)' : '☀️ Tema Chiaro',
           icon: currentMode === 'light' ? 'checkmark-circle' : 'sunny-outline',

@@ -1,8 +1,12 @@
 <ion-button
   (click)="openThemeMenu()"
   class="theme-toggle-btn"
-  [title]="'Cambia Tema (' + currentLabel + ')'"
-  aria-label="Cambia Tema"
+  [title]="'Versione v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ' (' + appUpdate.buildDate + ') · Tocca per Tema o Pulizia Cache'"
+  aria-label="Cambia Tema o Aggiorna App"
 >
-  <ion-icon [name]="currentIcon" slot="icon-only"></ion-icon>
+  @if (isDevEnvironment) {
+    <span class="dev-mode-mini-pill">DEV MODE</span>
+  }
+  <span class="version-mini-pill">v{{ appUpdate.version }}</span>
+  <ion-icon [name]="currentIcon"></ion-icon>
 </ion-button>

@@ -51,6 +51,7 @@ import {
   cloudDone,
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/services/auth.service';
+import { DevDbSyncService } from 'src/app/services/dev-db-sync.service';
 import {
   StatsEngineService,
   BASE_INITIAL_MMR,
@@ -225,6 +226,7 @@ export class AreaSegretaPage implements OnDestroy {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   private router = inject(Router);
+  public devDbSync = inject(DevDbSyncService);
 
   readonly BASE_INITIAL_MMR = BASE_INITIAL_MMR;
   readonly K_FACTOR = K_FACTOR;
@@ -547,6 +549,82 @@ export class AreaSegretaPage implements OnDestroy {
       ],
     });
     await alert.present();
+  }
+
+  /**
+   * Avvia la procedura sicura di clonazione DB PROD -> DEV (disponibile SOLO in DEV MODE).
+   * Richiede il Master PIN del Super-Lock se non è già sbloccato.
+   */
+  async promptSyncProdToDev() {
+    if (!this.devDbSync.isDevMode || this.devDbSync.isSyncing()) {
+      return;
+    }
+
+    const needsPin = !this.isVaultUnlocked();
+
+    const alert = await this.alertCtrl.create({
+      header: '🔄 Clona DB PROD in DEV',
+      subHeader: 'calcettoabuffone-prod (Read-Only) → calcettoabuffone (DEV)',
+      message: needsPin
+        ? 'Questa operazione copierà in modo pulito giocatori, partite, stagioni e pagelle da PROD dentro DEV, rimuovendo i dati di test presenti solo in DEV. Inserisci il Master PIN (default: 1000) per confermare:'
+        : 'Confermi di voler allineare il DB di DEV copiando tutti i dati aggiornati da PROD (e rimuovendo eventuali record di test creati solo in DEV)?',
+      inputs: needsPin
+        ? [
+            {
+              name: 'pin',
+              type: 'password',
+              placeholder: 'Master PIN (es. 1000)',
+            },
+          ]
+        : [],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Avvia Copia Pulita',
+          handler: async (data) => {
+            if (needsPin) {
+              const unlocked = await this.authService.unlockVault(
+                data?.pin || ''
+              );
+              if (!unlocked) {
+                const errToast = await this.toastCtrl.create({
+                  message: '❌ Master PIN errato. Copia DB annullata.',
+                  duration: 2600,
+                  color: 'danger',
+                });
+                await errToast.present();
+                return false;
+              }
+            }
+            this.executeProdToDevSync();
+            return true;
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  private async executeProdToDevSync() {
+    try {
+      const report = await this.devDbSync.syncProdToDev();
+      const toast = await this.toastCtrl.create({
+        message: `✅ DB PROD copiato in DEV! (${report.giocatoriSynced} giocatori, ${report.partiteSynced} partite, ${report.orphansRemoved} record di test rimossi)`,
+        duration: 4000,
+        color: 'success',
+        position: 'top',
+      });
+      await toast.present();
+    } catch (err: any) {
+      const toast = await this.toastCtrl.create({
+        message: `❌ Errore sincronizzazione DB: ${err?.message || 'Errore sconosciuto'}`,
+        duration: 4000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 
   updateSimField(key: string, value: any) {
