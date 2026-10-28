@@ -3,9 +3,6 @@
     <ion-icon name="location-outline"></ion-icon> {{ state.luogo() }} |
     <ion-icon name="time-outline"></ion-icon> {{ state.orario() }}
   </p>
-  <div class="sync-badge-wrapper">
-    <app-sync-status-badge></app-sync-status-badge>
-  </div>
 </div>
 
 <!-- ─── BANNER CAMBIO (solo admin, quando il suono è attivo) ─────────── -->
@@ -146,7 +143,7 @@
           <!-- Portiere Attuale Rotazione -->
           <div class="gk-card-slot current">
             <span class="slot-badge badge-now">
-              🧤 IN PORTA ORA · {{ state.portieriInfoA().turnoAttualeNumero }}° portiere
+              🧤 IN PORTA ORA · {{ state.portieriInfoA().turnoAttualeNumero }}°
             </span>
             <div class="slot-player">
               <ion-avatar class="slot-avatar">
@@ -162,7 +159,7 @@
           <!-- Prossimo Portiere -->
           <div class="gk-card-slot next">
             <span class="slot-badge badge-next">
-              ⏱️ Prossimo al cambio · {{ state.portieriInfoA().turnoProssimoNumero }}° portiere
+              ⏱️ PROSSIMO · {{ state.portieriInfoA().turnoProssimoNumero }}°
             </span>
             <div class="slot-player mini">
               <ion-avatar class="slot-avatar mini">
@@ -229,7 +226,7 @@
           <!-- Portiere Attuale Rotazione -->
           <div class="gk-card-slot current">
             <span class="slot-badge badge-now">
-              🧤 IN PORTA ORA · {{ state.portieriInfoB().turnoAttualeNumero }}° portiere
+              🧤 IN PORTA ORA · {{ state.portieriInfoB().turnoAttualeNumero }}°
             </span>
             <div class="slot-player">
               <ion-avatar class="slot-avatar">
@@ -245,7 +242,7 @@
           <!-- Prossimo Portiere -->
           <div class="gk-card-slot next">
             <span class="slot-badge badge-next">
-              ⏱️ Prossimo al cambio · {{ state.portieriInfoB().turnoProssimoNumero }}° portiere
+              ⏱️ PROSSIMO · {{ state.portieriInfoB().turnoProssimoNumero }}°
             </span>
             <div class="slot-player mini">
               <ion-avatar class="slot-avatar mini">

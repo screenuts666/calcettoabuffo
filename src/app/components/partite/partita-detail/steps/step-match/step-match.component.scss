@@ -277,13 +277,17 @@
 // ==========================================
 .gk-rotation-section {
   margin: 12px 14px 4px;
-  @include card-surface(20px, 14px 16px);
+  @include card-surface(20px, 14px);
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
 
   .gk-panel-header {
-    @include flex-between;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 12px;
     gap: 10px;
 
@@ -291,24 +295,30 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1 1 200px;
+      min-width: 0;
 
       .gk-badge-icon {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
+        flex-shrink: 0;
       }
 
       .gk-header-text {
         display: flex;
         flex-direction: column;
+        min-width: 0;
 
         .gk-header-title {
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           font-weight: 800;
           color: var(--app-text-primary);
+          line-height: 1.2;
         }
 
         .gk-header-sub {
-          font-size: 0.75rem;
+          font-size: 0.74rem;
           color: var(--app-text-secondary);
+          margin-top: 2px;
 
           strong {
             color: var(--app-accent-orange);
@@ -320,7 +330,10 @@
 
     .gk-header-actions {
       display: flex;
+      align-items: center;
       gap: 6px;
+      flex-shrink: 0;
+      margin-left: auto;
 
       .gk-ctrl-btn {
         background: var(--app-card-bg);
@@ -328,16 +341,18 @@
         color: var(--app-text-primary);
         border-radius: 10px;
         padding: 6px 10px;
-        font-size: 0.75rem;
+        font-size: 0.74rem;
         font-weight: 700;
         display: flex;
         align-items: center;
         gap: 4px;
+        white-space: nowrap;
         cursor: pointer;
         @include btn-press(0.95);
 
         ion-icon {
           font-size: 0.95rem;
+          flex-shrink: 0;
         }
 
         &.active {
@@ -351,10 +366,11 @@
 
   .gk-teams-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 10px;
 
     .gk-team-box {
+      min-width: 0;
       border-radius: 14px;
       padding: 10px 10px 8px;
       display: flex;
@@ -418,6 +434,7 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
+        min-width: 0;
 
         &.fixed-slot {
           background: rgba(251, 191, 36, 0.08);
@@ -427,10 +444,13 @@
         }
 
         .slot-badge {
-          font-size: 0.65rem;
+          font-size: 0.62rem;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.3px;
+          letter-spacing: 0.2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
 
           &.badge-now {
             color: #10b981;
@@ -442,26 +462,27 @@
 
           &.badge-fixed {
             color: #fbbf24;
-            font-size: 0.68rem;
+            font-size: 0.64rem;
           }
         }
 
         .slot-player {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 7px;
           background: rgba(125, 125, 125, 0.08);
-          padding: 5px 8px;
+          padding: 5px 7px;
           border-radius: 10px;
+          min-width: 0;
 
           .slot-avatar {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             flex-shrink: 0;
 
             &.mini {
-              width: 22px;
-              height: 22px;
+              width: 20px;
+              height: 20px;
             }
 
             &.pure-gk-glow {
@@ -474,32 +495,38 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            min-width: 0;
 
             .slot-fixed-sub {
-              font-size: 0.62rem;
+              font-size: 0.6rem;
               color: var(--app-text-muted);
               margin-top: 1px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
             }
           }
 
           .slot-player-name {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 800;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            min-width: 0;
+            flex: 1;
 
             &.mini {
-              font-size: 0.75rem;
+              font-size: 0.74rem;
               font-weight: 600;
               opacity: 0.9;
             }
           }
 
           &.mini {
-            padding: 3px 6px;
+            padding: 3px 5px;
             background: transparent;
-            opacity: 0.85;
+            opacity: 0.88;
           }
         }
       }
@@ -514,19 +541,25 @@
 
     .seq-columns-wrapper {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 12px;
+
+      @media (min-width: 560px) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      }
 
       .seq-col {
         display: flex;
         flex-direction: column;
         gap: 6px;
+        min-width: 0;
 
         .seq-col-title {
           font-size: 0.72rem;
           font-weight: 800;
           text-transform: uppercase;
           color: var(--app-text-secondary);
+          letter-spacing: 0.4px;
         }
 
         .seq-fixed-note {
@@ -543,16 +576,17 @@
         .seq-items-list {
           display: flex;
           flex-direction: column;
-          gap: 4px;
+          gap: 5px;
 
           .seq-item {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 6px;
-            border-radius: 8px;
-            background: rgba(125, 125, 125, 0.06);
-            font-size: 0.75rem;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 9px;
+            background: rgba(125, 125, 125, 0.07);
+            font-size: 0.78rem;
+            min-width: 0;
 
             &.is-current {
               background: rgba(16, 185, 129, 0.15);
@@ -565,14 +599,16 @@
             }
 
             .seq-order-pill {
-              font-size: 0.65rem;
+              font-size: 0.68rem;
               font-weight: 900;
-              opacity: 0.7;
-              width: 18px;
+              opacity: 0.75;
+              width: 20px;
+              flex-shrink: 0;
             }
 
             .seq-player-name {
               flex: 1;
+              min-width: 0;
               font-weight: 700;
               white-space: nowrap;
               overflow: hidden;
@@ -580,10 +616,12 @@
             }
 
             .seq-tag {
-              font-size: 0.6rem;
+              font-size: 0.62rem;
               font-weight: 800;
-              padding: 1px 4px;
-              border-radius: 4px;
+              padding: 2px 6px;
+              border-radius: 5px;
+              white-space: nowrap;
+              flex-shrink: 0;
 
               &.tag-curr {
                 background: #10b981;
@@ -598,16 +636,23 @@
 
             .seq-swap-btns {
               display: flex;
-              gap: 2px;
+              align-items: center;
+              gap: 4px;
+              flex-shrink: 0;
 
               button {
-                background: transparent;
-                border: none;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 5px;
                 color: var(--app-text-secondary);
-                font-size: 0.65rem;
+                font-size: 0.68rem;
                 cursor: pointer;
-                padding: 1px 3px;
-                &:disabled { opacity: 0.2; cursor: default; }
+                padding: 2px 5px;
+                line-height: 1;
+                &:disabled {
+                  opacity: 0.2;
+                  cursor: default;
+                }
               }
             }
           }
