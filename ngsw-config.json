@@ -15,7 +15,8 @@
           "/manifest.webmanifest",
           "/*.css",
           "/*.js",
-          "!/version.json"
+          "!/version.json",
+          "!/release-notes.json"
         ]
       }
     },

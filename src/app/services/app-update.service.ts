@@ -14,12 +14,16 @@ const STORAGE_BUILD_ID_KEY = 'calcetto_app_build_id';
 const STORAGE_VERSION_KEY = 'calcetto_app_version';
 const STORAGE_RELOAD_GUARD_KEY = 'calcetto_reloaded_for_build';
 const STORAGE_JUST_UPDATED_KEY = 'calcetto_just_updated_to';
+const STORAGE_UPDATE_FROM_VERSION_KEY = 'calcetto_update_from_version';
+const STORAGE_LAST_SEEN_NOTES_VERSION_KEY = 'calcetto_last_seen_notes_version';
 
 // Chiavi localStorage da preservare durante il purge di versione
 const PRESERVED_LOCAL_STORAGE_PREFIXES = [
   'calcetto_theme_preference',
   'calcettoabbuffo_active_match',
   'calcetto_active_match_backup_v1',
+  'calcetto_update_from_version',
+  'calcetto_last_seen_notes_version',
   'firebase:authUser:',
   'firebase:host:',
 ];
@@ -38,6 +42,14 @@ export class AppUpdateService {
   isChecking = signal<boolean>(false);
   isUpdating = signal<boolean>(false);
 
+  // ─── STATO BANNER & MODALE RELEASE NOTES ─────────────────────────────────
+  /** Versione precedente che l'utente aveva sul telefono prima dell'update */
+  updatedFromVersion = signal<string | null>(null);
+  /** Mostra il banner compatto non invasivo quando ci sono novità non ancora lette */
+  showReleaseBanner = signal<boolean>(false);
+  /** Controlla l'apertura del pannello completo delle Release Notes (consultabile sempre) */
+  releaseNotesModalOpen = signal<boolean>(false);
+
   private initialized = false;
   private checkIntervalId: ReturnType<typeof setInterval> | null = null;
 
@@ -50,7 +62,7 @@ export class AppUpdateService {
     // 1. Pulisce eventuale parametro ?_v=... usato per il cache-busting dell'URL
     this.cleanCacheBusterFromUrl();
 
-    // 2. Allinea il buildId corrente in localStorage e mostra notifica se appena aggiornato
+    // 2. Allinea il buildId corrente in localStorage e controlla se mostrare il banner Release Notes
     this.syncCurrentBuildInStorage();
 
     // 3. Intercetta errori di caricamento chunk lazy (es. dopo un nuovo deploy mentre l'app era aperta)
@@ -86,12 +98,10 @@ export class AppUpdateService {
     if (!isDevMode()) {
       this.checkForNewVersion(false);
 
-      // Controlla ogni 2 minuti
       this.checkIntervalId = setInterval(() => {
         this.checkForNewVersion(false);
       }, 2 * 60 * 1000);
 
-      // Controlla ogni volta che la PWA o il tab di Chrome torna visibile o in focus
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
           this.checkForNewVersion(false);
@@ -106,12 +116,45 @@ export class AppUpdateService {
         this.checkForNewVersion(false);
       });
 
-      // Gestisce il ripristino dalla Back/Forward Cache (bfcache) di Chrome / iOS Safari
       window.addEventListener('pageshow', (event: PageTransitionEvent) => {
         if (event.persisted) {
           this.checkForNewVersion(false);
         }
       });
+    }
+  }
+
+  /**
+   * Apre il pannello delle Release Notes (da banner o dal menu in qualsiasi momento)
+   */
+  openReleaseNotes(): void {
+    this.releaseNotesModalOpen.set(true);
+    this.markReleaseNotesSeen();
+  }
+
+  /**
+   * Chiude il pannello delle Release Notes
+   */
+  closeReleaseNotes(): void {
+    this.releaseNotesModalOpen.set(false);
+    this.markReleaseNotesSeen();
+  }
+
+  /**
+   * Nasconde il banner compatto segnandolo come visto per la versione attuale
+   */
+  dismissReleaseBanner(): void {
+    this.markReleaseNotesSeen();
+  }
+
+  private markReleaseNotesSeen(): void {
+    this.showReleaseBanner.set(false);
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(STORAGE_LAST_SEEN_NOTES_VERSION_KEY, this.version);
+      }
+    } catch {
+      // Ignora
     }
   }
 
@@ -173,7 +216,7 @@ export class AppUpdateService {
       }
 
       return false;
-    } catch (err) {
+    } catch {
       if (manual) {
         await this.forcePurgeAndReload(this.buildId, this.version, true);
       }
@@ -184,12 +227,8 @@ export class AppUpdateService {
   }
 
   /**
-   * Esegue la cancellazione completa di:
-   * - Cookie del dominio
-   * - CacheStorage (tutte le cache PWA / Service Worker / asset)
-   * - Service Worker registrati
-   * - SessionStorage e chiavi non essenziali di LocalStorage
-   * e forza un riavvio con cache-busting sull'URL.
+   * Esegue la cancellazione completa di cookie, CacheStorage, Service Worker,
+   * SessionStorage e chiavi non essenziali di LocalStorage e forza un riavvio con cache-busting.
    */
   async forcePurgeAndReload(
     targetBuildId: string = this.buildId,
@@ -200,8 +239,6 @@ export class AppUpdateService {
       return;
     }
 
-    // Guardia anti-loop per gli aggiornamenti automatici:
-    // se abbiamo già tentato un reload per questo stesso buildId negli ultimi 60 secondi, ci fermiamo.
     if (!manual && this.hasRecentlyReloadedFor(targetBuildId)) {
       console.warn(
         `[AppUpdate] Reload già eseguito di recente per ${targetBuildId}, salto per sicurezza anti-loop.`
@@ -227,25 +264,16 @@ export class AppUpdateService {
     }
 
     try {
-      // 1. Cancella tutti i cookie non-HttpOnly del sito
       this.clearAllCookies();
-
-      // 2. Disinstalla tutti i Service Worker attivi/in attesa
       await this.unregisterAllServiceWorkers();
-
-      // 3. Svuota interamente il CacheStorage del browser/PWA
       await this.clearAllCacheStorage();
-
-      // 4. Pulisce sessionStorage e localStorage (preservando tema, backup partita live e auth)
       this.cleanWebStorage(targetBuildId, targetVersion);
     } catch (e) {
       console.warn('[AppUpdate] Errore parziale durante la pulizia cache:', e);
     }
 
-    // 5. Piccolo delay per permettere al browser di finalizzare la deregistrazione SW e mostrare il feedback
     await new Promise((resolve) => setTimeout(resolve, 450));
 
-    // 6. Ricarica forzata con parametro di cache-busting sull'URL
     const cleanUrl = this.getCleanUrlWithoutCacheBuster();
     const separator = cleanUrl.includes('?') ? '&' : '?';
     const bustedUrl = `${cleanUrl}${separator}_v=${encodeURIComponent(
@@ -325,6 +353,9 @@ export class AppUpdateService {
 
     try {
       if (typeof localStorage !== 'undefined') {
+        const prevVersion =
+          localStorage.getItem(STORAGE_VERSION_KEY) || this.version;
+
         const preservedEntries: Array<[string, string]> = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -344,6 +375,10 @@ export class AppUpdateService {
 
         for (const [k, v] of preservedEntries) {
           localStorage.setItem(k, v);
+        }
+
+        if (prevVersion && prevVersion !== targetVersion) {
+          localStorage.setItem(STORAGE_UPDATE_FROM_VERSION_KEY, prevVersion);
         }
 
         localStorage.setItem(STORAGE_BUILD_ID_KEY, targetBuildId);
@@ -379,23 +414,39 @@ export class AppUpdateService {
     try {
       if (typeof localStorage === 'undefined') return;
 
+      const storedPrevVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+      const storedFromVersion = localStorage.getItem(
+        STORAGE_UPDATE_FROM_VERSION_KEY
+      );
+      const lastSeenNotesVersion = localStorage.getItem(
+        STORAGE_LAST_SEEN_NOTES_VERSION_KEY
+      );
+
+      // Se la versione salvata in precedenza era diversa da quella attuale, registriamo il salto
+      if (storedPrevVersion && storedPrevVersion !== this.version) {
+        localStorage.setItem(
+          STORAGE_UPDATE_FROM_VERSION_KEY,
+          storedPrevVersion
+        );
+        this.updatedFromVersion.set(storedPrevVersion);
+      } else if (storedFromVersion && storedFromVersion !== this.version) {
+        this.updatedFromVersion.set(storedFromVersion);
+      } else if (
+        lastSeenNotesVersion &&
+        lastSeenNotesVersion !== this.version
+      ) {
+        this.updatedFromVersion.set(lastSeenNotesVersion);
+      }
+
+      // Mostriamo il banner non invasivo delle Release Notes se l'utente non ha ancora visto le note di questa versione
+      if (lastSeenNotesVersion !== this.version) {
+        this.showReleaseBanner.set(true);
+      }
+
       const justUpdatedTo = localStorage.getItem(STORAGE_JUST_UPDATED_KEY);
       if (justUpdatedTo) {
         localStorage.removeItem(STORAGE_JUST_UPDATED_KEY);
-        setTimeout(async () => {
-          try {
-            const toast = await this.toastCtrl.create({
-              message: `✨ App aggiornata alla v${this.version} (Cache e cookie puliti)`,
-              duration: 2800,
-              position: 'bottom',
-              color: 'success',
-              mode: 'ios',
-            });
-            await toast.present();
-          } catch {
-            // Ignora
-          }
-        }, 600);
+        this.showReleaseBanner.set(true);
       }
 
       localStorage.setItem(STORAGE_BUILD_ID_KEY, this.buildId);
@@ -466,4 +517,3 @@ export class AppUpdateService {
     }
   }
 }
-

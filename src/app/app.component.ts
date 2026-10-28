@@ -3,6 +3,7 @@ import { NavigationStart, Router } from '@angular/router';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 import { ThemeService } from './services/theme.service';
 import { AppUpdateService } from './services/app-update.service';
+import { ReleaseNotesComponent } from './components/release-notes/release-notes.component';
 
 let ariaHiddenFocusGuardInstalled = false;
 
@@ -34,7 +35,7 @@ function installAriaHiddenFocusGuard(): void {
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [IonApp, IonRouterOutlet, ReleaseNotesComponent],
 })
 export class AppComponent {
   private themeService = inject(ThemeService);

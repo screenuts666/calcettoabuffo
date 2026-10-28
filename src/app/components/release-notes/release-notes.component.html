@@ -1,0 +1,133 @@
+<!-- ─── BANNER COMPATTO NON INVASIVO POST-AGGIORNAMENTO ─────────────── -->
+@if (appUpdate.showReleaseBanner() && !appUpdate.releaseNotesModalOpen()) {
+  <div class="rn-floating-banner" (click)="openModal()">
+    <div class="rn-banner-left">
+      <span class="rn-sparkle-badge">✨</span>
+      <div class="rn-banner-text">
+        @if (appUpdate.updatedFromVersion(); as fromVer) {
+          <strong>Aggiornata v{{ fromVer }} → v{{ appUpdate.version }}</strong>
+          <span>Scopri tutte le novità di questa versione</span>
+        } @else {
+          <strong>Versione v{{ appUpdate.version }} attiva</strong>
+          <span>Tocca per leggere le novità dell'aggiornamento</span>
+        }
+      </div>
+    </div>
+
+    <div class="rn-banner-actions">
+      <button type="button" class="rn-open-btn" (click)="openModal()">
+        Novità
+      </button>
+      <button
+        type="button"
+        class="rn-dismiss-btn"
+        (click)="dismissBanner($event)"
+        title="Chiudi avviso"
+        aria-label="Chiudi avviso novità"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+}
+
+<!-- ─── PANNELLO / DRAWER CONSULTAZIONE RELEASE NOTES ────────────────── -->
+@if (appUpdate.releaseNotesModalOpen()) {
+  <div class="rn-modal-backdrop" (click)="closeModal()">
+    <div class="rn-modal-sheet" (click)="$event.stopPropagation()">
+      <!-- HEADER -->
+      <div class="rn-sheet-header">
+        <div class="rn-header-titles">
+          <div class="rn-version-pills">
+            <span class="rn-pill current">🚀 Release v{{ appUpdate.version }}</span>
+            @if (appUpdate.updatedFromVersion(); as fromVer) {
+              <span class="rn-pill delta">Da v{{ fromVer }} a v{{ appUpdate.version }}</span>
+            }
+          </div>
+          <h3>Note di Rilascio &amp; Novità</h3>
+          <p class="rn-sub">Build: {{ appUpdate.buildDate }}</p>
+        </div>
+
+        <button
+          type="button"
+          class="rn-close-sheet-btn"
+          (click)="closeModal()"
+          aria-label="Chiudi note di rilascio"
+        >
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- LISTA VERSIONI DIVISA TRA GIOCATORI (USER) E SUPER USER -->
+      <div class="rn-sheet-body">
+        @for (entry of visibleEntries(); track entry.version) {
+          <div class="rn-version-card">
+            <div class="rvc-head">
+              <div class="rvc-title-row">
+                <span class="rvc-ver-tag">v{{ entry.version }}</span>
+                <h4>{{ entry.title }}</h4>
+              </div>
+              <span class="rvc-date">{{ entry.date }}</span>
+            </div>
+
+            <!-- SEZIONE 1: UTENTE SEMPLICE / GIOCATORI -->
+            @if (entry.userChanges.length > 0) {
+              <div class="rvc-role-section user-section">
+                <div class="rvc-role-label">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>Novità per i Giocatori</span>
+                </div>
+                <ul class="rvc-list">
+                  @for (item of entry.userChanges; track $index) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- SEZIONE 2: SUPER USER / ADMIN (Visibile per trasparenza e controllo) -->
+            @if (authService.isAdmin() && entry.superUserChanges.length > 0) {
+              <div class="rvc-role-section superuser-section">
+                <div class="rvc-role-label">
+                  <ion-icon name="shield-checkmark"></ion-icon>
+                  <span>Novità Super User &amp; Gestione Match</span>
+                </div>
+                <ul class="rvc-list">
+                  @for (item of entry.superUserChanges; track $index) {
+                    <li>{{ item }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+
+        @if (hasOlderHistory()) {
+          <button
+            type="button"
+            class="rn-history-toggle-btn"
+            (click)="toggleFullHistory()"
+          >
+            <ion-icon name="time-outline"></ion-icon>
+            <span>
+              {{
+                showFullHistory()
+                  ? 'Mostra solo le novità del tuo ultimo aggiornamento'
+                  : 'Mostra storico completo di tutte le versioni'
+              }}
+            </span>
+          </button>
+        }
+      </div>
+
+      <!-- FOOTER -->
+      <div class="rn-sheet-footer">
+        <button type="button" class="rn-got-it-btn" (click)="closeModal()">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>Perfetto, ho capito!</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

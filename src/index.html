@@ -44,6 +44,7 @@
           .then(function (remote) {
             if (!remote || !remote.buildId) return;
             var storedBuild = localStorage.getItem('calcetto_app_build_id');
+            var prevVersion = localStorage.getItem('calcetto_app_version');
             if (!storedBuild) return; // Primo avvio: lo salverà AppUpdateService
 
             if (storedBuild !== remote.buildId) {
@@ -67,7 +68,10 @@
                 });
               }
 
-              // 2. Aggiorna guardie localStorage
+              // 2. Aggiorna guardie localStorage preservando la versione precedente per le Release Notes
+              if (prevVersion && prevVersion !== remote.version) {
+                localStorage.setItem('calcetto_update_from_version', prevVersion);
+              }
               localStorage.setItem('calcetto_app_build_id', remote.buildId);
               localStorage.setItem('calcetto_app_version', remote.version || '');
               localStorage.setItem('calcetto_reloaded_for_build', remote.buildId + '|' + Date.now());

@@ -17,6 +17,7 @@ import {
   checkmarkCircle,
   closeOutline,
   refreshOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
@@ -49,6 +50,7 @@ export class ThemeToggleComponent {
       checkmarkCircle,
       closeOutline,
       refreshOutline,
+      sparklesOutline,
     });
   }
 
@@ -75,6 +77,13 @@ export class ThemeToggleComponent {
       subHeader: `Build: ${this.appUpdate.buildDate} · ${this.currentLabel}`,
       mode: 'ios',
       buttons: [
+        {
+          text: `✨ Note di Rilascio & Novità (v${this.appUpdate.version})`,
+          icon: 'sparkles-outline',
+          handler: () => {
+            this.appUpdate.openReleaseNotes();
+          },
+        },
         {
           text: `🔄 Forza Aggiornamento & Svuota Cache (v${this.appUpdate.version})`,
           icon: 'refresh-outline',

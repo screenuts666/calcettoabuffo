@@ -1,0 +1,369 @@
+// ==========================================
+// BANNER COMPATTO FLOTTANTE (NON INVASIVO)
+// ==========================================
+.rn-floating-banner {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 68px;
+  max-width: 500px;
+  margin: 0 auto;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 16px;
+  background: rgba(18, 22, 28, 0.94);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(45, 211, 111, 0.45);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  cursor: pointer;
+  animation: rnBannerSlideIn 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+
+  .rn-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+
+    .rn-sparkle-badge {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: rgba(45, 211, 111, 0.16);
+      border: 1px solid rgba(45, 211, 111, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+    }
+
+    .rn-banner-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      strong {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #2dd36f;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      span {
+        font-size: 0.68rem;
+        color: rgba(255, 255, 255, 0.78);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .rn-banner-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+
+    .rn-open-btn {
+      padding: 5px 11px;
+      border-radius: 10px;
+      border: none;
+      background: #2dd36f;
+      color: #051b0e;
+      font-size: 0.72rem;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .rn-dismiss-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  }
+}
+
+@keyframes rnBannerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ==========================================
+// MODALE / DRAWER RELEASE NOTES
+// ==========================================
+.rn-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  @media (min-width: 640px) {
+    align-items: center;
+  }
+}
+
+.rn-modal-sheet {
+  width: 100%;
+  max-width: 540px;
+  max-height: 86vh;
+  background: var(--app-card-bg, #18181b);
+  border-top: 2px solid rgba(45, 211, 111, 0.5);
+  border-radius: 24px 24px 0 0;
+  padding: 16px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  animation: rnBannerSlideIn 0.2s ease-out;
+
+  @media (min-width: 640px) {
+    border-radius: 22px;
+    border: 1.5px solid rgba(45, 211, 111, 0.45);
+  }
+
+  .rn-sheet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--app-card-border);
+
+    .rn-header-titles {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .rn-version-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+
+        .rn-pill {
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 2px 8px;
+          border-radius: 999px;
+
+          &.current {
+            background: rgba(45, 211, 111, 0.16);
+            color: #2dd36f;
+            border: 1px solid rgba(45, 211, 111, 0.35);
+          }
+
+          &.delta {
+            background: rgba(59, 130, 246, 0.16);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+          }
+        }
+      }
+
+      h3 {
+        margin: 2px 0 0;
+        font-size: 1.15rem;
+        font-weight: 900;
+        color: var(--app-text-primary);
+      }
+
+      .rn-sub {
+        margin: 0;
+        font-size: 0.7rem;
+        color: var(--app-text-muted);
+      }
+    }
+
+    .rn-close-sheet-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid var(--app-card-border);
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+  }
+
+  .rn-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 2px;
+  }
+
+  .rn-version-card {
+    border-radius: 16px;
+    padding: 12px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .rvc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+
+      .rvc-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+
+        .rvc-ver-tag {
+          font-size: 0.68rem;
+          font-weight: 900;
+          padding: 2px 7px;
+          border-radius: 6px;
+          background: rgba(45, 211, 111, 0.16);
+          color: #2dd36f;
+          border: 1px solid rgba(45, 211, 111, 0.35);
+          flex-shrink: 0;
+        }
+
+        h4 {
+          margin: 0;
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+        }
+      }
+
+      .rvc-date {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--app-text-muted);
+        flex-shrink: 0;
+      }
+    }
+
+    .rvc-role-section {
+      border-radius: 12px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      &.user-section {
+        background: rgba(45, 211, 111, 0.06);
+        border: 1px solid rgba(45, 211, 111, 0.22);
+
+        .rvc-role-label {
+          color: #2dd36f;
+        }
+      }
+
+      &.superuser-section {
+        background: rgba(255, 196, 9, 0.08);
+        border: 1px solid rgba(255, 196, 9, 0.3);
+
+        .rvc-role-label {
+          color: #ffc409;
+        }
+      }
+
+      .rvc-role-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+      }
+
+      .rvc-list {
+        margin: 0;
+        padding-left: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        li {
+          font-size: 0.76rem;
+          line-height: 1.4;
+          color: var(--app-text-primary);
+        }
+      }
+    }
+  }
+
+  .rn-history-toggle-btn {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px dashed var(--app-card-border);
+    background: transparent;
+    color: var(--app-text-secondary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .rn-sheet-footer {
+    padding-top: 4px;
+
+    .rn-got-it-btn {
+      width: 100%;
+      height: 44px;
+      border-radius: 14px;
+      border: none;
+      background: #2dd36f;
+      color: #051b0e;
+      font-size: 0.88rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+  }
+}
+
