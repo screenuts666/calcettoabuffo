@@ -1,33 +1,14 @@
 @use 'mixins' as *;
 
-.match-info-top {
-  padding: 10px 16px 4px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-
-  p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--app-text-muted);
-  }
-
-  .sync-badge-wrapper {
-    margin-top: 2px;
-  }
-}
-
 // ==========================================
-// BANNER CAMBIO (solo admin)
+// BANNER CAMBIO PORTIERE (solo admin)
 // ==========================================
 .cambio-banner {
   position: relative;
-  margin: 10px 16px 0;
+  margin: 10px 14px 0;
   background: linear-gradient(135deg, var(--app-accent-danger), var(--app-accent-orange));
   border-radius: 18px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   @include flex-between;
   overflow: hidden;
   box-shadow: 0 6px 30px var(--app-accent-danger-subtle);
@@ -45,14 +26,31 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1.2rem;
-    font-weight: 900;
     color: var(--app-white);
-    letter-spacing: 1px;
+    min-width: 0;
 
     ion-icon {
       font-size: 1.5rem;
+      flex-shrink: 0;
       animation: icon-shake 0.6s ease-in-out infinite alternate;
+    }
+
+    .cambio-text-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .cambio-title {
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 0.6px;
+      }
+
+      .cambio-gk-names {
+        font-size: 0.75rem;
+        opacity: 0.95;
+        font-weight: 600;
+      }
     }
   }
 
@@ -62,11 +60,12 @@
     border-radius: 12px;
     color: var(--app-white);
     font-weight: 800;
-    font-size: 0.85rem;
-    padding: 8px 16px;
+    font-size: 0.82rem;
+    padding: 8px 14px;
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
     cursor: pointer;
     @include glass(8px);
     @include btn-press(0.94);
@@ -108,107 +107,439 @@
 }
 
 // ==========================================
-// TIMER E INFO IN ALTO
+// COCKPIT BORDO CAMPO (TIMER + SCORE + FOTO 1-TAP)
 // ==========================================
-.giant-timer {
-  font-size: 6rem;
-  font-weight: 900;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  letter-spacing: -3px;
-  color: var(--app-text-primary);
+.courtside-cockpit {
+  padding: 10px 14px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timer-bar-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  &.is-running {
+    border-color: rgba(45, 211, 111, 0.4);
+    background: linear-gradient(
+      135deg,
+      rgba(45, 211, 111, 0.09) 0%,
+      var(--app-surface-subtle) 100%
+    );
+  }
+
+  .tb-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    .tb-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: var(--app-text-muted);
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      .meta-dot {
+        opacity: 0.5;
+      }
+    }
+
+    .tb-clock-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .live-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(148, 163, 184, 0.45);
+        flex-shrink: 0;
+
+        &.active {
+          background: #2dd36f;
+          box-shadow: 0 0 10px #2dd36f;
+          animation: liveBlink 1.3s ease-in-out infinite;
+        }
+      }
+
+      .giant-timer {
+        font-size: 2.75rem;
+        font-weight: 900;
+        line-height: 1;
+        letter-spacing: -1.5px;
+        font-variant-numeric: tabular-nums;
+        color: var(--app-text-primary);
+      }
+    }
+  }
+
+  .tb-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+
+    .timer-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 44px;
+      padding: 0 18px;
+      border-radius: 14px;
+      border: none;
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      background: #2dd36f;
+      color: #06180d;
+      box-shadow: 0 4px 14px rgba(45, 211, 111, 0.35);
+      cursor: pointer;
+      @include btn-press(0.95);
+
+      &.running {
+        background: #ffc409;
+        color: #1f1600;
+        box-shadow: 0 4px 14px rgba(255, 196, 9, 0.3);
+      }
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+
+    .next-gk-mini-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--app-text-secondary);
+      background: rgba(125, 125, 125, 0.1);
+      padding: 2px 8px;
+      border-radius: 8px;
+      white-space: nowrap;
+
+      strong {
+        color: var(--app-accent-orange);
+        font-weight: 800;
+      }
+    }
+  }
+}
+
+@keyframes liveBlink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.88); }
+}
+
+.kickoff-hint-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(45, 211, 111, 0.12);
+  border: 1px dashed rgba(45, 211, 111, 0.45);
+  color: #2dd36f;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
 }
 
 // ==========================================
-// GRIGLIA PUNTEGGIO E SQUADRE
+// TABELLONE SCORE GIGANTE AD ALTA VISIBILITÀ
 // ==========================================
-.score-grid {
-  display: flex;
-  padding: 10px;
-  gap: 15px;
+.score-stadium-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
 
-  .score-card {
-    flex: 1;
-    @include card-surface(24px, 20px 10px);
-    @include flex-col;
+  .stadium-team-col {
+    min-width: 0;
+    border-radius: 20px;
+    padding: 12px 10px 10px;
+    display: flex;
+    flex-direction: column;
     align-items: center;
+    gap: 6px;
+    border: 1.5px solid var(--app-card-border);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 
-    .tag {
-      @include pill-badge;
-      padding: 4px 12px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      font-size: 0.75rem;
+    &.team-a {
+      background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        var(--app-surface-subtle) 100%
+      );
+      border-color: rgba(255, 255, 255, 0.18);
     }
-    &.team-a .tag {
-      background: var(--app-surface-subtle);
-      color: var(--app-text-primary);
-      border: 1px solid var(--app-card-border);
-    }
-    &.team-b .tag {
-      background: var(--app-neutral-dark);
+
+    &.team-b {
+      background: linear-gradient(180deg, #1e1e24 0%, #121216 100%);
       color: var(--app-white);
-      border: 1px solid var(--app-card-border);
+      border-color: rgba(255, 255, 255, 0.14);
     }
 
-    .number {
-      font-size: 5rem;
+    .stc-header {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+
+      .stc-badge {
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 1px;
+        padding: 3px 12px;
+        border-radius: 8px;
+        background: rgba(125, 125, 125, 0.15);
+      }
+
+      .stc-gk-pill {
+        font-size: 0.68rem;
+        font-weight: 700;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 2px 8px;
+        border-radius: 999px;
+        max-width: 100%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .stc-score-number {
+      font-size: 4.4rem;
       font-weight: 900;
       line-height: 1;
-      margin-bottom: 20px;
-      color: var(--app-text-primary);
+      margin: 4px 0 6px;
+      font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.12s ease;
+
+      &:active {
+        transform: scale(0.93);
+      }
+    }
+
+    .giant-goal-btn {
+      width: 100%;
+      height: 50px;
+      border: none;
+      border-radius: 14px;
+      background: #2dd36f;
+      color: #051b0e;
+      font-size: 0.92rem;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(45, 211, 111, 0.32);
+      cursor: pointer;
+      @include btn-press(0.96);
+
+      ion-icon {
+        font-size: 1.2rem;
+      }
+
+      &.locked {
+        opacity: 0.4;
+      }
+    }
+
+    .quick-undo-btn {
+      margin-top: 2px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      color: #f87171;
+      border-radius: 9px;
+      padding: 4px 10px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      @include btn-press(0.95);
+
+      ion-icon {
+        font-size: 0.85rem;
+      }
     }
   }
 }
 
 // ==========================================
-// BOTTONI AZIONE (GOL / RIMUOVI)
+// GOL LAMPO 1-TAP CON FOTO GIOCATORI
 // ==========================================
-.action-stack {
-  width: 100%;
-  @include flex-col(8px);
+.quick-photo-scorers-box {
+  border-radius: 18px;
+  padding: 10px 10px 12px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
 
-  .goal-btn {
-    background: var(--ion-color-success);
-    color: var(--app-black);
-    border: none;
-    border-radius: 14px;
-    height: 48px;
-    font-weight: 900;
-    font-size: 1rem;
-    @include flex-center;
-    gap: 5px;
-    width: 100%;
-    @include btn-press(0.96);
+  &.is-locked {
+    opacity: 0.55;
+  }
 
-    // 🛑 STILE QUANDO IL TIMER È A ZERO O IN PAUSA
-    &:disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-      transform: none;
+  .qps-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+
+    .qps-title {
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #2dd36f;
+      text-transform: uppercase;
+      text-align: center;
     }
   }
 
-  .undo-btn {
-    background: transparent;
-    color: var(--ion-color-medium);
-    border: none;
-    font-size: 0.75rem;
-    font-weight: 600;
-    @include flex-center;
-    gap: 4px;
-    opacity: 0.6;
-    height: 30px;
+  .qps-teams-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 8px;
+  }
 
-    ion-icon {
-      font-size: 1rem;
-    }
-    &:disabled {
-      display: none;
-    }
+  .qps-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .qps-player-btn {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 7px;
+    border-radius: 12px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.12s ease;
+
     &:active {
-      color: var(--ion-color-danger);
-      opacity: 1;
+      transform: scale(0.96);
+      border-color: #2dd36f;
+    }
+
+    &.is-dark-team {
+      background: rgba(24, 24, 27, 0.85);
+      color: #ffffff;
+    }
+
+    &.is-gk {
+      border-color: rgba(16, 185, 129, 0.45);
+    }
+
+    .qps-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+
+      .qps-avatar {
+        width: 34px;
+        height: 34px;
+        border: 1.5px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .qps-gk-dot {
+        position: absolute;
+        bottom: -3px;
+        right: -4px;
+        font-size: 0.65rem;
+        line-height: 1;
+        background: #064e3b;
+        border-radius: 50%;
+        padding: 2px;
+      }
+    }
+
+    .qps-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .qps-name {
+        font-size: 0.78rem;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .qps-stats-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        .qps-stat {
+          font-size: 0.62rem;
+          font-weight: 800;
+          padding: 1px 4px;
+          border-radius: 4px;
+
+          &.gol {
+            background: rgba(45, 211, 111, 0.18);
+            color: #2dd36f;
+          }
+
+          &.ast {
+            background: rgba(59, 130, 246, 0.18);
+            color: #60a5fa;
+          }
+        }
+      }
+    }
+
+    .qps-plus {
+      font-size: 0.68rem;
+      font-weight: 900;
+      color: #2dd36f;
+      background: rgba(45, 211, 111, 0.14);
+      border: 1px solid rgba(45, 211, 111, 0.3);
+      padding: 2px 5px;
+      border-radius: 6px;
+      flex-shrink: 0;
     }
   }
 }
@@ -216,13 +547,32 @@
 // ==========================================
 // CRONACA DELLA PARTITA E AUTOGOL
 // ==========================================
+.events-log-card {
+  margin: 8px 14px 4px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+
+  .elc-header {
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--app-text-secondary);
+    margin-bottom: 8px;
+  }
+}
+
 .log-container {
-  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
   .log-entry {
     display: flex;
-    gap: 10px;
-    margin-bottom: 5px;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
 
     &.is-right {
       flex-direction: row-reverse;
@@ -232,41 +582,39 @@
     .l-time {
       font-weight: 800;
       color: var(--ion-color-medium);
-      font-size: 0.8rem;
+      font-size: 0.74rem;
+      flex-shrink: 0;
     }
 
     .l-player {
-      // 🚨 STILE PER L'AUTOGOL ROSSO
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+
       .autogol-text {
         color: var(--ion-color-danger);
         font-weight: 800;
-        font-size: 0.75rem;
-        margin-left: 4px;
+        font-size: 0.72rem;
       }
 
-      // 👟 STILE PER L'ASSIST-MAN
       .assist-text {
         color: var(--app-player1);
         font-weight: 700;
-        font-size: 0.76rem;
-        margin-left: 5px;
+        font-size: 0.7rem;
         background: var(--app-player1-subtle);
         padding: 1px 6px;
         border-radius: 8px;
         border: 1px solid var(--app-player1-border);
-        display: inline-block;
       }
 
-      // 🧤 STILE PER IL PORTIERE CHE HA SUBITO IL GOL
       .gk-subito-text {
         color: var(--app-text-secondary, #94a3b8);
         font-weight: 600;
-        font-size: 0.72rem;
-        margin-left: 5px;
+        font-size: 0.68rem;
         background: rgba(125, 125, 125, 0.1);
         padding: 1px 6px;
         border-radius: 6px;
-        display: inline-block;
       }
     }
   }
@@ -276,7 +624,7 @@
 // SEZIONE ROTAZIONE PORTIERI (SUPERUSER)
 // ==========================================
 .gk-rotation-section {
-  margin: 12px 14px 4px;
+  margin: 10px 14px 4px;
   @include card-surface(20px, 14px);
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
@@ -669,4 +1017,370 @@
   height: 55px;
   --border-radius: 16px;
   font-weight: bold;
+}
+
+// ==========================================
+// OVERLAY VISUALE CON FOTO GRANDI (GOL & ASSIST)
+// ==========================================
+.goal-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.16s ease-out;
+
+  @media (min-width: 640px) {
+    align-items: center;
+  }
+}
+
+.goal-picker-sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  background: var(--app-card-bg, #18181b);
+  border-top: 2px solid rgba(45, 211, 111, 0.5);
+  border-radius: 26px 26px 0 0;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+  animation: sheetSlideUp 0.2s cubic-bezier(0.2, 0.9, 0.3, 1);
+
+  @media (min-width: 640px) {
+    border-radius: 24px;
+    border: 2px solid rgba(45, 211, 111, 0.45);
+  }
+
+  .gps-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+
+    .gps-title-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .gps-team-pill {
+        align-self: flex-start;
+        font-size: 0.7rem;
+        font-weight: 900;
+        letter-spacing: 0.6px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: rgba(45, 211, 111, 0.16);
+        color: #2dd36f;
+        border: 1px solid rgba(45, 211, 111, 0.38);
+
+        &.is-neri {
+          background: rgba(255, 255, 255, 0.12);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.3);
+        }
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 900;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .gps-close-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--app-card-border);
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      cursor: pointer;
+    }
+  }
+
+  .gps-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  // GRIGLIA FOTO GRANDI 2 COLONNE A PROVA DI POLLICE
+  .gps-photo-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+
+    .gps-player-card {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 8px;
+      border-radius: 18px;
+      background: var(--app-surface-subtle);
+      border: 1.5px solid var(--app-card-border);
+      color: var(--app-text-primary);
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+
+      &:active {
+        transform: scale(0.95);
+        border-color: #2dd36f;
+        background: rgba(45, 211, 111, 0.12);
+      }
+
+      &.assist-mode:active {
+        border-color: #3b82f6;
+        background: rgba(59, 130, 246, 0.14);
+      }
+
+      .gps-avatar-box {
+        position: relative;
+
+        .gps-big-avatar {
+          width: 62px;
+          height: 62px;
+          border: 2px solid rgba(45, 211, 111, 0.45);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .gps-gk-tag {
+          position: absolute;
+          bottom: -2px;
+          left: -4px;
+          font-size: 0.85rem;
+          background: #064e3b;
+          border-radius: 50%;
+          padding: 2px;
+        }
+
+        .gps-gol-count,
+        .gps-ast-count {
+          position: absolute;
+          top: -4px;
+          right: -10px;
+          font-size: 0.66rem;
+          font-weight: 900;
+          padding: 2px 6px;
+          border-radius: 999px;
+          background: #2dd36f;
+          color: #041b0d;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .gps-ast-count {
+          background: #3b82f6;
+          color: #ffffff;
+        }
+      }
+
+      .gps-player-name {
+        width: 100%;
+        font-size: 0.92rem;
+        font-weight: 800;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  // SEZIONE AUTOGOL AVVERSARIO
+  .gps-autogol-section {
+    margin-top: 4px;
+    border-top: 1px dashed var(--app-card-border);
+    padding-top: 10px;
+
+    .gps-autogol-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .gps-autogol-grid {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+
+      .gps-autogol-chip {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 9px;
+        border-radius: 12px;
+        background: rgba(239, 68, 68, 0.14);
+        border: 1px solid rgba(239, 68, 68, 0.38);
+        color: #fca5a5;
+        font-size: 0.78rem;
+        font-weight: 700;
+        cursor: pointer;
+
+        .gps-mini-avatar {
+          width: 30px;
+          height: 30px;
+          flex-shrink: 0;
+        }
+
+        span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+  }
+
+  // STEP 2: BARRA MARCATORE + BOTTONE GIGANTE AZIONE PERSONALE
+  .gps-selected-scorer-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: rgba(45, 211, 111, 0.1);
+    border: 1px solid rgba(45, 211, 111, 0.32);
+
+    .gss-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+
+      .gss-avatar {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        border: 2px solid #2dd36f;
+      }
+
+      .gss-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+
+        small {
+          font-size: 0.62rem;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          color: #2dd36f;
+        }
+
+        strong {
+          font-size: 0.95rem;
+          font-weight: 900;
+          color: var(--app-text-primary);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    }
+
+    .gss-change-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      border-radius: 9px;
+      border: 1px solid var(--app-card-border);
+      background: var(--app-surface-subtle);
+      color: var(--app-text-secondary);
+      font-size: 0.74rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+  }
+
+  .gps-solo-goal-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, #2dd36f 0%, #10b981 100%);
+    color: #041b0d;
+    box-shadow: 0 6px 20px rgba(45, 211, 111, 0.35);
+    cursor: pointer;
+    text-align: left;
+    @include btn-press(0.96);
+
+    .solo-icon {
+      font-size: 1.65rem;
+      line-height: 1;
+    }
+
+    .solo-text {
+      display: flex;
+      flex-direction: column;
+
+      strong {
+        font-size: 0.92rem;
+        font-weight: 900;
+        letter-spacing: 0.3px;
+      }
+
+      small {
+        font-size: 0.72rem;
+        font-weight: 700;
+        opacity: 0.85;
+      }
+    }
+  }
+
+  .gps-assist-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px 0;
+
+    span {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+@keyframes sheetSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,10 +1,17 @@
-import { Component, inject, OnInit, OnDestroy, Input, signal } from '@angular/core';
+import {
+  Component,
+  ChangeDetectionStrategy,
+  inject,
+  OnInit,
+  OnDestroy,
+  Input,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonButton,
   IonIcon,
-  IonListHeader,
-  IonLabel,
   IonAvatar,
   ActionSheetController,
   AlertController,
@@ -19,35 +26,37 @@ import {
   add,
   remove,
   stop,
-  football, // Aggiunta per i badge gol
-  trashOutline, // Aggiunta per il tasto rimuovi
+  football,
+  trashOutline,
   musicalNotes,
   volumeMute,
   diceOutline,
   listOutline,
   chevronUpOutline,
+  chevronDownOutline,
   shieldOutline,
+  flash,
+  closeOutline,
+  arrowBackOutline,
+  warningOutline,
+  arrowUndoOutline,
 } from 'ionicons/icons';
-import { doc, updateDoc } from 'firebase/firestore';
 import { MatchStateService } from '../../match-state.service';
-import { EventoGol } from '../../../../../models/partita.model';
+import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
-import { SyncStatusBadgeComponent } from '../../../../sync-status-badge/sync-status-badge.component';
 
 @Component({
   selector: 'app-step-match',
   templateUrl: './step-match.component.html',
   styleUrls: ['./step-match.component.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     IonButton,
     IonIcon,
-    IonListHeader,
-    IonLabel,
     IonAvatar,
     PlayerAvatarComponent,
-    SyncStatusBadgeComponent,
   ],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
@@ -58,7 +67,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   @Input() isAdmin: boolean = false;
 
-  private timerRef: any;
+  private timerRef: ReturnType<typeof setInterval> | null = null;
   private wakeLock: any = null;
   private audio: HTMLAudioElement | null = null;
 
@@ -67,68 +76,33 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   isSequenzaAperta = signal<boolean>(false);
 
-  toggleSequenza() {
-    this.isSequenzaAperta.update((v) => !v);
-  }
+  // ─── STATO VISUAL GOAL & ASSIST PICKER CON FOTO (BORDO CAMPO) ────────────
+  goalPickerOpen = signal<boolean>(false);
+  goalPickerStep = signal<'scorer' | 'assist'>('scorer');
+  goalPickerTeam = signal<'A' | 'B'>('A');
+  selectedScorer = signal<PlayerPerformance | null>(null);
+  showAutogolList = signal<boolean>(false);
 
-  async rimescolaPortieri(team?: 'A' | 'B') {
-    if (team === 'A') {
-      this.state.rimescolaSquadra('A');
-      await this.mostraToastFeedback('🎲 Rotazione Bianchi rimescolata');
-    } else if (team === 'B') {
-      this.state.rimescolaSquadra('B');
-      await this.mostraToastFeedback('🎲 Rotazione Neri rimescolata');
-    } else {
-      this.state.inizializzaRotazionePortieri(true);
-      await this.mostraToastFeedback('🎲 Rotazione rimescolata per entrambe le squadre');
-    }
-    await this.state.salvaInDatabase(false);
-  }
+  pickerScoringTeamPlayers = computed(() => {
+    return this.goalPickerTeam() === 'A'
+      ? this.state.teamA()
+      : this.state.teamB();
+  });
 
-  async scambiaOrdine(team: 'A' | 'B', idx1: number, idx2: number) {
-    this.state.scambiaOrdinePortieri(team, idx1, idx2);
-    await this.state.salvaInDatabase(false);
-  }
+  pickerOpposingTeamPlayers = computed(() => {
+    return this.goalPickerTeam() === 'A'
+      ? this.state.teamB()
+      : this.state.teamA();
+  });
 
-  async cambiaPortiereFisso(team: 'A' | 'B') {
-    const players = team === 'A' ? this.state.teamA() : this.state.teamB();
-    const teamNome = team === 'A' ? 'Bianchi' : 'Neri';
-    const currFixedId =
-      team === 'A'
-        ? this.state.portieriInfoA().attuale?.id
-        : this.state.portieriInfoB().attuale?.id;
-
-    const buttons: any[] = players.map((p) => {
-      const isDiRuolo = ((p as any)?.ruoloPreferito as string)?.toLowerCase() === 'portiere';
-      const isCurrent = p.id === currFixedId;
-      return {
-        text: `${isCurrent ? '🧤 ' : ''}${p.nome}${isDiRuolo ? ' (👑 Di Ruolo)' : ''}`,
-        role: isCurrent ? 'selected' : undefined,
-        handler: async () => {
-          this.state.impostaPortiereFisso(team, p.id);
-          await this.state.salvaInDatabase(false);
-          await this.mostraToastFeedback(`🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`);
-        },
-      };
-    });
-
-    buttons.push({
-      text: 'Annulla',
-      role: 'cancel',
-      handler: async () => {},
-    });
-
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: `🧤 Sostituisci Portiere Fisso (${teamNome})`,
-      subHeader: 'Chi difenderà la porta tra i pali?',
-      buttons,
-    });
-
-    await actionSheet.present();
-  }
+  pickerAssistTeammates = computed(() => {
+    const scorer = this.selectedScorer();
+    const list = this.pickerScoringTeamPlayers();
+    if (!scorer) return list;
+    return list.filter((p) => p.id !== scorer.id);
+  });
 
   constructor() {
-    // Registriamo TUTTE le icone necessarie
     addIcons({
       locationOutline,
       timeOutline,
@@ -144,7 +118,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       diceOutline,
       listOutline,
       chevronUpOutline,
+      chevronDownOutline,
       shieldOutline,
+      flash,
+      closeOutline,
+      arrowBackOutline,
+      warningOutline,
+      arrowUndoOutline,
     });
   }
 
@@ -152,6 +132,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     if (this.isAdmin && !this.state.rotazionePortieri()) {
       this.state.inizializzaRotazionePortieri(false);
     }
+
     // ─── WAKE LOCK SEMPRE ATTIVO ───────────────────────────────────────
     this.attivaWakeLock();
     if ('wakeLock' in navigator) {
@@ -162,7 +143,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.audio = new Audio('/assets/sound/CAMBIO.wav');
     this.audio.loop = true;
     this.audio.load();
-    document.addEventListener('click', this.sbloccaAudioUserGesture, { once: true });
+    document.addEventListener('click', this.sbloccaAudioUserGesture, {
+      once: true,
+    });
 
     // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
@@ -177,18 +160,22 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           this.state.salvaSnapshotLocale();
         }
 
-        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti, solo se c'è almeno una rotazione) ───────────────
+        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti, solo se c'è almeno una rotazione) ───
         const hasRotatingTeam =
           this.state.modalitaPortieriA() === 'rotazione' ||
           this.state.modalitaPortieriB() === 'rotazione';
 
         if (this.isAdmin && hasRotatingTeam) {
           const minutiGiocati = Math.floor(newCronometro / 60);
-          const isMultiploDiCinque = minutiGiocati > 0 && minutiGiocati % 5 === 0;
+          const isMultiploDiCinque =
+            minutiGiocati > 0 && minutiGiocati % 5 === 0;
 
-          if (isMultiploDiCinque && minutiGiocati !== this.ultimoCambioMinuto) {
+          if (
+            isMultiploDiCinque &&
+            minutiGiocati !== this.ultimoCambioMinuto
+          ) {
             this.ultimoCambioMinuto = minutiGiocati;
-            this.attivaAlertCambio();
+            this.state.setCambioPortiereAttivo(true);
           }
         }
       } else {
@@ -214,9 +201,92 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.fermaAudio();
   }
 
+  toggleSequenza() {
+    this.isSequenzaAperta.update((v) => !v);
+  }
+
+  isPlayerCurrentGk(playerId: string, team: 'A' | 'B'): boolean {
+    const info =
+      team === 'A' ? this.state.portieriInfoA() : this.state.portieriInfoB();
+    return info?.attuale?.id === playerId;
+  }
+
+  async rimescolaPortieri(team?: 'A' | 'B') {
+    this.triggerHaptic(30);
+    if (team === 'A') {
+      this.state.rimescolaSquadra('A');
+      await this.mostraToastFeedback('🎲 Rotazione Bianchi rimescolata');
+    } else if (team === 'B') {
+      this.state.rimescolaSquadra('B');
+      await this.mostraToastFeedback('🎲 Rotazione Neri rimescolata');
+    } else {
+      this.state.inizializzaRotazionePortieri(true);
+      await this.mostraToastFeedback(
+        '🎲 Rotazione rimescolata per entrambe le squadre'
+      );
+    }
+    await this.state.salvaInDatabase(false);
+  }
+
+  async scambiaOrdine(team: 'A' | 'B', idx1: number, idx2: number) {
+    this.triggerHaptic(20);
+    this.state.scambiaOrdinePortieri(team, idx1, idx2);
+    await this.state.salvaInDatabase(false);
+  }
+
+  async cambiaPortiereFisso(team: 'A' | 'B') {
+    const players = team === 'A' ? this.state.teamA() : this.state.teamB();
+    const teamNome = team === 'A' ? 'Bianchi' : 'Neri';
+    const currFixedId =
+      team === 'A'
+        ? this.state.portieriInfoA().attuale?.id
+        : this.state.portieriInfoB().attuale?.id;
+
+    const buttons: any[] = players.map((p) => {
+      const isDiRuolo =
+        ((p as any)?.ruoloPreferito as string)?.toLowerCase() === 'portiere';
+      const isCurrent = p.id === currFixedId;
+      return {
+        text: `${isCurrent ? '🧤 ' : ''}${p.nome}${isDiRuolo ? ' (👑 Di Ruolo)' : ''}`,
+        role: isCurrent ? 'selected' : undefined,
+        handler: async () => {
+          this.state.impostaPortiereFisso(team, p.id);
+          await this.state.salvaInDatabase(false);
+          await this.mostraToastFeedback(
+            `🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`
+          );
+        },
+      };
+    });
+
+    buttons.push({
+      text: 'Annulla',
+      role: 'cancel',
+      handler: async () => {},
+    });
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: `🧤 Sostituisci Portiere Fisso (${teamNome})`,
+      subHeader: 'Chi difenderà la porta tra i pali?',
+      buttons,
+    });
+
+    await actionSheet.present();
+  }
+
   // ──────────────────────────────────────────────────────────────────────
-  // WAKE LOCK
+  // WAKE LOCK & HAPTICS
   // ──────────────────────────────────────────────────────────────────────
+
+  private triggerHaptic(ms = 30) {
+    try {
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate(ms);
+      }
+    } catch {
+      // Ignora su dispositivi non supportati
+    }
+  }
 
   private async attivaWakeLock() {
     if (this.wakeLock) return;
@@ -249,35 +319,24 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // SUONO CAMBIO
+  // SUONO CAMBIO PORTIERE
   // ──────────────────────────────────────────────────────────────────────
 
-  private async attivaAlertCambio() {
-    if (!this.state.matchId()) return;
-    await updateDoc(
-      doc(this.state.firestore, `partite/${this.state.matchId()}`),
-      { cambioAttivo: true }
-    );
-  }
-
   async fermaCambio() {
-    if (!this.state.matchId()) return;
-    await updateDoc(
-      doc(this.state.firestore, `partite/${this.state.matchId()}`),
-      { cambioAttivo: false }
-    );
+    this.triggerHaptic(30);
+    await this.state.setCambioPortiereAttivo(false);
     this.fermaAudio();
   }
 
   private sbloccaAudioUserGesture = () => {
     if (this.audio) {
-      this.audio.play()
+      this.audio
+        .play()
         .then(() => {
           this.audio!.pause();
           this.audio!.currentTime = 0;
-          console.log('Audio sbloccato con successo tramite interazione utente');
         })
-        .catch((e) => console.warn('Impossibile sbloccare audio:', e));
+        .catch(() => {});
     }
   };
 
@@ -287,7 +346,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       this.audio.loop = true;
     }
     this.audio.currentTime = 0;
-    this.audio.play().catch((err) => console.warn('Audio non riprodotto:', err));
+    this.audio
+      .play()
+      .catch((err) => console.warn('Audio non riprodotto:', err));
   }
 
   private fermaAudio() {
@@ -302,212 +363,103 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────────────
 
   async toggleTimer() {
-    if (!this.state.matchId()) return;
-
-    if (this.state.isTimerRunning()) {
-      const start = this.state.timerStartAt() || Date.now();
-      const diffSec = Math.floor((Date.now() - start) / 1000);
-      const nuovoAccumulo = this.state.accumulatedTime() + diffSec;
-
-      this.state.isTimerRunning.set(false);
-      this.state.accumulatedTime.set(nuovoAccumulo);
-      this.state.timerStartAt.set(null);
-      this.state.cronometro.set(nuovoAccumulo);
-
-      // Salvataggio immediato in locale
-      this.state.salvaSnapshotLocale();
-
-      try {
-        this.state.syncStatus.notifySyncPending();
-        await updateDoc(
-          doc(this.state.firestore, `partite/${this.state.matchId()}`),
-          {
-            isTimerRunning: false,
-            accumulatedTime: nuovoAccumulo,
-            timerStartAt: null,
-            cronometro: nuovoAccumulo,
-          },
-        );
-        this.state.syncStatus.notifySyncSuccess();
-      } catch (err) {
-        console.warn('Errore sync timer online (salvato in locale):', err);
-        this.state.syncStatus.notifySyncError();
-      }
-    } else {
-      const startAt = Date.now();
-      this.state.isTimerRunning.set(true);
-      this.state.timerStartAt.set(startAt);
-
-      const payload: any = {
-        isTimerRunning: true,
-        timerStartAt: startAt,
-      };
-      const currentStatus = this.state.status();
-      if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
-        payload.status = 'in_corso';
-        this.state.status.set('in_corso');
-      }
-
-      // Salvataggio immediato in locale
-      this.state.salvaSnapshotLocale();
-
-      try {
-        this.state.syncStatus.notifySyncPending();
-        await updateDoc(
-          doc(this.state.firestore, `partite/${this.state.matchId()}`),
-          payload,
-        );
-        this.state.syncStatus.notifySyncSuccess();
-      } catch (err) {
-        console.warn('Errore sync timer online (salvato in locale):', err);
-        this.state.syncStatus.notifySyncError();
-      }
-    }
+    this.triggerHaptic(40);
+    await this.state.toggleTimerState();
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // GOL & ASSIST (FLUSSO IMMEDIATO ZERO ATTRITO)
+  // SISTEMA GOL RAPIDO BORDO CAMPO (CON FOTO GRANDI & 1-TAP)
   // ──────────────────────────────────────────────────────────────────────
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
-    const teamCheSegna =
-      teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();
-    const teamAvversario =
-      teamVantaggio === 'A' ? this.state.teamB() : this.state.teamA();
-
-    const buttons = [
-      ...teamCheSegna.map((g) => ({
-        text: `⚽ ${g.nome}`,
-        handler: () => {
-          // Passaggio immediato allo Step 2 (Chi ha fatto l'assist)
-          setTimeout(() => this.chiediChiHaFattoAssist(g, teamVantaggio), 120);
-        },
-      })),
-      ...teamAvversario.map((g) => ({
-        text: `⚠️ ${g.nome} (Autogol)`,
-        role: 'destructive',
-        handler: () => this.registraGol(g, teamVantaggio, true, null),
-      })),
-      { text: 'Annulla', role: 'cancel' },
-    ];
-
-    const as = await this.actionSheetCtrl.create({
-      header: `⚽ Gol ${teamVantaggio === 'A' ? 'BIANCHI' : 'NERI'}! Chi ha segnato?`,
-      subHeader: 'Seleziona il marcatore',
-      buttons,
-    });
-    await as.present();
+    if (this.state.cronometro() <= 0) {
+      await this.mostraToastFeedback(
+        '⏱️ Premi prima ▶ AVVIA per far partire la partita!',
+        'warning'
+      );
+      return;
+    }
+    this.triggerHaptic(35);
+    this.goalPickerTeam.set(teamVantaggio);
+    this.selectedScorer.set(null);
+    this.goalPickerStep.set('scorer');
+    this.showAutogolList.set(false);
+    this.goalPickerOpen.set(true);
   }
 
-  async chiediChiHaFattoAssist(marcatore: any, teamVantaggio: 'A' | 'B') {
-    const teamCheSegna =
-      teamVantaggio === 'A' ? this.state.teamA() : this.state.teamB();
+  async toccaGiocatorePerGolRapido(
+    player: PlayerPerformance,
+    teamVantaggio: 'A' | 'B'
+  ) {
+    if (this.state.cronometro() <= 0) {
+      await this.mostraToastFeedback(
+        '⏱️ Premi prima ▶ AVVIA per far partire la partita!',
+        'warning'
+      );
+      return;
+    }
+    this.triggerHaptic(40);
+    this.goalPickerTeam.set(teamVantaggio);
+    this.selectedScorer.set(player);
+    this.goalPickerStep.set('assist');
+    this.showAutogolList.set(false);
+    this.goalPickerOpen.set(true);
+  }
 
-    // Solo compagni della stessa squadra escluso il marcatore
-    const compagni = teamCheSegna.filter((c: any) => c.id !== marcatore.id);
+  selezionaMarcatoreNelPicker(player: PlayerPerformance, isAutogoal = false) {
+    this.triggerHaptic(35);
+    if (isAutogoal) {
+      const team = this.goalPickerTeam();
+      this.chiudiGoalPicker();
+      this.registraGol(player, team, true, null);
+      return;
+    }
+    this.selectedScorer.set(player);
+    this.goalPickerStep.set('assist');
+  }
 
-    const buttons = [
-      // Bottone grande in cima: Azione Personale / Nessun assist
-      {
-        text: '⚡ Nessuno / Azione Personale',
-        role: 'selected',
-        handler: () => this.registraGol(marcatore, teamVantaggio, false, null),
-      },
-      ...compagni.map((c: any) => ({
-        text: `👟 Assist di ${c.nome}`,
-        handler: () => this.registraGol(marcatore, teamVantaggio, false, c),
-      })),
-      { text: 'Annulla (Non registrare)', role: 'cancel' },
-    ];
+  tornaASceltaMarcatore() {
+    this.triggerHaptic(20);
+    this.selectedScorer.set(null);
+    this.goalPickerStep.set('scorer');
+  }
 
-    const as = await this.actionSheetCtrl.create({
-      header: "👟 Chi ha fatto l'assist?",
-      subHeader: `Gol di ${marcatore.nome} (${teamVantaggio === 'A' ? 'Bianchi' : 'Neri'})`,
-      buttons,
-    });
-    await as.present();
+  toggleAutogolNelPicker() {
+    this.triggerHaptic(20);
+    this.showAutogolList.update((v) => !v);
+  }
+
+  confermaAssistNelPicker(assistMan: PlayerPerformance | null) {
+    this.triggerHaptic(45);
+    const scorer = this.selectedScorer();
+    const team = this.goalPickerTeam();
+    if (!scorer) return;
+    this.chiudiGoalPicker();
+    this.registraGol(scorer, team, false, assistMan);
+  }
+
+  chiudiGoalPicker() {
+    this.goalPickerOpen.set(false);
+    this.selectedScorer.set(null);
+    this.showAutogolList.set(false);
   }
 
   async registraGol(
-    giocatore: any,
+    giocatore: PlayerPerformance,
     teamVantaggio: 'A' | 'B',
     isAutogoal: boolean,
-    assistMan: any | null = null,
+    assistMan: PlayerPerformance | null = null
   ) {
-    const defendingTeam = teamVantaggio === 'A' ? 'B' : 'A';
-    const portiereInfo =
-      defendingTeam === 'A'
-        ? this.state.portieriInfoA()
-        : this.state.portieriInfoB();
-    const portiereSubito = portiereInfo?.attuale;
-
-    const nuovoEvento: EventoGol = {
-      idAssegnato: giocatore.id,
-      nome: giocatore.nome,
+    const { portiereSubitoNome } = await this.state.aggiungiGolPartita(
+      giocatore,
       teamVantaggio,
       isAutogoal,
-      tempo: this.state.formatTimer(),
-      assistId: assistMan ? assistMan.id : null,
-      assistNome: assistMan ? assistMan.nome : null,
-      portiereSubitoId: portiereSubito?.id || null,
-      portiereSubitoNome: portiereSubito?.nome || null,
-    };
+      assistMan
+    );
 
-    this.state.eventiGol.update((list) => [...list, nuovoEvento]);
-
-    teamVantaggio === 'A'
-      ? this.state.scoreA.update((s) => s + 1)
-      : this.state.scoreB.update((s) => s + 1);
-
-    // 1. Aggiorna gol / autogol marcatore
-    const updateScorer = (lista: any[]) =>
-      lista.map((g) =>
-        g.id === giocatore.id
-          ? {
-              ...g,
-              gol: (g.gol || 0) + (isAutogoal ? 0 : 1),
-              autogol: (g.autogol || 0) + (isAutogoal ? 1 : 0),
-            }
-          : g,
-      );
-
-    this.state.tutti.update(updateScorer);
-
-    if (teamVantaggio === 'A' && !isAutogoal) {
-      this.state.teamA.update(updateScorer);
-    } else if (teamVantaggio === 'B' && !isAutogoal) {
-      this.state.teamB.update(updateScorer);
-    } else if (isAutogoal) {
-      // Se è autogol, il gol va cercato nel team opposto a chi ha "vantaggio"
-      teamVantaggio === 'A'
-        ? this.state.teamB.update(updateScorer)
-        : this.state.teamA.update(updateScorer);
-    }
-
-    // 2. Se presente assist-man, aggiorna assist count
-    if (assistMan && !isAutogoal) {
-      const updateAssist = (lista: any[]) =>
-        lista.map((g) =>
-          g.id === assistMan.id
-            ? {
-                ...g,
-                assist: (g.assist || 0) + 1,
-              }
-            : g,
-        );
-
-      this.state.tutti.update(updateAssist);
-      if (teamVantaggio === 'A') {
-        this.state.teamA.update(updateAssist);
-      } else {
-        this.state.teamB.update(updateAssist);
-      }
-    }
-
-    await this.state.salvaInDatabase(false);
-
-    // Feedback rapido Toast
-    const portiereTag = portiereSubito?.nome ? ` · 🧤 in porta: ${portiereSubito.nome}` : '';
+    const portiereTag = portiereSubitoNome
+      ? ` · 🧤 in porta: ${portiereSubitoNome}`
+      : '';
     let feedbackMsg = '';
     if (isAutogoal) {
       feedbackMsg = `⚠️ Autogol di ${giocatore.nome}!${portiereTag}`;
@@ -520,73 +472,23 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   async rimuoviUltimoGol(team: 'A' | 'B') {
-    const list = this.state.eventiGol();
-    for (let i = list.length - 1; i >= 0; i--) {
-      if (list[i].teamVantaggio === team) {
-        const rimosso = list[i];
-        this.state.eventiGol.update((l) => l.filter((_, index) => index !== i));
+    this.triggerHaptic(30);
+    const rimosso = await this.state.annullaUltimoGolSquadra(team);
+    if (!rimosso) return;
 
-        team === 'A'
-          ? this.state.scoreA.update((s) => Math.max(0, s - 1))
-          : this.state.scoreB.update((s) => Math.max(0, s - 1));
-
-        const removeGol = (lista: any[]) =>
-          lista.map((g) =>
-            g.id === rimosso.idAssegnato
-              ? {
-                  ...g,
-                  gol: Math.max(0, (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)),
-                  autogol: Math.max(
-                    0,
-                    (g.autogol || 0) - (rimosso.isAutogoal ? 1 : 0),
-                  ),
-                }
-              : g,
-          );
-
-        this.state.tutti.update(removeGol);
-
-        // Aggiorniamo il team corretto per la rimozione gol
-        this.state.teamA().find((p) => p.id === rimosso.idAssegnato)
-          ? this.state.teamA.update(removeGol)
-          : this.state.teamB.update(removeGol);
-
-        // Rimozione dell'assist associato se presente
-        if (rimosso.assistId) {
-          const removeAssist = (lista: any[]) =>
-            lista.map((g) =>
-              g.id === rimosso.assistId
-                ? {
-                    ...g,
-                    assist: Math.max(0, (g.assist || 0) - 1),
-                  }
-                : g,
-            );
-
-          this.state.tutti.update(removeAssist);
-          this.state.teamA().find((p) => p.id === rimosso.assistId)
-            ? this.state.teamA.update(removeAssist)
-            : this.state.teamB.update(removeAssist);
-        }
-
-        await this.state.salvaInDatabase(false);
-
-        const undoMsg = rimosso.assistNome
-          ? `Rimosso gol di ${rimosso.nome} (👟 assist di ${rimosso.assistNome})`
-          : `Rimosso gol di ${rimosso.nome}`;
-        await this.mostraToastFeedback(undoMsg, 'warning');
-        break;
-      }
-    }
+    const undoMsg = rimosso.assistNome
+      ? `Rimosso gol di ${rimosso.nome} (👟 assist di ${rimosso.assistNome})`
+      : `Rimosso gol di ${rimosso.nome}`;
+    await this.mostraToastFeedback(undoMsg, 'warning');
   }
 
   private async mostraToastFeedback(
     message: string,
-    color: 'success' | 'warning' | 'danger' = 'success',
+    color: 'success' | 'warning' | 'danger' = 'success'
   ) {
     const toast = await this.toastCtrl.create({
       message,
-      duration: 2500,
+      duration: 2400,
       position: 'bottom',
       color,
       mode: 'ios',

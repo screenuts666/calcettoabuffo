@@ -18,6 +18,7 @@ const STORAGE_JUST_UPDATED_KEY = 'calcetto_just_updated_to';
 // Chiavi localStorage da preservare durante il purge di versione
 const PRESERVED_LOCAL_STORAGE_PREFIXES = [
   'calcetto_theme_preference',
+  'calcettoabbuffo_active_match',
   'calcetto_active_match_backup_v1',
   'firebase:authUser:',
   'firebase:host:',

@@ -1,11 +1,4 @@
-<div class="match-info-top ion-text-center">
-  <p>
-    <ion-icon name="location-outline"></ion-icon> {{ state.luogo() }} |
-    <ion-icon name="time-outline"></ion-icon> {{ state.orario() }}
-  </p>
-</div>
-
-<!-- ─── BANNER CAMBIO (solo admin, quando il suono è attivo) ─────────── -->
+<!-- ─── BANNER CAMBIO PORTIERE (solo admin, quando il suono è attivo) ─── -->
 @if (isAdmin && state.cambioAttivo()) {
   <div class="cambio-banner">
     <div class="cambio-pulse-ring"></div>
@@ -31,21 +24,230 @@
   </div>
 }
 
-<div class="timer-display-section ion-text-center">
-  <h1 class="giant-timer">{{ state.formatTimer() }}</h1>
-  <ion-button
-    shape="round"
-    [color]="state.isTimerRunning() ? 'warning' : 'success'"
-    (click)="toggleTimer()"
-    class="timer-control"
-  >
-    <ion-icon
-      [name]="state.isTimerRunning() ? 'pause' : 'play'"
-      slot="start"
-    ></ion-icon>
-    {{ state.isTimerRunning() ? "PAUSA" : "AVVIA" }}
-  </ion-button>
+<!-- ─── COCKPIT BORDO CAMPO: TIMER + TABELLONE + GOL RAPIDO CON FOTO ──── -->
+<div class="courtside-cockpit">
+  <!-- Barra Superiore: Info Campo + Cronometro + Play/Pausa -->
+  <div class="timer-bar-card" [class.is-running]="state.isTimerRunning()">
+    <div class="tb-left">
+      <div class="tb-meta-line">
+        <span><ion-icon name="location-outline"></ion-icon> {{ state.luogo() || 'Campo' }}</span>
+        <span class="meta-dot">•</span>
+        <span><ion-icon name="time-outline"></ion-icon> {{ state.orario() }}</span>
+      </div>
+      <div class="tb-clock-wrap">
+        <span class="live-dot" [class.active]="state.isTimerRunning()"></span>
+        <span class="giant-timer">{{ state.formatTimer() }}</span>
+      </div>
+    </div>
+
+    <div class="tb-right">
+      <button
+        type="button"
+        class="timer-action-btn"
+        [class.running]="state.isTimerRunning()"
+        (click)="toggleTimer()"
+      >
+        <ion-icon [name]="state.isTimerRunning() ? 'pause' : 'play'"></ion-icon>
+        <span>{{ state.isTimerRunning() ? 'PAUSA' : 'AVVIA' }}</span>
+      </button>
+      @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
+        <div class="next-gk-mini-pill">
+          🧤 Cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (state.cronometro() <= 0) {
+    <div class="kickoff-hint-banner" (click)="toggleTimer()">
+      <ion-icon name="play"></ion-icon>
+      <span>Tocca <strong>AVVIA</strong> per far partire il cronometro e sbloccare i gol</span>
+    </div>
+  }
+
+  <!-- TABELLONE SCORE GIGANTE + BOTTONI +GOL AD ALTA VISIBILITÀ -->
+  <div class="score-stadium-grid">
+    <!-- COLONNA BIANCHI (TEAM A) -->
+    <div class="stadium-team-col team-a">
+      <div class="stc-header">
+        <span class="stc-badge">BIANCHI</span>
+        @if (state.portieriInfoA().attuale; as gkA) {
+          <span class="stc-gk-pill" title="Portiere attuale Bianchi">
+            🧤 {{ gkA.nome }}
+          </span>
+        }
+      </div>
+
+      <div class="stc-score-number" (click)="chiediChiHaSegnato('A')">
+        {{ state.scoreA() }}
+      </div>
+
+      <button
+        type="button"
+        class="giant-goal-btn team-a-btn"
+        [class.locked]="state.cronometro() <= 0"
+        (click)="chiediChiHaSegnato('A')"
+      >
+        <ion-icon name="football"></ion-icon>
+        <span>+ GOL BIANCHI</span>
+      </button>
+
+      @if (state.scoreA() > 0) {
+        <button
+          type="button"
+          class="quick-undo-btn"
+          (click)="rimuoviUltimoGol('A')"
+        >
+          <ion-icon name="arrow-undo-outline"></ion-icon>
+          <span>Annulla ultimo</span>
+        </button>
+      }
+    </div>
+
+    <!-- COLONNA NERI (TEAM B) -->
+    <div class="stadium-team-col team-b">
+      <div class="stc-header">
+        <span class="stc-badge">NERI</span>
+        @if (state.portieriInfoB().attuale; as gkB) {
+          <span class="stc-gk-pill" title="Portiere attuale Neri">
+            🧤 {{ gkB.nome }}
+          </span>
+        }
+      </div>
+
+      <div class="stc-score-number" (click)="chiediChiHaSegnato('B')">
+        {{ state.scoreB() }}
+      </div>
+
+      <button
+        type="button"
+        class="giant-goal-btn team-b-btn"
+        [class.locked]="state.cronometro() <= 0"
+        (click)="chiediChiHaSegnato('B')"
+      >
+        <ion-icon name="football"></ion-icon>
+        <span>+ GOL NERI</span>
+      </button>
+
+      @if (state.scoreB() > 0) {
+        <button
+          type="button"
+          class="quick-undo-btn"
+          (click)="rimuoviUltimoGol('B')"
+        >
+          <ion-icon name="arrow-undo-outline"></ion-icon>
+          <span>Annulla ultimo</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- ─── GRIGLIA 1-TAP CON FOTO: TOCCA LA FACCIA DI CHI HA SEGNATO! ─── -->
+  <div class="quick-photo-scorers-box" [class.is-locked]="state.cronometro() <= 0">
+    <div class="qps-header">
+      <span class="qps-title">⚡ GOL LAMPO: TOCCA LA FOTO DI CHI HA SEGNATO</span>
+    </div>
+
+    <div class="qps-teams-columns">
+      <!-- Giocatori Bianchi -->
+      <div class="qps-col team-a-list">
+        @for (p of state.teamA(); track (p.id || p.nome) + '_' + $index) {
+          <button
+            type="button"
+            class="qps-player-btn"
+            [class.is-gk]="isPlayerCurrentGk(p.id, 'A')"
+            (click)="toccaGiocatorePerGolRapido(p, 'A')"
+          >
+            <div class="qps-avatar-wrap">
+              <ion-avatar class="qps-avatar">
+                <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+              </ion-avatar>
+              @if (isPlayerCurrentGk(p.id, 'A')) {
+                <span class="qps-gk-dot" title="In porta ora">🧤</span>
+              }
+            </div>
+            <div class="qps-info">
+              <span class="qps-name">{{ p.nome }}</span>
+              @if ((p.gol || 0) > 0 || (p.assist || 0) > 0) {
+                <div class="qps-stats-row">
+                  @if ((p.gol || 0) > 0) {
+                    <span class="qps-stat gol">⚽ {{ p.gol }}</span>
+                  }
+                  @if ((p.assist || 0) > 0) {
+                    <span class="qps-stat ast">👟 {{ p.assist }}</span>
+                  }
+                </div>
+              }
+            </div>
+            <span class="qps-plus">+1</span>
+          </button>
+        }
+      </div>
+
+      <!-- Giocatori Neri -->
+      <div class="qps-col team-b-list">
+        @for (p of state.teamB(); track (p.id || p.nome) + '_' + $index) {
+          <button
+            type="button"
+            class="qps-player-btn is-dark-team"
+            [class.is-gk]="isPlayerCurrentGk(p.id, 'B')"
+            (click)="toccaGiocatorePerGolRapido(p, 'B')"
+          >
+            <div class="qps-avatar-wrap">
+              <ion-avatar class="qps-avatar">
+                <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+              </ion-avatar>
+              @if (isPlayerCurrentGk(p.id, 'B')) {
+                <span class="qps-gk-dot" title="In porta ora">🧤</span>
+              }
+            </div>
+            <div class="qps-info">
+              <span class="qps-name">{{ p.nome }}</span>
+              @if ((p.gol || 0) > 0 || (p.assist || 0) > 0) {
+                <div class="qps-stats-row">
+                  @if ((p.gol || 0) > 0) {
+                    <span class="qps-stat gol">⚽ {{ p.gol }}</span>
+                  }
+                  @if ((p.assist || 0) > 0) {
+                    <span class="qps-stat ast">👟 {{ p.assist }}</span>
+                  }
+                </div>
+              }
+            </div>
+            <span class="qps-plus">+1</span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- ─── CRONACA LIVE DEI GOL (SUBITO VISIBILE SOTTO I GIOCATORI) ──────── -->
+@if (state.eventiGol().length > 0) {
+  <div class="events-log-card">
+    <div class="elc-header">
+      <span>📋 CRONACA GOL ({{ state.eventiGol().length }})</span>
+    </div>
+    <div class="log-container">
+      @for (gol of state.eventiGol(); track $index) {
+        <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
+          <span class="l-time">{{ gol.tempo }}</span>
+          <span class="l-player">
+            ⚽ <strong>{{ gol.nome }}</strong>
+            @if (gol.isAutogoal) {
+              <span class="autogol-text">(Autogol)</span>
+            } @else if (gol.assistNome) {
+              <span class="assist-text">👟 {{ gol.assistNome }}</span>
+            }
+            @if (gol.portiereSubitoNome) {
+              <span class="gk-subito-text">🧤 {{ gol.portiereSubitoNome }}</span>
+            }
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+}
 
 <!-- ─── SEZIONE ROTAZIONE PORTIERI (SOLO SUPERUSER) ─────────── -->
 @if (isAdmin) {
@@ -258,7 +460,7 @@
       </div>
     </div>
 
-    <!-- SEQUENZA COMPLETA DEI TURNI CICLICI (apribile se ci sono squadre a rotazione) -->
+    <!-- SEQUENZA COMPLETA DEI TURNI CICLICI -->
     @if (isSequenzaAperta()) {
       <div class="gk-sequence-drawer">
         <div class="seq-columns-wrapper">
@@ -317,76 +519,6 @@
   </div>
 }
 
-<div class="score-grid">
-  <div class="score-card team-a">
-    <div class="tag">BIANCHI</div>
-    <div class="number">{{ state.scoreA() }}</div>
-
-    <div class="action-stack">
-      <button
-        class="goal-btn"
-        (click)="chiediChiHaSegnato('A')"
-        [disabled]="state.cronometro() <= 0"
-      >
-        <ion-icon name="add"></ion-icon> GOL
-      </button>
-      <button
-        class="undo-btn"
-        (click)="rimuoviUltimoGol('A')"
-        [disabled]="state.scoreA() === 0"
-      >
-        <ion-icon name="trash-outline"></ion-icon> Rimuovi ultimo
-      </button>
-    </div>
-  </div>
-
-  <div class="score-card team-b">
-    <div class="tag">NERI</div>
-    <div class="number">{{ state.scoreB() }}</div>
-
-    <div class="action-stack">
-      <button
-        class="goal-btn"
-        (click)="chiediChiHaSegnato('B')"
-        [disabled]="state.cronometro() === 0"
-      >
-        <ion-icon name="add"></ion-icon> GOL
-      </button>
-      <button
-        class="undo-btn"
-        (click)="rimuoviUltimoGol('B')"
-        [disabled]="state.scoreB() === 0"
-      >
-        <ion-icon name="trash-outline"></ion-icon> Rimuovi ultimo
-      </button>
-    </div>
-  </div>
-</div>
-
-@if (state.cronometro() > 0 && state.eventiGol().length > 0) {
-  <div class="events-log">
-    <ion-list-header mode="ios"><ion-label>CRONACA</ion-label></ion-list-header>
-    <div class="log-container">
-      @for (gol of state.eventiGol(); track $index) {
-        <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
-          <span class="l-time">{{ gol.tempo }}</span>
-          <span class="l-player">
-            ⚽ {{ gol.nome }}
-            @if (gol.isAutogoal) {
-              <span class="autogol-text">(Autogol)</span>
-            } @else if (gol.assistNome) {
-              <span class="assist-text">👟 {{ gol.assistNome }}</span>
-            }
-            @if (gol.portiereSubitoNome) {
-              <span class="gk-subito-text">🧤 in porta: {{ gol.portiereSubitoNome }}</span>
-            }
-          </span>
-        </div>
-      }
-    </div>
-  </div>
-}
-
 <div class="ion-padding">
   <ion-button
     expand="block"
@@ -397,3 +529,151 @@
     <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
   </ion-button>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- OVERLAY VISUALE A FOTO GRANDI PER GOL & ASSIST (BORDO CAMPO)            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (goalPickerOpen()) {
+  <div class="goal-picker-backdrop" (click)="chiudiGoalPicker()">
+    <div
+      class="goal-picker-sheet"
+      [class.team-b-theme]="goalPickerTeam() === 'B'"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- HEADER DEL SELETTORE -->
+      <div class="gps-header">
+        <div class="gps-title-group">
+          <span class="gps-team-pill" [class.is-neri]="goalPickerTeam() === 'B'">
+            ⚽ GOL {{ goalPickerTeam() === 'A' ? 'BIANCHI' : 'NERI' }} ({{ state.formatTimer() }})
+          </span>
+          @if (goalPickerStep() === 'scorer') {
+            <h3>Chi ha segnato?</h3>
+          } @else {
+            <h3>Chi ha fatto l'assist?</h3>
+          }
+        </div>
+
+        <button type="button" class="gps-close-btn" (click)="chiudiGoalPicker()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- STEP 1: SELEZIONE MARCATORE CON FOTO GRANDI -->
+      @if (goalPickerStep() === 'scorer') {
+        <div class="gps-body">
+          <div class="gps-photo-grid">
+            @for (g of pickerScoringTeamPlayers(); track (g.id || g.nome) + '_' + $index) {
+              <button
+                type="button"
+                class="gps-player-card"
+                (click)="selezionaMarcatoreNelPicker(g, false)"
+              >
+                <div class="gps-avatar-box">
+                  <ion-avatar class="gps-big-avatar">
+                    <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                  </ion-avatar>
+                  @if (isPlayerCurrentGk(g.id, goalPickerTeam())) {
+                    <span class="gps-gk-tag">🧤</span>
+                  }
+                  @if ((g.gol || 0) > 0) {
+                    <span class="gps-gol-count">⚽ {{ g.gol }}</span>
+                  }
+                </div>
+                <span class="gps-player-name">{{ g.nome }}</span>
+              </button>
+            }
+          </div>
+
+          <!-- SEZIONE AUTOGOL AVVERSARIO -->
+          <div class="gps-autogol-section">
+            <button
+              type="button"
+              class="gps-autogol-toggle"
+              (click)="toggleAutogolNelPicker()"
+            >
+              <span>⚠️ Autogol di un avversario ({{ goalPickerTeam() === 'A' ? 'Neri' : 'Bianchi' }})</span>
+              <ion-icon [name]="showAutogolList() ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+            </button>
+
+            @if (showAutogolList()) {
+              <div class="gps-autogol-grid">
+                @for (opp of pickerOpposingTeamPlayers(); track (opp.id || opp.nome) + '_' + $index) {
+                  <button
+                    type="button"
+                    class="gps-autogol-chip"
+                    (click)="selezionaMarcatoreNelPicker(opp, true)"
+                  >
+                    <ion-avatar class="gps-mini-avatar">
+                      <app-player-avatar [fotoUrl]="opp.fotoUrl" [alt]="opp.nome"></app-player-avatar>
+                    </ion-avatar>
+                    <span>{{ opp.nome }}</span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- STEP 2: SELEZIONE ASSIST CON BOTTONE GIGANTE "AZIONE PERSONALE" + FOTO COMPAGNI -->
+      @if (goalPickerStep() === 'assist' && selectedScorer(); as scorer) {
+        <div class="gps-body">
+          <!-- Riepilogo Marcatore Selezionato -->
+          <div class="gps-selected-scorer-bar">
+            <div class="gss-left">
+              <ion-avatar class="gss-avatar">
+                <app-player-avatar [fotoUrl]="scorer.fotoUrl" [alt]="scorer.nome"></app-player-avatar>
+              </ion-avatar>
+              <div class="gss-text">
+                <small>MARCATORE SELEZIONATO</small>
+                <strong>⚽ {{ scorer.nome }}</strong>
+              </div>
+            </div>
+            <button type="button" class="gss-change-btn" (click)="tornaASceltaMarcatore()">
+              <ion-icon name="arrow-back-outline"></ion-icon>
+              <span>Cambia</span>
+            </button>
+          </div>
+
+          <!-- BOTTONE GIGANTE 1-TAP: NESSUN ASSIST / AZIONE PERSONALE -->
+          <button
+            type="button"
+            class="gps-solo-goal-btn"
+            (click)="confermaAssistNelPicker(null)"
+          >
+            <span class="solo-icon">⚡</span>
+            <div class="solo-text">
+              <strong>NESSUN ASSIST · AZIONE PERSONALE</strong>
+              <small>Tocca qui per confermare subito il gol di {{ scorer.nome }}</small>
+            </div>
+          </button>
+
+          <div class="gps-assist-divider">
+            <span>oppure tocca la foto di chi ha fatto l'assist 👟</span>
+          </div>
+
+          <!-- GRIGLIA FOTO COMPAGNI PER ASSIST -->
+          <div class="gps-photo-grid">
+            @for (c of pickerAssistTeammates(); track (c.id || c.nome) + '_' + $index) {
+              <button
+                type="button"
+                class="gps-player-card assist-mode"
+                (click)="confermaAssistNelPicker(c)"
+              >
+                <div class="gps-avatar-box">
+                  <ion-avatar class="gps-big-avatar">
+                    <app-player-avatar [fotoUrl]="c.fotoUrl" [alt]="c.nome"></app-player-avatar>
+                  </ion-avatar>
+                  @if ((c.assist || 0) > 0) {
+                    <span class="gps-ast-count">👟 {{ c.assist }}</span>
+                  }
+                </div>
+                <span class="gps-player-name">👟 {{ c.nome }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

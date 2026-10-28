@@ -1,4 +1,11 @@
-import { EnvironmentInjector, Injectable, inject, runInInjectionContext, signal, computed } from '@angular/core';
+import {
+  EnvironmentInjector,
+  Injectable,
+  inject,
+  runInInjectionContext,
+  signal,
+  computed,
+} from '@angular/core';
 import { Firestore, docData } from '@angular/fire/firestore';
 import {
   collection,
@@ -30,6 +37,23 @@ export type ConvocatoState = Giocatore & { selezionato?: boolean };
 export type MatchDetailState = Partita & { isAdmin?: boolean };
 export const LOCAL_STORAGE_MATCH_KEY = 'calcettoabbuffo_active_match';
 
+export type PortiereTurnEntry = PlayerPerformance & {
+  ordine: number;
+  isAttuale: boolean;
+  isProssimo: boolean;
+  isDiRuolo: boolean;
+};
+
+export interface PortiereTeamInfo {
+  isFisso: boolean;
+  isDiRuolo: boolean;
+  attuale: PlayerPerformance | null;
+  prossimo: PlayerPerformance | null;
+  turnoAttualeNumero: number;
+  turnoProssimoNumero: number;
+  lista: PortiereTurnEntry[];
+}
+
 @Injectable()
 export class MatchStateService {
   public firestore = inject(Firestore);
@@ -41,7 +65,7 @@ export class MatchStateService {
   private matchSub?: Subscription;
 
   step = signal<'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'>(
-    'convocati',
+    'convocati'
   );
   status = signal<TMatchStatus>('da_definire');
   filtro = signal<string>('');
@@ -71,7 +95,7 @@ export class MatchStateService {
   rotazionePortieri = signal<RotazionePortieri | null>(null);
 
   convocati = computed(() =>
-    this.tutti().filter((g) => g?.selezionato === true),
+    this.tutti().filter((g) => g?.selezionato === true)
   );
   totaleConvocati = computed(() => this.convocati().length);
   giocatoriFiltrati = computed(() => {
@@ -82,8 +106,8 @@ export class MatchStateService {
       const soprannome = (g.soprannome || '').toLowerCase();
       const soprannomeAi = (g.soprannomeAi || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
-      const piede = (g.piedePreferito as string || '').toLowerCase();
-      const ruolo = (g.ruoloPreferito as string || '').toLowerCase();
+      const piede = ((g.piedePreferito as string) || '').toLowerCase();
+      const ruolo = ((g.ruoloPreferito as string) || '').toLowerCase();
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
@@ -97,7 +121,6 @@ export class MatchStateService {
   tuttiInCampo = computed(() => [...this.teamA(), ...this.teamB()]);
 
   isDataStagioneValida = computed(() => {
-    // Se la partita esiste già (modifica match esistente), non bloccare le modifiche
     if (this.matchId()) return true;
     const d = this.dataPartita();
     if (!d) return false;
@@ -109,14 +132,16 @@ export class MatchStateService {
       this.luogo().trim() !== '' &&
       this.dataPartita() !== '' &&
       this.orario() !== '' &&
-      this.isDataStagioneValida(),
+      this.isDataStagioneValida()
   );
+
   messaggioEquilibrio = computed(() => {
     const diff = Math.abs(this.teamA().length - this.teamB().length);
     return diff > 1
       ? `⚠️ Sbilanciato! (${this.teamA().length} vs ${this.teamB().length})`
       : null;
   });
+
   formatTimer = computed(() => {
     const m = Math.floor(this.cronometro() / 60)
       .toString()
@@ -126,7 +151,7 @@ export class MatchStateService {
   });
 
   durataTurnoMinuti = computed(
-    () => this.rotazionePortieri()?.durataTurnoMinuti || 5,
+    () => this.rotazionePortieri()?.durataTurnoMinuti || 5
   );
 
   turnoAttualeIndex = computed(() => {
@@ -147,51 +172,56 @@ export class MatchStateService {
   });
 
   modalitaPortieriA = computed<ModalitaPortiere>(
-    () => this.rotazionePortieri()?.modalitaA || 'rotazione',
+    () => this.rotazionePortieri()?.modalitaA || 'rotazione'
   );
   modalitaPortieriB = computed<ModalitaPortiere>(
-    () => this.rotazionePortieri()?.modalitaB || 'rotazione',
+    () => this.rotazionePortieri()?.modalitaB || 'rotazione'
   );
   portiereFissoAId = computed<string | null>(
-    () => this.rotazionePortieri()?.portiereFissoAId || null,
+    () => this.rotazionePortieri()?.portiereFissoAId || null
   );
   portiereFissoBId = computed<string | null>(
-    () => this.rotazionePortieri()?.portiereFissoBId || null,
+    () => this.rotazionePortieri()?.portiereFissoBId || null
   );
 
-  portieriInfoA = computed(() => {
+  portieriInfoA = computed<PortiereTeamInfo>(() =>
+    this.buildPortieriTeamInfo('A')
+  );
+
+  portieriInfoB = computed<PortiereTeamInfo>(() =>
+    this.buildPortieriTeamInfo('B')
+  );
+
+  private buildPortieriTeamInfo(team: 'A' | 'B'): PortiereTeamInfo {
     const rot = this.rotazionePortieri();
-    const players = this.teamA();
-    const modalita = rot?.modalitaA || 'rotazione';
+    const players = team === 'A' ? this.teamA() : this.teamB();
+    const modalita =
+      (team === 'A' ? rot?.modalitaA : rot?.modalitaB) || 'rotazione';
     const isFisso = modalita === 'fisso';
 
     if (!players || players.length === 0) {
       return {
         isFisso: false,
         isDiRuolo: false,
-        attuale: null as PlayerPerformance | null,
-        prossimo: null as PlayerPerformance | null,
+        attuale: null,
+        prossimo: null,
         turnoAttualeNumero: 1,
         turnoProssimoNumero: 1,
-        lista: [] as Array<
-          PlayerPerformance & {
-            ordine: number;
-            isAttuale: boolean;
-            isProssimo: boolean;
-            isDiRuolo?: boolean;
-          }
-        >,
+        lista: [],
       };
     }
 
     if (isFisso) {
+      const configuredFixedId =
+        team === 'A' ? rot?.portiereFissoAId : rot?.portiereFissoBId;
       const fixedId =
-        rot?.portiereFissoAId ||
+        configuredFixedId ||
         players.find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
         )?.id ||
         players[0]?.id;
-      const fixedPlayer = players.find((p) => p.id === fixedId) || players[0] || null;
+      const fixedPlayer =
+        players.find((p) => p.id === fixedId) || players[0] || null;
       const isDiRuolo =
         (fixedPlayer as any)?.ruoloPreferito === RuoloPreferito.Portiere;
 
@@ -199,7 +229,7 @@ export class MatchStateService {
         isFisso: true,
         isDiRuolo,
         attuale: fixedPlayer,
-        prossimo: null as PlayerPerformance | null,
+        prossimo: null,
         turnoAttualeNumero: 1,
         turnoProssimoNumero: 1,
         lista: fixedPlayer
@@ -217,7 +247,8 @@ export class MatchStateService {
     }
 
     // Modalità a rotazione ciclica ogni 5 minuti
-    const ids = rot?.teamA || players.map((p) => p.id);
+    const rotIds = team === 'A' ? rot?.teamA : rot?.teamB;
+    const ids = rotIds && rotIds.length > 0 ? rotIds : players.map((p) => p.id);
     const turno = this.turnoAttualeIndex();
     const currIdx = ids.length > 0 ? turno % ids.length : 0;
     const nextIdx = ids.length > 0 ? (turno + 1) % ids.length : 0;
@@ -239,16 +270,7 @@ export class MatchStateService {
           isDiRuolo: (p as any).ruoloPreferito === RuoloPreferito.Portiere,
         };
       })
-      .filter(
-        (
-          item,
-        ): item is PlayerPerformance & {
-          ordine: number;
-          isAttuale: boolean;
-          isProssimo: boolean;
-          isDiRuolo: boolean;
-        } => item !== null,
-      );
+      .filter((item): item is PortiereTurnEntry => item !== null);
 
     return {
       isFisso: false,
@@ -259,109 +281,16 @@ export class MatchStateService {
       turnoProssimoNumero: nextIdx + 1,
       lista,
     };
-  });
+  }
 
-  portieriInfoB = computed(() => {
-    const rot = this.rotazionePortieri();
-    const players = this.teamB();
-    const modalita = rot?.modalitaB || 'rotazione';
-    const isFisso = modalita === 'fisso';
-
-    if (!players || players.length === 0) {
-      return {
-        isFisso: false,
-        isDiRuolo: false,
-        attuale: null as PlayerPerformance | null,
-        prossimo: null as PlayerPerformance | null,
-        turnoAttualeNumero: 1,
-        turnoProssimoNumero: 1,
-        lista: [] as Array<
-          PlayerPerformance & {
-            ordine: number;
-            isAttuale: boolean;
-            isProssimo: boolean;
-            isDiRuolo?: boolean;
-          }
-        >,
-      };
+  private shuffleIds(array: string[]): string[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
     }
-
-    if (isFisso) {
-      const fixedId =
-        rot?.portiereFissoBId ||
-        players.find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
-        )?.id ||
-        players[0]?.id;
-      const fixedPlayer = players.find((p) => p.id === fixedId) || players[0] || null;
-      const isDiRuolo =
-        (fixedPlayer as any)?.ruoloPreferito === RuoloPreferito.Portiere;
-
-      return {
-        isFisso: true,
-        isDiRuolo,
-        attuale: fixedPlayer,
-        prossimo: null as PlayerPerformance | null,
-        turnoAttualeNumero: 1,
-        turnoProssimoNumero: 1,
-        lista: fixedPlayer
-          ? [
-              {
-                ...fixedPlayer,
-                ordine: 1,
-                isAttuale: true,
-                isProssimo: false,
-                isDiRuolo,
-              },
-            ]
-          : [],
-      };
-    }
-
-    // Modalità a rotazione ciclica ogni 5 minuti
-    const ids = rot?.teamB || players.map((p) => p.id);
-    const turno = this.turnoAttualeIndex();
-    const currIdx = ids.length > 0 ? turno % ids.length : 0;
-    const nextIdx = ids.length > 0 ? (turno + 1) % ids.length : 0;
-
-    const findP = (id: string): PlayerPerformance | null =>
-      players.find((p) => p.id === id) || null;
-    const attuale = ids.length > 0 ? findP(ids[currIdx]) : null;
-    const prossimo = ids.length > 0 ? findP(ids[nextIdx]) : null;
-
-    const lista = ids
-      .map((id, idx) => {
-        const p = findP(id);
-        if (!p) return null;
-        return {
-          ...p,
-          ordine: idx + 1,
-          isAttuale: idx === currIdx,
-          isProssimo: idx === nextIdx,
-          isDiRuolo: (p as any).ruoloPreferito === RuoloPreferito.Portiere,
-        };
-      })
-      .filter(
-        (
-          item,
-        ): item is PlayerPerformance & {
-          ordine: number;
-          isAttuale: boolean;
-          isProssimo: boolean;
-          isDiRuolo: boolean;
-        } => item !== null,
-      );
-
-    return {
-      isFisso: false,
-      isDiRuolo: (attuale as any)?.ruoloPreferito === RuoloPreferito.Portiere,
-      attuale,
-      prossimo,
-      turnoAttualeNumero: currIdx + 1,
-      turnoProssimoNumero: nextIdx + 1,
-      lista,
-    };
-  });
+    return arr;
+  }
 
   impostaModalitaPortiere(team: 'A' | 'B', modalita: ModalitaPortiere) {
     const current = this.rotazionePortieri() || {
@@ -376,7 +305,7 @@ export class MatchStateService {
       let fissoId = current.portiereFissoAId;
       if (modalita === 'fisso' && !fissoId) {
         const pureGk = this.teamA().find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
         );
         fissoId = pureGk?.id || this.teamA()[0]?.id || null;
       }
@@ -389,7 +318,7 @@ export class MatchStateService {
       let fissoId = current.portiereFissoBId;
       if (modalita === 'fisso' && !fissoId) {
         const pureGk = this.teamB().find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
         );
         fissoId = pureGk?.id || this.teamB()[0]?.id || null;
       }
@@ -430,15 +359,6 @@ export class MatchStateService {
     const teamBIds = this.teamB().map((p) => p.id);
     if (teamAIds.length === 0 || teamBIds.length === 0) return;
 
-    const shuffle = (array: string[]) => {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    };
-
     const current = this.rotazionePortieri();
     const modalitaA: ModalitaPortiere = current?.modalitaA || 'rotazione';
     const modalitaB: ModalitaPortiere = current?.modalitaB || 'rotazione';
@@ -446,7 +366,7 @@ export class MatchStateService {
     const defaultFissoA =
       current?.portiereFissoAId ||
       this.teamA().find(
-        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
+        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
       )?.id ||
       teamAIds[0] ||
       null;
@@ -454,7 +374,7 @@ export class MatchStateService {
     const defaultFissoB =
       current?.portiereFissoBId ||
       this.teamB().find(
-        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
+        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
       )?.id ||
       teamBIds[0] ||
       null;
@@ -485,8 +405,8 @@ export class MatchStateService {
       modalitaB,
       portiereFissoAId: defaultFissoA,
       portiereFissoBId: defaultFissoB,
-      teamA: modalitaA === 'rotazione' ? shuffle(teamAIds) : teamAIds,
-      teamB: modalitaB === 'rotazione' ? shuffle(teamBIds) : teamBIds,
+      teamA: modalitaA === 'rotazione' ? this.shuffleIds(teamAIds) : teamAIds,
+      teamB: modalitaB === 'rotazione' ? this.shuffleIds(teamBIds) : teamBIds,
       durataTurnoMinuti: 5,
     };
     this.rotazionePortieri.set(nuovaRotazione);
@@ -501,24 +421,15 @@ export class MatchStateService {
       modalitaB: 'rotazione',
     };
 
-    const shuffle = (array: string[]) => {
-      const arr = [...array];
-      for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-      }
-      return arr;
-    };
-
     if (team === 'A') {
       this.rotazionePortieri.set({
         ...current,
-        teamA: shuffle(this.teamA().map((p) => p.id)),
+        teamA: this.shuffleIds(this.teamA().map((p) => p.id)),
       });
     } else {
       this.rotazionePortieri.set({
         ...current,
-        teamB: shuffle(this.teamB().map((p) => p.id)),
+        teamB: this.shuffleIds(this.teamB().map((p) => p.id)),
       });
     }
   }
@@ -532,8 +443,9 @@ export class MatchStateService {
       index1 >= list.length ||
       index2 < 0 ||
       index2 >= list.length
-    )
+    ) {
       return;
+    }
     const temp = list[index1];
     list[index1] = list[index2];
     list[index2] = temp;
@@ -542,6 +454,217 @@ export class MatchStateService {
     } else {
       this.rotazionePortieri.set({ ...current, teamB: list });
     }
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // AZIONI LIVE MATCH CENTRALIZZATE (TIMER, CAMBIO PORTIERE, GOL, UNDO)
+  // ──────────────────────────────────────────────────────────────────────
+
+  async setCambioPortiereAttivo(attivo: boolean): Promise<void> {
+    this.cambioAttivo.set(attivo);
+    const id = this.matchId();
+    if (!id) return;
+    try {
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        cambioAttivo: attivo,
+      });
+    } catch (err) {
+      console.warn('Errore aggiornamento stato cambio portiere:', err);
+    }
+  }
+
+  async toggleTimerState(): Promise<void> {
+    const id = this.matchId();
+    if (!id) return;
+
+    if (this.isTimerRunning()) {
+      const start = this.timerStartAt() || Date.now();
+      const diffSec = Math.floor((Date.now() - start) / 1000);
+      const nuovoAccumulo = this.accumulatedTime() + diffSec;
+
+      this.isTimerRunning.set(false);
+      this.accumulatedTime.set(nuovoAccumulo);
+      this.timerStartAt.set(null);
+      this.cronometro.set(nuovoAccumulo);
+
+      this.salvaSnapshotLocale();
+
+      try {
+        this.syncStatus.notifySyncPending();
+        await updateDoc(doc(this.firestore, `partite/${id}`), {
+          isTimerRunning: false,
+          accumulatedTime: nuovoAccumulo,
+          timerStartAt: null,
+          cronometro: nuovoAccumulo,
+        });
+        this.syncStatus.notifySyncSuccess();
+      } catch (err) {
+        console.warn('Errore sync timer online (salvato in locale):', err);
+        this.syncStatus.notifySyncError();
+      }
+    } else {
+      const startAt = Date.now();
+      this.isTimerRunning.set(true);
+      this.timerStartAt.set(startAt);
+
+      const payload: Record<string, unknown> = {
+        isTimerRunning: true,
+        timerStartAt: startAt,
+      };
+      const currentStatus = this.status();
+      if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
+        payload['status'] = 'in_corso';
+        this.status.set('in_corso');
+      }
+
+      this.salvaSnapshotLocale();
+
+      try {
+        this.syncStatus.notifySyncPending();
+        await updateDoc(doc(this.firestore, `partite/${id}`), payload);
+        this.syncStatus.notifySyncSuccess();
+      } catch (err) {
+        console.warn('Errore sync timer online (salvato in locale):', err);
+        this.syncStatus.notifySyncError();
+      }
+    }
+  }
+
+  async aggiungiGolPartita(
+    giocatore: PlayerPerformance,
+    teamVantaggio: 'A' | 'B',
+    isAutogoal: boolean,
+    assistMan: PlayerPerformance | null = null
+  ): Promise<{ evento: EventoGol; portiereSubitoNome: string | null }> {
+    const defendingTeam = teamVantaggio === 'A' ? 'B' : 'A';
+    const portiereInfo =
+      defendingTeam === 'A' ? this.portieriInfoA() : this.portieriInfoB();
+    const portiereSubito = portiereInfo?.attuale;
+
+    const nuovoEvento: EventoGol = {
+      idAssegnato: giocatore.id,
+      nome: giocatore.nome,
+      teamVantaggio,
+      isAutogoal,
+      tempo: this.formatTimer(),
+      assistId: assistMan ? assistMan.id : null,
+      assistNome: assistMan ? assistMan.nome : null,
+      portiereSubitoId: portiereSubito?.id || null,
+      portiereSubitoNome: portiereSubito?.nome || null,
+    };
+
+    this.eventiGol.update((list) => [...list, nuovoEvento]);
+
+    if (teamVantaggio === 'A') {
+      this.scoreA.update((s) => s + 1);
+    } else {
+      this.scoreB.update((s) => s + 1);
+    }
+
+    const updateScorer = <T extends { id: string; gol?: number; autogol?: number }>(
+      lista: T[]
+    ): T[] =>
+      lista.map((g) =>
+        g.id === giocatore.id
+          ? {
+              ...g,
+              gol: (g.gol || 0) + (isAutogoal ? 0 : 1),
+              autogol: (g.autogol || 0) + (isAutogoal ? 1 : 0),
+            }
+          : g
+      );
+
+    this.tutti.update((l) => updateScorer(l as any) as ConvocatoState[]);
+    this.teamA.update(updateScorer);
+    this.teamB.update(updateScorer);
+
+    if (assistMan && !isAutogoal) {
+      const updateAssist = <T extends { id: string; assist?: number }>(
+        lista: T[]
+      ): T[] =>
+        lista.map((g) =>
+          g.id === assistMan.id
+            ? {
+                ...g,
+                assist: (g.assist || 0) + 1,
+              }
+            : g
+        );
+
+      this.tutti.update((l) => updateAssist(l as any) as ConvocatoState[]);
+      this.teamA.update(updateAssist);
+      this.teamB.update(updateAssist);
+    }
+
+    await this.salvaInDatabase(false);
+
+    return {
+      evento: nuovoEvento,
+      portiereSubitoNome: portiereSubito?.nome || null,
+    };
+  }
+
+  async annullaUltimoGolSquadra(team: 'A' | 'B'): Promise<EventoGol | null> {
+    const list = this.eventiGol();
+    for (let i = list.length - 1; i >= 0; i--) {
+      if (list[i].teamVantaggio === team) {
+        const rimosso = list[i];
+        this.eventiGol.update((l) => l.filter((_, index) => index !== i));
+
+        if (team === 'A') {
+          this.scoreA.update((s) => Math.max(0, s - 1));
+        } else {
+          this.scoreB.update((s) => Math.max(0, s - 1));
+        }
+
+        const removeGol = <
+          T extends { id: string; gol?: number; autogol?: number },
+        >(
+          lista: T[]
+        ): T[] =>
+          lista.map((g) =>
+            g.id === rimosso.idAssegnato
+              ? {
+                  ...g,
+                  gol: Math.max(
+                    0,
+                    (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)
+                  ),
+                  autogol: Math.max(
+                    0,
+                    (g.autogol || 0) - (rimosso.isAutogoal ? 1 : 0)
+                  ),
+                }
+              : g
+          );
+
+        this.tutti.update((l) => removeGol(l as any) as ConvocatoState[]);
+        this.teamA.update(removeGol);
+        this.teamB.update(removeGol);
+
+        if (rimosso.assistId) {
+          const removeAssist = <T extends { id: string; assist?: number }>(
+            lista: T[]
+          ): T[] =>
+            lista.map((g) =>
+              g.id === rimosso.assistId
+                ? {
+                    ...g,
+                    assist: Math.max(0, (g.assist || 0) - 1),
+                  }
+                : g
+            );
+
+          this.tutti.update((l) => removeAssist(l as any) as ConvocatoState[]);
+          this.teamA.update(removeAssist);
+          this.teamB.update(removeAssist);
+        }
+
+        await this.salvaInDatabase(false);
+        return rimosso;
+      }
+    }
+    return null;
   }
 
   avviaAscoltoReale() {
@@ -557,6 +680,13 @@ export class MatchStateService {
           this.scoreB.set(data.scoreB || 0);
           this.eventiGol.set(data.eventiGol || []);
 
+          if (Array.isArray(data.teamA) && data.teamA.length > 0) {
+            this.teamA.set(data.teamA);
+          }
+          if (Array.isArray(data.teamB) && data.teamB.length > 0) {
+            this.teamB.set(data.teamB);
+          }
+
           this.isTimerRunning.set(data.isTimerRunning || false);
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
@@ -568,7 +698,7 @@ export class MatchStateService {
           this.pronosticoAi.set(data.pronosticoAi || null);
           this.cronacaAi.set(data.cronacaAi || null);
           this.commentoPartita.set(
-            data.commentoPartita || data.commento || '',
+            data.commentoPartita || data.commento || ''
           );
         }
       },
@@ -629,13 +759,11 @@ export class MatchStateService {
       const snap = JSON.parse(raw);
       if (!snap || typeof snap !== 'object') return false;
 
-      // Se il matchId corrisponde o se è una nuova partita (targetMatchId null / 'nuova')
       const isMatchingId =
         snap.matchId === targetMatchId ||
         (!targetMatchId && !snap.matchId) ||
         (targetMatchId === 'nuova' && !snap.matchId);
 
-      // Considera valido se salvato nelle ultime 24 ore e non concluso
       const isRecent = Date.now() - (snap.timestamp || 0) < 24 * 60 * 60 * 1000;
 
       if (isMatchingId && isRecent && !snap.matchConcluso) {
@@ -644,16 +772,25 @@ export class MatchStateService {
         if (typeof snap.scoreA === 'number') this.scoreA.set(snap.scoreA);
         if (typeof snap.scoreB === 'number') this.scoreB.set(snap.scoreB);
         if (Array.isArray(snap.eventiGol)) this.eventiGol.set(snap.eventiGol);
-        if (typeof snap.cronometro === 'number') this.cronometro.set(snap.cronometro);
-        if (typeof snap.accumulatedTime === 'number') this.accumulatedTime.set(snap.accumulatedTime);
-        if (typeof snap.timerStartAt !== 'undefined') this.timerStartAt.set(snap.timerStartAt);
-        if (typeof snap.isTimerRunning === 'boolean') this.isTimerRunning.set(snap.isTimerRunning);
-        if (snap.rotazionePortieri) this.rotazionePortieri.set(snap.rotazionePortieri);
+        if (typeof snap.cronometro === 'number')
+          this.cronometro.set(snap.cronometro);
+        if (typeof snap.accumulatedTime === 'number')
+          this.accumulatedTime.set(snap.accumulatedTime);
+        if (typeof snap.timerStartAt !== 'undefined')
+          this.timerStartAt.set(snap.timerStartAt);
+        if (typeof snap.isTimerRunning === 'boolean')
+          this.isTimerRunning.set(snap.isTimerRunning);
+        if (snap.rotazionePortieri)
+          this.rotazionePortieri.set(snap.rotazionePortieri);
         if (snap.step && snap.step !== 'convocati') this.step.set(snap.step);
         if (snap.status) this.status.set(snap.status);
-        if (snap.commentoPartita) this.commentoPartita.set(snap.commentoPartita);
+        if (snap.commentoPartita)
+          this.commentoPartita.set(snap.commentoPartita);
 
-        console.log('🔄 Snapshot locale ripristinato con successo per il match:', snap.matchId || 'nuova');
+        console.log(
+          '🔄 Snapshot locale ripristinato con successo per il match:',
+          snap.matchId || 'nuova'
+        );
         this.syncStatus.notifyLocalSave();
         return true;
       }
@@ -665,14 +802,14 @@ export class MatchStateService {
 
   async salvaInDatabase(
     pagelleInseriteFlag: boolean,
-    matchConclusoFlag: boolean = false,
+    matchConclusoFlag: boolean = false
   ) {
     if (
       !this.matchId() &&
       !isStagioneCorrente({ dataPartita: this.dataPartita() })
     ) {
       throw new Error(
-        `Non è possibile aggiungere partite della stagione non corrente. La nuova stagione è ${CURRENT_SEASON} (dal ${MIN_CURRENT_SEASON_DATE}).`,
+        `Non è possibile aggiungere partite della stagione non corrente. La nuova stagione è ${CURRENT_SEASON} (dal ${MIN_CURRENT_SEASON_DATE}).`
       );
     }
 
@@ -680,7 +817,6 @@ export class MatchStateService {
     this.pagelleInserite.set(pagelleInseriteFlag);
     this.matchConcluso.set(isConcluso);
 
-    // 1. SALVATAGGIO LOCALE IMMEDIATO (Safety net istantanea prima della chiamata di rete)
     this.salvaSnapshotLocale();
 
     const payload: any = {
@@ -715,7 +851,7 @@ export class MatchStateService {
       if (this.matchId()) {
         await updateDoc(
           doc(this.firestore, `partite/${this.matchId()}`),
-          payload,
+          payload
         );
       } else {
         const docRef = await addDoc(collection(this.firestore, 'partite'), {
@@ -724,20 +860,21 @@ export class MatchStateService {
           classificaAggiornata: false,
         });
         this.matchId.set(docRef.id);
-        this.salvaSnapshotLocale(); // Salva con l'id appena generato
+        this.salvaSnapshotLocale();
         this.avviaAscoltoReale();
       }
 
       this.syncStatus.notifySyncSuccess();
 
-      // Se la partita è conclusa, rimuovi lo snapshot attivo
       if (isConcluso) {
         this.rimuoviSnapshotLocale();
       }
     } catch (err) {
-      console.warn('Salvataggio Firestore non riuscito online (i dati rimangono comunque salvi in locale):', err);
+      console.warn(
+        'Salvataggio Firestore non riuscito online (i dati rimangono comunque salvi in locale):',
+        err
+      );
       this.syncStatus.notifySyncError();
-      // Non rilanciare errore durante la partita se offline per non bloccare l'UI
     }
   }
 
