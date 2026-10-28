@@ -14,3 +14,4 @@ Ogni volta che l'utente chiede di fare un **deploy** (`npm run deploy:dev` o `np
      - `"userChanges"`: array di stringhe con le novità utili/visibili ai **Giocatori (User semplice)**.
      - `"superUserChanges"`: array di stringhe con le novità tecniche, di gestione match o di Area Segreta dedicate al **Super User / Admin**.
 2. Subito dopo aver salvato `public/release-notes.json`, esegui `npm run deploy:dev` (o `npm run deploy:prod`), che lancerà `node scripts/bump-version.mjs` sincronizzando automaticamente `public/release-notes.json`, `public/version.json`, `src/environments/version.ts` e `src/app/models/release-notes.model.ts`.
+

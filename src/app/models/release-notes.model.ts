@@ -11,7 +11,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.6",
+    "version": "1.0.7",
     "date": "28/10/2026",
     "title": "Gestione Match Bordo Campo & Release Notes Automatiche",
     "userChanges": [
@@ -23,7 +23,8 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
       "Nuovo Cockpit 'Bordo Campo' in Gestione Match: cronometro compatto e tabellone punteggio gigante subito in primo piano senza dover scrollare.",
       "Gol Lampo 1-Tap con Foto: tocca direttamente la faccia del giocatore in campo per assegnare il gol e passare subito alla scelta dell'assist.",
       "Nuovo Selettore Visuale Gol & Assist con foto grandi a prova di pollice e maxi-bottone '⚡ Nessun Assist · Azione Personale'.",
-      "Corretto il layout mobile della sezione Rotazione Portieri (Sequenza Bianchi/Neri impilata senza tagli laterali) e rimosso il doppio badge di sincronizzazione."
+      "Corretto il layout mobile della sezione Rotazione Portieri (Sequenza Bianchi/Neri impilata senza tagli laterali) e rimosso il doppio badge di sincronizzazione.",
+      "Pipeline Release Notes JSON automatica sincronizzata ad ogni deploy."
     ]
   },
   {
