@@ -33,17 +33,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
-  Firestore,
+  // Firestore imported from @angular/fire/firestore
   collection,
-  collectionData,
+  // collectionData imported from @angular/fire/firestore
   doc,
   query,
   orderBy,
   deleteDoc,
-} from '@angular/fire/firestore';
-import { Storage, ref, deleteObject } from '@angular/fire/storage';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+} from 'firebase/firestore';
+import { Firestore, collectionData } from '@angular/fire/firestore';
+import { Storage } from '@angular/fire/storage';
+import { ref, deleteObject } from 'firebase/storage';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import {
   add,
@@ -177,6 +179,7 @@ export class PartitePage {
           return bt - at;
         });
       }),
+      catchError(() => of([] as any[])),
     ),
   );
 
@@ -250,11 +253,11 @@ export class PartitePage {
     );
   });
 
-  giocatori = toSignal<any[], any[]>(
+  giocatori = toSignal<any[], any[]>((
     collectionData(
       query(collection(this.firestore, 'giocatori'), orderBy('nome')),
       { idField: 'id' },
-    ) as Observable<any[]>,
+    ) as Observable<any[]>).pipe(catchError(() => of([] as any[]))),
     { initialValue: [] },
   );
 

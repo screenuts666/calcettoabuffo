@@ -174,7 +174,7 @@
     <!-- GIOCATORI SCHIERATI SULLA PIANTINA -->
     @if (hasEnoughPlayers()) {
       <div class="players-canvas">
-        @for (p of positionedPlayers(); track p.id) {
+        @for (p of positionedPlayers(); track (p.id || p.nome) + '_' + $index) {
           <div
             class="player-pin-token"
             [class.team-white]="p.team === 'A'"
@@ -196,6 +196,13 @@
 
               @if (p.isGoalkeeper) {
                 <span class="gk-icon-badge" title="Portiere in Porta">🧤</span>
+                @if (hasGkRotation(p.team)) {
+                  <span
+                    class="gk-cycle-badge"
+                    (click)="cycleGoalkeeper(p.team, $event)"
+                    title="Tocca per vedere il prossimo turno portiere"
+                  >🔄</span>
+                }
               }
             </div>
 
@@ -234,14 +241,45 @@
                 {{ sp.team === 'A' ? 'BIANCHI' : 'NERI' }}
               </span>
               <span class="role-tag">
-                {{ sp.isGoalkeeper ? '🧤 Portiere' : sp.originalPlayer.ruoloPreferito || 'Movimento' }}
+                {{ sp.isGoalkeeper ? '🧤 Portiere' : (sp.tacticalRoleDescription || sp.originalPlayer.ruoloPreferito || 'Movimento') }}
               </span>
+              @if (sp.originalPlayer.piedePreferito || sp.originalPlayer.piede) {
+                <span class="foot-tag">
+                  🦶 {{ sp.originalPlayer.piedePreferito || sp.originalPlayer.piede }}
+                </span>
+              }
             </div>
           </div>
           <button type="button" class="popup-close-btn" (click)="closePlayerModal($event)">
             <ion-icon name="close-circle"></ion-icon>
           </button>
         </div>
+
+        <!-- AZIONI ROTAZIONE PORTIERE -->
+        @if (hasGkRotation(sp.team)) {
+          <div class="popup-gk-actions">
+            @if (sp.isGoalkeeper) {
+              <button
+                type="button"
+                class="gk-action-btn"
+                (click)="cycleGoalkeeper(sp.team, $event)"
+                title="Passa al prossimo turno portiere"
+              >
+                <ion-icon name="sync-outline"></ion-icon>
+                <span>Prossimo Portiere Turno ({{ getGkTurnLabel(sp.team) }})</span>
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="gk-action-btn switch-in-goal"
+                (click)="setPlayerAsGoalkeeper(sp, $event)"
+                title="Metti questo giocatore in porta"
+              >
+                <span>🧤 Schiera in Porta</span>
+              </button>
+            }
+          </div>
+        }
 
         @if (sp.originalPlayer.voto) {
           <div class="popup-stat-row">

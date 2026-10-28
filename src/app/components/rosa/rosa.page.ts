@@ -29,15 +29,17 @@ import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
-  Firestore,
+  // Firestore imported from @angular/fire/firestore
   collection,
-  collectionData,
+  // collectionData imported from @angular/fire/firestore
   doc,
   deleteDoc,
   query,
   orderBy,
-} from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+} from 'firebase/firestore';
+import { Firestore, collectionData } from '@angular/fire/firestore';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { addIcons } from 'ionicons';
 import {
   add,
@@ -106,11 +108,11 @@ export class RosaPage {
 
   filtro = signal('');
 
-  tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>(
+  tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>((
     collectionData(
       query(collection(this.firestore, 'giocatori'), orderBy('nome')),
       { idField: 'id' },
-    ) as Observable<Giocatore[]>,
+    ) as Observable<Giocatore[]>).pipe(catchError(() => of([] as Giocatore[]))),
     { initialValue: [] },
   );
   giocatoriFiltrati = computed(() => {

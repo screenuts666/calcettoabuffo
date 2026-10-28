@@ -28,7 +28,7 @@ import {
   chevronUpOutline,
   shieldOutline,
 } from 'ionicons/icons';
-import { doc, updateDoc } from '@angular/fire/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { MatchStateService } from '../../match-state.service';
 import { EventoGol } from '../../../../../models/partita.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';

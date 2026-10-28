@@ -468,7 +468,8 @@ export class StepPrestazioniComponent {
       this.salvaVotoNelloStato(giocatore.id, 0);
       return;
     }
-    const v = Number(input.value);
+    const raw = input.value.trim().replace(',', '.');
+    const v = Number(raw);
     if (!isNaN(v)) {
       this.salvaVotoNelloStato(giocatore.id, v);
     }

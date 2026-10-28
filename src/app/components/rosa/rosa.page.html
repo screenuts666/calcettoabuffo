@@ -43,7 +43,7 @@
     </div>
     } @if (giocatoriFiltrati().length > 0) {
     <ion-list mode="ios" class="giocatori-list">
-      @for (g of giocatoriFiltrati(); track g.id) {
+      @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
       <ion-item-sliding #slidingItem>
         <ion-item lines="full" class="player-item" (click)="apriDettagliGiocatore(g)">
           <ion-avatar slot="start">

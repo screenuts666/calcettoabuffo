@@ -1,0 +1,1121 @@
+@use 'mixins' as *;
+
+.secret-toolbar {
+  --background: var(--app-card-bg);
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.secret-title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  font-weight: 800;
+
+  .shield-icon {
+    color: var(--ion-color-warning);
+    font-size: 1.1rem;
+  }
+}
+
+// ==========================================
+// NAVIGAZIONE 4 TAB A GRIGLIA FISSA MOBILE
+// ==========================================
+.secret-nav-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+  padding: 6px 10px;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-divider);
+}
+
+.nav-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 7px 4px;
+  border-radius: 9px;
+  border: 1px solid var(--app-card-border);
+  background: var(--app-card-bg);
+  color: var(--app-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.16s ease;
+
+  ion-icon {
+    font-size: 0.88rem;
+    flex-shrink: 0;
+  }
+
+  &.active {
+    background: var(--ion-color-warning);
+    border-color: var(--ion-color-warning);
+    color: #111;
+    font-weight: 800;
+  }
+}
+
+// ==========================================
+// BARRA FILTRO STAGIONE (SOLO GIOCATORI/PARTITE)
+// ==========================================
+.season-filter-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--app-card-bg);
+  border-bottom: 1px solid var(--app-divider);
+
+  .strip-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+  }
+
+  .season-chips {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .s-chip {
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--app-card-border);
+    background: var(--app-surface-subtle);
+    color: var(--app-text-secondary);
+    font-size: 0.73rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &.active {
+      border-color: var(--ion-color-success);
+      color: var(--ion-color-success);
+      background: rgba(34, 197, 94, 0.14);
+      font-weight: 800;
+    }
+  }
+}
+
+.secret-container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+// ==========================================
+// SCHEDA STATO STAGIONE & SIGILLO FIREBASE
+// ==========================================
+.season-config-status-card {
+  background: var(--app-card-bg);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-left: 4px solid #22c55e;
+  border-radius: 13px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &.sealed {
+    border-color: rgba(234, 179, 8, 0.45);
+    border-left-color: #eab308;
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.06), transparent);
+  }
+
+  .scs-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .scs-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    h4 {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+  }
+
+  .scs-badge {
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+
+    &.sealed {
+      background: rgba(234, 179, 8, 0.18);
+      color: #eab308;
+    }
+  }
+
+  .scs-cloud-badges {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+
+  .cloud-pill {
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    font-family: monospace;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-secondary);
+
+    &.synced {
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    &.draft {
+      color: #f97316;
+      border-color: rgba(249, 115, 22, 0.4);
+      background: rgba(249, 115, 22, 0.12);
+    }
+  }
+
+  .scs-desc {
+    margin: 0;
+    font-size: 0.71rem;
+    line-height: 1.38;
+    color: var(--app-text-secondary);
+  }
+}
+
+// ==========================================
+// SCHEDE MOTORE & PARAMETRI (MOBILE-FIRST)
+// ==========================================
+.engine-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 14px;
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  .head-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    .head-emoji {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+
+    p {
+      margin: 1px 0 0;
+      font-size: 0.7rem;
+      color: var(--app-text-secondary);
+    }
+  }
+
+  .mode-tag {
+    padding: 3px 7px;
+    border-radius: 7px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
+
+.formula-box {
+  background: var(--app-surface-subtle);
+  border: 1px dashed var(--app-card-border);
+  border-radius: 10px;
+  padding: 9px 10px;
+
+  .formula-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: var(--ion-color-warning);
+    margin-bottom: 5px;
+  }
+
+  code {
+    display: block;
+    font-family: monospace;
+    font-size: 0.73rem;
+    color: var(--app-text-primary);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  .formula-note {
+    margin-top: 5px;
+    font-size: 0.68rem;
+    color: var(--app-text-secondary);
+
+    code {
+      display: inline;
+      font-size: 0.68rem;
+    }
+  }
+
+  .formula-steps {
+    margin: 0;
+    padding-left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.72rem;
+    color: var(--app-text-secondary);
+
+    strong {
+      color: var(--app-text-primary);
+    }
+
+    code {
+      display: inline;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+    }
+  }
+}
+
+// 2 colonne fisse su mobile, di più su tablet/desktop
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+
+  @media (min-width: 680px) {
+    grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+  }
+}
+
+.param-item {
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 10px;
+  padding: 8px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  .p-name {
+    font-size: 0.73rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .p-code {
+    font-family: monospace;
+    font-size: 0.62rem;
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .p-view-value {
+    margin-top: 2px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-primary);
+    font-size: 0.84rem;
+    font-weight: 800;
+  }
+
+  .p-input {
+    margin-top: 2px;
+    width: 100%;
+    padding: 5px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--ion-color-warning);
+    background: var(--app-card-bg);
+    color: var(--app-text-primary);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .dual-inputs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .p-unit {
+    font-size: 0.64rem;
+    color: var(--app-text-secondary);
+  }
+}
+
+.lookup-tables-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.lookup-box {
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 10px;
+  padding: 9px;
+
+  h4 {
+    margin: 0 0 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+  }
+}
+
+.mini-table {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.72rem;
+
+  .mt-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 7px;
+    border-radius: 6px;
+    background: var(--app-card-bg);
+  }
+}
+
+.tiers-audit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+.tier-audit-pill {
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 9px;
+  padding: 7px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  .t-badge {
+    font-size: 0.78rem;
+    font-weight: 800;
+  }
+
+  .t-range {
+    font-size: 0.67rem;
+    color: var(--app-text-secondary);
+  }
+}
+
+.gatekeeper-rules-box {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 10px;
+  padding: 9px 10px;
+
+  h4 {
+    margin: 0 0 7px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #ef4444;
+  }
+
+  .gk-conditions-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .gk-cond {
+    background: var(--app-card-bg);
+    border-radius: 8px;
+    padding: 7px 9px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    .c-num {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--app-text-secondary);
+    }
+
+    strong {
+      font-size: 0.78rem;
+      color: var(--app-text-primary);
+    }
+
+    small {
+      font-size: 0.66rem;
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+.extra-rules-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .extra-rule-card {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 10px;
+    padding: 9px 10px;
+
+    h5 {
+      margin: 0 0 5px;
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 15px;
+      font-size: 0.71rem;
+      color: var(--app-text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+  }
+}
+
+// ==========================================
+// BANNER SUPER-LOCK (IN FONDO ALLE REGOLE)
+// ==========================================
+.security-banner {
+  background: var(--app-card-bg);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-left: 4px solid #ef4444;
+  border-radius: 12px;
+  padding: 10px 12px;
+
+  &.unlocked {
+    border-color: rgba(34, 197, 94, 0.4);
+    border-left-color: #22c55e;
+  }
+
+  .sec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .sec-level-tag {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+
+    &.lvl-2.closed {
+      background: rgba(239, 68, 68, 0.14);
+      color: #ef4444;
+    }
+
+    &.lvl-2.open {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+  }
+
+  .sec-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+
+    @media (min-width: 520px) {
+      width: auto;
+    }
+  }
+
+  .sec-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 7px 11px;
+    border-radius: 8px;
+    font-size: 0.74rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+
+    &.unlock {
+      background: var(--ion-color-warning);
+      color: #111;
+    }
+
+    &.lock {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    &.reset {
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+      color: var(--app-text-primary);
+    }
+
+    &.save-cloud {
+      background: #22c55e;
+      color: #0b1911;
+    }
+
+    &.seal {
+      background: rgba(234, 179, 8, 0.18);
+      border: 1px solid rgba(234, 179, 8, 0.45);
+      color: #eab308;
+    }
+  }
+
+  .sec-desc {
+    margin: 0;
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--app-text-secondary);
+  }
+}
+
+// ==========================================
+// RAGGI X GIOCATORI & AUDIT PARTITE (MOBILE)
+// ==========================================
+.search-bar-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 11px;
+  padding: 8px 11px;
+
+  input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--app-text-primary);
+    font-size: 0.82rem;
+    outline: none;
+  }
+
+  .clear-btn {
+    border: none;
+    background: transparent;
+    color: var(--app-text-secondary);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+  }
+}
+
+.xray-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xray-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 12px;
+  overflow: hidden;
+
+  &.expanded {
+    border-color: var(--ion-color-warning);
+  }
+}
+
+.xray-header {
+  padding: 9px 10px;
+  cursor: pointer;
+
+  .xh-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .xh-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  .xh-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--app-card-border);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .match-date-badge {
+    padding: 5px 7px;
+    border-radius: 7px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    font-size: 0.68rem;
+    font-weight: 800;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .xh-title-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+
+    .xh-name-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+      font-size: 0.82rem;
+
+      strong {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    .xh-tier {
+      font-size: 0.68rem;
+      font-weight: 800;
+    }
+
+    .xh-sub {
+      font-size: 0.67rem;
+      color: var(--app-text-secondary);
+      line-height: 1.25;
+    }
+  }
+
+  .xh-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .xh-metric {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      .m-val {
+        font-size: 0.85rem;
+        font-weight: 800;
+      }
+
+      .m-lbl {
+        font-size: 0.58rem;
+        font-weight: 700;
+        color: var(--app-text-secondary);
+      }
+    }
+
+    .exp-icon {
+      font-size: 0.95rem;
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+.xray-body {
+  border-top: 1px solid var(--app-divider);
+  padding: 9px 10px;
+  background: var(--app-surface-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.calc-section {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 10px;
+  padding: 9px 10px;
+
+  &.two-cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+
+    @media (min-width: 600px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .cs-title {
+    font-size: 0.74rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    color: var(--ion-color-warning);
+  }
+
+  .mini-audit-box p {
+    margin: 3px 0;
+    font-size: 0.71rem;
+    color: var(--app-text-secondary);
+    word-break: break-word;
+  }
+}
+
+// Griglia compatta a 2 colonne per scomposizione Punti Legacy
+.legacy-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lb-box {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 7px;
+    padding: 5px 7px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    font-size: 0.69rem;
+
+    span {
+      color: var(--app-text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    strong {
+      font-size: 0.76rem;
+      flex-shrink: 0;
+    }
+
+    &.total {
+      grid-column: span 2;
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.4);
+
+      span,
+      strong {
+        color: #22c55e;
+        font-weight: 800;
+      }
+    }
+  }
+}
+
+.mmr-audit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+
+  .mmr-stat-box {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 8px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    span {
+      font-size: 0.65rem;
+      color: var(--app-text-secondary);
+    }
+
+    strong {
+      font-size: 0.8rem;
+    }
+
+    small {
+      font-size: 0.62rem;
+      color: var(--app-text-secondary);
+      line-height: 1.25;
+    }
+  }
+}
+
+.fenomeno-diagnostic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  .fd-chip {
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    font-size: 0.67rem;
+    font-weight: 700;
+
+    &.ok {
+      background: rgba(34, 197, 94, 0.14);
+      color: #22c55e;
+    }
+  }
+}
+
+.match-math-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 8px;
+  padding: 7px 9px;
+  font-size: 0.7rem;
+  color: var(--app-text-secondary);
+
+  b {
+    color: var(--app-text-primary);
+  }
+}
+
+// ==========================================
+// LISTA CARDS AUDIT PARTITA MOBILE (NO SCROLL ORIZZ.)
+// ==========================================
+.mobile-match-audit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.m-audit-item {
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 8px;
+  padding: 7px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  .mai-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 0.75rem;
+  }
+
+  .mai-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+
+    .mai-date {
+      font-weight: 700;
+      font-size: 0.71rem;
+    }
+
+    .mai-prob {
+      font-size: 0.66rem;
+      color: var(--app-text-secondary);
+    }
+  }
+
+  .mai-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+
+    .mai-mmr {
+      font-weight: 800;
+      font-size: 0.75rem;
+
+      small {
+        font-weight: 600;
+        color: var(--app-text-secondary);
+      }
+    }
+
+    .mai-legacy {
+      font-weight: 800;
+      font-size: 0.74rem;
+      color: var(--ion-color-warning);
+    }
+  }
+
+  .mai-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .mp-chip {
+    padding: 2px 6px;
+    border-radius: 5px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+
+    &.warn {
+      color: #eab308;
+      border-color: rgba(234, 179, 8, 0.35);
+    }
+
+    &.legacy-chip {
+      color: var(--ion-color-warning);
+      border-color: rgba(234, 179, 8, 0.3);
+    }
+  }
+}
+
+.res-badge {
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-weight: 800;
+  font-size: 0.66rem;
+
+  &[data-res='W'] {
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+  }
+  &[data-res='L'] {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+  }
+  &[data-res='D'] {
+    background: rgba(161, 161, 170, 0.2);
+    color: var(--app-text-secondary);
+  }
+}
+
+.sim-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+  margin-top: 4px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sim-result-box {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    h4 {
+      margin: 0 0 4px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .sim-step-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.73rem;
+      color: var(--app-text-secondary);
+    }
+
+    .sim-total-row {
+      margin-top: 4px;
+      padding-top: 6px;
+      border-top: 1px dashed var(--app-card-border);
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+.pos {
+  color: #22c55e !important;
+}
+
+.neg {
+  color: #ef4444 !important;
+}

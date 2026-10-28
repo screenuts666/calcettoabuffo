@@ -26,7 +26,7 @@
         </div>
 
         <div class="avatars-cluster-wrap left-wing">
-          @for (p of visibleTeamA(); track p?.id || p?.nome || $index; let idx = $index) {
+          @for (p of visibleTeamA(); track (p?.id || p?.nome || '') + '_' + $index; let idx = $index) {
             <div
               class="avatar-token-wrap"
               [style.z-index]="10 - idx"
@@ -73,7 +73,7 @@
         </div>
 
         <div class="avatars-cluster-wrap right-wing">
-          @for (p of visibleTeamB(); track p?.id || p?.nome || $index; let idx = $index) {
+          @for (p of visibleTeamB(); track (p?.id || p?.nome || '') + '_' + $index; let idx = $index) {
             <div
               class="avatar-token-wrap"
               [style.z-index]="10 - idx"
@@ -104,7 +104,7 @@
       </div>
 
       <div class="convocati-avatars-row">
-        @for (p of visibleConvocati(); track p?.id || p?.nome || $index; let idx = $index) {
+        @for (p of visibleConvocati(); track (p?.id || p?.nome || '') + '_' + $index; let idx = $index) {
           <div class="avatar-token-wrap" [style.z-index]="15 - idx" [title]="p?.nome || 'Giocatore'">
             <app-player-avatar
               [fotoUrl]="p?.fotoUrl || p?.foto"

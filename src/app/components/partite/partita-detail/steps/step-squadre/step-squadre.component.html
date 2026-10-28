@@ -70,7 +70,7 @@
   class="selected-avatars-grid"
   style="border-bottom: none; min-height: 100px"
 >
-  @for (g of state.teamA(); track g.id) {
+  @for (g of state.teamA(); track (g.id || g.nome) + '_' + $index) {
     <div class="avatar-item" (click)="spostaIn(g, 'B')" title="Tocca per spostare in Neri">
       <div class="avatar-wrapper" [class.is-fixed-gk]="isPortiereFisso('A', g.id)" [class.is-pure-gk]="isDiRuolo(g)">
         <ion-avatar>
@@ -137,7 +137,7 @@
   class="selected-avatars-grid"
   style="border-bottom: none; min-height: 100px"
 >
-  @for (g of state.teamB(); track g.id) {
+  @for (g of state.teamB(); track (g.id || g.nome) + '_' + $index) {
     <div class="avatar-item" (click)="spostaIn(g, 'A')" title="Tocca per spostare in Bianchi">
       <div class="avatar-wrapper" [class.is-fixed-gk]="isPortiereFisso('B', g.id)" [class.is-pure-gk]="isDiRuolo(g)">
         <ion-avatar>

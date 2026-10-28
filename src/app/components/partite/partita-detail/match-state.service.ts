@@ -1,13 +1,12 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { EnvironmentInjector, Injectable, inject, runInInjectionContext, signal, computed } from '@angular/core';
+import { Firestore, docData } from '@angular/fire/firestore';
 import {
-  Firestore,
   collection,
   addDoc,
   doc,
   updateDoc,
   serverTimestamp,
-  docData,
-} from '@angular/fire/firestore';
+} from 'firebase/firestore';
 import { Subscription } from 'rxjs';
 import { TMatchStatus } from '../../../models/match-status.type';
 import {
@@ -35,6 +34,7 @@ export const LOCAL_STORAGE_MATCH_KEY = 'calcettoabbuffo_active_match';
 export class MatchStateService {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
+  private injector = inject(EnvironmentInjector);
 
   matchId = signal<string | null>(null);
   matchDataOriginale: MatchDetailState | null = null;
@@ -549,24 +549,30 @@ export class MatchStateService {
 
     const docRef = doc(this.firestore, `partite/${this.matchId()}`);
 
-    this.matchSub = docData(docRef).subscribe((data: any) => {
-      if (data) {
-        this.scoreA.set(data.scoreA || 0);
-        this.scoreB.set(data.scoreB || 0);
-        this.eventiGol.set(data.eventiGol || []);
+    const doc$ = runInInjectionContext(this.injector, () => docData(docRef));
+    this.matchSub = doc$.subscribe({
+      next: (data: any) => {
+        if (data) {
+          this.scoreA.set(data.scoreA || 0);
+          this.scoreB.set(data.scoreB || 0);
+          this.eventiGol.set(data.eventiGol || []);
 
-        this.isTimerRunning.set(data.isTimerRunning || false);
-        this.accumulatedTime.set(data.accumulatedTime || 0);
-        this.timerStartAt.set(data.timerStartAt || null);
-        this.status.set(data.status || 'da_definire');
-        this.cambioAttivo.set(data.cambioAttivo || false);
-        this.rotazionePortieri.set(data.rotazionePortieri || null);
-        this.fotoUrl.set(data.fotoUrl || null);
-        this.fotoPath.set(data.fotoPath || null);
-        this.pronosticoAi.set(data.pronosticoAi || null);
-        this.cronacaAi.set(data.cronacaAi || null);
-        this.commentoPartita.set(data.commentoPartita || data.commento || '');
-      }
+          this.isTimerRunning.set(data.isTimerRunning || false);
+          this.accumulatedTime.set(data.accumulatedTime || 0);
+          this.timerStartAt.set(data.timerStartAt || null);
+          this.status.set(data.status || 'da_definire');
+          this.cambioAttivo.set(data.cambioAttivo || false);
+          this.rotazionePortieri.set(data.rotazionePortieri || null);
+          this.fotoUrl.set(data.fotoUrl || null);
+          this.fotoPath.set(data.fotoPath || null);
+          this.pronosticoAi.set(data.pronosticoAi || null);
+          this.cronacaAi.set(data.cronacaAi || null);
+          this.commentoPartita.set(
+            data.commentoPartita || data.commento || '',
+          );
+        }
+      },
+      error: (err) => console.warn('Errore ascolto partita:', err),
     });
   }
 

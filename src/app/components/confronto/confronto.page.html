@@ -15,7 +15,7 @@
 
   <!-- SELETTORE STAGIONE -->
   <div class="season-filter-bar">
-    @for (stg of stagioniDisponibili(); track stg.id) {
+    @for (stg of stagioniDisponibili(); track (stg.id || '') + '_' + $index) {
       <button
         type="button"
         class="season-pill"
@@ -312,7 +312,7 @@
         <!-- DETTAGLIO ULTIME PARTITE CONTRO -->
         <div class="matches-history-list">
           <span class="history-title">Cronologia precedenti:</span>
-          @for (m of comp.scontriContro.matches; track m.id) {
+          @for (m of comp.scontriContro.matches; track (m.id || '') + '_' + $index) {
             <div class="history-match-item">
               <span class="match-date">{{ m.data }}</span>
               <div class="match-score-pill">
@@ -515,7 +515,7 @@
       </div>
 
       <div class="metrics-list">
-        @for (m of comp.metrics; track m.id) {
+        @for (m of comp.metrics; track (m.id || '') + '_' + $index) {
           <div class="metric-row">
             <!-- TITOLO METRICA -->
             <div class="metric-title-bar">
@@ -599,7 +599,7 @@
         ></ion-searchbar>
 
         <div class="picker-players-list">
-          @for (g of giocatoriFiltrati(); track g.id) {
+          @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
             <div class="picker-player-item" (click)="selezionaGiocatore(g)">
               <ion-avatar class="picker-avatar">
                 <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>

@@ -4,7 +4,7 @@
   <div class="convocati-summary-card ion-margin-bottom" (click)="tornaAConvocati()" title="Tocca per modificare i convocati">
     <div class="summary-left">
       <div class="avatars-overlap-row">
-        @for (g of state.convocati().slice(0, 5); track g.id) {
+        @for (g of state.convocati().slice(0, 5); track (g.id || g.nome) + '_' + $index) {
           <div class="overlap-avatar">
             <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
           </div>
@@ -180,13 +180,13 @@
     </div>
   </div>
 
-  <!-- 4. SEZIONE RETROSCENA PABLO AI (OPZIONALE) -->
+  <!-- 4. SEZIONE RETROSCENA SPOGLIATOIO AI (OPZIONALE) -->
   <div class="details-section-card ai-notes-section ion-margin-bottom">
     <div class="section-card-header">
       <span class="section-icon">🎙️</span>
       <div class="section-header-text">
         <div class="title-with-badge">
-          <h3 class="section-title">Retroscena Pablo AI</h3>
+          <h3 class="section-title">Retroscena Spogliatoio AI</h3>
           <span class="optional-badge">Opzionale</span>
         </div>
         <span class="section-sub">Dettagli o clima usati dall'AI per pagelle e commenti</span>

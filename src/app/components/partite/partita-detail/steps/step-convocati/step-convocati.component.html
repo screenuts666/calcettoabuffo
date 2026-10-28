@@ -17,7 +17,7 @@
 
   @if (state.convocati().length > 0) {
     <div class="selected-players-scroll">
-      @for (g of state.convocati(); track g.id) {
+      @for (g of state.convocati(); track (g.id || g.nome) + '_' + $index) {
         <div class="selected-chip">
           <div class="avatar-wrapper">
             <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
@@ -32,7 +32,7 @@
   }
 
   <ion-list mode="ios" class="giocatori-list">
-    @for (g of state.giocatoriFiltrati(); track g.id) {
+    @for (g of state.giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
       <ion-item (click)="toggleSelezione(g)" lines="full" class="player-item">
         <ion-avatar slot="start">
           <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>

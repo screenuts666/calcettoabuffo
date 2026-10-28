@@ -1,11 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  Firestore,
+  // Firestore imported from @angular/fire/firestore
   doc,
   getDoc,
   setDoc,
   updateDoc,
-} from '@angular/fire/firestore';
+} from 'firebase/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import { Partita } from '../models/partita.model';
 import { Giocatore } from '../models/giocatore.model';
 import { MatchReportData } from '../models/mmr.model';
@@ -39,10 +40,10 @@ export class GeminiService {
   // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
   private readonly MODELS = [
     'gemini-flash-lite-latest',
-    'gemini-3.5-flash-lite',
-    'gemini-3-flash-preview',
-    'gemini-3.5-flash',
+    'gemini-2.5-flash-lite',
     'gemini-2.5-flash',
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
   ];
 
   /**
@@ -157,7 +158,17 @@ export class GeminiService {
         });
 
         if (response.ok) {
-          const json = await response.json();
+          const rawText = await response.text();
+          const lowerRaw = rawText.toLowerCase();
+          if (
+            lowerRaw.includes('zscaler') ||
+            lowerRaw.includes('not permitted to visit this site') ||
+            lowerRaw.includes('category: gen ai') ||
+            lowerRaw.trim().startsWith('<!doctype html')
+          ) {
+            throw new Error('ZSCALER_CORPORATE_PROXY_BLOCK');
+          }
+          const json = JSON.parse(rawText);
           const candidate = json.candidates?.[0];
           const text = candidate?.content?.parts?.[0]?.text;
           const finishReason = candidate?.finishReason;
@@ -174,11 +185,21 @@ export class GeminiService {
           }
         } else {
           const errTxt = await response.text();
+          const lowerErr = errTxt.toLowerCase();
+          if (
+            lowerErr.includes('zscaler') ||
+            lowerErr.includes('not permitted to visit this site') ||
+            lowerErr.includes('category: gen ai')
+          ) {
+            throw new Error('ZSCALER_CORPORATE_PROXY_BLOCK');
+          }
           console.info(`Modello ${model} non disponibile (${response.status}), passaggio al fallback...`);
           lastError = new Error(`Errore API Gemini (${response.status}): ${errTxt}`);
-          // Continua il loop e tenta il modello successivo di fallback
         }
       } catch (err: any) {
+        if (err?.message === 'ZSCALER_CORPORATE_PROXY_BLOCK') {
+          throw err;
+        }
         console.info(`Tentativo chiamata modello ${model} fallito, passaggio al fallback:`, err?.message || err);
         lastError = err;
       }

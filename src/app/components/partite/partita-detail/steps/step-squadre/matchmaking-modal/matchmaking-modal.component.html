@@ -21,7 +21,7 @@
       <!-- SELETTORE PROPOSTE -->
       @if (proposals.length > 1) {
         <div class="proposals-tabs">
-          @for (p of proposals; track p.id; let idx = $index) {
+          @for (p of proposals; track (p.id || '') + '_' + $index; let idx = $index) {
             <button
               class="tab-btn"
               [class.active]="selectedIndex() === idx"
@@ -168,7 +168,7 @@
             </div>
 
             <div class="players-list">
-              @for (g of p.teamA; track g.id) {
+              @for (g of p.teamA; track (g.id || g.nome) + '_' + $index) {
                 <div class="player-row">
                   <div class="player-avatar-box">
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome" class="avatar-img"></app-player-avatar>
@@ -219,7 +219,7 @@
             </div>
 
             <div class="players-list">
-              @for (g of p.teamB; track g.id) {
+              @for (g of p.teamB; track (g.id || g.nome) + '_' + $index) {
                 <div class="player-row">
                   <div class="player-avatar-box">
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome" class="avatar-img"></app-player-avatar>
@@ -269,7 +269,7 @@
 
           @if (p.synergies && p.synergies.length > 0) {
             <div class="synergies-grid">
-              @for (syn of p.synergies; track syn.player1Name + syn.player2Name) {
+              @for (syn of p.synergies; track (syn.player1Name || '') + '_' + (syn.player2Name || '') + '_' + $index) {
                 <div class="synergy-card" [class.synergy-bianchi]="syn.team === 'A'" [class.synergy-neri]="syn.team === 'B'">
                   <div class="synergy-header">
                     <span class="team-pill" [class.pill-bianchi]="syn.team === 'A'" [class.pill-neri]="syn.team === 'B'">

@@ -1,0 +1,1189 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="secret-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/classifica" text=""></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>
+      <div class="secret-title-wrap">
+        <ion-icon name="shield-checkmark" class="shield-icon"></ion-icon>
+        <span>Area Segreta · Motore</span>
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <app-theme-toggle></app-theme-toggle>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- BARRA DI NAVIGAZIONE MOBILE-FIRST A 4 COLONNE FISSE (ZERO SCROLL ORIZZONTALE) -->
+  <div class="secret-nav-bar">
+    <button
+      type="button"
+      class="nav-pill"
+      [class.active]="activeTab() === 'parametri'"
+      (click)="setTab('parametri')"
+    >
+      <ion-icon name="construct"></ion-icon>
+      <span>Regole</span>
+    </button>
+    <button
+      type="button"
+      class="nav-pill"
+      [class.active]="activeTab() === 'giocatori'"
+      (click)="setTab('giocatori')"
+    >
+      <ion-icon name="people"></ion-icon>
+      <span>Giocatori</span>
+    </button>
+    <button
+      type="button"
+      class="nav-pill"
+      [class.active]="activeTab() === 'partite'"
+      (click)="setTab('partite')"
+    >
+      <ion-icon name="football"></ion-icon>
+      <span>Partite</span>
+    </button>
+    <button
+      type="button"
+      class="nav-pill"
+      [class.active]="activeTab() === 'simulatore'"
+      (click)="setTab('simulatore')"
+    >
+      <ion-icon name="flask"></ion-icon>
+      <span>Simula</span>
+    </button>
+  </div>
+
+  <!-- SELETTORE STAGIONE PER PARAMETRI FIREBASE (TAB REGOLE) -->
+  @if (activeTab() === 'parametri') {
+    <div class="season-filter-strip">
+      <span class="strip-label">Regolamento Stagione:</span>
+      <div class="season-chips">
+        @for (stg of stagioniSingoleList(); track (stg.id || '') + '_' + $index) {
+          @let cfg = getEffectiveSeasonConfig(stg.id);
+          <button
+            type="button"
+            class="s-chip"
+            [class.active]="regoleStagione() === stg.id"
+            [class.locked-chip]="cfg.isSeasonLocked"
+            (click)="setRegoleStagione(stg.id)"
+            [title]="stg.label"
+          >
+            {{ cfg.isSeasonLocked ? '🔒' : '⚡' }} {{ stg.shortLabel }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- FILTRO STORICO PER RAGGI X GIOCATORI E AUDIT PARTITE -->
+  @if (activeTab() === 'giocatori' || activeTab() === 'partite') {
+    <div class="season-filter-strip">
+      <span class="strip-label">Filtra Storico:</span>
+      <div class="season-chips">
+        @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
+          <button
+            type="button"
+            class="s-chip"
+            [class.active]="stagioneSelezionata() === stg.id"
+            (click)="setStagione(stg.id)"
+            [title]="stg.label"
+          >
+            {{ stg.shortLabel }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</ion-header>
+
+<ion-content class="secret-content">
+  @if (!isAdmin()) {
+    <div class="unauthorized-box ion-padding">
+      <ion-icon name="warning" color="danger"></ion-icon>
+      <h3>Accesso Riservato</h3>
+      <p>Questa sezione è visibile solo in modalità Super User.</p>
+      <ion-button (click)="tornaAllaClassifica()">Torna alla Classifica</ion-button>
+    </div>
+  } @else {
+    <div class="secret-container">
+      <!-- =================================================================== -->
+      <!-- TAB 1: REGOLE, FORMULE & PARAMETRI STAGIONALI FIREBASE              -->
+      <!-- =================================================================== -->
+      @if (activeTab() === 'parametri') {
+        @let sb = sandboxParams();
+        @let ov = seasonOverview();
+
+        <!-- SCHEDA STATO STAGIONE & SIGILLO STORICO FIREBASE -->
+        <div class="season-config-status-card" [class.sealed]="sb.isSeasonLocked">
+          <div class="scs-top">
+            <div class="scs-title-group">
+              <span class="scs-badge" [class.sealed]="sb.isSeasonLocked">
+                {{ sb.isSeasonLocked ? '🔒 STAGIONE SIGILLATA' : '⚡ STAGIONE ATTIVA' }}
+              </span>
+              <h4>Regolamento {{ sb.seasonId }}</h4>
+            </div>
+
+            <div class="scs-cloud-badges">
+              @if (hasUnsavedDraft()) {
+                <span class="cloud-pill draft">✏️ Bozza non salvata</span>
+              } @else if (isCurrentRegoleSavedInFirebase()) {
+                <span class="cloud-pill synced">☁️ Firebase: stagioni/{{ sb.docId }}</span>
+              } @else {
+                <span class="cloud-pill default">📦 Valori Ufficiali ({{ sb.docId }})</span>
+              }
+            </div>
+          </div>
+
+          <p class="scs-desc">
+            @if (sb.isSeasonLocked) {
+              La stagione <strong>{{ sb.seasonId }}</strong> è conclusa e congelata: qualsiasi modifica futura ai parametri della nuova stagione <strong>non cambierà mai</strong> la classifica storica del {{ sb.seasonId }}.
+            } @else {
+              Stai consultando i parametri della stagione <strong>{{ sb.seasonId }}</strong>. Salvandoli su Firebase varranno solo per le partite del {{ sb.seasonId }} senza alterare le stagioni passate.
+            }
+          </p>
+        </div>
+
+        <!-- SEZIONE 1: CALCOLO PUNTI CLASSICI (LEGACY CAMPIONATO) -->
+        <div class="engine-card">
+          <div class="card-head">
+            <div class="head-title">
+              <span class="head-emoji">🏆</span>
+              <div>
+                <h3>1. Punti Classici (Legacy)</h3>
+                <p>Pesi per-stagione ({{ sb.seasonId }}) della classifica punti</p>
+              </div>
+            </div>
+            <span class="mode-tag">{{ sb.seasonId }}</span>
+          </div>
+
+          <div class="formula-box">
+            <div class="formula-label">FORMULA SINGOLA PARTITA ({{ sb.seasonId }}):</div>
+            <code>
+              Punti = Presenza (+{{ sb.legacyPresenza }}) + Esito (+{{ sb.legacyVittoria }}V / +{{ sb.legacyPareggio }}P / {{ sb.legacySconfitta }}S) + (Gol × {{ sb.legacyGol }}) + (Autogol × {{ sb.legacyAutogol }}) + (Assist × {{ sb.legacyAssist }}) + (Voto × {{ sb.legacyPesoVoto }})
+            </code>
+            <div class="formula-note">
+              Arrotondato al decimo (<code>round(pt * 10) / 10</code>) sulle partite con pagelle inserite.
+            </div>
+          </div>
+
+          <div class="params-grid">
+            <div class="param-item">
+              <span class="p-name">Presenza</span>
+              <span class="p-code">legacyPresenza</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.legacyPresenza"
+                  (ngModelChange)="updateSandboxField('legacyPresenza', $event)"
+                />
+              } @else {
+                <div class="p-view-value pos">+{{ sb.legacyPresenza }}</div>
+              }
+              <span class="p-unit">pt a presenza</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Vittoria</span>
+              <span class="p-code">legacyVittoria</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.legacyVittoria"
+                  (ngModelChange)="updateSandboxField('legacyVittoria', $event)"
+                />
+              } @else {
+                <div class="p-view-value pos">+{{ sb.legacyVittoria }}</div>
+              }
+              <span class="p-unit">pt vittoria</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Pareggio</span>
+              <span class="p-code">legacyPareggio</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.legacyPareggio"
+                  (ngModelChange)="updateSandboxField('legacyPareggio', $event)"
+                />
+              } @else {
+                <div class="p-view-value pos">+{{ sb.legacyPareggio }}</div>
+              }
+              <span class="p-unit">pt pareggio</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Gol Fatto</span>
+              <span class="p-code">legacyGol</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.legacyGol"
+                  (ngModelChange)="updateSandboxField('legacyGol', $event)"
+                />
+              } @else {
+                <div class="p-view-value pos">+{{ sb.legacyGol }}</div>
+              }
+              <span class="p-unit">pt per gol</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Autogol</span>
+              <span class="p-code">legacyAutogol</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.legacyAutogol"
+                  (ngModelChange)="updateSandboxField('legacyAutogol', $event)"
+                />
+              } @else {
+                <div class="p-view-value neg">{{ sb.legacyAutogol }}</div>
+              }
+              <span class="p-unit">pt autogol</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Assist</span>
+              <span class="p-code">legacyAssist</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.1"
+                  class="p-input"
+                  [ngModel]="sb.legacyAssist"
+                  (ngModelChange)="updateSandboxField('legacyAssist', $event)"
+                />
+              } @else {
+                <div class="p-view-value pos">+{{ sb.legacyAssist }}</div>
+              }
+              <span class="p-unit">pt per assist</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Peso Voto</span>
+              <span class="p-code">legacyPesoVoto</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.1"
+                  class="p-input"
+                  [ngModel]="sb.legacyPesoVoto"
+                  (ngModelChange)="updateSandboxField('legacyPesoVoto', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.legacyPesoVoto }}x</div>
+              }
+              <span class="p-unit">× voto pagella</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEZIONE 2: CORE ELO & ALGORITMO MMR (MATCHMAKING RATING) -->
+        <div class="engine-card">
+          <div class="card-head">
+            <div class="head-title">
+              <span class="head-emoji">🛡️</span>
+              <div>
+                <h3>2. Motore MMR (ELO + Merito)</h3>
+                <p>Bilanciamento squadre, bonus individuali e soft-reset</p>
+              </div>
+            </div>
+            <span class="mode-tag">K = {{ sb.kFactor }}</span>
+          </div>
+
+          <div class="formula-box">
+            <div class="formula-label">I 9 PASSAGGI DEL CALCOLO MMR A FINE PARTITA:</div>
+            <ol class="formula-steps">
+              <li>
+                <strong>Probabilità ELO:</strong>
+                <code>P_A = 1 / (1 + 10^((MMR_B - MMR_A) / 400))</code>
+              </li>
+              <li>
+                <strong>Delta Squadra:</strong>
+                <code>Base = {{ sb.kFactor }} × (Esito [1|0.5|0] - P_attesa)</code>
+              </li>
+              <li>
+                <strong>Scarto Gol (MoV):</strong>
+                <code>± min(5, round(log2(|ΔGol| + 1) × 2))</code> (da -5 a +5)
+              </li>
+              <li>
+                <strong>Bonus Pagella:</strong>
+                <code>clamp(round((Voto - {{ sb.votoNeutro }}) × {{ sb.votoMoltiplicatore }}), -8, +10)</code>
+              </li>
+              <li>
+                <strong>Contributo G/A:</strong>
+                <code>min(4, floor(GolNetti × {{ sb.pesoGolMmr }} + Assist × {{ sb.pesoAssistMmr }}))</code>
+              </li>
+              <li>
+                <strong>Streak (Forma):</strong>
+                <code>3V=+4, 4V=+6, ≥5V=+8 | 3S=-4, 4S=-6, ≥5S=-8</code>
+              </li>
+              <li>
+                <strong>Bonus Portiere:</strong>
+                <code>0 subiti = min(5, 2+CS) | 1=0 | 2=-1 | ≥3 = max(-5, -2-(gol-2))</code>
+              </li>
+              <li>
+                <strong>Freno d'Élite:</strong>
+                <code>MMR ≥ 1200 e Δ&gt;0 → ×0.75 | MMR ≥ 1250 e Δ&lt;0 → ×1.15</code>
+              </li>
+              <li>
+                <strong>Clamp & Piazzamento:</strong>
+                <code>1ª gara ×{{ sb.placementMultiplier }} [{{ PLACEMENT_CLAMP_MIN }}, +{{ PLACEMENT_CLAMP_MAX }}] | Normali [{{ sb.hardClampMin }}, +{{ sb.hardClampMax }}]</code>
+              </li>
+            </ol>
+          </div>
+
+          <div class="params-grid">
+            <div class="param-item">
+              <span class="p-name">MMR Base</span>
+              <span class="p-code">BASE_INITIAL_MMR</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  class="p-input"
+                  [ngModel]="sb.baseInitialMmr"
+                  (ngModelChange)="updateSandboxField('baseInitialMmr', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.baseInitialMmr }}</div>
+              }
+              <span class="p-unit">nuovi iscritti</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Fattore K</span>
+              <span class="p-code">K_FACTOR</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  class="p-input"
+                  [ngModel]="sb.kFactor"
+                  (ngModelChange)="updateSandboxField('kFactor', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.kFactor }}</div>
+              }
+              <span class="p-unit">peso base ELO</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Voto Neutro</span>
+              <span class="p-code">votoNeutro</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.1"
+                  class="p-input"
+                  [ngModel]="sb.votoNeutro"
+                  (ngModelChange)="updateSandboxField('votoNeutro', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.votoNeutro }}</div>
+              }
+              <span class="p-unit">0 bonus MMR</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Molt. Pagella</span>
+              <span class="p-code">votoMoltiplicatore</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.5"
+                  class="p-input"
+                  [ngModel]="sb.votoMoltiplicatore"
+                  (ngModelChange)="updateSandboxField('votoMoltiplicatore', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.votoMoltiplicatore }}x</div>
+              }
+              <span class="p-unit">× (Voto - 6.5)</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Peso Gol MMR</span>
+              <span class="p-code">pesoGolMmr</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.1"
+                  class="p-input"
+                  [ngModel]="sb.pesoGolMmr"
+                  (ngModelChange)="updateSandboxField('pesoGolMmr', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.pesoGolMmr }}</div>
+              }
+              <span class="p-unit">pt / gol netto</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Peso Assist MMR</span>
+              <span class="p-code">pesoAssistMmr</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.1"
+                  class="p-input"
+                  [ngModel]="sb.pesoAssistMmr"
+                  (ngModelChange)="updateSandboxField('pesoAssistMmr', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.pesoAssistMmr }}</div>
+              }
+              <span class="p-unit">pt / assist</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Soft-Reset Stag.</span>
+              <span class="p-code">SOFT_RESET_FACTOR</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.05"
+                  class="p-input"
+                  [ngModel]="sb.softResetFactor"
+                  (ngModelChange)="updateSandboxField('softResetFactor', $event)"
+                />
+              } @else {
+                <div class="p-view-value">35% ({{ sb.softResetFactor }})</div>
+              }
+              <span class="p-unit">Clamp [{{ SEED_CLAMP_MIN }}, {{ SEED_CLAMP_MAX }}]</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Boost 1ª Gara</span>
+              <span class="p-code">PLACEMENT_MULT</span>
+              @if (canEditSelectedSeason()) {
+                <input
+                  type="number"
+                  step="0.05"
+                  class="p-input"
+                  [ngModel]="sb.placementMultiplier"
+                  (ngModelChange)="updateSandboxField('placementMultiplier', $event)"
+                />
+              } @else {
+                <div class="p-view-value">{{ sb.placementMultiplier }}x</div>
+              }
+              <span class="p-unit">Clamp [{{ PLACEMENT_CLAMP_MIN }}, +{{ PLACEMENT_CLAMP_MAX }}]</span>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Hard Clamp</span>
+              <span class="p-code">HARD_CLAMP</span>
+              @if (canEditSelectedSeason()) {
+                <div class="dual-inputs">
+                  <input
+                    type="number"
+                    class="p-input small"
+                    [ngModel]="sb.hardClampMin"
+                    (ngModelChange)="updateSandboxField('hardClampMin', $event)"
+                  />
+                  <input
+                    type="number"
+                    class="p-input small"
+                    [ngModel]="sb.hardClampMax"
+                    (ngModelChange)="updateSandboxField('hardClampMax', $event)"
+                  />
+                </div>
+              } @else {
+                <div class="p-view-value">[{{ sb.hardClampMin }}, +{{ sb.hardClampMax }}]</div>
+              }
+              <span class="p-unit">limite per partita</span>
+            </div>
+          </div>
+
+          <!-- TABELLE DI CONVERSIONE RAPIDA COMPATTATE PER MOBILE -->
+          <div class="lookup-tables-row">
+            <div class="lookup-box">
+              <h4>📊 Scarto Gol → Bonus MoV</h4>
+              <div class="mini-table">
+                <div class="mt-row"><span>0 gol (Pareggio)</span><strong>0 / 0</strong></div>
+                <div class="mt-row"><span>1 gol di scarto</span><strong>+2 / -2</strong></div>
+                <div class="mt-row"><span>2 gol di scarto</span><strong>+3 / -3</strong></div>
+                <div class="mt-row"><span>3 - 4 gol di scarto</span><strong>+4..+5 / -4..-5</strong></div>
+                <div class="mt-row"><span>≥ 5 gol (Cap max)</span><strong>+5 / -5</strong></div>
+              </div>
+            </div>
+
+            <div class="lookup-box">
+              <h4>⭐ Voto Pagella → Bonus MMR</h4>
+              <div class="mini-table">
+                <div class="mt-row"><span>≤ 5.0 (Minimo)</span><strong class="neg">-8 MMR</strong></div>
+                <div class="mt-row"><span>5.5 / 6.0</span><strong class="neg">-6 / -3 MMR</strong></div>
+                <div class="mt-row"><span>6.5 (Neutro)</span><strong>0 MMR</strong></div>
+                <div class="mt-row"><span>7.0 / 7.5 / 8.0</span><strong class="pos">+3 / +6 / +9 MMR</strong></div>
+                <div class="mt-row"><span>≥ 8.2 (Massimo)</span><strong class="pos">+10 MMR</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEZIONE 3: SOGLIE RANGHI, GATEKEEPER FENOMENO, PORTIERI & CHIMICA -->
+        <div class="engine-card">
+          <div class="card-head">
+            <div class="head-title">
+              <span class="head-emoji">👑</span>
+              <div>
+                <h3>3. Ranghi, Gatekeeper, Portieri & Chimica</h3>
+                <p>Soglie tier, regole Challenger e calcoli di coppia</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="tiers-audit-grid">
+            @for (t of MMR_TIERS; track (t.id || '') + '_' + $index) {
+              <div class="tier-audit-pill" [style.border-color]="t.color + '88'">
+                <span class="t-badge" [style.color]="t.color">{{ t.badge }}</span>
+                <span class="t-range">
+                  @if (t.id === 'fenomeno') {
+                    ≥ 1275 + Gatekeeper
+                  } @else if (t.maxMmr > 50000) {
+                    ≥ {{ t.minMmr }} MMR
+                  } @else {
+                    {{ t.minMmr }} – {{ t.maxMmr }} MMR
+                  }
+                </span>
+              </div>
+            }
+          </div>
+
+          <div class="gatekeeper-rules-box">
+            <h4>🏆 I 3 Requisiti Simultanei per il Rango "Fenomeno":</h4>
+            <div class="gk-conditions-row">
+              <div class="gk-cond">
+                <span class="c-num">1. Soglia MMR</span>
+                <strong>≥ 1275 Stagione (≥ 1300 All-Time)</strong>
+                <small>Sotto questa soglia il rango massimo è Diamante.</small>
+              </div>
+              <div class="gk-cond">
+                <span class="c-num">2. Costanza Presenze</span>
+                <strong>min(5, max(3, ceil(gare × 55%)))</strong>
+                <small>Oggi in stagione ({{ ov.totalMatches }} gare): servono ≥ {{ ov.minMatchesFenomeno }} presenze.</small>
+              </div>
+              <div class="gk-cond">
+                <span class="c-num">3. Cap Popolazione</span>
+                <strong>Top 1 (o Top 2 se ≥10 gare e 1300 MMR)</strong>
+                <small>Titolo esclusivo stile Challenger.</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="extra-rules-grid">
+            <div class="extra-rule-card">
+              <h5>🧤 Classifica &amp; Bonus Portieri</h5>
+              <ul>
+                <li><strong>Requisito Classifica:</strong> almeno <code>1 presenza in porta (&gt; 0 min)</code>.</li>
+                <li><strong>Tutela Ultimo Turno:</strong> anche se la partita finisce prima dei 5', il turno conta comunque <code>≥ 1 min</code> e vale per il Clean Sheet.</li>
+                <li><strong>Media Gol/50m:</strong> <code>golSubiti / (minuti / 50)</code>.</li>
+                <li><strong>Bonus MMR Portiere:</strong> <code>0 gol = min(+5, 2+CS) | 1 = 0 | 2 = -1 | ≥3 = max(-5, -2-(gol-2))</code>.</li>
+              </ul>
+            </div>
+
+            <div class="extra-rule-card">
+              <h5>🤝 Chimica & Rivalità</h5>
+              <ul>
+                <li><strong>Minimo:</strong> almeno <code>{{ MIN_MATCHES_CHEMISTRY }} partite</code> insieme/contro.</li>
+                <li><strong>Gemelli del Gol:</strong> <code>WinRate% + (GolAssistiti × 5)</code>.</li>
+                <li><strong>Highlight Report:</strong> Sinergia ≥60% WR, Nemesi ≥65%.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEZIONE FINALE: SUPER-LOCK & GESTIONE FIREBASE PER STAGIONE -->
+        <div class="security-banner" [class.unlocked]="isVaultUnlocked()">
+          <div class="sec-header">
+            <div class="sec-badge-group">
+              @if (isVaultUnlocked()) {
+                <span class="sec-level-tag lvl-2 open">
+                  🔓 Super-Lock Attivo ({{ formatCountdown(vaultRemainingSeconds()) }})
+                </span>
+              } @else {
+                <span class="sec-level-tag lvl-2 closed">
+                  🔐 Modifica Parametri: Protetta da Super-Lock
+                </span>
+              }
+            </div>
+
+            <div class="sec-actions">
+              @if (isVaultUnlocked()) {
+                @if (!sb.isSeasonLocked) {
+                  <button
+                    type="button"
+                    class="sec-btn save-cloud"
+                    (click)="salvaConfigStagioneSuFirebase()"
+                  >
+                    <ion-icon name="cloud-upload"></ion-icon> Salva {{ sb.seasonId }} su Firebase
+                  </button>
+                  <button type="button" class="sec-btn reset" (click)="resetSandboxDefaults()">
+                    <ion-icon name="refresh"></ion-icon> Default
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="sec-btn seal"
+                  (click)="toggleSigilloStagione()"
+                >
+                  <ion-icon [name]="sb.isSeasonLocked ? 'lock-open' : 'lock-closed'"></ion-icon>
+                  {{ sb.isSeasonLocked ? 'Sblocca Sigillo ' + sb.seasonId : 'Sigilla Stagione ' + sb.seasonId }}
+                </button>
+                <button type="button" class="sec-btn lock" (click)="lockVaultNow()">
+                  <ion-icon name="close-circle"></ion-icon> Chiudi
+                </button>
+              } @else {
+                <button type="button" class="sec-btn unlock" (click)="promptUnlockVault()">
+                  <ion-icon name="key"></ion-icon> Sblocca Modifica (Super-Lock)
+                </button>
+              }
+            </div>
+          </div>
+
+          <p class="sec-desc">
+            @if (isVaultUnlocked()) {
+              @if (sb.isSeasonLocked) {
+                <strong>🔒 Stagione {{ sb.seasonId }} Sigillata:</strong> Anche col Super-Lock attivo, i campi restano in sola lettura per proteggere la classifica storica. Premi <em>"Sblocca Sigillo {{ sb.seasonId }}"</em> solo se vuoi davvero ricalcolare la stagione passata.
+              } @else {
+                <strong>Modalità Modifica {{ sb.seasonId }} Attiva:</strong> Modifica i valori qui sopra e premi <em>"Salva {{ sb.seasonId }} su Firebase"</em> per fissarli sulla stagione {{ sb.seasonId }}. Auto-lock tra {{ formatCountdown(vaultRemainingSeconds()) }}.
+              }
+            } @else {
+              La consultazione dell'Area Segreta è sempre libera. Solo la modifica o il salvataggio stagionale su Firebase richiede il <strong>Super-Lock (PIN + Auto-Lock 5 min)</strong>.
+            }
+          </p>
+        </div>
+      }
+
+      <!-- =================================================================== -->
+      <!-- TAB 2: RAGGI X GIOCATORI (MOBILE-FIRST CARDS)                       -->
+      <!-- =================================================================== -->
+      @if (activeTab() === 'giocatori') {
+        <div class="search-bar-box">
+          <ion-icon name="search"></ion-icon>
+          <input
+            type="text"
+            placeholder="Cerca giocatore..."
+            [ngModel]="searchPlayer()"
+            (ngModelChange)="searchPlayer.set($event)"
+          />
+          @if (searchPlayer()) {
+            <button type="button" class="clear-btn" (click)="searchPlayer.set('')">
+              <ion-icon name="close-circle"></ion-icon>
+            </button>
+          }
+        </div>
+
+        <div class="xray-list">
+          @for (p of playersAuditList(); track (p.id || p.nome) + '_' + $index) {
+            @let isOpen = expandedPlayerId() === p.id;
+            <div class="xray-card" [class.expanded]="isOpen">
+              <!-- HEADER RIASSUNTIVO MOBILE-FIRST -->
+              <div class="xray-header" (click)="togglePlayerExpand(p.id)">
+                <div class="xh-top-row">
+                  <div class="xh-left">
+                    <div class="xh-avatar" [style.border-color]="p.tier.color">
+                      <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                    </div>
+                    <div class="xh-title-col">
+                      <div class="xh-name-row">
+                        <strong>{{ p.nome }}</strong>
+                        <span class="xh-tier" [style.color]="p.tier.color">{{ p.tier.badge }}</span>
+                      </div>
+                      <div class="xh-sub">
+                        👥 {{ p.partiteGiocate }} ({{ p.wins }}V·{{ p.draws }}P·{{ p.losses }}S) · ⭐ {{ p.mediaVoto.toFixed(2) }} · ⚽ {{ p.golTotali }}G · 👟 {{ p.assistTotali }}A
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="xh-right">
+                    <div class="xh-metric legacy">
+                      <span class="m-val">{{ p.puntiLegacyTotali }}</span>
+                      <span class="m-lbl">PT</span>
+                    </div>
+                    <div class="xh-metric mmr">
+                      <span class="m-val" [style.color]="p.tier.color">{{ p.currentMmr }}</span>
+                      <span class="m-lbl">MMR</span>
+                    </div>
+                    <ion-icon [name]="isOpen ? 'chevron-up' : 'chevron-down'" class="exp-icon"></ion-icon>
+                  </div>
+                </div>
+              </div>
+
+              <!-- CORPO ESPANSO MOBILE-FIRST -->
+              @if (isOpen) {
+                <div class="xray-body">
+                  <!-- 1. SCOMPOSIZIONE MATEMATICA PUNTI LEGACY -->
+                  <div class="calc-section">
+                    <div class="cs-title">🏆 Calcolo Punti Legacy ({{ p.puntiLegacyTotali }} pt)</div>
+                    <div class="legacy-breakdown-grid">
+                      <div class="lb-box">
+                        <span>Presenze ({{ p.partiteGiocate }}×{{ sandboxParams().legacyPresenza }})</span>
+                        <strong class="pos">+{{ p.puntiPresenzaTot }}</strong>
+                      </div>
+                      <div class="lb-box">
+                        <span>Vittorie ({{ p.wins }}×{{ sandboxParams().legacyVittoria }})</span>
+                        <strong class="pos">+{{ p.puntiVittorieTot }}</strong>
+                      </div>
+                      <div class="lb-box">
+                        <span>Pareggi ({{ p.draws }}×{{ sandboxParams().legacyPareggio }})</span>
+                        <strong class="pos">+{{ p.puntiPareggiTot }}</strong>
+                      </div>
+                      <div class="lb-box">
+                        <span>Gol ({{ p.golTotali }}×{{ sandboxParams().legacyGol }})</span>
+                        <strong class="pos">+{{ p.puntiGolTot }}</strong>
+                      </div>
+                      <div class="lb-box">
+                        <span>Assist ({{ p.assistTotali }}×{{ sandboxParams().legacyAssist }})</span>
+                        <strong class="pos">+{{ p.puntiAssistTot }}</strong>
+                      </div>
+                      @if (p.autogolTotali > 0) {
+                        <div class="lb-box">
+                          <span>Autogol ({{ p.autogolTotali }}×{{ sandboxParams().legacyAutogol }})</span>
+                          <strong class="neg">{{ p.puntiAutogolTot }}</strong>
+                        </div>
+                      }
+                      <div class="lb-box">
+                        <span>Somma Voti</span>
+                        <strong class="pos">+{{ p.sommaVoti }}</strong>
+                      </div>
+                      <div class="lb-box total">
+                        <span>TOTALE LEGACY</span>
+                        <strong>{{ p.puntiLegacyTotali }} pt</strong>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 2. SCOMPOSIZIONE MMR & GATEKEEPER -->
+                  <div class="calc-section">
+                    <div class="cs-title">🛡️ Calcolo MMR & Check Fenomeno</div>
+                    <div class="mmr-audit-grid">
+                      <div class="mmr-stat-box">
+                        <span>Seed Iniziale</span>
+                        <strong>{{ p.seasonStartMmr }} MMR</strong>
+                        <small>{{ p.softResetFormulaStr }}</small>
+                      </div>
+                      <div class="mmr-stat-box">
+                        <span>Delta Netto / Picco</span>
+                        <strong [class.pos]="p.netMmrGain > 0" [class.neg]="p.netMmrGain < 0">
+                          {{ p.netMmrGain >= 0 ? '+' : '' }}{{ p.netMmrGain }} MMR
+                        </strong>
+                        <small>Max: {{ p.peakMmr }} · Min: {{ p.lowestMmr }}</small>
+                      </div>
+                    </div>
+
+                    <div class="fenomeno-diagnostic">
+                      <span class="fd-chip" [class.ok]="p.fenomenoCheck.mmrOk">
+                        {{ p.fenomenoCheck.mmrOk ? '✅' : '❌' }} MMR {{ p.currentMmr }}/{{ p.fenomenoCheck.mmrRequired }}
+                      </span>
+                      <span class="fd-chip" [class.ok]="p.fenomenoCheck.matchesOk">
+                        {{ p.fenomenoCheck.matchesOk ? '✅' : '❌' }} Gare {{ p.partiteGiocate }}/{{ p.fenomenoCheck.matchesRequired }}
+                      </span>
+                      <span class="fd-chip" [class.ok]="p.fenomenoCheck.slotOk">
+                        {{ p.fenomenoCheck.slotOk ? '✅' : '❌' }} Rank #{{ p.fenomenoCheck.rankMmr }} (Max {{ p.fenomenoCheck.maxSlots }})
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- 3. PORTIERE & CHIMICA -->
+                  <div class="calc-section two-cols">
+                    <div class="mini-audit-box">
+                      <div class="cs-title">
+                        🧤 Portiere ({{ p.gk.isClassificabile ? '✅ Classificabile' : '⏳ 0 presenze' }})
+                      </div>
+                      <p><code>{{ p.gk.formulaStr }}</code></p>
+                      <p>{{ p.gk.turniInPorta }} turni ({{ p.gk.minutiInPorta }}') · {{ p.gk.golSubiti }} subiti · {{ p.gk.cleanSheetTurni }} CS</p>
+                    </div>
+                    <div class="mini-audit-box">
+                      <div class="cs-title">🤝 Chimica</div>
+                      <p><b>Partner:</b> {{ p.bestPartnerStr }}</p>
+                      <p><b>Nemesi:</b> {{ p.nemesisStr }}</p>
+                    </div>
+                  </div>
+
+                  <!-- 4. CRONOLOGIA PARTITE DEL GIOCATORE (CARDS MOBILE SENZA SCROLL ORIZZONTALE) -->
+                  @if (p.matchRows.length > 0) {
+                    <div class="calc-section">
+                      <div class="cs-title">📋 Dettaglio Partita per Partita ({{ p.matchRows.length }})</div>
+                      <div class="mobile-match-audit-list">
+                        @for (r of p.matchRows; track (r.partitaId || r.data) + '_' + $index) {
+                          <div class="m-audit-item">
+                            <div class="mai-top">
+                              <div class="mai-left">
+                                <span class="res-badge" [attr.data-res]="r.result">{{ r.result }} {{ r.scoreStr }}</span>
+                                <span class="mai-date">{{ r.data }}</span>
+                                <span class="mai-prob">Prob: {{ r.winProbPercent }}%</span>
+                              </div>
+                              <div class="mai-right">
+                                <span class="mai-mmr" [class.pos]="r.mmrDelta > 0" [class.neg]="r.mmrDelta < 0">
+                                  {{ r.mmrDelta > 0 ? '+' : '' }}{{ r.mmrDelta }} MMR <small>({{ r.mmrBefore }}→{{ r.mmrAfter }})</small>
+                                </span>
+                                <span class="mai-legacy">+{{ r.legacyTotalMatch }} pt</span>
+                              </div>
+                            </div>
+
+                            <div class="mai-pills">
+                              <span class="mp-chip">Sq: {{ r.baseTeamDelta > 0 ? '+' : '' }}{{ r.baseTeamDelta }}</span>
+                              <span class="mp-chip">MoV: {{ r.movBonus > 0 ? '+' : '' }}{{ r.movBonus }}</span>
+                              <span class="mp-chip">Voto {{ r.voto || '—' }}: {{ r.ratingBonus > 0 ? '+' : '' }}{{ r.ratingBonus }}</span>
+                              @if (r.contributionBonus > 0) {
+                                <span class="mp-chip pos">G/A: +{{ r.contributionBonus }}</span>
+                              }
+                              @if (r.streakBonus !== 0) {
+                                <span class="mp-chip" [class.pos]="r.streakBonus > 0" [class.neg]="r.streakBonus < 0">
+                                  Streak: {{ r.streakBonus > 0 ? '+' : '' }}{{ r.streakBonus }}
+                                </span>
+                              }
+                              @if (r.gkBonus !== 0) {
+                                <span class="mp-chip" [class.pos]="r.gkBonus > 0" [class.neg]="r.gkBonus < 0">
+                                  GK: {{ r.gkBonus > 0 ? '+' : '' }}{{ r.gkBonus }}
+                                </span>
+                              }
+                              @if (r.isPlacement) {
+                                <span class="mp-chip warn">1.35x Piazz.</span>
+                              }
+                              @if (r.eliteBrake !== 0) {
+                                <span class="mp-chip warn">Élite: {{ r.eliteBrake }}</span>
+                              }
+                              <span class="mp-chip legacy-chip">
+                                Legacy: +{{ r.puntiPresenza }}P +{{ r.puntiEsito }}E +{{ r.puntiGol }}G +{{ r.puntiAssist }}A +{{ r.puntiVoto }}V
+                              </span>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- =================================================================== -->
+      <!-- TAB 3: AUDIT PARTITE (MOBILE-FIRST SCHEDA MATCH)                    -->
+      <!-- =================================================================== -->
+      @if (activeTab() === 'partite') {
+        <div class="xray-list">
+          @for (m of matchesAuditList(); track (m.id || m.data) + '_' + $index) {
+            @let isOpen = expandedMatchId() === m.id;
+            <div class="xray-card" [class.expanded]="isOpen">
+              <div class="xray-header" (click)="toggleMatchExpand(m.id)">
+                <div class="xh-top-row">
+                  <div class="xh-left">
+                    <div class="match-date-badge">{{ m.data }}</div>
+                    <div class="xh-title-col">
+                      <div class="xh-name-row">
+                        <strong>Bianchi {{ m.scoreA }} - {{ m.scoreB }} Neri</strong>
+                      </div>
+                      <div class="xh-sub">
+                        ⚖️ MMR {{ m.avgMmrA }} ({{ m.probAPercent }}%) vs {{ m.avgMmrB }} ({{ m.probBPercent }}%) · 📍 {{ m.luogo }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="xh-right">
+                    <div class="xh-metric">
+                      <span class="m-val">{{ m.baseDeltaA >= 0 ? '+' : '' }}{{ m.baseDeltaA }}</span>
+                      <span class="m-lbl">ΔSq A</span>
+                    </div>
+                    <ion-icon [name]="isOpen ? 'chevron-up' : 'chevron-down'" class="exp-icon"></ion-icon>
+                  </div>
+                </div>
+              </div>
+
+              @if (isOpen) {
+                <div class="xray-body">
+                  <div class="match-math-summary">
+                    <span><b>Prob ELO:</b> Bianchi {{ m.probAPercent }}% / Neri {{ m.probBPercent }}%</span>
+                    <span><b>ΔBase Squadra:</b> A {{ m.baseDeltaA >= 0 ? '+' : '' }}{{ m.baseDeltaA }} / B {{ m.baseDeltaB >= 0 ? '+' : '' }}{{ m.baseDeltaB }}</span>
+                    <span><b>Bonus MoV:</b> A {{ m.movBonusA >= 0 ? '+' : '' }}{{ m.movBonusA }} / B {{ m.movBonusB >= 0 ? '+' : '' }}{{ m.movBonusB }}</span>
+                  </div>
+
+                  <!-- SQUADRA A (BIANCHI) -->
+                  <div class="calc-section">
+                    <div class="cs-title">⚪ Squadra A (Bianchi) — Gol: {{ m.scoreA }}</div>
+                    <div class="mobile-match-audit-list">
+                      @for (r of m.rowsA; track (r.playerId || r.nome) + '_' + $index) {
+                        <div class="m-audit-item">
+                          <div class="mai-top">
+                            <strong>{{ r.nome }}</strong>
+                            <div class="mai-right">
+                              <span class="mai-mmr" [class.pos]="r.mmrDelta > 0" [class.neg]="r.mmrDelta < 0">
+                                {{ r.mmrDelta > 0 ? '+' : '' }}{{ r.mmrDelta }} MMR <small>({{ r.mmrBefore }}→{{ r.mmrAfter }})</small>
+                              </span>
+                              <span class="mai-legacy">+{{ r.legacyTotalMatch }} pt</span>
+                            </div>
+                          </div>
+                          <div class="mai-pills">
+                            <span class="mp-chip">Sq: {{ r.baseTeamDelta > 0 ? '+' : '' }}{{ r.baseTeamDelta }}</span>
+                            <span class="mp-chip">MoV: {{ r.movBonus > 0 ? '+' : '' }}{{ r.movBonus }}</span>
+                            <span class="mp-chip">Voto {{ r.voto || '—' }}: {{ r.ratingBonus > 0 ? '+' : '' }}{{ r.ratingBonus }}</span>
+                            <span class="mp-chip">{{ r.gol }}G {{ r.assist }}A: +{{ r.contributionBonus }}</span>
+                            @if (r.streakBonus !== 0) {
+                              <span class="mp-chip">Streak: {{ r.streakBonus > 0 ? '+' : '' }}{{ r.streakBonus }}</span>
+                            }
+                            @if (r.gkBonus !== 0) {
+                              <span class="mp-chip">GK: {{ r.gkBonus > 0 ? '+' : '' }}{{ r.gkBonus }}</span>
+                            }
+                            <span class="mp-chip legacy-chip">
+                              Legacy: 2+{{ r.puntiEsito }}+{{ r.puntiGol }}+{{ r.puntiAssist }}+{{ r.puntiVoto }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- SQUADRA B (NERI) -->
+                  <div class="calc-section">
+                    <div class="cs-title">⚫ Squadra B (Neri) — Gol: {{ m.scoreB }}</div>
+                    <div class="mobile-match-audit-list">
+                      @for (r of m.rowsB; track (r.playerId || r.nome) + '_' + $index) {
+                        <div class="m-audit-item">
+                          <div class="mai-top">
+                            <strong>{{ r.nome }}</strong>
+                            <div class="mai-right">
+                              <span class="mai-mmr" [class.pos]="r.mmrDelta > 0" [class.neg]="r.mmrDelta < 0">
+                                {{ r.mmrDelta > 0 ? '+' : '' }}{{ r.mmrDelta }} MMR <small>({{ r.mmrBefore }}→{{ r.mmrAfter }})</small>
+                              </span>
+                              <span class="mai-legacy">+{{ r.legacyTotalMatch }} pt</span>
+                            </div>
+                          </div>
+                          <div class="mai-pills">
+                            <span class="mp-chip">Sq: {{ r.baseTeamDelta > 0 ? '+' : '' }}{{ r.baseTeamDelta }}</span>
+                            <span class="mp-chip">MoV: {{ r.movBonus > 0 ? '+' : '' }}{{ r.movBonus }}</span>
+                            <span class="mp-chip">Voto {{ r.voto || '—' }}: {{ r.ratingBonus > 0 ? '+' : '' }}{{ r.ratingBonus }}</span>
+                            <span class="mp-chip">{{ r.gol }}G {{ r.assist }}A: +{{ r.contributionBonus }}</span>
+                            @if (r.streakBonus !== 0) {
+                              <span class="mp-chip">Streak: {{ r.streakBonus > 0 ? '+' : '' }}{{ r.streakBonus }}</span>
+                            }
+                            @if (r.gkBonus !== 0) {
+                              <span class="mp-chip">GK: {{ r.gkBonus > 0 ? '+' : '' }}{{ r.gkBonus }}</span>
+                            }
+                            <span class="mp-chip legacy-chip">
+                              Legacy: 2+{{ r.puntiEsito }}+{{ r.puntiGol }}+{{ r.puntiAssist }}+{{ r.puntiVoto }}
+                            </span>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- =================================================================== -->
+      <!-- TAB 4: SIMULATORE LIVE "WHAT-IF"                                    -->
+      <!-- =================================================================== -->
+      @if (activeTab() === 'simulatore') {
+        @let sim = simInput();
+        @let res = simResult();
+
+        <div class="engine-card">
+          <div class="card-head">
+            <div class="head-title">
+              <span class="head-emoji">🧪</span>
+              <div>
+                <h3>Simulatore Partita Live</h3>
+                <p>Cambia i numeri per testare MMR e Punti Legacy al volo</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="params-grid">
+            <div class="param-item">
+              <span class="p-name">MMR Giocatore</span>
+              <input
+                type="number"
+                class="p-input"
+                [ngModel]="sim.playerMmrBefore"
+                (ngModelChange)="updateSimField('playerMmrBefore', $event)"
+              />
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Voto Pagella</span>
+              <input
+                type="number"
+                step="0.5"
+                class="p-input"
+                [ngModel]="sim.voto"
+                (ngModelChange)="updateSimField('voto', $event)"
+              />
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">MMR Tua Squadra</span>
+              <input
+                type="number"
+                class="p-input"
+                [ngModel]="sim.teamAvgMmr"
+                (ngModelChange)="updateSimField('teamAvgMmr', $event)"
+              />
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">MMR Avversari</span>
+              <input
+                type="number"
+                class="p-input"
+                [ngModel]="sim.oppAvgMmr"
+                (ngModelChange)="updateSimField('oppAvgMmr', $event)"
+              />
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Risultato (Tu - Avv)</span>
+              <div class="dual-inputs">
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.teamScore"
+                  (ngModelChange)="updateSimField('teamScore', $event)"
+                />
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.oppScore"
+                  (ngModelChange)="updateSimField('oppScore', $event)"
+                />
+              </div>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Gol / Assist</span>
+              <div class="dual-inputs">
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.gol"
+                  (ngModelChange)="updateSimField('gol', $event)"
+                />
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.assist"
+                  (ngModelChange)="updateSimField('assist', $event)"
+                />
+              </div>
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">Streak Pre-Gara</span>
+              <input
+                type="number"
+                class="p-input"
+                [ngModel]="sim.streakBefore"
+                (ngModelChange)="updateSimField('streakBefore', $event)"
+              />
+            </div>
+
+            <div class="param-item">
+              <span class="p-name">GK: Turni / Subiti</span>
+              <div class="dual-inputs">
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.gkTurni"
+                  (ngModelChange)="updateSimField('gkTurni', $event)"
+                />
+                <input
+                  type="number"
+                  class="p-input small"
+                  [ngModel]="sim.gkGolSubiti"
+                  (ngModelChange)="updateSimField('gkGolSubiti', $event)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-results-grid">
+            <div class="sim-result-box mmr-res">
+              <h4>🛡️ Calcolo MMR Simulato</h4>
+              <div class="sim-step-row">
+                <span>1. Probabilità Vittoria ELO:</span>
+                <strong>{{ res.probAPercent }}%</strong>
+              </div>
+              <div class="sim-step-row">
+                <span>2. Delta Base Squadra:</span>
+                <strong [class.pos]="res.baseTeamDelta > 0" [class.neg]="res.baseTeamDelta < 0">
+                  {{ res.baseTeamDelta > 0 ? '+' : '' }}{{ res.baseTeamDelta }}
+                </strong>
+              </div>
+              <div class="sim-step-row">
+                <span>3. Bonus Scarto Gol (MoV):</span>
+                <strong [class.pos]="res.movBonus > 0" [class.neg]="res.movBonus < 0">
+                  {{ res.movBonus > 0 ? '+' : '' }}{{ res.movBonus }}
+                </strong>
+              </div>
+              <div class="sim-step-row">
+                <span>4. Bonus Pagella ({{ sim.voto }}):</span>
+                <strong [class.pos]="res.ratingBonus > 0" [class.neg]="res.ratingBonus < 0">
+                  {{ res.ratingBonus > 0 ? '+' : '' }}{{ res.ratingBonus }}
+                </strong>
+              </div>
+              <div class="sim-step-row">
+                <span>5. Bonus Gol & Assist:</span>
+                <strong class="pos">+{{ res.contributionBonus }}</strong>
+              </div>
+              <div class="sim-step-row">
+                <span>6. Bonus Streak (→ {{ res.prospectiveStreak }}):</span>
+                <strong [class.pos]="res.streakBonus > 0" [class.neg]="res.streakBonus < 0">
+                  {{ res.streakBonus > 0 ? '+' : '' }}{{ res.streakBonus }}
+                </strong>
+              </div>
+              <div class="sim-step-row">
+                <span>7. Bonus Portiere:</span>
+                <strong [class.pos]="res.gkBonus > 0" [class.neg]="res.gkBonus < 0">
+                  {{ res.gkBonus > 0 ? '+' : '' }}{{ res.gkBonus }}
+                </strong>
+              </div>
+              <div class="sim-total-row">
+                <span>DELTA MMR FINALE:</span>
+                <strong [class.pos]="res.finalMmrDelta > 0" [class.neg]="res.finalMmrDelta < 0">
+                  {{ res.finalMmrDelta > 0 ? '+' : '' }}{{ res.finalMmrDelta }} (→ {{ res.mmrAfter }})
+                </strong>
+              </div>
+            </div>
+
+            <div class="sim-result-box legacy-res">
+              <h4>🏆 Calcolo Punti Legacy Simulato</h4>
+              <div class="sim-step-row">
+                <span>Presenza + Esito:</span>
+                <strong class="pos">+{{ res.legacyPresenza }} + {{ res.legacyEsito }} pt</strong>
+              </div>
+              <div class="sim-step-row">
+                <span>Gol ({{ sim.gol }}) + Assist ({{ sim.assist }}):</span>
+                <strong class="pos">+{{ res.legacyGol }} + {{ res.legacyAssist }} pt</strong>
+              </div>
+              <div class="sim-step-row">
+                <span>Voto in Pagella:</span>
+                <strong class="pos">+{{ res.legacyVoto }} pt</strong>
+              </div>
+              <div class="sim-total-row">
+                <span>TOTALE PUNTI LEGACY:</span>
+                <strong class="pos">+{{ res.legacyTotal }} pt</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

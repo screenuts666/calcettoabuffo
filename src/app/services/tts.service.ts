@@ -1,6 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Storage, ref, getDownloadURL, uploadBytes, getBlob } from '@angular/fire/storage';
-import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { Storage } from '@angular/fire/storage';
+import { ref, getDownloadURL, uploadBytes, getBlob } from 'firebase/storage';
+import { Firestore } from '@angular/fire/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Mp3Encoder } from '@breezystack/lamejs';
 import { GeminiService } from './gemini.service';
 import { cleanTextForSpeech, computeTextHash } from '../utils/text-sanitizer';
@@ -56,7 +58,7 @@ export class TtsService {
         if (sessionStorage.getItem('elevenlabs_quota_exceeded') === 'true') {
           this.elevenLabsQuotaExceeded = true;
         }
-      } catch {}
+      } catch { }
 
       if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = () => {
@@ -595,7 +597,7 @@ export class TtsService {
       const audio = this.getOrCreateAudio();
       audio.src =
         'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
-      audio.play().catch(() => {});
+      audio.play().catch(() => { });
     } catch {
       // Ignora errori di priming
     }
@@ -704,7 +706,7 @@ export class TtsService {
           this.elevenLabsQuotaExceeded = true;
           try {
             sessionStorage.setItem('elevenlabs_quota_exceeded', 'true');
-          } catch {}
+          } catch { }
           throw new Error(`ElevenLabs API quota/auth error (${response.status}): ${errTxt}`);
         }
         console.warn(`ElevenLabs modello ${model} non riuscito (${response.status}):`, errTxt);
@@ -845,7 +847,7 @@ export class TtsService {
 
     try {
       window.speechSynthesis.cancel();
-    } catch {}
+    } catch { }
     this.clearSynthKeepAlive();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -934,7 +936,7 @@ export class TtsService {
         if (wavRate >= 8000 && wavRate <= 48000) {
           sampleRate = wavRate;
         }
-      } catch {}
+      } catch { }
       pcm = pcm.subarray(44);
     }
 

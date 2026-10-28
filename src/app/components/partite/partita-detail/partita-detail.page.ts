@@ -17,14 +17,15 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  Firestore,
+  // Firestore token imported from @angular/fire/firestore
   collection,
   doc,
   getDoc,
   getDocs,
   query,
   orderBy,
-} from '@angular/fire/firestore';
+} from 'firebase/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { arrowBack, close, arrowForward, checkmark } from 'ionicons/icons';

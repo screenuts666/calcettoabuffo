@@ -17,13 +17,14 @@ import {
   ModalController,
 } from '@ionic/angular/standalone';
 import {
-  Storage,
+  // Storage token imported from @angular/fire/storage
   ref,
   uploadBytes,
   getDownloadURL,
   deleteObject,
-} from '@angular/fire/storage';
-import { doc, updateDoc } from '@angular/fire/firestore';
+} from 'firebase/storage';
+import { Storage } from '@angular/fire/storage';
+import { doc, updateDoc } from 'firebase/firestore';
 import { addIcons } from 'ionicons';
 import {
   camera,

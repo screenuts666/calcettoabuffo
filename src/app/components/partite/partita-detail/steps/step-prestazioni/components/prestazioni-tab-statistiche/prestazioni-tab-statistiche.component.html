@@ -75,7 +75,7 @@
     </div>
 
     <div class="onfire-tags-container">
-      @for (p of report.onFireEntered; track p.id) {
+      @for (p of report.onFireEntered; track (p.id || p.nome) + '_' + $index) {
         <div class="onfire-chip entered">
           <span class="chip-emoji">🔥</span>
           <span class="chip-text">
@@ -84,7 +84,7 @@
         </div>
       }
 
-      @for (p of report.onFireExited; track p.id) {
+      @for (p of report.onFireExited; track (p.id || p.nome) + '_' + $index) {
         <div class="onfire-chip exited">
           <span class="chip-emoji">❄️</span>
           <span class="chip-text">
@@ -93,7 +93,7 @@
         </div>
       }
 
-      @for (p of report.onFireMaintained; track p.id) {
+      @for (p of report.onFireMaintained; track (p.id || p.nome) + '_' + $index) {
         <div class="onfire-chip maintained">
           <span class="chip-emoji">🔥</span>
           <span class="chip-text">

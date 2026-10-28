@@ -271,7 +271,7 @@
               <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
             } @else {
               <div class="seq-items-list">
-                @for (p of state.portieriInfoA().lista; track p.id; let i = $index) {
+                @for (p of state.portieriInfoA().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
                   <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
                     <span class="seq-order-pill">{{ p.ordine }}°</span>
                     <span class="seq-player-name">{{ p.nome }}</span>
@@ -296,7 +296,7 @@
               <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
             } @else {
               <div class="seq-items-list">
-                @for (p of state.portieriInfoB().lista; track p.id; let i = $index) {
+                @for (p of state.portieriInfoB().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
                   <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
                     <span class="seq-order-pill">{{ p.ordine }}°</span>
                     <span class="seq-player-name">{{ p.nome }}</span>

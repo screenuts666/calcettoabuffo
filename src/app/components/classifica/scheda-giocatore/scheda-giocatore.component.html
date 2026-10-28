@@ -295,7 +295,7 @@
     </div>
 
     <div class="season-banners-scroller">
-      @for (banner of prof.pastSeasonsBanners; track banner.seasonId) {
+      @for (banner of prof.pastSeasonsBanners; track (banner.season || banner.seasonId || '') + '_' + $index) {
         <div
           class="season-banner-card"
           [style.--tier-accent]="banner.tier.color"
@@ -308,20 +308,20 @@
             <ion-icon [name]="banner.tier.icon" [style.color]="banner.tier.color"></ion-icon>
           </div>
           <div class="banner-body">
-            <div class="banner-season-tag">Stagione {{ banner.seasonLabel }}</div>
+            <div class="banner-season-tag">Stagione {{ banner.season || banner.seasonLabel }}</div>
             <div class="banner-tier-title" [style.color]="banner.tier.color">
               {{ banner.tier.badge }}
             </div>
             <div class="banner-meta">
               <span class="meta-mmr"><b>{{ banner.finalMmr }}</b> MMR</span>
-              @if (banner.rankPosition) {
-                <span class="meta-pos">#{{ banner.rankPosition }}</span>
+              @if (banner.rank || banner.rankPosition) {
+                <span class="meta-pos">#{{ banner.rank || banner.rankPosition }}</span>
               }
-              <span class="meta-matches">{{ banner.matchesPlayed }} match</span>
+              <span class="meta-matches">{{ banner.partiteGiocate ?? banner.matchesPlayed }} match</span>
             </div>
-            @if (banner.classicPoints !== undefined) {
+            @if ((banner.puntiClassici ?? banner.classicPoints) !== undefined) {
               <div class="banner-classic-sub">
-                {{ banner.classicPoints }} Punti Classici
+                {{ banner.puntiClassici ?? banner.classicPoints }} Punti Classici
               </div>
             }
           </div>

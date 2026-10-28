@@ -110,7 +110,7 @@
   </div>
 
   <div class="chemistry-notes-list">
-    @for (chem of chemistryNotes; track chem.title) {
+    @for (chem of chemistryNotes; track (chem.title || '') + '_' + $index) {
     <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
       <div class="chem-badge-pill">{{ chem.badge }}</div>
       <div class="chem-note-title">{{ chem.title }}</div>

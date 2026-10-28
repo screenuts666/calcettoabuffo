@@ -53,7 +53,7 @@ bootstrapApplication(AppComponent, {
     }),
     // 2. AGGIUNGI IL PROVIDER DELLO STORAGE QUI
     provideStorage(() => getStorage()),
-    provideAuth(() => getAuth()),
+    ...(environment.production ? [provideAuth(() => getAuth())] : []),
     provideZonelessChangeDetection(), provideServiceWorker('ngsw-worker.js', {
             enabled: !isDevMode(),
             registrationStrategy: 'registerImmediately'

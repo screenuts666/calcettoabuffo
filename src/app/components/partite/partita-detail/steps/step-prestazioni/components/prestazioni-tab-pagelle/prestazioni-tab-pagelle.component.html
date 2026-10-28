@@ -52,7 +52,7 @@
       </div>
 
       <div class="players-cards-list">
-        @for (g of playersA; track g.id) {
+        @for (g of playersA; track (g.id || g.nome) + '_' + $index) {
           <app-prestazioni-player-card
             [player]="g"
             [isAdmin]="isAdmin"
@@ -84,7 +84,7 @@
       </div>
 
       <div class="players-cards-list">
-        @for (g of playersB; track g.id) {
+        @for (g of playersB; track (g.id || g.nome) + '_' + $index) {
           <app-prestazioni-player-card
             [player]="g"
             [isAdmin]="isAdmin"

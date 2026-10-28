@@ -1,7 +1,9 @@
 import { Injectable, Signal, computed, inject, signal } from '@angular/core';
-import { Firestore, collection, collectionData } from '@angular/fire/firestore';
+import { Firestore, collectionData } from '@angular/fire/firestore';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Giocatore, GiocatoreConPunti, PortiereStats } from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
 import {
@@ -31,6 +33,12 @@ import {
   formatShortSeason,
 } from '../utils/season-utils';
 import { getAvatarUrl } from '../utils/avatar-utils';
+import {
+  SeasonEngineConfig,
+  getDefaultSeasonConfig,
+  seasonToDocId,
+  docIdToSeason,
+} from '../models/season-config.model';
 
 export const BASE_INITIAL_MMR = 1000;
 export const K_FACTOR = 28;
@@ -53,6 +61,8 @@ export class StatsEngineService {
   // Dati reattivi da Firestore (attivi nel contesto Angular con injection)
   readonly giocatoriRaw: Signal<Giocatore[]>;
   readonly partiteRaw: Signal<Partita[]>;
+  readonly seasonConfigsRaw: Signal<SeasonEngineConfig[]>;
+  readonly seasonConfigsMap: Signal<Map<string, SeasonEngineConfig>>;
   readonly statsResult: Signal<MmrCalculationResult>;
   readonly allTimeLeaderboard: Signal<PlayerMmrStats[]>;
 
@@ -67,21 +77,52 @@ export class StatsEngineService {
 
     this.giocatoriRaw = this.firestore
       ? toSignal<Giocatore[], Giocatore[]>(
-        collectionData(collection(this.firestore, 'giocatori'), {
+        (collectionData(collection(this.firestore, 'giocatori'), {
           idField: 'id',
-        }) as Observable<Giocatore[]>,
+        }) as Observable<Giocatore[]>).pipe(catchError(() => of([] as Giocatore[]))),
         { initialValue: [] },
       )
       : signal<Giocatore[]>([]);
 
     this.partiteRaw = this.firestore
       ? toSignal<Partita[], Partita[]>(
-        collectionData(collection(this.firestore, 'partite'), {
+        (collectionData(collection(this.firestore, 'partite'), {
           idField: 'id',
-        }) as Observable<Partita[]>,
+        }) as Observable<Partita[]>).pipe(catchError(() => of([] as Partita[]))),
         { initialValue: [] },
       )
       : signal<Partita[]>([]);
+
+    this.seasonConfigsRaw = this.firestore
+      ? toSignal<SeasonEngineConfig[], SeasonEngineConfig[]>(
+        (
+          collectionData(collection(this.firestore, 'stagioni'), {
+            idField: 'docId',
+          }) as Observable<SeasonEngineConfig[]>
+        ).pipe(
+          catchError((err) => {
+            console.warn('Fallback default season config (stagioni):', err);
+            return of([] as SeasonEngineConfig[]);
+          }),
+        ),
+        { initialValue: [] },
+      )
+      : signal<SeasonEngineConfig[]>([]);
+
+    this.seasonConfigsMap = computed<Map<string, SeasonEngineConfig>>(() => {
+      const map = new Map<string, SeasonEngineConfig>();
+      try {
+        for (const raw of this.seasonConfigsRaw() || []) {
+          const sId = raw.seasonId || docIdToSeason(raw.docId);
+          if (sId) {
+            map.set(sId, { ...getDefaultSeasonConfig(sId), ...raw, seasonId: sId });
+          }
+        }
+      } catch {
+        // Fallback ai valori di default se la collection non è raggiungibile
+      }
+      return map;
+    });
 
     this.statsResult = computed<MmrCalculationResult>(() => {
       const giocatori = (this.giocatoriRaw() || []).map((g) => ({
@@ -89,7 +130,11 @@ export class StatsEngineService {
         fotoUrl: getAvatarUrl(g.fotoUrl),
       }));
       const partite = this.partiteRaw() || [];
-      return StatsEngineService.calculateAllStats(giocatori, partite);
+      return StatsEngineService.calculateAllStats(
+        giocatori,
+        partite,
+        this.seasonConfigsMap(),
+      );
     });
 
     this.allTimeLeaderboard = computed<PlayerMmrStats[]>(() => {
@@ -139,6 +184,60 @@ export class StatsEngineService {
     return this.statsResult().chemistry.get(playerId);
   }
 
+  getSeasonConfig(seasonId: string = CURRENT_SEASON): SeasonEngineConfig {
+    return StatsEngineService.resolveSeasonConfig(
+      seasonId,
+      this.seasonConfigsMap(),
+    );
+  }
+
+  static resolveSeasonConfig(
+    seasonId: string,
+    configsMap?: Map<string, SeasonEngineConfig>,
+  ): SeasonEngineConfig {
+    const cleanSeason =
+      !seasonId || seasonId === ALL_SEASONS ? CURRENT_SEASON : seasonId;
+    if (configsMap?.has(cleanSeason)) {
+      return configsMap.get(cleanSeason)!;
+    }
+    // Ereditarietà multi-stagione infinita: se una nuova stagione non è ancora stata
+    // salvata su Firebase, eredita i parametri dall'ultima stagione precedente configurata
+    // (mentre le stagioni <= 2025/2026 mantengono il regolamento storico originale).
+    if (configsMap && configsMap.size > 0 && cleanSeason > '2025/2026') {
+      const prevKeys = Array.from(configsMap.keys())
+        .filter((k) => k < cleanSeason)
+        .sort();
+      if (prevKeys.length > 0) {
+        const latestPrev = configsMap.get(prevKeys[prevKeys.length - 1])!;
+        return {
+          ...latestPrev,
+          seasonId: cleanSeason,
+          docId: seasonToDocId(cleanSeason),
+          isSeasonLocked: cleanSeason < CURRENT_SEASON,
+        };
+      }
+    }
+    return getDefaultSeasonConfig(cleanSeason);
+  }
+
+  isSeasonInFirestore(seasonId: string): boolean {
+    return this.seasonConfigsMap().has(seasonId);
+  }
+
+  async saveSeasonConfig(config: SeasonEngineConfig): Promise<void> {
+    if (!this.firestore) return;
+    const docId = seasonToDocId(config.seasonId);
+    const payload: SeasonEngineConfig = {
+      ...config,
+      docId,
+      updatedAt: new Date().toISOString(),
+    };
+    await setDoc(doc(this.firestore, `stagioni/${docId}`), payload, {
+      merge: true,
+    });
+  
+  }
+
   /**
    * Costruisce il profilo completo di un giocatore con punteggio legacy, MMR,
    * trend, forma e chimica per la scheda del giocatore.
@@ -184,14 +283,16 @@ export class StatsEngineService {
         const draw = scoreA === scoreB;
         const lost = !won && !draw;
 
-        punti += 2; // Presenza
+        const sCfg = this.getSeasonConfig(getStagionePartita(p));
+        punti += sCfg.legacyPresenza; // Presenza
         if (won) {
-          punti += 2;
+          punti += sCfg.legacyVittoria;
           wins++;
         } else if (draw) {
-          punti += 1;
+          punti += sCfg.legacyPareggio;
           draws++;
         } else if (lost) {
+          punti += sCfg.legacySconfitta;
           losses++;
         }
 
@@ -215,13 +316,13 @@ export class StatsEngineService {
 
         golTotali += golFatti;
         assistTotali += assistFatti;
-        punti += golFatti * 1;
-        punti += autogolFatti * -1;
-        punti += assistFatti * 0.5;
+        punti += golFatti * sCfg.legacyGol;
+        punti += autogolFatti * sCfg.legacyAutogol;
+        punti += assistFatti * sCfg.legacyAssist;
 
         const voto = Number(playerObj.voto) || 0;
         sommaVoti += voto;
-        punti += voto;
+        punti += voto * sCfg.legacyPesoVoto;
       }
     });
 
@@ -451,7 +552,7 @@ export class StatsEngineService {
           Math.ceil(cronometroTotale / durataTurnoSec),
         );
         const secondiEffettivi = cronometroTotale;
-        minutiInPorta += Math.round(secondiEffettivi / 60);
+        minutiInPorta += secondiEffettivi > 0 ? Math.max(1, Math.round(secondiEffettivi / 60)) : 0;
         turniInPorta += totalTurni;
 
         const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
@@ -467,7 +568,7 @@ export class StatsEngineService {
         }).length;
 
         golSubiti += matchGolSubiti;
-        if (matchGolSubiti === 0 && secondiEffettivi >= 600) {
+        if (matchGolSubiti === 0 && secondiEffettivi > 0) {
           cleanSheetPartite++;
           cleanSheetTurni += totalTurni;
         }
@@ -500,7 +601,7 @@ export class StatsEngineService {
               (turno + 1) * durataTurnoSec,
             );
             const secondiEffettivi = Math.max(0, fineSec - inizioSec);
-            minutiInPorta += Math.round(secondiEffettivi / 60);
+            minutiInPorta += secondiEffettivi > 0 ? Math.max(1, Math.round(secondiEffettivi / 60)) : 0;
 
             const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
             const eventi = p.eventiGol || [];
@@ -522,7 +623,7 @@ export class StatsEngineService {
             }).length;
 
             matchGolSubiti += golNelTurno;
-            if (golNelTurno === 0 && secondiEffettivi >= 120) {
+            if (golNelTurno === 0 && secondiEffettivi > 0) {
               matchCleanSheetTurni++;
             }
           }
@@ -549,7 +650,7 @@ export class StatsEngineService {
       }
     }
 
-    const isClassificabile = minutiInPorta >= 5;
+    const isClassificabile = turniInPorta >= 1 && minutiInPorta > 0;
     const mediaGolSubiti50m =
       minutiInPorta > 0
         ? Math.round((golSubiti / (minutiInPorta / 50)) * 100) / 100
@@ -655,7 +756,7 @@ export class StatsEngineService {
         }).length;
 
         golSubiti += golNelTurno;
-        if (golNelTurno === 0 && fineSec - inizioSec >= 120) {
+        if (golNelTurno === 0 && fineSec - inizioSec > 0) {
           cleanSheetTurni++;
         }
       }
@@ -815,6 +916,7 @@ export class StatsEngineService {
       draw: boolean,
     ): MatchReportPlayer => {
       const pStats = allTime.get(p.id);
+      const mCfg = this.getSeasonConfig(getStagionePartita(match));
       const deltaObj = pStats?.history.find((h) => h.partitaId === matchId);
 
       const mmrBefore = deltaObj
@@ -871,7 +973,7 @@ export class StatsEngineService {
         const netGoals = Math.max(0, golCount - autogolCount);
         const contributionBonus = Math.min(
           4,
-          Math.floor(netGoals * 0.8 + assistCount * 0.6),
+          Math.floor(netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr),
         );
 
         let gkBonus = 0;
@@ -1158,13 +1260,19 @@ export class StatsEngineService {
   calculateAllStats(
     giocatori: Giocatore[],
     partite: Partita[],
+    configsMap?: Map<string, SeasonEngineConfig>,
   ): MmrCalculationResult {
-    return StatsEngineService.calculateAllStats(giocatori, partite);
+    return StatsEngineService.calculateAllStats(
+      giocatori,
+      partite,
+      this.seasonConfigsMap(),
+    );
   }
 
   static calculateAllStats(
     giocatori: Giocatore[],
     partite: Partita[],
+    configsMap?: Map<string, SeasonEngineConfig>,
   ): MmrCalculationResult {
     // 1. Mappa dei metadati giocatori per arricchire i risultati
     const playerMetadata = new Map<string, Giocatore>();
@@ -1205,12 +1313,14 @@ export class StatsEngineService {
       playerMetadata,
       undefined,
       true, // isAllTime = true
+      configsMap,
     );
 
     // 5. Simulazione per singola Stagione con Soft-Reset compresso del 35% verso 1000 (Stile League of Legends)
     const matchesBySeason = new Map<string, Partita[]>();
     for (const match of sortedMatches) {
       const season = getStagionePartita(match);
+      const mCfg = StatsEngineService.resolveSeasonConfig(season, configsMap);
       if (!matchesBySeason.has(season)) {
         matchesBySeason.set(season, []);
       }
@@ -1225,6 +1335,7 @@ export class StatsEngineService {
 
     for (const season of sortedSeasonKeys) {
       const seasonMatches = matchesBySeason.get(season)!;
+      const sCfg = StatsEngineService.resolveSeasonConfig(season, configsMap);
 
       // Soft-Reset stagionale (Regola A):
       // - Nuovo giocatore (0 partite nelle stagioni precedenti): startingMMR = 1000
@@ -1236,7 +1347,7 @@ export class StatsEngineService {
         const prevP = previousSeasonStats?.get(playerId);
         if (prevP && prevP.partiteGiocate > 0) {
           const softReset = Math.round(
-            1000 + (prevP.currentMmr - 1000) * SOFT_RESET_FACTOR,
+            1000 + (prevP.currentMmr - 1000) * sCfg.softResetFactor,
           );
           const clamped = Math.max(
             SEED_CLAMP_MIN,
@@ -1247,7 +1358,7 @@ export class StatsEngineService {
           const lastKnown = cumulativeLastKnownMmr.get(playerId);
           if (lastKnown !== undefined && lastKnown !== BASE_INITIAL_MMR) {
             const softReset = Math.round(
-              1000 + (lastKnown - 1000) * SOFT_RESET_FACTOR,
+              1000 + (lastKnown - 1000) * sCfg.softResetFactor,
             );
             const clamped = Math.max(
               SEED_CLAMP_MIN,
@@ -1265,6 +1376,7 @@ export class StatsEngineService {
         playerMetadata,
         initialMmrMap,
         false, // isAllTime = false
+        configsMap,
       );
       bySeasonResult.set(season, sim.playerStats);
       previousSeasonStats = sim.playerStats;
@@ -1350,6 +1462,7 @@ export class StatsEngineService {
     playerMetadata: Map<string, Giocatore>,
     initialMmrMap?: Map<string, number>,
     isAllTime: boolean = false,
+    configsMap?: Map<string, SeasonEngineConfig>,
   ): {
     playerStats: Map<string, PlayerMmrStats>;
     predictions: Map<string, MatchPrediction>;
@@ -1407,6 +1520,7 @@ export class StatsEngineService {
     for (const match of matches) {
       const matchId = match.id || `match_${Math.random()}`;
       const season = getStagionePartita(match);
+      const mCfg = StatsEngineService.resolveSeasonConfig(season, configsMap);
       const dataStr =
         match.dataPartita ||
         parseDate(match.dataOra)?.toISOString().split('T')[0] ||
@@ -1446,8 +1560,9 @@ export class StatsEngineService {
       const actualScoreA = aWon ? 1 : isDraw ? 0.5 : 0;
       const actualScoreB = bWon ? 1 : isDraw ? 0.5 : 0;
 
-      const teamDeltaA = K_FACTOR * (actualScoreA - expectedA);
-      const teamDeltaB = K_FACTOR * (actualScoreB - expectedB);
+      const teamDeltaA = mCfg.kFactor * (actualScoreA - expectedA);
+      const teamDeltaB = mCfg.kFactor * (actualScoreB - expectedB);
+
 
       // 3. Fattore Scarto Gol (Margin of Victory Smorzato, tra -5 e +5):
       const goalDiffA = scoreA - scoreB;
@@ -1493,7 +1608,7 @@ export class StatsEngineService {
         const voto = Number(pPerf.voto) || 0;
         let ratingBonus = 0;
         if (voto > 0) {
-          ratingBonus = Math.max(-8, Math.min(10, Math.round((voto - 6.5) * 6)));
+          ratingBonus = Math.max(-8, Math.min(10, Math.round((voto - mCfg.votoNeutro) * mCfg.votoMoltiplicatore)));
         }
 
         const eventi = match.eventiGol || [];
@@ -1521,7 +1636,7 @@ export class StatsEngineService {
         const netGoals = Math.max(0, golCount - autogolCount);
         const contributionBonus = Math.min(
           4,
-          Math.floor(netGoals * 0.8 + assistCount * 0.6),
+          Math.floor(netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr),
         );
 
         // 5. Streak Bonus Moderato (On Fire >= 3V / In Crisi >= 3L):
@@ -1587,7 +1702,7 @@ export class StatsEngineService {
         let isPlacement = false;
         if (matchesPlayedBefore === 0) {
           isPlacement = true;
-          const amplified = Math.round(rawDelta * PLACEMENT_MULTIPLIER);
+          const amplified = Math.round(rawDelta * mCfg.placementMultiplier);
           totalDelta = Math.max(
             PLACEMENT_CLAMP_MIN,
             Math.min(PLACEMENT_CLAMP_MAX, amplified),
@@ -1595,7 +1710,7 @@ export class StatsEngineService {
         } else {
           totalDelta = Math.max(
             HARD_CLAMP_MIN,
-            Math.min(HARD_CLAMP_MAX, Math.round(rawDelta)),
+            Math.min(mCfg.hardClampMax, Math.round(rawDelta)),
           );
         }
 

@@ -30,19 +30,21 @@ import {
   ToastController,
 } from '@ionic/angular/standalone';
 import {
-  Firestore,
+  // Firestore token imported from @angular/fire/firestore
   collection,
   addDoc,
   doc,
   getDoc,
   updateDoc,
-} from '@angular/fire/firestore';
+} from 'firebase/firestore';
+import { Firestore } from '@angular/fire/firestore';
 import {
-  Storage,
+  // Storage token imported from @angular/fire/storage
   ref,
   uploadBytes,
   getDownloadURL,
-} from '@angular/fire/storage';
+} from 'firebase/storage';
+import { Storage } from '@angular/fire/storage';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import { createOutline, arrowBack } from 'ionicons/icons';

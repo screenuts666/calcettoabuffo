@@ -328,21 +328,21 @@ export function buildPlayerScoutingPrompts(
   recentNotes: string[] = [],
   calcolaEta: (anno?: string | number) => number | null,
 ): PromptPair {
-  const mmr = profile?.currentMmr ?? 1000;
+  const mmr = profile?.mmrVal ?? profile?.currentMmr ?? 1000;
   const tier = profile?.tier?.badge ?? 'Argento';
   const streak = profile?.form?.statusLabel ?? 'Costante';
   const gol = profile?.golTotali ?? giocatore.gol ?? 0;
   const partite = profile?.partiteGiocate ?? giocatore.partiteGiocate ?? 0;
-  const mediaVoto =
-    profile?.mediaVoto > 0
-      ? profile.mediaVoto.toFixed(2)
-      : (giocatore.mediaVoto || 0).toFixed(2);
+  const rawMv = Number(profile?.mediaVotoVal ?? profile?.mediaVoto ?? giocatore.mediaVoto ?? 0);
+  const mediaVoto = !isNaN(rawMv) && rawMv > 0 ? rawMv.toFixed(2) : '0.00';
   const winRate = profile?.winRate ?? 50;
-  const gemello = profile?.chemistry?.bestTeammate
-    ? `${profile.chemistry.bestTeammate.teammateNome} (${profile.chemistry.bestTeammate.winRateTogether}% vittorie)`
+  const bestMate = profile?.chemistry?.bestPartner || profile?.chemistry?.bestTeammate;
+  const gemello = bestMate
+    ? `${bestMate.partnerNome || bestMate.teammateNome} (${bestMate.winRateTogether}% vittorie)`
     : 'Nessuno fisso';
-  const bestiaNera = profile?.chemistry?.worstNemesis
-    ? `${profile.chemistry.worstNemesis.opponentNome} (${profile.chemistry.worstNemesis.lossesAgainst} sconfitte subite)`
+  const worstNem = profile?.chemistry?.biggestNemesis || profile?.chemistry?.worstNemesis;
+  const bestiaNera = worstNem
+    ? `${worstNem.opponentNome} (${worstNem.lossesAgainst} sconfitte subite)`
     : 'Nessuna bestia nera';
 
   const eta = calcolaEta(giocatore.annoNascita);

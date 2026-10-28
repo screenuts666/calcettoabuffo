@@ -24,7 +24,8 @@ import {
   ToastController,
   LoadingController,
 } from '@ionic/angular/standalone';
-import { Storage, ref, getBlob } from '@angular/fire/storage';
+import { Storage } from '@angular/fire/storage';
+import { ref, getBlob } from 'firebase/storage';
 import { addIcons } from 'ionicons';
 import {
   logoWhatsapp,

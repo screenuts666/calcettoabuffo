@@ -23,8 +23,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Firestore, collection, collectionData } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Firestore, collectionData } from '@angular/fire/firestore';
+import { collection } from 'firebase/firestore';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { addIcons } from 'ionicons';
@@ -60,6 +62,8 @@ import {
   helpCircleOutline,
   informationCircleOutline,
   filter,
+  closeCircle,
+  shieldCheckmark,
 } from 'ionicons/icons';
 import { Giocatore, GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -86,14 +90,14 @@ import {
 } from 'src/app/utils/avatar-utils';
 
 export type CriterioOrdinamento =
-  | 'mmr'
   | 'punti'
-  | 'portieri'
-  | 'presenze'
+  | 'mmr'
   | 'gol'
-  | 'assist'
   | 'mediaVoto'
-  | 'wins';
+  | 'assist'
+  | 'portieri'
+  | 'wins'
+  | 'presenze';
 
 export interface CriterioOption {
   id: CriterioOrdinamento;
@@ -103,14 +107,14 @@ export interface CriterioOption {
 }
 
 export const CRITERI_ORDINAMENTO: CriterioOption[] = [
-  { id: 'mmr', label: 'MMR Elo', icon: 'shield-outline', unit: 'MMR' },
-  { id: 'punti', label: 'Punti Classici', icon: 'trophy', unit: 'PUNTI' },
-  { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
-  { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'MATCH' },
+  { id: 'punti', label: 'Punti', icon: 'trophy', unit: 'PUNTI' },
+  { id: 'mmr', label: 'Rango MMR', icon: 'shield-outline', unit: 'MMR' },
   { id: 'gol', label: 'Gol', icon: 'football', unit: 'GOL' },
-  { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
+  { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
+  { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
+  { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'PRESENZE' },
 ];
 export { GiocatoreConPunti };
 
@@ -154,12 +158,30 @@ export class ClassificaPage {
   // Vista attiva: classifica principale o sezione dedicata chimica & rivalità
   vistaSelezionata = signal<'classifica' | 'chimica'>('classifica');
 
-  // Stagione e Criterio di ordinamento
+  // Stagione e Criterio di ordinamento (Default: Punti Classici del campionato)
   stagioneSelezionata = signal<string>(CURRENT_SEASON);
-  criterioOrdinamento = signal<CriterioOrdinamento>('mmr');
+  criterioOrdinamento = signal<CriterioOrdinamento>('punti');
 
-  // Filtro rapido per Tier o Stato di Forma
+  // Filtro rapido per Tier o Stato di Forma (cassetto collassabile mobile)
   filtroTierOForma = signal<string>('all');
+  isFiltriOpen = signal<boolean>(false);
+
+  toggleFiltri() {
+    this.isFiltriOpen.update((v) => !v);
+  }
+
+  resetFiltro() {
+    this.filtroTierOForma.set('all');
+  }
+
+  activeFilterLabel = computed<string | null>(() => {
+    const f = this.filtroTierOForma();
+    if (f === 'all') return null;
+    if (f === 'on_fire') return '🔥 On Fire';
+    if (f === 'in_crisis') return '❄️ In Crisi';
+    const tier = this.MMR_TIERS.find((t) => t.id === f);
+    return tier ? tier.badge : null;
+  });
 
   // Toggle sezione Non Classificati (0 partite)
   mostraNonClassificati = signal<boolean>(false);
@@ -190,21 +212,25 @@ export class ClassificaPage {
   }
 
   giocatoriRaw = toSignal<Giocatore[], Giocatore[]>(
-    collectionData(collection(this.firestore, 'giocatori'), {
-      idField: 'id',
-    }) as Observable<Giocatore[]>,
+    (
+      collectionData(collection(this.firestore, 'giocatori'), {
+        idField: 'id',
+      }) as Observable<Giocatore[]>
+    ).pipe(catchError(() => of([] as Giocatore[]))),
     { initialValue: [] },
   );
 
   partiteRaw = toSignal<any[], any[]>(
-    collectionData(collection(this.firestore, 'partite'), {
-      idField: 'id',
-    }) as Observable<any[]>,
+    (
+      collectionData(collection(this.firestore, 'partite'), {
+        idField: 'id',
+      }) as Observable<any[]>
+    ).pipe(catchError(() => of([] as any[]))),
     { initialValue: [] },
   );
 
   /**
-   * Classifica completa con Punti Legacy affiancati al nuovo MMR, Tier, Trend e Forma
+   * Classifica completa con Punti Legacy, Rango Tier, MMR, Trend e Forma
    */
   classificaCalcolata = computed<GiocatoreConPunti[]>(() => {
     const giocatori = this.giocatoriRaw() || [];
@@ -245,14 +271,16 @@ export class ClassificaPage {
           const draw = scoreA === scoreB;
           const lost = !won && !draw;
 
-          punti += 2; // Presenza
+          const sCfg = this.statsEngine.getSeasonConfig(getStagionePartita(p));
+          punti += sCfg.legacyPresenza; // Presenza
           if (won) {
-            punti += 2;
+            punti += sCfg.legacyVittoria;
             wins++;
           } else if (draw) {
-            punti += 1;
+            punti += sCfg.legacyPareggio;
             draws++;
           } else if (lost) {
+            punti += sCfg.legacySconfitta;
             losses++;
           }
 
@@ -276,13 +304,13 @@ export class ClassificaPage {
 
           golTotali += golFatti;
           assistTotali += assistFatti;
-          punti += golFatti * 1;
-          punti += autogolFatti * -1;
-          punti += assistFatti * 0.5;
+          punti += golFatti * sCfg.legacyGol;
+          punti += autogolFatti * sCfg.legacyAutogol;
+          punti += assistFatti * sCfg.legacyAssist;
 
           const voto = Number(playerObj.voto) || 0;
           sommaVoti += voto;
-          punti += voto;
+          punti += voto * sCfg.legacyPesoVoto;
         }
       });
 
@@ -384,7 +412,6 @@ export class ClassificaPage {
     const ordinata = calcolata.sort((a, b) => {
       switch (crit) {
         case 'mmr':
-          // Chi ha giocato viene prima di chi ha 0 presenze
           if (b.isRanked !== a.isRanked) {
             return b.isRanked ? 1 : -1;
           }
@@ -479,7 +506,7 @@ export class ClassificaPage {
           return 0;
 
         default:
-          return b.mmrVal - a.mmrVal;
+          return b.puntiVal - a.puntiVal;
       }
     });
 
@@ -497,7 +524,11 @@ export class ClassificaPage {
       }
     });
 
-    // 4. Filtro opzionale per Tier o Stato di Forma
+    // 4. Filtro opzionale per Tier o Stato di Forma (non applicato sulla vista Portieri)
+    if (crit === 'portieri') {
+      return ordinata;
+    }
+
     const filtro = this.filtroTierOForma();
     if (filtro === 'on_fire') {
       return ordinata.filter((p) => p.isRanked && p.form.status === 'on_fire');
@@ -683,6 +714,8 @@ export class ClassificaPage {
       helpCircleOutline,
       informationCircleOutline,
       filter,
+      closeCircle,
+      shieldCheckmark,
     });
   }
 
@@ -705,30 +738,95 @@ export class ClassificaPage {
   getValorePrincipale(g: GiocatoreConPunti): {
     valore: string | number;
     etichetta: string;
+    subText?: string;
+    subType?: 'up' | 'down' | 'neutral' | 'muted';
   } {
     switch (this.criterioOrdinamento()) {
-      case 'mmr':
-        return { valore: g.isRanked ? g.mmrVal : '—', etichetta: 'MMR' };
+      case 'mmr': {
+        const subText = g.lastDeltaDisplay
+          ? g.trendDirection === 'up'
+            ? `▲ ${g.lastDeltaDisplay}`
+            : g.trendDirection === 'down'
+              ? `▼ ${g.lastDeltaDisplay}`
+              : g.lastDeltaDisplay
+          : g.isRanked
+            ? `${g.winRate}% WR`
+            : '';
+        const subType =
+          g.trendDirection === 'up'
+            ? 'up'
+            : g.trendDirection === 'down'
+              ? 'down'
+              : 'muted';
+        return {
+          valore: g.isRanked ? g.mmrVal : '—',
+          etichetta: 'MMR',
+          subText,
+          subType,
+        };
+      }
       case 'presenze':
-        return { valore: g.partiteGiocate, etichetta: 'MATCH' };
+        return {
+          valore: g.partiteGiocate,
+          etichetta: 'PRESENZE',
+          subText:
+            g.partiteGiocate > 0 ? `${g.wins}V·${g.draws}P·${g.losses}S` : '',
+          subType: 'muted',
+        };
       case 'gol':
-        return { valore: g.golTotali, etichetta: 'GOL' };
+        return {
+          valore: g.golTotali,
+          etichetta: 'GOL',
+          subText:
+            g.partiteGiocate > 0
+              ? `${(g.golTotali / g.partiteGiocate).toFixed(1)}/gara`
+              : '',
+          subType: 'muted',
+        };
       case 'assist':
-        return { valore: g.assistTotali, etichetta: 'ASSIST' };
+        return {
+          valore: g.assistTotali,
+          etichetta: 'ASSIST',
+          subText:
+            g.partiteGiocate > 0
+              ? `${(g.assistTotali / g.partiteGiocate).toFixed(1)}/gara`
+              : '',
+          subType: 'muted',
+        };
       case 'mediaVoto':
-        return { valore: g.isRanked ? g.mediaVotoDisplay : '—', etichetta: 'MEDIA' };
+        return {
+          valore: g.isRanked ? g.mediaVotoDisplay : '—',
+          etichetta: 'MEDIA',
+          subText: g.partiteGiocate > 0 ? `${g.partiteGiocate} gare` : '',
+          subType: 'muted',
+        };
       case 'wins':
-        return { valore: g.wins, etichetta: 'VITTORIE' };
+        return {
+          valore: g.wins,
+          etichetta: 'VITTORIE',
+          subText: g.partiteGiocate > 0 ? `${g.winRate}% WR` : '',
+          subType: 'muted',
+        };
       case 'portieri':
         return {
           valore: g.portiereStats?.isClassificabile
             ? g.portiereStats.mediaGolSubiti50m.toFixed(2)
             : '—',
           etichetta: 'GOL/50m',
+          subText: g.portiereStats?.isClassificabile
+            ? `🛡️ ${g.portiereStats.cleanSheetTurni} CS`
+            : '',
+          subType: 'muted',
         };
       case 'punti':
       default:
-        return { valore: g.puntiDisplay, etichetta: 'PUNTI' };
+        return {
+          valore: g.puntiDisplay,
+          etichetta: 'PUNTI',
+          subText:
+            g.partiteGiocate > 0 ? `${g.wins}V·${g.draws}P·${g.losses}S` : '',
+          subType: 'muted',
+        };
     }
   }
 
@@ -752,7 +850,7 @@ export class ClassificaPage {
   }
 
   async condividiSuWhatsApp() {
-    const lista = this.classificaCalcolata();
+    const lista = this.giocatoriClassificati();
     if (!lista || lista.length === 0) {
       const toast = await this.toastController.create({
         message: 'Nessun dato da condividere.',
@@ -771,7 +869,7 @@ export class ClassificaPage {
     const crit = this.CRITERI_ORDINAMENTO.find(
       (c) => c.id === this.criterioOrdinamento(),
     );
-    const criterioNome = crit ? crit.label : 'MMR Elo';
+    const criterioNome = crit ? crit.label : 'Punti';
 
     let msg = `⚽ *CALCETTO ABBUFFO* ⚽\n`;
     msg += `🏆 *${stagioneNome.toUpperCase()}*\n`;
@@ -789,8 +887,10 @@ export class ClassificaPage {
               : `${idx + 1}°`;
 
       const soprannome = g.soprannome
-        ? (g.soprannomeAi && g.soprannomeAi !== g.soprannome ? ` ("${g.soprannome}" / ✨"${g.soprannomeAi}")` : ` ("${g.soprannome}")`)
-        : (g.soprannomeAi ? ` (✨"${g.soprannomeAi}")` : '');
+        ? ` ("${g.soprannome}")`
+        : g.soprannomeAi
+          ? ` ("${g.soprannomeAi}")`
+          : '';
       const formIcon =
         g.form.status === 'on_fire'
           ? ' 🔥'
@@ -802,27 +902,27 @@ export class ClassificaPage {
       msg += `${medaglia} *${g.nome}*${soprannome} - ${g.tier.badge}${formIcon}\n`;
 
       if (this.criterioOrdinamento() === 'mmr') {
-        msg += `   └ 🛡️ *${g.mmrVal} MMR*${trendStr} | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match | ⭐ ${g.mediaVotoDisplay}\n`;
+        msg += `   └ 🛡️ *${g.mmrVal} MMR*${trendStr} | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} gare | ⭐ ${g.mediaVotoDisplay}\n`;
       } else if (this.criterioOrdinamento() === 'gol') {
-        msg += `   └ ⚽ *${g.golTotali} Gol* | 👟 ${g.assistTotali} assist | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
+        msg += `   └ ⚽ *${g.golTotali} Gol* | 👟 ${g.assistTotali} assist | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} gare\n`;
       } else if (this.criterioOrdinamento() === 'assist') {
-        msg += `   └ 👟 *${g.assistTotali} Assist* | ⚽ ${g.golTotali} gol | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
+        msg += `   └ 👟 *${g.assistTotali} Assist* | ⚽ ${g.golTotali} gol | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} gare\n`;
       } else if (this.criterioOrdinamento() === 'presenze') {
-        msg += `   └ 👥 *${g.partiteGiocate} Match* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
+        msg += `   └ 👥 *${g.partiteGiocate} Presenze* (${g.wins}V-${g.draws}P-${g.losses}S) | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
       } else if (this.criterioOrdinamento() === 'mediaVoto') {
-        msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} match\n`;
+        msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 👥 ${g.partiteGiocate} gare | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
       } else if (this.criterioOrdinamento() === 'wins') {
-        msg += `   └ 🔥 *${g.wins} Vittorie* (V${g.wins}-P${g.draws}-S${g.losses}) | 🛡️ ${g.mmrVal} MMR | 🏆 ${g.puntiDisplay} pt\n`;
+        msg += `   └ 🔥 *${g.wins} Vittorie* (${g.winRate}% WR) | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} gare\n`;
       } else if (this.criterioOrdinamento() === 'portieri') {
         const ps = g.portiereStats;
         msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPorta}' (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
       } else {
-        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 🛡️ ${g.mmrVal} MMR${trendStr} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
+        msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 👥 ${g.partiteGiocate} gare | ⭐ ${g.mediaVotoDisplay} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
       }
     });
 
     const oggi = new Date().toLocaleDateString('it-IT');
-    msg += `\n📅 _Aggiornato al ${oggi} col nuovo motore MMR_\n`;
+    msg += `\n📅 _Aggiornato al ${oggi}_\n`;
 
     if (navigator.share) {
       try {
@@ -913,14 +1013,26 @@ export class ClassificaPage {
     await alert.present();
   }
 
+  apriAreaSegreta() {
+    if (this.isAdmin()) {
+      this.router.navigate(['/area-segreta']);
+    }
+  }
+
   async logoutAdmin() {
     const alert = await this.alertController.create({
-      header: 'Logout',
-      message: 'Vuoi tornare tra i comuni mortali?',
+      header: '👑 Menu Super User',
+      message: 'Vuoi ispezionare i calcoli del motore o uscire dalla modalità Admin?',
       buttons: [
-        { text: 'Resta Admin', role: 'cancel' },
         {
-          text: 'Esci',
+          text: '🔬 Apri Area Segreta (Calcoli & MMR)',
+          handler: () => {
+            this.apriAreaSegreta();
+          },
+        },
+        {
+          text: '🚪 Esci (Logout)',
+          role: 'destructive',
           handler: async () => {
             await this.authService.logoutAdmin();
             (
@@ -931,6 +1043,7 @@ export class ClassificaPage {
             ).present();
           },
         },
+        { text: 'Chiudi', role: 'cancel' },
       ],
     });
     await alert.present();

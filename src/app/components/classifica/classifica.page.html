@@ -12,67 +12,99 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      @if (isAdmin()) {
+        <ion-button
+          color="warning"
+          (click)="apriAreaSegreta()"
+          title="Area Segreta Super User (Motore MMR & Calcoli)"
+        >
+          <ion-icon name="shield-checkmark" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
+      @if (vistaSelezionata() === 'classifica') {
+        <ion-button
+          class="whatsapp-btn"
+          (click)="condividiSuWhatsApp()"
+          title="Condividi su WhatsApp"
+        >
+          <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+        </ion-button>
+      }
       <app-theme-toggle></app-theme-toggle>
-      <ion-button
-        class="confronto-nav-btn"
-        (click)="apriConfronto()"
-        title="⚔️ Confronto 1v1 Head-to-Head"
-      >
-        <ion-icon name="swap-horizontal" slot="icon-only"></ion-icon>
-      </ion-button>
-      <ion-button
-        class="whatsapp-btn"
-        (click)="condividiSuWhatsApp()"
-        title="Condividi su WhatsApp"
-      >
-        <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
-      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 
-  <!-- SWITCH VISTA: CLASSIFICA GIOCATORI vs CHIMICA & RIVALITÀ -->
-  <div class="view-switch-bar">
-    <button
-      type="button"
-      class="view-switch-btn"
-      [class.active]="vistaSelezionata() === 'classifica'"
-      (click)="selezionaVista('classifica')"
-    >
-      <ion-icon name="trophy"></ion-icon>
-      <span>Classifica</span>
-    </button>
-    <button
-      type="button"
-      class="view-switch-btn"
-      [class.active]="vistaSelezionata() === 'chimica'"
-      (click)="selezionaVista('chimica')"
-    >
-      <ion-icon name="swap-horizontal"></ion-icon>
-      <span>Chimica & Rivalità 🤝</span>
-    </button>
+  <!-- BARRA 1 UNIFICATA: VISTA (CLASSIFICA / CHIMICA) + STAGIONE -->
+  <div class="context-header-bar">
+    <div class="view-segment">
+      <button
+        type="button"
+        class="segment-btn"
+        [class.active]="vistaSelezionata() === 'classifica'"
+        (click)="selezionaVista('classifica')"
+      >
+        <ion-icon name="trophy"></ion-icon>
+        <span>Classifica</span>
+      </button>
+      <button
+        type="button"
+        class="segment-btn"
+        [class.active]="vistaSelezionata() === 'chimica'"
+        (click)="selezionaVista('chimica')"
+      >
+        <span>🤝 Chimica</span>
+      </button>
+    </div>
+
+    @if (vistaSelezionata() === 'classifica') {
+      <div class="season-pills">
+        @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
+          <button
+            type="button"
+            class="season-pill-btn"
+            [class.active]="stagioneSelezionata() === stg.id"
+            (click)="selezionaStagione(stg.id)"
+            [title]="stg.label"
+          >
+            {{ stg.shortLabel }}
+          </button>
+        }
+      </div>
+    }
   </div>
 
   @if (vistaSelezionata() === 'classifica') {
-    <!-- SELETTORE STAGIONE (All-Time + Singole Stagioni) -->
-    <div class="season-bar">
-      @for (stg of stagioniList(); track stg.id) {
+    <!-- BARRA 2: CRITERI DI ORDINAMENTO + PULSANTE FILTRO COLLASSABILE -->
+    <div class="sort-bar">
+      @if (criterioOrdinamento() !== 'portieri') {
         <button
           type="button"
-          class="season-btn"
-          [class.active]="stagioneSelezionata() === stg.id"
-          (click)="selezionaStagione(stg.id)"
+          class="filter-trigger-btn"
+          [class.active]="isFiltriOpen() || filtroTierOForma() !== 'all'"
+          (click)="toggleFiltri()"
+          title="Filtra per Stato di Forma o Rango"
         >
-          <ion-icon [name]="stg.icon"></ion-icon>
-          <span>{{ stg.shortLabel }}</span>
+          <ion-icon name="filter"></ion-icon>
+          @if (filtroTierOForma() !== 'all') {
+            <span class="filter-dot"></span>
+          }
         </button>
-      }
-    </div>
 
-    <!-- SELETTORE CRITERIO ORDINAMENTO -->
-    <div class="sort-bar">
-      <span class="sort-hint">Ordina:</span>
+        @if (!isFiltriOpen() && activeFilterLabel(); as activeLbl) {
+          <button
+            type="button"
+            class="active-filter-pill"
+            (click)="resetFiltro()"
+            title="Tocca per rimuovere il filtro"
+          >
+            <span>{{ activeLbl }}</span>
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        }
+      }
+
       <div class="sort-scroll">
-        @for (c of CRITERI_ORDINAMENTO; track c.id) {
+        @for (c of CRITERI_ORDINAMENTO; track (c.id || '') + '_' + $index) {
           <button
             type="button"
             class="sort-chip"
@@ -86,123 +118,55 @@
       </div>
     </div>
 
-    <!-- FILTRO RAPIDO (Tutti / On Fire / In Crisi / Tier) -->
-    <div class="filter-bar">
-      <div class="filter-scroll">
-        <button
-          type="button"
-          class="filter-chip"
-          [class.active]="filtroTierOForma() === 'all'"
-          (click)="selezionaFiltro('all')"
-        >
-          Tutti
-        </button>
-        <button
-          type="button"
-          class="filter-chip on-fire"
-          [class.active]="filtroTierOForma() === 'on_fire'"
-          (click)="selezionaFiltro('on_fire')"
-        >
-          🔥 On Fire
-        </button>
-        <button
-          type="button"
-          class="filter-chip in-crisis"
-          [class.active]="filtroTierOForma() === 'in_crisis'"
-          (click)="selezionaFiltro('in_crisis')"
-        >
-          ❄️ In Crisi
-        </button>
-        <button
-          type="button"
-          class="filter-chip guide-chip"
-          [class.active]="isGuidaRanghiOpen()"
-          (click)="toggleGuidaRanghi()"
-          title="Info su soglie MMR, Soft Reset e Rango Fenomeno"
-        >
-          ℹ️ Ranghi MMR
-        </button>
-        @for (t of MMR_TIERS; track t.id) {
+    <!-- CASSETTO FILTRI SECONDARI (Visibile solo quando richiesto) -->
+    @if (isFiltriOpen() && criterioOrdinamento() !== 'portieri') {
+      <div class="filter-drawer">
+        <div class="filter-scroll">
           <button
             type="button"
-            class="filter-chip tier-chip"
-            [class.active]="filtroTierOForma() === t.id"
-            [style.--t-color]="t.color"
-            (click)="selezionaFiltro(t.id)"
+            class="filter-chip"
+            [class.active]="filtroTierOForma() === 'all'"
+            (click)="selezionaFiltro('all')"
           >
-            <span class="tier-dot" [style.background]="t.color"></span>
-            {{ t.badge }}
+            Tutti
           </button>
-        }
+          <button
+            type="button"
+            class="filter-chip on-fire"
+            [class.active]="filtroTierOForma() === 'on_fire'"
+            (click)="selezionaFiltro('on_fire')"
+          >
+            🔥 On Fire
+          </button>
+          <button
+            type="button"
+            class="filter-chip in-crisis"
+            [class.active]="filtroTierOForma() === 'in_crisis'"
+            (click)="selezionaFiltro('in_crisis')"
+          >
+            ❄️ In Crisi
+          </button>
+          @for (t of MMR_TIERS; track (t.id || '') + '_' + $index) {
+            <button
+              type="button"
+              class="filter-chip tier-chip"
+              [class.active]="filtroTierOForma() === t.id"
+              [style.--t-color]="t.color"
+              (click)="selezionaFiltro(t.id)"
+            >
+              <span class="tier-dot" [style.background]="t.color"></span>
+              {{ t.badge }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
+    }
   }
 </ion-header>
 
 <ion-content>
-  <!-- VISTA 1: CLASSIFICA GENERALE CON MMR E PUNTEGGIO LEGACY AFFIANCATI -->
+  <!-- VISTA 1: CLASSIFICA GIOCATORI MOBILE-FIRST -->
   @if (vistaSelezionata() === 'classifica') {
-    @if (isGuidaRanghiOpen()) {
-      <div class="mmr-guide-card">
-        <div class="guide-card-header">
-          <div class="guide-title">
-            <span class="guide-icon">🏆</span>
-            <div>
-              <h3>Regolamento Ranghi MMR</h3>
-              <p>Stile League of Legends adattato al campionato (11-15 match/anno)</p>
-            </div>
-          </div>
-          <button type="button" class="guide-close-btn" (click)="toggleGuidaRanghi()">✕</button>
-        </div>
-
-        <div class="guide-tiers-grid">
-          <div class="tier-info-box" style="--tier-c: #71717a">
-            <span class="t-name">🔩 Ferro</span>
-            <span class="t-thresh">&lt; 930 MMR</span>
-          </div>
-          <div class="tier-info-box" style="--tier-c: #CD7F32">
-            <span class="t-name">🥉 Bronzo</span>
-            <span class="t-thresh">930 - 999 MMR</span>
-          </div>
-          <div class="tier-info-box" style="--tier-c: #A8A29E">
-            <span class="t-name">🥈 Argento</span>
-            <span class="t-thresh">1000 - 1069 MMR</span>
-          </div>
-          <div class="tier-info-box" style="--tier-c: #EAB308">
-            <span class="t-name">🥇 Oro</span>
-            <span class="t-thresh">1070 - 1139 MMR</span>
-          </div>
-          <div class="tier-info-box" style="--tier-c: #06B6D4">
-            <span class="t-name">🩵 Platino</span>
-            <span class="t-thresh">1140 - 1209 MMR</span>
-          </div>
-          <div class="tier-info-box" style="--tier-c: #3B82F6">
-            <span class="t-name">💎 Diamante</span>
-            <span class="t-thresh">&ge; 1210 MMR</span>
-          </div>
-          <div class="tier-info-box fenomeno-box" style="--tier-c: #EF4444">
-            <span class="t-name">🏆 Fenomeno</span>
-            <span class="t-thresh">Challenger: Top 1 assoluto (o Top 2 se &ge;10 match e MMR &ge;1300) + &ge;1275 MMR stagionale + costanza presenze!</span>
-          </div>
-        </div>
-
-        <div class="guide-bullet-points">
-          <div class="guide-bullet">
-            <strong>⏳ Piazzamento Rapido:</strong> Basta 1 sola partita giocata per piazzarsi e sbloccare il rango (con calibrazione 1.35x).
-          </div>
-          <div class="guide-bullet">
-            <strong>🔄 Soft Reset Stagionale:</strong> Compressione del 35% verso la base 1000 (Seed clampato tra 920 e 1130 MMR).
-          </div>
-          <div class="guide-bullet">
-            <strong>⚖️ K-Factor 28 & Anti-Inflazione:</strong> Guadagni equilibrati in base alle quote pre-match, scarto gol e pagella (voto vs 6.5).
-          </div>
-          <div class="guide-bullet">
-            <strong>🏆 Punti Classici Intatti:</strong> Il sistema legacy lavora in parallelo e non viene mai toccato o rimosso!
-          </div>
-        </div>
-      </div>
-    }
-
     <!-- BANNER INFORMATIVO CLASSIFICA PORTIERI -->
     @if (criterioOrdinamento() === 'portieri') {
       <div class="portieri-info-banner">
@@ -210,7 +174,7 @@
         <div class="banner-text">
           <strong>Classifica Portieri a Rotazione</strong>
           <span>
-            Ordinata per <em>Minor Media Gol Subiti (parametrata su 50 min)</em>. Include solo chi ha parato almeno un turno da 5 min.
+            Ordinata per <em>Minor Media Gol Subiti su 50 min</em> (almeno 1 presenza in porta, &gt; 0 min).
           </span>
         </div>
       </div>
@@ -218,14 +182,16 @@
 
     <ion-list lines="full" class="classifica-list">
       <!-- GIOCATORI UFFICIALMENTE CLASSIFICATI (1+ MATCH) -->
-      @for (g of giocatoriClassificati(); track g.id; let i = $index) {
+      @for (g of giocatoriClassificati(); track (g.id || g.nome) + '_' + $index) {
+        @let hero = getValorePrincipale(g);
         <ion-item
           button="true"
           detail="false"
           (click)="apriDettagliGiocatore(g)"
           class="player-rank-item"
+          [class.top-three-row]="g.rankAssoluto <= 3"
         >
-          <!-- Posizione in classifica con medaglia -->
+          <!-- 1. Posizione in classifica -->
           <div slot="start" class="rank-col">
             <span
               class="rank-badge"
@@ -237,7 +203,7 @@
             </span>
           </div>
 
-          <!-- Avatar con anello Tier e badge Forma -->
+          <!-- 2. Avatar con anello colore Rango e badge stato di forma unico -->
           <div slot="start" class="avatar-col">
             <div class="avatar-ring" [style.border-color]="g.tier.color">
               <ion-avatar>
@@ -245,130 +211,120 @@
               </ion-avatar>
             </div>
             @if (g.form.status === 'on_fire') {
-              <span class="floating-badge on-fire" title="On Fire 🔥">🔥</span>
+              <span
+                class="floating-badge on-fire"
+                [title]="'On Fire: +' + g.form.currentStreak + ' vittorie'"
+              >
+                🔥
+              </span>
             } @else if (g.form.status === 'in_crisis') {
-              <span class="floating-badge in-crisis" title="In Crisi ❄️">❄️</span>
+              <span
+                class="floating-badge in-crisis"
+                [title]="'In Crisi: ' + g.form.currentStreak + ' sconfitte'"
+              >
+                ❄️
+              </span>
             }
           </div>
 
-          <!-- Dettagli Giocatore -->
+          <!-- 3. Blocco Centrale su 2 Righe Pulite -->
           <ion-label class="ion-text-wrap player-info-label">
-            <!-- Riga 1: Nome, Soprannome e Badge Tier -->
+            <!-- Riga 1: Nome + Soprannome principale + Pill Rango -->
             <div class="name-tier-row">
               <span class="player-name">{{ g.nome }}</span>
               @if (g.soprannome) {
                 <span class="nickname-span">"{{ g.soprannome }}"</span>
-                @if (g.soprannomeAi && g.soprannomeAi !== g.soprannome) {
-                  <span class="ai-pill-tiny" [title]="'Alias AI: ' + g.soprannomeAi">✨ {{ g.soprannomeAi }}</span>
-                }
               } @else if (g.soprannomeAi) {
-                <span class="nickname-span">"{{ g.soprannomeAi }}"</span>
-                <span class="ai-pill-tiny" title="Soprannome coniato da Gemini AI">✨ AI</span>
+                <span class="nickname-span ai-nick">"{{ g.soprannomeAi }}"</span>
               }
 
-              <!-- Badge Tier MMR -->
               <span
                 class="tier-pill"
-                [style.background]="g.tier.color + '1a'"
-                [style.border-color]="g.tier.color"
+                [style.background]="g.tier.color + '18'"
+                [style.border-color]="g.tier.color + '66'"
                 [style.color]="g.tier.color"
               >
                 <ion-icon [name]="g.tier.icon"></ion-icon>
                 <span>{{ g.tier.label }}</span>
               </span>
-
-              <!-- Badge Stato di Forma -->
-              @if (g.form.status === 'on_fire') {
-                <span class="form-pill on-fire" title="Striscia di vittorie consecutive">
-                  🔥 +{{ g.form.currentStreak }}
-                </span>
-              } @else if (g.form.status === 'in_crisis') {
-                <span class="form-pill in-crisis" title="Striscia di sconfitte consecutive">
-                  ❄️ {{ g.form.currentStreak }}
-                </span>
-              }
             </div>
 
-            <!-- Riga 2: MMR e Punteggio Legacy affiancati con Trend -->
-            <div class="scores-duo-row">
-              <div class="score-chip mmr-chip" [style.border-color]="g.tier.color">
-                <span class="score-chip-label">MMR</span>
-                <span class="score-chip-val" [style.color]="g.tier.color">
-                  {{ g.mmrVal }}
-                </span>
-
-                <!-- Trend ultima partita con freccia e delta -->
-                @if (g.lastDeltaDisplay) {
-                  <span
-                    class="trend-tag"
-                    [class.trend-up]="g.trendDirection === 'up'"
-                    [class.trend-down]="g.trendDirection === 'down'"
-                    [class.trend-neutral]="g.trendDirection === 'neutral'"
-                  >
-                    @if (g.trendDirection === 'up') {
-                      <ion-icon name="arrow-up"></ion-icon>
-                    } @else if (g.trendDirection === 'down') {
-                      <ion-icon name="arrow-down"></ion-icon>
-                    } @else {
-                      <ion-icon name="remove"></ion-icon>
-                    }
-                    {{ g.lastDeltaDisplay }}
-                  </span>
-                }
-              </div>
-
-              <div class="score-chip legacy-chip">
-                <span class="score-chip-label">CLASSICO</span>
-                <span class="score-chip-val">{{ g.puntiDisplay }} pt</span>
-              </div>
-            </div>
-
-            <!-- Riga 3: Statistiche di contorno (Media, Gol, Assist, Match) -->
+            <!-- Riga 2: Micro-Statistiche Essenziali (Zero troncamenti su mobile) -->
             @if (criterioOrdinamento() === 'portieri' && g.portiereStats) {
-              <div class="gk-classification-stats-row">
-                <span class="gk-stat-pill danger">
-                  🧤 {{ g.portiereStats.golSubiti }} gol subiti
+              <div class="compact-stats-row gk-stats">
+                <span class="stat-mini danger" title="Gol subiti in porta">
+                  🧤 <b>{{ g.portiereStats.golSubiti }}</b> subiti
                 </span>
-                <span class="gk-stat-pill">
-                  ⏱️ {{ g.portiereStats.minutiInPorta }}' in porta ({{ g.portiereStats.turniInPorta }} turni)
+                <span class="stat-sep">·</span>
+                <span class="stat-mini" title="Minuti e turni in porta">
+                  ⏱️ <b>{{ g.portiereStats.minutiInPorta }}'</b> ({{ g.portiereStats.turniInPorta }}t)
                 </span>
-                <span class="gk-stat-pill success">
-                  🛡️ {{ g.portiereStats.cleanSheetTurni }} clean sheet
+                <span class="stat-sep">·</span>
+                <span class="stat-mini success" title="Turni imbattuto (Clean Sheet)">
+                  🛡️ <b>{{ g.portiereStats.cleanSheetTurni }}</b> CS
                 </span>
               </div>
             } @else {
-              <p class="stats-sub-row">
-                <span>⭐ {{ g.mediaVotoDisplay }}</span>
-                <span class="dot-sep">•</span>
-                <span>⚽ {{ g.golTotali }} gol</span>
-                <span class="dot-sep">•</span>
-                <span>👟 {{ g.assistTotali }} assist</span>
-                <span class="dot-sep">•</span>
-                <span>👥 {{ g.partiteGiocate }} match ({{ g.wins }}V-{{ g.draws }}P-{{ g.losses }}S)</span>
-              </p>
+              <div class="compact-stats-row">
+                <span
+                  class="stat-mini"
+                  [class.highlight]="criterioOrdinamento() === 'presenze' || criterioOrdinamento() === 'wins'"
+                  title="Presenze stagionali"
+                >
+                  👥 <b>{{ g.partiteGiocate }}</b>
+                </span>
+                <span class="stat-sep">·</span>
+                <span
+                  class="stat-mini"
+                  [class.highlight]="criterioOrdinamento() === 'mediaVoto'"
+                  title="Media Voto"
+                >
+                  ⭐ <b>{{ g.mediaVotoDisplay }}</b>
+                </span>
+                <span class="stat-sep">·</span>
+                <span
+                  class="stat-mini"
+                  [class.highlight]="criterioOrdinamento() === 'gol'"
+                  title="Gol totali"
+                >
+                  ⚽ <b>{{ g.golTotali }}</b>
+                </span>
+                <span class="stat-sep">·</span>
+                <span
+                  class="stat-mini"
+                  [class.highlight]="criterioOrdinamento() === 'assist'"
+                  title="Assist totali"
+                >
+                  👟 <b>{{ g.assistTotali }}</b>
+                </span>
+                @if (criterioOrdinamento() !== 'punti') {
+                  <span class="stat-sep">·</span>
+                  <span class="stat-mini pts-mini" title="Punti Classici">
+                    🏆 <b>{{ g.puntiDisplay }}</b>pt
+                  </span>
+                }
+              </div>
             }
           </ion-label>
 
-          <!-- Box Evidenziato sulla destra in base al criterio attivo -->
+          <!-- 4. Blocco Destra: Unico Valore Hero + Sottodato Contestuale -->
           <div slot="end" class="stat-highlight-box">
             <span
               class="stat-highlight-val"
-              [style.color]="
-                criterioOrdinamento() === 'mmr' ? g.tier.color : ''
-              "
+              [style.color]="criterioOrdinamento() === 'mmr' ? g.tier.color : ''"
             >
-              {{ getValorePrincipale(g).valore }}
+              {{ hero.valore }}
             </span>
             <span class="stat-highlight-label">
-              {{ getValorePrincipale(g).etichetta }}
+              {{ hero.etichetta }}
             </span>
-            @if (criterioOrdinamento() === 'mmr' && g.lastDeltaDisplay) {
+            @if (hero.subText) {
               <span
-                class="highlight-sub-trend"
-                [class.up]="g.trendDirection === 'up'"
-                [class.down]="g.trendDirection === 'down'"
+                class="highlight-sub-meta"
+                [class.up]="hero.subType === 'up'"
+                [class.down]="hero.subType === 'down'"
               >
-                {{ g.lastDeltaDisplay }}
+                {{ hero.subText }}
               </span>
             }
           </div>
@@ -380,6 +336,11 @@
               <p>🧤 Nessun portiere classificabile in questa stagione.<br><small style="color: var(--app-text-secondary)">Le statistiche partono dalla prossima partita con la rotazione ogni 5 min attiva!</small></p>
             } @else {
               <p>Nessun giocatore corrisponde ai filtri selezionati.</p>
+              @if (filtroTierOForma() !== 'all') {
+                <button type="button" class="reset-filter-empty-btn" (click)="resetFiltro()">
+                  Mostra tutti i giocatori
+                </button>
+              }
             }
           </div>
         }
@@ -396,7 +357,7 @@
             <div class="unranked-header-left">
               <span class="unranked-icon-tag">⏳</span>
               <span class="unranked-title-text">
-                In Piazzamento ({{ giocatoriNonClassificati().length }} giocatori con 0 presenze)
+                In Piazzamento ({{ giocatoriNonClassificati().length }} con 0 presenze)
               </span>
             </div>
             <ion-icon
@@ -407,7 +368,7 @@
 
           @if (mostraNonClassificati()) {
             <div class="unranked-list">
-              @for (ug of giocatoriNonClassificati(); track ug.id) {
+              @for (ug of giocatoriNonClassificati(); track (ug.id || ug.nome) + '_' + $index) {
                 <ion-item
                   button="true"
                   detail="false"
@@ -415,7 +376,7 @@
                   class="player-rank-item unranked-item"
                 >
                   <div slot="start" class="rank-col">
-                    <span class="rank-badge rank-unranked">⏳</span>
+                    <span class="rank-badge rank-unranked">—</span>
                   </div>
 
                   <div slot="start" class="avatar-col">
@@ -431,38 +392,16 @@
                       <span class="player-name">{{ ug.nome }}</span>
                       @if (ug.soprannome) {
                         <span class="nickname-span">"{{ ug.soprannome }}"</span>
-                        @if (ug.soprannomeAi && ug.soprannomeAi !== ug.soprannome) {
-                          <span class="ai-pill-tiny" [title]="'Alias AI: ' + ug.soprannomeAi">✨ {{ ug.soprannomeAi }}</span>
-                        }
-                      } @else if (ug.soprannomeAi) {
-                        <span class="nickname-span">"{{ ug.soprannomeAi }}"</span>
-                        <span class="ai-pill-tiny" title="Soprannome coniato da Gemini AI">✨ AI</span>
                       }
-                      <span class="tier-pill unranked-pill">
-                        <ion-icon name="help-circle-outline"></ion-icon>
-                        <span>In Piazzamento</span>
-                      </span>
                     </div>
-
-                    <div class="scores-duo-row">
-                      <div class="score-chip unranked-chip" title="Seed iniziale per il bilanciamento squadre">
-                        <span class="score-chip-label">SEED</span>
-                        <span class="score-chip-val">{{ ug.seasonStartMmr || 1000 }}</span>
-                      </div>
-                      <div class="score-chip legacy-chip">
-                        <span class="score-chip-label">CLASSICO</span>
-                        <span class="score-chip-val">{{ ug.puntiDisplay }} pt</span>
-                      </div>
-                    </div>
-
-                    <p class="stats-sub-row unranked-sub">
-                      <span>⏳ 1 match richiesto per sbloccare il rango ufficiale</span>
+                    <p class="unranked-sub-line">
+                      ⏳ 1 presenza richiesta per entrare in classifica
                     </p>
                   </ion-label>
 
                   <div slot="end" class="stat-highlight-box unranked-highlight">
-                    <span class="stat-highlight-val unranked-dash">⏳</span>
-                    <span class="stat-highlight-label">PROVISIONAL</span>
+                    <span class="stat-highlight-val unranked-dash">0</span>
+                    <span class="stat-highlight-label">GARE</span>
                   </div>
                 </ion-item>
               }
@@ -470,6 +409,73 @@
           }
         </div>
       }
+
+      <!-- SEZIONE COLLASSATA REGOLAMENTO PUNTI & RANGHI MMR -->
+      <div class="unranked-section guide-footer-section">
+        <button
+          type="button"
+          class="unranked-toggle-header"
+          (click)="toggleGuidaRanghi()"
+        >
+          <div class="unranked-header-left">
+            <span class="unranked-icon-tag">ℹ️</span>
+            <span class="unranked-title-text">
+              Come funzionano Punti & Ranghi MMR
+            </span>
+          </div>
+          <ion-icon
+            [name]="isGuidaRanghiOpen() ? 'chevron-up' : 'chevron-down'"
+            class="unranked-arrow"
+          ></ion-icon>
+        </button>
+
+        @if (isGuidaRanghiOpen()) {
+          <div class="mmr-guide-card footer-embedded">
+            <div class="guide-tiers-grid">
+              <div class="tier-info-box" style="--tier-c: #71717a">
+                <span class="t-name">🔩 Ferro</span>
+                <span class="t-thresh">&lt; 930 MMR</span>
+              </div>
+              <div class="tier-info-box" style="--tier-c: #CD7F32">
+                <span class="t-name">🥉 Bronzo</span>
+                <span class="t-thresh">930 - 999 MMR</span>
+              </div>
+              <div class="tier-info-box" style="--tier-c: #A8A29E">
+                <span class="t-name">🥈 Argento</span>
+                <span class="t-thresh">1000 - 1069 MMR</span>
+              </div>
+              <div class="tier-info-box" style="--tier-c: #EAB308">
+                <span class="t-name">🥇 Oro</span>
+                <span class="t-thresh">1070 - 1139 MMR</span>
+              </div>
+              <div class="tier-info-box" style="--tier-c: #06B6D4">
+                <span class="t-name">🩵 Platino</span>
+                <span class="t-thresh">1140 - 1209 MMR</span>
+              </div>
+              <div class="tier-info-box" style="--tier-c: #3B82F6">
+                <span class="t-name">💎 Diamante</span>
+                <span class="t-thresh">&ge; 1210 MMR</span>
+              </div>
+              <div class="tier-info-box fenomeno-box" style="--tier-c: #EF4444">
+                <span class="t-name">🏆 Fenomeno</span>
+                <span class="t-thresh">Challenger: Top 1 assoluto (o Top 2 se &ge;10 match e MMR &ge;1300) + &ge;1275 MMR stagionale + costanza presenze!</span>
+              </div>
+            </div>
+
+            <div class="guide-bullet-points">
+              <div class="guide-bullet">
+                <strong>🏆 Punti Campionato:</strong> Premiano costanza e rendimento (+2 presenza, +2 vittoria, +1 pareggio, +1 gol, +0.5 assist, +voto pagella).
+              </div>
+              <div class="guide-bullet">
+                <strong>🛡️ Rango & MMR:</strong> L'MMR lavora dietro le quinte per bilanciare le squadre e assegnare il Rango (da Ferro a Fenomeno).
+              </div>
+              <div class="guide-bullet">
+                <strong>⏳ Piazzamento & Soft Reset:</strong> Basta 1 partita per sbloccare il rango. A inizio stagione l'MMR viene compresso del 35% verso 1000.
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </ion-list>
   }
 
@@ -494,7 +500,7 @@
       </div>
 
       <div class="duo-grid">
-        @for (duo of topDuos(); track duo.p1Id + duo.p2Id; let i = $index) {
+        @for (duo of topDuos(); track (duo.p1Id || '') + '_' + (duo.p2Id || '') + '_' + $index; let i = $index) {
           <div class="duo-card partner-card">
             <div class="duo-rank">#{{ i + 1 }}</div>
             <div class="duo-players">
@@ -523,7 +529,7 @@
               <div class="duo-rate">{{ duo.winRate }}% Vittorie</div>
               @if (duo.avgDeltaTogether !== undefined) {
                 <div class="duo-delta" [class.positive]="duo.avgDeltaTogether >= 0" [class.negative]="duo.avgDeltaTogether < 0">
-                  ⚡ Delta MMR medio: {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} pt/partita
+                  ⚡ Rendimento coppia: {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} pt/gara
                 </div>
               }
               <div class="duo-record">
@@ -545,7 +551,7 @@
       </div>
 
       <div class="duo-grid">
-        @for (riv of topRivalries(); track riv.p1Id + riv.p2Id; let i = $index) {
+        @for (riv of topRivalries(); track (riv.p1Id || '') + '_' + (riv.p2Id || '') + '_' + $index; let i = $index) {
           <div class="duo-card nemesis-card">
             <div class="duo-rank">#{{ i + 1 }}</div>
             <div class="duo-players">
@@ -597,4 +603,3 @@
     </div>
   }
 </ion-content>
-

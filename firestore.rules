@@ -7,6 +7,12 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
 
+    // Parametri motore storicizzati per stagione (Super-Lock Admin)
+    match /config_stagioni/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
     // Collezioni dell'applicazione calcetto
     match /giocatori/{document=**} {
       allow read, write: if true;
@@ -31,4 +37,3 @@ service cloud.firestore {
     }
   }
 }
-

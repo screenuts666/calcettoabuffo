@@ -56,7 +56,7 @@
   @if (scorersA.length > 0 || scorersB.length > 0) {
     <div class="hero-scorers-bar">
       <div class="scorers-col white-scorers">
-        @for (s of scorersA; track s.nome) {
+        @for (s of scorersA; track (s.nome || '') + '_' + $index) {
           <span class="scorer-tag white-tag">
             ⚽ <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
@@ -65,7 +65,7 @@
       </div>
       <div class="scorers-divider"></div>
       <div class="scorers-col black-scorers">
-        @for (s of scorersB; track s.nome) {
+        @for (s of scorersB; track (s.nome || '') + '_' + $index) {
           <span class="scorer-tag black-tag">
             ⚽ <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }

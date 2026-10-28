@@ -10,7 +10,7 @@
 <ion-content class="matches-container">
   <!-- SELETTORE STAGIONE -->
   <div class="season-filter-bar">
-    @for (stg of stagioniList(); track stg.id) {
+    @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
     <button type="button" class="season-filter-chip" [class.active]="stagioneSelezionata() === stg.id"
       (click)="selezionaStagione(stg.id)">
       <ion-icon [name]="stg.icon"></ion-icon>
@@ -57,7 +57,7 @@
     <ion-label>In Corso</ion-label>
   </ion-list-header>
   <ion-list mode="ios" style="background: transparent">
-    @for (m of partiteInCorso(); track m.id) {
+    @for (m of partiteInCorso(); track (m.id || m.data || '') + '_' + $index) {
     <ion-item-sliding #slidingItem>
       <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
         <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
@@ -173,7 +173,7 @@
     <ion-label>Pronte per Iniziare</ion-label>
   </ion-list-header>
   <ion-list mode="ios" style="background: transparent">
-    @for (m of partitePronte(); track m.id) {
+    @for (m of partitePronte(); track (m.id || m.data || '') + '_' + $index) {
     <ion-item-sliding #slidingItem>
       <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
         <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
@@ -289,7 +289,7 @@
     <ion-label>In Attesa di Pagelle</ion-label>
   </ion-list-header>
   <ion-list mode="ios" style="background: transparent">
-    @for (m of partiteDaVotare(); track m.id) {
+    @for (m of partiteDaVotare(); track (m.id || m.data || '') + '_' + $index) {
     <ion-item-sliding #slidingItem>
       <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
         <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"
@@ -406,7 +406,7 @@
     <ion-label>Storico Partite</ion-label>
   </ion-list-header>
   <ion-list mode="ios" style="background: transparent">
-    @for (m of partiteArchiviate(); track m.id) {
+    @for (m of partiteArchiviate(); track (m.id || m.data || '') + '_' + $index) {
     <ion-item-sliding #slidingItem>
       <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
         <div class="match-card" [ngClass]="stagioneCardClass(m)" [class.highlight-active]="highlightMatchId() === m.id"

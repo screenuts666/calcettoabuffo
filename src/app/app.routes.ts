@@ -1,6 +1,15 @@
 import { Routes } from '@angular/router';
+import { superUserGuard } from './services/auth.service';
 
 export const routes: Routes = [
+  {
+    path: 'area-segreta',
+    canActivate: [superUserGuard],
+    loadComponent: () =>
+      import('./components/area-segreta/area-segreta.page').then(
+        (m) => m.AreaSegretaPage,
+      ),
+  },
   {
     path: 'partite/nuova',
     loadComponent: () =>

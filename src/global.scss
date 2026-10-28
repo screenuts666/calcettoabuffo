@@ -327,3 +327,19 @@ ion-avatar {
   }
 }
 
+/* =============================================================================
+ * NUMBER INPUT RESET: Disabilita controlli spinner nativi su desktop
+ * Evita che i browser desktop (Chrome/Edge) taglino l'ultima cifra a destra
+ * ============================================================================= */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+
