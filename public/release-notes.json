@@ -1,5 +1,35 @@
 [
   {
+    "version": "1.0.10",
+    "date": "28/10/2026",
+    "title": "Fix Header Match & Finestra Stato Sincronizzazione",
+    "userChanges": [
+      "Il titolo 'Gestione Match' nella barra superiore non viene più tagliato o schiacciato su smartphone.",
+      "Badge di stato sincronizzazione database compatto con nuvola e indicatore LED luminoso (verde/arancione/rosso).",
+      "Nuova finestra informativa pulita al tocco dello stato sync: addio codice HTML grezzo o banner invasivi, ora mostra chiaramente l'orario dell'ultimo salvataggio e lo stato della connessione cloud."
+    ],
+    "superUserChanges": [
+      "Risolto il flexbox layout della toolbar in Partita Detail: titolo impostato su flex-grow con allineamento a sinistra e badges compattati.",
+      "La pillola del numero di versione (es. v1.0.x) si nasconde automaticamente su schermi stretti (<480px) lasciando il controllo impostazioni sempre accessibile.",
+      "Sostituito il Toast grezzo di sincronizzazione con un AlertController nativo professionale con supporto pre-line e descrizioni dettagliate per online, offline, in sync e salvataggio locale."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "28/10/2026",
+    "title": "Fix Header Match & Finestra Stato Sincronizzazione",
+    "userChanges": [
+      "Il titolo 'Gestione Match' nella barra superiore non viene più tagliato o schiacciato su smartphone.",
+      "Badge di stato sincronizzazione database compatto con nuvola e indicatore LED luminoso (verde/arancione/rosso).",
+      "Nuova finestra informativa pulita al tocco dello stato sync: addio codice HTML grezzo o banner invasivi, ora mostra chiaramente l'orario dell'ultimo salvataggio e lo stato della connessione cloud."
+    ],
+    "superUserChanges": [
+      "Risolto il flexbox layout della toolbar in Partita Detail: titolo impostato su flex-grow con allineamento a sinistra e badges compattati.",
+      "La pillola del numero di versione (es. v1.0.x) si nasconde automaticamente su schermi stretti (<480px) lasciando il controllo impostazioni sempre accessibile.",
+      "Sostituito il Toast grezzo di sincronizzazione con un AlertController nativo professionale con supporto pre-line e descrizioni dettagliate per online, offline, in sync e salvataggio locale."
+    ]
+  },
+  {
     "version": "1.0.9",
     "date": "28/10/2026",
     "title": "Fix Layout Header & Navigazione Pannello Impostazioni",

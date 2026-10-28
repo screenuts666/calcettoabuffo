@@ -4,7 +4,7 @@
   --padding-end: 6px;
   font-size: 1.15rem;
   transition: transform 0.2s ease, opacity 0.2s ease;
-  margin-right: 4px;
+  margin-right: 2px;
 
   &:hover {
     transform: scale(1.04);
@@ -27,6 +27,8 @@
     line-height: 1.1;
     text-transform: uppercase;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .version-mini-pill {
@@ -34,16 +36,25 @@
     font-weight: 700;
     letter-spacing: 0.3px;
     padding: 2px 5px;
-    margin-right: 5px;
+    margin-right: 4px;
     border-radius: 6px;
     background: rgba(45, 211, 111, 0.14);
     color: #2dd36f;
     border: 1px solid rgba(45, 211, 111, 0.32);
     line-height: 1.1;
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    // Su smartphone stretti nascondi il badge versione testuale nell'header per dare spazio al titolo pagina.
+    // La versione resta sempre visibile all'interno del modale Impostazioni (tocco sull'ingranaggio)
+    @media (max-width: 480px) {
+      display: none !important;
+    }
   }
 
   ion-icon {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
   }
 }

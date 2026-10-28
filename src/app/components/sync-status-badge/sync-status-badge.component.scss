@@ -32,8 +32,21 @@
   }
 
   &.compact {
-    padding: 4px 6px;
+    padding: 4px 7px;
     gap: 4px;
+
+    .sync-text {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 4px 7px;
+    gap: 4px;
+
+    .sync-text {
+      display: none !important;
+    }
   }
 
   .icon-wrap {
@@ -113,16 +126,20 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.4;
     transform: scale(1.3);

@@ -1,6 +1,6 @@
 import { Component, inject, ChangeDetectionStrategy, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonIcon, ToastController } from '@ionic/angular/standalone';
+import { IonIcon, AlertController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   cloudDoneOutline,
@@ -21,7 +21,7 @@ import { SyncStatusService } from '../../services/sync-status.service';
 })
 export class SyncStatusBadgeComponent {
   public syncService = inject(SyncStatusService);
-  private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
 
   @Input() compact = false;
 
@@ -36,32 +36,53 @@ export class SyncStatusBadgeComponent {
   }
 
   async mostraDettaglioSync() {
-    const stato = this.syncService.label();
+    const syncState = this.syncService.syncState();
     const saveTime = this.syncService.formattedLastSave();
     const isOnline = this.syncService.isOnline();
 
-    let msg = `📡 <b>${stato}</b><br/>`;
-    msg += `⏱️ Ultimo salvataggio locale: <b>${saveTime}</b><br/>`;
-
-    if (!isOnline) {
-      msg += `📶 Nessun campo al momento: tutti i gol, timer e formazioni sono salvati sul telefono e verranno caricati su Firebase appena torna la rete.`;
-    } else {
-      msg += `☁️ Connessione attiva: i dati sono sincronizzati con il database.`;
+    let headerTitle = '☁️ Database Sincronizzato';
+    if (syncState === 'syncing') {
+      headerTitle = '🔄 Sincronizzazione in Corso';
+    } else if (syncState === 'saved_locally') {
+      headerTitle = '💾 Dati Salvati in Locale';
+    } else if (!isOnline || syncState === 'offline') {
+      headerTitle = '📶 Modalità Offline (Al Sicuro)';
     }
 
-    const toast = await this.toastCtrl.create({
-      message: msg,
-      duration: 4000,
-      position: 'top',
-      color: this.syncService.color(),
-      cssClass: 'sync-status-toast',
+    let detailExplanation = '';
+    if (!isOnline || syncState === 'offline') {
+      detailExplanation =
+        'Nessuna connessione internet disponibile al momento. Non ti preoccupare: tutti i gol, il timer, le formazioni e i cambi portiere sono registrati al sicuro nella memoria del tuo telefono e verranno caricati automaticamente su Firebase non appena tornerà il segnale di rete.';
+    } else if (syncState === 'syncing') {
+      detailExplanation =
+        'Allineamento dei dati del match con il cloud in corso in background. Le ultime modifiche sono state trasmesse.';
+    } else if (syncState === 'saved_locally') {
+      detailExplanation =
+        'Le modifiche sono state salvate sul dispositivo e sono in coda per essere inviate al cloud.';
+    } else {
+      detailExplanation =
+        'Connessione attiva e stabile. Tutti i gol, assist, rotazioni dei portieri e minuti di gioco sono salvati e sincronizzati in tempo reale con il database cloud.';
+    }
+
+    const messageLines = [
+      `⏱️ Ultimo salvataggio: ${saveTime}`,
+      `🌐 Connessione: ${isOnline ? 'Online (attiva)' : 'Offline (nessun campo)'}`,
+      '',
+      detailExplanation,
+    ].join('\n');
+
+    const alert = await this.alertCtrl.create({
+      header: headerTitle,
+      subHeader: 'Stato Sincronizzazione Partita',
+      message: messageLines,
+      cssClass: 'sync-status-alert',
       buttons: [
         {
-          text: 'OK',
+          text: 'Ho Capito',
           role: 'cancel',
         },
       ],
     });
-    await toast.present();
+    await alert.present();
   }
 }

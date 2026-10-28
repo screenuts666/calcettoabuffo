@@ -125,6 +125,7 @@ ion-select {
     color: var(--app-primary);
     opacity: 0.9;
   }
+
   &::part(text) {
     color: var(--app-text-primary);
     font-weight: 600;
@@ -136,6 +137,7 @@ ion-select-popover {
 
   ion-item {
     --color: var(--app-text-primary);
+
     &[aria-checked="true"] {
       --color: var(--app-primary) !important;
       font-weight: 700;
@@ -177,6 +179,7 @@ ion-picker {
 
 .picker-opt {
   color: var(--app-text-secondary) !important;
+
   &.picker-opt-selected {
     color: var(--app-text-primary) !important;
     font-weight: 800 !important;
@@ -198,6 +201,7 @@ ion-picker {
     font-weight: 800 !important;
     font-size: 1.15rem !important;
   }
+
   .alert-sub-title,
   .alert-message {
     color: var(--app-text-secondary) !important;
@@ -230,6 +234,7 @@ ion-picker {
 }
 
 [aria-checked="true"] {
+
   .alert-radio-label,
   .alert-checkbox-label {
     color: var(--app-primary) !important;
@@ -238,6 +243,7 @@ ion-picker {
 
   .alert-radio-icon {
     border-color: var(--app-primary) !important;
+
     .alert-radio-inner {
       background-color: var(--app-primary) !important;
     }
@@ -343,3 +349,30 @@ input[type="number"] {
 }
 
 
+
+
+/* =============================================================================
+ * ALERT STATO SINCRONIZZAZIONE (Modalità Popup pulito senza raw HTML)
+ * ============================================================================= */
+.sync-status-alert {
+  .alert-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+  }
+
+  .alert-sub-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--app-text-muted);
+    margin-top: 4px;
+  }
+
+  .alert-message {
+    white-space: pre-line !important;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--app-text-secondary);
+    padding-top: 8px;
+  }
+}

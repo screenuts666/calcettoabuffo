@@ -1,5 +1,5 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar>
+  <ion-toolbar class="detail-header-toolbar">
     <ion-buttons slot="start">
       @if (state.step() === "dettagli" && !state.matchConcluso()) {
         <ion-button (click)="state.step.set('convocati')"
@@ -25,7 +25,7 @@
       }
     </ion-buttons>
 
-    <ion-title>{{
+    <ion-title class="detail-header-title">{{
       state.step() === 'prestazioni'
         ? (state.matchConcluso() ? 'Report Partita' : 'Pagelle')
         : state.matchId()
@@ -33,8 +33,8 @@
           : 'Nuova Partita'
     }}</ion-title>
 
-    <ion-buttons slot="end">
-      <app-sync-status-badge></app-sync-status-badge>
+    <ion-buttons slot="end" class="detail-header-end">
+      <app-sync-status-badge [compact]="true"></app-sync-status-badge>
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
