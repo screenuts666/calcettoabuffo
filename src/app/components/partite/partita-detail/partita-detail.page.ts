@@ -17,7 +17,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
-  // Firestore token imported from @angular/fire/firestore
   collection,
   doc,
   getDoc,
@@ -28,7 +27,12 @@ import {
 import { Firestore } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { arrowBack, close, arrowForward, checkmark } from 'ionicons/icons';
+import {
+  arrowBack,
+  close,
+  arrowForward,
+  checkmark,
+} from 'ionicons/icons';
 
 import { AuthService } from '../../../services/auth.service';
 import { MatchStateService } from './match-state.service';
@@ -84,7 +88,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private routeSub?: Subscription;
 
   constructor() {
-    addIcons({ arrowBack, close, arrowForward, checkmark });
+    addIcons({
+      arrowBack,
+      close,
+      arrowForward,
+      checkmark,
+    });
   }
 
   async ngOnInit() {
@@ -112,6 +121,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.routeSub.unsubscribe();
     }
     this.state.fermaAscolto();
+    this.state.soundSettings?.stopAllSounds();
   }
 
   private async initNuovaPartita() {
@@ -223,6 +233,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.accumulatedTime.set(matchData.accumulatedTime || 0);
       this.state.timerStartAt.set(matchData.timerStartAt || null);
       this.state.isTimerRunning.set(matchData.isTimerRunning || false);
+      this.state.cambioAttivo.set(
+        matchData.isTimerRunning ? (matchData.cambioAttivo || false) : false
+      );
 
       const idsSalvati = (matchData.convocati || []).map((c: any) => c.id);
       this.state.tutti.set(
@@ -239,12 +252,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         assist:
           p.assist !== undefined
             ? p.assist
-            : eventi.filter(
-                (eg: any) =>
-                  eg.assistId === p.id ||
-                  (!eg.assistId && eg.assistNome && eg.assistNome === p.nome),
-              ).length,
+            : eventi.filter((eg: any) => eg.assistId === p.id || (!eg.assistId && eg.assistNome === p.nome)).length,
       });
+
       this.state.teamA.set((matchData.teamA || []).map(normalizePlayer));
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
@@ -285,6 +295,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   chiudi() {
+    this.router.navigate(['/partite']);
+  }
+
+  /**
+   * Torna alla pagina /partite senza chiudere o concludere la partita.
+   * Il match resta attivo, salvato in locale e nel DB, e riapribile dall'elenco "In Corso".
+   */
+  tornaAPartite() {
+    this.state.salvaSnapshotLocale();
     this.router.navigate(['/partite']);
   }
 

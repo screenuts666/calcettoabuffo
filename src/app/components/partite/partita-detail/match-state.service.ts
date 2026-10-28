@@ -696,7 +696,8 @@ export class MatchStateService {
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
           this.status.set(data.status || 'da_definire');
-          this.cambioAttivo.set(data.cambioAttivo || false);
+          // Allarme cambio consentito solo se il timer della partita è effettivamente attivo
+          this.cambioAttivo.set(data.isTimerRunning ? (data.cambioAttivo || false) : false);
           this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.fotoUrl.set(data.fotoUrl || null);
           this.fotoPath.set(data.fotoPath || null);
@@ -891,6 +892,7 @@ export class MatchStateService {
     this.accumulatedTime.set(0);
     this.timerStartAt.set(null);
     this.isTimerRunning.set(false);
+    this.cambioAttivo.set(false);
     this.rimuoviSnapshotLocale();
   }
 }

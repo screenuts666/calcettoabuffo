@@ -150,8 +150,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.riattivaWakeLock);
     }
 
-    // ─── AUDIO SBLOCCO USER GESTURE ───────────────────────────────────
-    this.soundSettings.unlockAudioOnUserGesture();
+    // ─── AUDIO SBLOCCO USER GESTURE (solo su effettivo tocco dell'utente) ───
     document.addEventListener('click', this.sbloccaAudioUserGesture, {
       once: true,
     });
@@ -207,12 +206,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         this.state.cronometro.set(this.state.accumulatedTime());
       }
 
-      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato Firestore) ──────
+      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato Firestore, MAI a timer fermo) ──────
       if (this.isAdmin) {
+        const isRunning = this.state.isTimerRunning();
         const cambioAttivo = this.state.cambioAttivo();
-        if (cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
+        if (isRunning && cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
           this.avviaAudio();
-        } else if (!cambioAttivo && this.soundSettings.isMatchAlarmPlaying()) {
+        } else if ((!isRunning || !cambioAttivo) && this.soundSettings.isMatchAlarmPlaying()) {
           this.fermaAudio();
         }
       }
@@ -359,6 +359,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     await this.state.setCambioPortiereAttivo(nuovoStato);
     if (!nuovoStato) {
       this.fermaAudio();
+    } else {
+      this.avviaAudio();
     }
   }
 

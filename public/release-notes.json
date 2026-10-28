@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.0.13",
+    "date": "28/10/2026",
+    "title": "Navigazione Libera & Fix Suoni Fantasma",
+    "userChanges": [
+      "Risolto il problema del suono o allarme che partiva da solo all'apertura della schermata del match: ora nessun audio viene riprodotto senza un'azione esplicita o a partita ferma.",
+      "Navigazione libera durante la partita: tocca la freccia Indietro (←) in qualsiasi momento per consultare la Rosa, le altre partite o la Classifica senza rischiare di chiudere o resettare la gara.",
+      "La partita in corso rimane attiva e visibile in cima alle partite ('In Corso'), pronta per essere riaperta con un tocco."
+    ],
+    "superUserChanges": [
+      "Eliminato il pre-warming rumoroso dell'HTMLAudioElement in unlockAudioOnUserGesture che causava la riproduzione indesiderata di CAMBIO.wav all'ingresso nel match.",
+      "Aggiunto vincolo isTimerRunning() alla riproduzione automatica dell'allarme cambio portiere: nessun suono può partire a timer fermo o azzerato.",
+      "Reset automatico dello stato cambioAttivo all'apertura del match o al reset stato se la partita non è in esecuzione.",
+      "Stop istantaneo di ogni audio/allarme in background se il componente viene distrutto o se la navigazione esce dal match."
+    ]
+  },
+  {
     "version": "1.0.11",
     "date": "28/10/2026",
     "title": "Centrale Suoni Portiere & Ottimizzazioni Mobile",

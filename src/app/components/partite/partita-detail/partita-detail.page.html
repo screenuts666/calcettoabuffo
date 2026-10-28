@@ -11,14 +11,11 @@
           ><ion-icon name="arrow-back"></ion-icon
         ></ion-button>
       }
-      @if (
-        state.step() === "match" &&
-        !state.isTimerRunning() &&
-        !state.matchConcluso()
-      ) {
-        <ion-button (click)="confermaTornaASquadre()"
-          ><ion-icon name="arrow-back"></ion-icon
-        ></ion-button>
+      <!-- FRECCIA INDIETRO DURANTE IL MATCH: TORNA ALLA LISTA PARTITE SENZA RESETTARE NÉ CONCLUDERE -->
+      @if (state.step() === "match" && !state.matchConcluso()) {
+        <ion-button (click)="tornaAPartite()" aria-label="Torna alle partite" title="Torna alle partite (match in corso)">
+          <ion-icon name="arrow-back"></ion-icon>
+        </ion-button>
       }
       @if (state.step() === 'convocati' || state.step() === 'prestazioni') {
         <ion-back-button defaultHref="/partite" text=""></ion-back-button>

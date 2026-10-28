@@ -325,16 +325,6 @@ export class SoundSettingsService {
       if (ctx && ctx.state === 'suspended') {
         ctx.resume().catch(() => {});
       }
-      if (this.htmlAudioCambio) {
-        this.htmlAudioCambio.volume = 1.0;
-        this.htmlAudioCambio
-          .play()
-          .then(() => {
-            this.htmlAudioCambio!.pause();
-            this.htmlAudioCambio!.currentTime = 0;
-          })
-          .catch(() => {});
-      }
     } catch {}
   }
 
