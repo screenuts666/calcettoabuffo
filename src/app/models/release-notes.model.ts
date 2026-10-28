@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.9",
+    "date": "28/10/2026",
+    "title": "Fix Layout Header & Navigazione Pannello Impostazioni",
+    "userChanges": [
+      "Interfaccia del pannello 'Impostazioni & Suoni' ripulita per evitare troncamenti o sovrapposizioni su qualsiasi smartphone.",
+      "Pulsante cambio rapido Tema compatto (☀️/🌙/⚙️) integrato direttamente nella barra superiore.",
+      "Schede di navigazione snelle 'Portieri (12)', 'Suoni Match' e 'Tema & App' perfettamente visibili e comode al tocco."
+    ],
+    "superUserChanges": [
+      "Risolto il problema di overflow in cui il badge '👑 Admin' e il titolo venivano coperti dal pulsante di chiusura (X).",
+      "Rimosso il banner intermedio del tema guadagnando prezioso spazio verticale per la lista suoni e controlli bordo campo.",
+      "Header e tab bar ingegnerizzati con layout Flexbox/Grid responsive e pulsanti circolari ad azione rapida."
+    ]
+  },
+  {
     "version": "1.0.8",
     "date": "28/10/2026",
     "title": "Nuova Centrale Suoni Cambio Portiere & Pannello Impostazioni",

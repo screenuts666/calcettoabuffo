@@ -10,10 +10,6 @@ import {
 import { CommonModule } from '@angular/common';
 import {
   IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
   IonIcon,
   IonContent,
   ModalController,
@@ -69,10 +65,6 @@ export type SettingsTab = 'portiere' | 'effetti' | 'sistema';
   imports: [
     CommonModule,
     IonHeader,
-    IonToolbar,
-    IonTitle,
-    IonButtons,
-    IonButton,
     IonIcon,
     IonContent,
   ],
@@ -256,6 +248,13 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       auto: '⚙️ Tema Automatico di sistema attivato',
     };
     await this.mostraToast(labels[mode], 'dark');
+  }
+
+  cycleTheme() {
+    const current = this.themeService.mode();
+    const next: AppThemeMode =
+      current === 'dark' ? 'light' : current === 'light' ? 'auto' : 'dark';
+    this.setTheme(next);
   }
 
   apriNoteDiRilascio() {

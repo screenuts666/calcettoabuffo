@@ -3,22 +3,36 @@
 .settings-header {
   background: var(--app-card-bg);
   border-bottom: 1px solid var(--app-card-border);
+}
 
-  ion-toolbar {
-    --background: var(--app-card-bg);
-    --color: var(--app-text-primary);
-  }
+.modal-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px 10px;
+  background: var(--app-card-bg);
 
-  .title-wrap {
+  .mtb-title-group {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    font-weight: 800;
+    gap: 7px;
+    flex: 1;
+    min-width: 0;
 
     .gear-icon {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       color: #2dd36f;
+      flex-shrink: 0;
+    }
+
+    .mtb-title {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .su-pill {
@@ -30,97 +44,105 @@
       border: 1px solid rgba(251, 191, 36, 0.45);
       color: #fbbf24;
       letter-spacing: 0.3px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
   }
 
-  .close-btn {
-    --color: var(--app-text-primary);
-    font-size: 1.35rem;
-  }
-}
-
-// ─── STRISCIA TEMA RAPIDO 1-TAP ──────────────────────────────────────────────
-.quick-theme-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 14px 8px;
-  background: var(--app-surface-subtle);
-  border-top: 1px solid var(--app-card-border);
-
-  .qts-label {
-    font-size: 0.74rem;
-    font-weight: 800;
-    color: var(--app-text-secondary);
-    white-space: nowrap;
-  }
-
-  .qts-pills {
+  .mtb-actions {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
 
-    .qts-btn {
+    .mtb-theme-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
       border: 1px solid var(--app-card-border);
-      background: var(--app-card-bg);
-      color: var(--app-text-secondary);
-      border-radius: 9px;
-      padding: 5px 10px;
-      font-size: 0.73rem;
-      font-weight: 800;
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.95rem;
       cursor: pointer;
       transition: all 0.15s ease;
 
-      &.active {
-        background: rgba(45, 211, 111, 0.16);
-        border-color: #2dd36f;
-        color: #2dd36f;
+      .theme-emoji {
+        line-height: 1;
+        display: block;
       }
 
       &:active {
-        transform: scale(0.95);
+        transform: scale(0.92);
+        background: rgba(45, 211, 111, 0.15);
+      }
+    }
+
+    .mtb-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: all 0.15s ease;
+
+      &:active {
+        transform: scale(0.92);
+        background: rgba(239, 68, 68, 0.15);
+        color: #ef4444;
       }
     }
   }
 }
 
-// ─── BARRA 3 SCHEDE IMPOSTAZIONI ─────────────────────────────────────────────
+// ─── BARRA 3 SCHEDE IMPOSTAZIONI SENZA TRONCAMENTI ───────────────────────────
 .settings-tabs-bar {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  padding: 8px 12px 10px;
+  padding: 0 12px 10px;
   background: var(--app-card-bg);
 
   .s-tab-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    padding: 8px 6px;
-    border-radius: 12px;
+    gap: 4px;
+    padding: 7px 4px;
+    border-radius: 11px;
     border: 1px solid var(--app-card-border);
     background: var(--app-surface-subtle);
     color: var(--app-text-secondary);
-    font-size: 0.72rem;
+    font-size: 0.73rem;
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     transition: all 0.15s ease;
 
     ion-icon {
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       flex-shrink: 0;
+    }
+
+    span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     &.active {
       background: linear-gradient(135deg, #2dd36f, #10b981);
       border-color: #2dd36f;
       color: #041f11;
-      box-shadow: 0 4px 12px rgba(45, 211, 111, 0.28);
+      box-shadow: 0 3px 10px rgba(45, 211, 111, 0.28);
     }
 
     &:active {
@@ -216,7 +238,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
     margin-bottom: 8px;
 
     .ash-status-pill {

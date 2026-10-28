@@ -1,53 +1,38 @@
 <ion-header class="ion-no-border settings-header">
-  <ion-toolbar>
-    <ion-title>
-      <div class="title-wrap">
-        <ion-icon name="settings-outline" class="gear-icon"></ion-icon>
-        <span>Impostazioni & Suoni</span>
-        @if (authService.isAdmin()) {
-          <span class="su-pill">👑 SUPER USER</span>
-        }
-      </div>
-    </ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="chiudi()" class="close-btn" aria-label="Chiudi">
-        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <div class="modal-top-bar">
+    <div class="mtb-title-group">
+      <ion-icon name="settings-outline" class="gear-icon"></ion-icon>
+      <span class="mtb-title">Impostazioni & Suoni</span>
+      @if (authService.isAdmin()) {
+        <span class="su-pill">👑 Admin</span>
+      }
+    </div>
 
-  <!-- STRISCIA RAPIDA TEMA SEMPRE VISIBILE IN ALTO (1-TAP) -->
-  <div class="quick-theme-strip">
-    <span class="qts-label">🎨 Tema:</span>
-    <div class="qts-pills">
+    <div class="mtb-actions">
+      <!-- Tasto rapido cambio tema 1-tap nel header (32x32 circolare compatto) -->
       <button
         type="button"
-        class="qts-btn"
-        [class.active]="themeService.mode() === 'light'"
-        (click)="setTheme('light')"
+        class="mtb-theme-btn"
+        (click)="cycleTheme()"
+        [title]="'Tema: ' + themeService.mode() + ' (tocca per alternare)'"
+        aria-label="Cambia tema rapido"
       >
-        ☀️ Chiaro
+        <span class="theme-emoji">{{ themeService.mode() === 'dark' ? '🌙' : themeService.mode() === 'light' ? '☀️' : '⚙️' }}</span>
       </button>
+
+      <!-- Bottone Chiudi X -->
       <button
         type="button"
-        class="qts-btn"
-        [class.active]="themeService.mode() === 'dark'"
-        (click)="setTheme('dark')"
+        class="mtb-close-btn"
+        (click)="chiudi()"
+        aria-label="Chiudi"
       >
-        🌙 Scuro
-      </button>
-      <button
-        type="button"
-        class="qts-btn"
-        [class.active]="themeService.mode() === 'auto'"
-        (click)="setTheme('auto')"
-      >
-        ⚙️ Auto
+        <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
   </div>
 
-  <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
+  <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE SENZA ALCUN TRONCAMENTO -->
   <div class="settings-tabs-bar">
     <button
       type="button"
@@ -56,7 +41,7 @@
       (click)="setTab('portiere')"
     >
       <ion-icon name="volume-high"></ion-icon>
-      <span>Cambio Portiere (12)</span>
+      <span>Portieri (12)</span>
     </button>
     <button
       type="button"
@@ -64,8 +49,8 @@
       [class.active]="activeTab() === 'effetti'"
       (click)="setTab('effetti')"
     >
-      <ion-icon name="musical-notes"></ion-icon>
-      <span>Suoni Match & Regia</span>
+      <ion-icon name="football-outline"></ion-icon>
+      <span>Suoni Match</span>
     </button>
     <button
       type="button"
@@ -74,7 +59,7 @@
       (click)="setTab('sistema')"
     >
       <ion-icon name="sparkles-outline"></ion-icon>
-      <span>App & Super User</span>
+      <span>Tema & App</span>
     </button>
   </div>
 </ion-header>
