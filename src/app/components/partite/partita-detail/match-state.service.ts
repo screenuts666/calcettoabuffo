@@ -32,6 +32,7 @@ import {
   MIN_CURRENT_SEASON_DATE,
 } from '../../../utils/season-utils';
 import { SyncStatusService } from '../../../services/sync-status.service';
+import { SoundSettingsService } from '../../../services/sound-settings.service';
 
 export type ConvocatoState = Giocatore & { selezionato?: boolean };
 export type MatchDetailState = Partita & { isAdmin?: boolean };
@@ -58,6 +59,7 @@ export interface PortiereTeamInfo {
 export class MatchStateService {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
+  public soundSettings = inject(SoundSettingsService, { optional: true });
   private injector = inject(EnvironmentInjector);
 
   matchId = signal<string | null>(null);
@@ -151,7 +153,10 @@ export class MatchStateService {
   });
 
   durataTurnoMinuti = computed(
-    () => this.rotazionePortieri()?.durataTurnoMinuti || 5
+    () =>
+      this.rotazionePortieri()?.durataTurnoMinuti ||
+      this.soundSettings?.config().gkTurnMinutes ||
+      5
   );
 
   turnoAttualeIndex = computed(() => {

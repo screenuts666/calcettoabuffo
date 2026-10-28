@@ -3,9 +3,12 @@
   <div class="cambio-banner">
     <div class="cambio-pulse-ring"></div>
     <div class="cambio-content">
-      <ion-icon name="musical-notes"></ion-icon>
+      <span class="cambio-icon-preset">{{ soundSettings.selectedGkPreset().emoji }}</span>
       <div class="cambio-text-group">
-        <span class="cambio-title">⏱️ CAMBIO PORTIERE!</span>
+        <div class="cambio-title-row">
+          <span class="cambio-title">⏱️ CAMBIO PORTIERE!</span>
+          <span class="cambio-preset-tag">{{ soundSettings.selectedGkPreset().name }}</span>
+        </div>
         <small class="cambio-gk-names">
           @if (state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione') {
             In porta: {{ state.portieriInfoA().attuale?.nome }} (Bianchi) & {{ state.portieriInfoB().attuale?.nome }} (Neri)
@@ -260,7 +263,7 @@
             <span class="gk-header-title">Portieri Fissi di Ruolo 🧤</span>
             <span class="gk-header-sub">Entrambe le formazioni con portiere fisso tutta la gara</span>
           } @else {
-            <span class="gk-header-title">Rotazione Portieri (Ogni 5 min)</span>
+            <span class="gk-header-title">Rotazione Portieri (Ogni {{ state.durataTurnoMinuti() }} min)</span>
             <span class="gk-header-sub">
               Prossimo cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
             </span>
@@ -268,6 +271,25 @@
         </div>
       </div>
       <div class="gk-header-actions">
+        <button
+          type="button"
+          class="gk-ctrl-btn sound-picker-btn"
+          (click)="apriImpostazioniSuoni()"
+          [title]="'Impostazioni suoni e cambio segnale (Attuale: ' + soundSettings.selectedGkPreset().name + ')'"
+        >
+          <ion-icon name="volume-high"></ion-icon>
+          <span>{{ soundSettings.selectedGkPreset().emoji }} Suono</span>
+        </button>
+        <button
+          type="button"
+          class="gk-ctrl-btn alarm-call-btn"
+          [class.active]="state.cambioAttivo()"
+          (click)="suonaCambioManuale()"
+          title="Attiva o disattiva manualmente il suono di cambio portiere"
+        >
+          <ion-icon [name]="state.cambioAttivo() ? 'volume-mute' : 'notifications-outline'"></ion-icon>
+          <span>{{ state.cambioAttivo() ? 'Ferma' : 'Chiama' }}</span>
+        </button>
         @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
           <button
             type="button"

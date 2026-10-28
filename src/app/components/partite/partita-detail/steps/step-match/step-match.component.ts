@@ -16,6 +16,7 @@ import {
   ActionSheetController,
   AlertController,
   ToastController,
+  ModalController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -30,6 +31,9 @@ import {
   trashOutline,
   musicalNotes,
   volumeMute,
+  volumeHigh,
+  notificationsOutline,
+  settingsOutline,
   diceOutline,
   listOutline,
   chevronUpOutline,
@@ -44,6 +48,8 @@ import {
 import { MatchStateService } from '../../match-state.service';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
+import { SoundSettingsService } from '../../../../../services/sound-settings.service';
+import { ImpostazioniModalComponent } from '../../../../impostazioni-modal/impostazioni-modal.component';
 
 @Component({
   selector: 'app-step-match',
@@ -61,18 +67,20 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
+  public soundSettings = inject(SoundSettingsService);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
+  private modalCtrl = inject(ModalController);
 
   @Input() isAdmin: boolean = false;
 
   private timerRef: ReturnType<typeof setInterval> | null = null;
   private wakeLock: any = null;
-  private audio: HTMLAudioElement | null = null;
 
-  // Traccia l'ultimo minuto "multiplo di 5" già triggerato per evitare doppioni
+  // Traccia l'ultimo minuto di cambio già triggerato per evitare doppioni
   private ultimoCambioMinuto: number = -1;
+  private ultimoPreAlertTurno: number = -1;
 
   isSequenzaAperta = signal<boolean>(false);
 
@@ -115,6 +123,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       trashOutline,
       musicalNotes,
       volumeMute,
+      volumeHigh,
+      notificationsOutline,
+      settingsOutline,
       diceOutline,
       listOutline,
       chevronUpOutline,
@@ -139,10 +150,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       document.addEventListener('visibilitychange', this.riattivaWakeLock);
     }
 
-    // ─── AUDIO PRE-LOAD E SBLOCCO USER GESTURE ─────────────────────────
-    this.audio = new Audio('/assets/sound/CAMBIO.wav');
-    this.audio.loop = true;
-    this.audio.load();
+    // ─── AUDIO SBLOCCO USER GESTURE ───────────────────────────────────
+    this.soundSettings.unlockAudioOnUserGesture();
     document.addEventListener('click', this.sbloccaAudioUserGesture, {
       once: true,
     });
@@ -160,20 +169,36 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           this.state.salvaSnapshotLocale();
         }
 
-        // ─── LOGICA SUONO CAMBIO (ogni 5 minuti esatti, solo se c'è almeno una rotazione) ───
+        // ─── LOGICA SUONO CAMBIO & PREAVVISO -30s (configurabile) ───────────
         const hasRotatingTeam =
           this.state.modalitaPortieriA() === 'rotazione' ||
           this.state.modalitaPortieriB() === 'rotazione';
 
         if (this.isAdmin && hasRotatingTeam) {
-          const minutiGiocati = Math.floor(newCronometro / 60);
-          const isMultiploDiCinque =
-            minutiGiocati > 0 && minutiGiocati % 5 === 0;
+          const turnMin = this.state.durataTurnoMinuti();
+          const turnSec = Math.max(60, turnMin * 60);
+          const secInTurn = newCronometro % turnSec;
+          const secRim = turnSec - secInTurn;
+          const currentTurnIndex = Math.floor(newCronometro / turnSec);
 
+          // Preavviso sonoro a -30s prima del cambio
           if (
-            isMultiploDiCinque &&
-            minutiGiocati !== this.ultimoCambioMinuto
+            secRim === 30 &&
+            this.ultimoPreAlertTurno !== currentTurnIndex
           ) {
+            this.ultimoPreAlertTurno = currentTurnIndex;
+            this.soundSettings.playPreAlert30SecBeep();
+            this.mostraToastFeedback('⏳ Tra 30 secondi cambio portiere!', 'warning');
+          }
+
+          // Cambio portiere quando scade il turno
+          const minutiGiocati = Math.floor(newCronometro / 60);
+          const isCambioTurno =
+            newCronometro > 0 &&
+            secInTurn === 0 &&
+            minutiGiocati !== this.ultimoCambioMinuto;
+
+          if (isCambioTurno) {
             this.ultimoCambioMinuto = minutiGiocati;
             this.state.setCambioPortiereAttivo(true);
           }
@@ -185,9 +210,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato Firestore) ──────
       if (this.isAdmin) {
         const cambioAttivo = this.state.cambioAttivo();
-        if (cambioAttivo && (!this.audio || this.audio.paused)) {
+        if (cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
           this.avviaAudio();
-        } else if (!cambioAttivo && this.audio && !this.audio.paused) {
+        } else if (!cambioAttivo && this.soundSettings.isMatchAlarmPlaying()) {
           this.fermaAudio();
         }
       }
@@ -319,7 +344,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // SUONO CAMBIO PORTIERE
+  // SUONO CAMBIO PORTIERE & IMPOSTAZIONI
   // ──────────────────────────────────────────────────────────────────────
 
   async fermaCambio() {
@@ -328,34 +353,47 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.fermaAudio();
   }
 
-  private sbloccaAudioUserGesture = () => {
-    if (this.audio) {
-      this.audio
-        .play()
-        .then(() => {
-          this.audio!.pause();
-          this.audio!.currentTime = 0;
-        })
-        .catch(() => {});
+  async suonaCambioManuale() {
+    this.triggerHaptic(35);
+    const nuovoStato = !this.state.cambioAttivo();
+    await this.state.setCambioPortiereAttivo(nuovoStato);
+    if (!nuovoStato) {
+      this.fermaAudio();
     }
+  }
+
+  async apriImpostazioniSuoni() {
+    const modal = await this.modalCtrl.create({
+      component: ImpostazioniModalComponent,
+      componentProps: { initialTab: 'portiere' },
+      mode: 'ios',
+    });
+    await modal.present();
+  }
+
+  private sbloccaAudioUserGesture = () => {
+    this.soundSettings.unlockAudioOnUserGesture();
   };
 
-  private avviaAudio() {
-    if (!this.audio) {
-      this.audio = new Audio('/assets/sound/CAMBIO.wav');
-      this.audio.loop = true;
+  private buildCambioSpeechText(): string {
+    const currA = this.state.portieriInfoA().attuale?.nome;
+    const currB = this.state.portieriInfoB().attuale?.nome;
+    if (currA && currB) {
+      return `Attenzione! Cambio portiere! In porta ${currA} per i Bianchi e ${currB} per i Neri!`;
+    } else if (currA) {
+      return `Attenzione! Cambio portiere! In porta ${currA} per i Bianchi!`;
+    } else if (currB) {
+      return `Attenzione! Cambio portiere! In porta ${currB} per i Neri!`;
     }
-    this.audio.currentTime = 0;
-    this.audio
-      .play()
-      .catch((err) => console.warn('Audio non riprodotto:', err));
+    return 'Attenzione! Cambio portiere!';
+  }
+
+  private avviaAudio() {
+    this.soundSettings.startMatchCambioAlarm(this.buildCambioSpeechText());
   }
 
   private fermaAudio() {
-    if (this.audio) {
-      this.audio.pause();
-      this.audio.currentTime = 0;
-    }
+    this.soundSettings.stopMatchCambioAlarm();
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -364,6 +402,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   async toggleTimer() {
     this.triggerHaptic(40);
+    if (this.state.cronometro() === 0 && !this.state.isTimerRunning()) {
+      this.soundSettings.playMatchWhistle('kickoff');
+    }
     await this.state.toggleTimerState();
   }
 
@@ -457,6 +498,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       assistMan
     );
 
+    this.soundSettings.playGoalSound(isAutogoal);
+
     const portiereTag = portiereSubitoNome
       ? ` · 🧤 in porta: ${portiereSubitoNome}`
       : '';
@@ -510,6 +553,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
             if (this.state.isTimerRunning()) {
               await this.toggleTimer();
             }
+            this.soundSettings.playMatchWhistle('final');
             this.state.matchConcluso.set(true);
             this.state.status.set('conclusa');
             await this.state.salvaInDatabase(false, true);

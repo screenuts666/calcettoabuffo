@@ -39,6 +39,7 @@ import { StepSquadreComponent } from './steps/step-squadre/step-squadre.componen
 import { StepMatchComponent } from './steps/step-match/step-match.component';
 import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazioni.component';
 import { SyncStatusBadgeComponent } from '../../sync-status-badge/sync-status-badge.component';
+import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-partita-detail',
@@ -64,6 +65,7 @@ import { SyncStatusBadgeComponent } from '../../sync-status-badge/sync-status-ba
     StepMatchComponent,
     StepPrestazioniComponent,
     SyncStatusBadgeComponent,
+    ThemeToggleComponent,
   ],
   providers: [MatchStateService],
 })

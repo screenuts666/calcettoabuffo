@@ -1,0 +1,671 @@
+<ion-header class="ion-no-border settings-header">
+  <ion-toolbar>
+    <ion-title>
+      <div class="title-wrap">
+        <ion-icon name="settings-outline" class="gear-icon"></ion-icon>
+        <span>Impostazioni & Suoni</span>
+        @if (authService.isAdmin()) {
+          <span class="su-pill">👑 SUPER USER</span>
+        }
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="chiudi()" class="close-btn" aria-label="Chiudi">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- STRISCIA RAPIDA TEMA SEMPRE VISIBILE IN ALTO (1-TAP) -->
+  <div class="quick-theme-strip">
+    <span class="qts-label">🎨 Tema:</span>
+    <div class="qts-pills">
+      <button
+        type="button"
+        class="qts-btn"
+        [class.active]="themeService.mode() === 'light'"
+        (click)="setTheme('light')"
+      >
+        ☀️ Chiaro
+      </button>
+      <button
+        type="button"
+        class="qts-btn"
+        [class.active]="themeService.mode() === 'dark'"
+        (click)="setTheme('dark')"
+      >
+        🌙 Scuro
+      </button>
+      <button
+        type="button"
+        class="qts-btn"
+        [class.active]="themeService.mode() === 'auto'"
+        (click)="setTheme('auto')"
+      >
+        ⚙️ Auto
+      </button>
+    </div>
+  </div>
+
+  <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
+  <div class="settings-tabs-bar">
+    <button
+      type="button"
+      class="s-tab-btn"
+      [class.active]="activeTab() === 'portiere'"
+      (click)="setTab('portiere')"
+    >
+      <ion-icon name="volume-high"></ion-icon>
+      <span>Cambio Portiere (12)</span>
+    </button>
+    <button
+      type="button"
+      class="s-tab-btn"
+      [class.active]="activeTab() === 'effetti'"
+      (click)="setTab('effetti')"
+    >
+      <ion-icon name="musical-notes"></ion-icon>
+      <span>Suoni Match & Regia</span>
+    </button>
+    <button
+      type="button"
+      class="s-tab-btn"
+      [class.active]="activeTab() === 'sistema'"
+      (click)="setTab('sistema')"
+    >
+      <ion-icon name="sparkles-outline"></ion-icon>
+      <span>App & Super User</span>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="settings-content">
+  <div class="settings-container">
+    @let cfg = soundSettings.config();
+    @let activePreset = soundSettings.selectedGkPreset();
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 1: SUONO CAMBIO PORTIERE (12 SEGNALI IPER-AVVISANTI + OPZIONI)  -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab() === 'portiere') {
+      @if (!authService.isAdmin()) {
+        <div class="readonly-su-notice">
+          <div class="rsn-left">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <div>
+              <strong>Gestione Super User</strong>
+              <p>Puoi ascoltare tutte le anteprime. Accedi come Super User per cambiare il segnale ufficiale.</p>
+            </div>
+          </div>
+          <button type="button" class="rsn-login-btn" (click)="promptLoginSuperUser()">
+            Accedi
+          </button>
+        </div>
+      }
+
+      <!-- HERO CARD: SEGNALE ATTUALMENTE SELEZIONATO -->
+      <div
+        class="active-sound-hero"
+        [class.is-playing]="soundSettings.previewingSoundId() === activePreset.id"
+      >
+        <div class="ash-top">
+          <div class="ash-badge-row">
+            <span class="ash-status-pill">🧤 SEGNALE UFFICIALE ATTIVO</span>
+            <span class="ash-intensity-tag" [class.extreme]="activePreset.intensity === 'ESTREMA'">
+              🔥 VOLUME {{ activePreset.intensity }}
+            </span>
+          </div>
+          <div class="ash-main">
+            <span class="ash-emoji">{{ activePreset.emoji }}</span>
+            <div class="ash-info">
+              <h3>{{ activePreset.name }}</h3>
+              <p>{{ activePreset.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="ash-actions">
+          <button
+            type="button"
+            class="ash-test-btn"
+            [class.playing]="soundSettings.previewingSoundId() === activePreset.id"
+            (click)="toggleAnteprimaSuono(activePreset.id)"
+          >
+            <ion-icon
+              [name]="soundSettings.previewingSoundId() === activePreset.id ? 'stop' : 'play'"
+            ></ion-icon>
+            <span>
+              {{
+                soundSettings.previewingSoundId() === activePreset.id
+                  ? 'FERMA TEST AUDIO'
+                  : 'TESTA ORA A TUTTO VOLUME'
+              }}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- POTENZIAMENTO AUDIO & TURNI BORDO CAMPO -->
+      <div class="settings-section-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">📢</span>
+          <div>
+            <h4>Potenza Bordo Campo & Turni</h4>
+            <p>Ottimizzazione acustica per farsi sentire durante la partita</p>
+          </div>
+        </div>
+
+        <div class="toggles-list">
+          <!-- Turbo Volume Boost -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.turboVolumeBoost"
+            (click)="toggleTurboBoost()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">🔥</span>
+              <div class="tr-text">
+                <strong>Turbo Boost Volume Massimo (0 dBFS Overdrive)</strong>
+                <small>
+                  Compressore brickwall + picco a 2450 Hz per massimizzare il volume dallo speaker del telefono
+                </small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.turboVolumeBoost"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+
+          <!-- Annuncio Vocale Portieri -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.voiceAnnouncement"
+            (click)="toggleVoiceAnnouncement()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">🗣️</span>
+              <div class="tr-text">
+                <strong>Speaker Vocale Nomi Portieri</strong>
+                <small>
+                  Urla a voce alta "Cambio Portiere!" pronunciando chi deve entrare in porta per Bianchi e Neri
+                </small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.voiceAnnouncement"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+
+          <!-- Preavviso -30 Secondi -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.preAlert30Sec"
+            (click)="togglePreAlert30Sec()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">⏳</span>
+              <div class="tr-text">
+                <strong>Preavviso Sonoro a -30 Secondi</strong>
+                <small>
+                  Doppio beep rapido 30 secondi prima del cambio per far avvicinare il prossimo portiere
+                </small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.preAlert30Sec"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+
+          <!-- Vibrazione Continua -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.vibrationAlert"
+            (click)="toggleVibrationAlert()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">📳</span>
+              <div class="tr-text">
+                <strong>Vibrazione Emergenza Ripetuta</strong>
+                <small>Fa vibrare il telefono a impulsi continui finché non premi STOP</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.vibrationAlert"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selettore Durata Turno in Porta -->
+        <div class="turn-duration-box">
+          <div class="tdb-top">
+            <span>⏱️ <strong>Durata Turno Portieri a Rotazione:</strong></span>
+            <span class="tdb-val">{{ cfg.gkTurnMinutes }} min</span>
+          </div>
+          <div class="tdb-chips">
+            @for (min of turnMinutesOptions; track min) {
+              <button
+                type="button"
+                class="tdb-chip"
+                [class.active]="cfg.gkTurnMinutes === min"
+                [disabled]="!authService.isAdmin()"
+                (click)="setTurnMinutes(min)"
+              >
+                {{ min }}'{{ min === 5 ? ' (Std)' : '' }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- CATALOGO DEI 12 SEGNALI DI CAMBIO PORTIERE CON ANTEPRIMA -->
+      <div class="sounds-catalog-header">
+        <h4>🔊 Scegli il Segnale di Cambio Portiere (12 Allarmi)</h4>
+        <p>Tocca <strong>▶ PROVA</strong> per ascoltare l'anteprima o tocca la scheda per attivarlo</p>
+      </div>
+
+      <div class="sounds-grid">
+        @for (s of soundSettings.gkPresets; track s.id; let idx = $index) {
+          @let isSelected = cfg.selectedGkSoundId === s.id;
+          @let isPreviewing = soundSettings.previewingSoundId() === s.id;
+
+          <div
+            class="sound-card"
+            [class.selected]="isSelected"
+            [class.previewing]="isPreviewing"
+            (click)="selezionaSuonoPortiere(s.id)"
+          >
+            <div class="sc-left">
+              <div class="sc-emoji-box">
+                <span class="sc-emoji">{{ s.emoji }}</span>
+                <span class="sc-index">#{{ idx + 1 }}</span>
+              </div>
+
+              <div class="sc-body">
+                <div class="sc-title-row">
+                  <strong class="sc-name">{{ s.name }}</strong>
+                  @if (isSelected) {
+                    <span class="sc-active-check">
+                      <ion-icon name="checkmark-circle"></ion-icon> Attivo
+                    </span>
+                  }
+                </div>
+
+                <div class="sc-badges-row">
+                  <span class="sc-badge cat">{{ s.badge }}</span>
+                  <span class="sc-badge freq">{{ s.freqLabel }}</span>
+                  <span class="sc-badge pwr" [class.ext]="s.intensity === 'ESTREMA'">
+                    🔥 {{ s.intensity }}
+                  </span>
+                </div>
+
+                <p class="sc-desc">{{ s.description }}</p>
+              </div>
+            </div>
+
+            <div class="sc-right">
+              <button
+                type="button"
+                class="preview-btn"
+                [class.playing]="isPreviewing"
+                (click)="toggleAnteprimaSuono(s.id, $event)"
+                [title]="isPreviewing ? 'Ferma anteprima' : 'Ascolta anteprima suono'"
+              >
+                <ion-icon [name]="isPreviewing ? 'stop' : 'play'"></ion-icon>
+                <span>{{ isPreviewing ? 'STOP' : 'PROVA' }}</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 2: EFFETTI SONORI LIVE MATCH & SOUNDBOARD DA BORDO CAMPO        -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab() === 'effetti') {
+      <!-- SOUNDBOARD ISTANTANEA DA BORDO CAMPO -->
+      <div class="settings-section-card soundboard-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">🎛️</span>
+          <div>
+            <h4>Regia & Soundboard Istantanea Bordo Campo</h4>
+            <p>Tocca un bottone per sparare subito il suono a tutto volume!</p>
+          </div>
+        </div>
+
+        <div class="soundboard-grid">
+          <button
+            type="button"
+            class="sb-pad whistle"
+            (click)="suonaSoundboard('whistle')"
+          >
+            <span class="sb-emoji">🏁</span>
+            <strong>Fischio Arbitro</strong>
+            <small>Fischio singolo secco</small>
+          </button>
+
+          <button
+            type="button"
+            class="sb-pad final"
+            (click)="suonaSoundboard('triple_whistle')"
+          >
+            <span class="sb-emoji">⏱️</span>
+            <strong>Triplice Fischio</strong>
+            <small>Fischio finale gara</small>
+          </button>
+
+          <button
+            type="button"
+            class="sb-pad horn"
+            (click)="suonaSoundboard('airhorn')"
+          >
+            <span class="sb-emoji">📯</span>
+            <strong>Tromba Stadio</strong>
+            <small>Bomboletta da curva</small>
+          </button>
+
+          <button
+            type="button"
+            class="sb-pad var-btn"
+            (click)="suonaSoundboard('var_siren')"
+          >
+            <span class="sb-emoji">📺</span>
+            <strong>Controllo VAR!</strong>
+            <small>Sirena + Speaker VAR</small>
+          </button>
+
+          <button
+            type="button"
+            class="sb-pad goal"
+            (click)="suonaSoundboard('goal_celebration')"
+          >
+            <span class="sb-emoji">⚽</span>
+            <strong>Fanfara Gol!</strong>
+            <small>Jingle esultanza</small>
+          </button>
+
+          <button
+            type="button"
+            class="sb-pad fail"
+            (click)="suonaSoundboard('sad_trombone')"
+          >
+            <span class="sb-emoji">🤡</span>
+            <strong>Papera / Fail</strong>
+            <small>Wah-Wah-Waaah!</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- SUONI AUTOMATICI DURANTE LA PARTITA -->
+      <div class="settings-section-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">⚽</span>
+          <div>
+            <h4>Suono Automatico al Gol Segnato</h4>
+            <p>Riprodotto automaticamente quando assegni un +1 Gol in partita</p>
+          </div>
+        </div>
+
+        <div class="goal-presets-list">
+          @for (gp of soundSettings.goalPresets; track gp.id) {
+            @let isGoalSel = cfg.goalSoundId === gp.id;
+            <div
+              class="goal-preset-row"
+              [class.selected]="isGoalSel"
+              (click)="selezionaGoalSound(gp.id)"
+            >
+              <span class="gp-emoji">{{ gp.emoji }}</span>
+              <div class="gp-text">
+                <strong>{{ gp.name }}</strong>
+                <small>{{ gp.description }}</small>
+              </div>
+              @if (gp.id !== 'none') {
+                <button
+                  type="button"
+                  class="gp-test-btn"
+                  (click)="provaGoalSound(gp.id, $event)"
+                >
+                  <ion-icon name="play"></ion-icon> Prova
+                </button>
+              }
+              @if (isGoalSel) {
+                <ion-icon name="checkmark-circle" class="gp-check"></ion-icon>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="toggles-list extra-match-toggles">
+          <!-- Autogol Trombone Triste -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.autogoalSoundEffect"
+            (click)="toggleAutogoalSound()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">⚠️</span>
+              <div class="tr-text">
+                <strong>Trombone Triste su Autogol ("Wah-Wah-Waaah")</strong>
+                <small>Suona l'effetto papera quando viene registrato un autogol</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.autogoalSoundEffect"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+
+          <!-- Fischio Inizio e Fine Match -->
+          <div
+            class="toggle-row"
+            [class.active]="cfg.matchWhistleEffects"
+            (click)="toggleMatchWhistles()"
+          >
+            <div class="tr-left">
+              <span class="tr-emoji">🏁</span>
+              <div class="tr-text">
+                <strong>Fischio Arbitrale Avvio & Fine Partita</strong>
+                <small>Fischio singolo al calcio d'inizio (00:00) e triplice fischio a fine gara</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="pill-switch"
+              [class.on]="cfg.matchWhistleEffects"
+              [disabled]="!authService.isAdmin()"
+            >
+              <span class="knob"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 3: TEMA, VERSIONE APP & CONTROLLI SUPER USER                    -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (activeTab() === 'sistema') {
+      <!-- SEZIONE TEMA VISUALE -->
+      <div class="settings-section-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">🎨</span>
+          <div>
+            <h4>Aspetto & Tema Applicazione</h4>
+            <p>Scegli la palette colori preferita per il tuo dispositivo</p>
+          </div>
+        </div>
+
+        <div class="theme-cards-grid">
+          <button
+            type="button"
+            class="theme-option-card"
+            [class.active]="themeService.mode() === 'light'"
+            (click)="setTheme('light')"
+          >
+            <span class="toc-icon">☀️</span>
+            <strong>Chiaro</strong>
+            <small>Alta leggibilità sotto il sole</small>
+          </button>
+
+          <button
+            type="button"
+            class="theme-option-card"
+            [class.active]="themeService.mode() === 'dark'"
+            (click)="setTheme('dark')"
+          >
+            <span class="toc-icon">🌙</span>
+            <strong>Scuro</strong>
+            <small>Stile notturno da Champions</small>
+          </button>
+
+          <button
+            type="button"
+            class="theme-option-card"
+            [class.active]="themeService.mode() === 'auto'"
+            (click)="setTheme('auto')"
+          >
+            <span class="toc-icon">⚙️</span>
+            <strong>Automatico</strong>
+            <small>Segue l'orario del telefono</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- SEZIONE PANNELLO SUPER USER -->
+      <div class="settings-section-card su-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">👑</span>
+          <div>
+            <h4>Pannello di Controllo Super User</h4>
+            <p>
+              @if (authService.isAdmin()) {
+                Sessione Admin attiva · Accesso completo a suoni, partite e Area Segreta
+              } @else {
+                Accedi come Admin per gestire partite, formazioni, suoni e motore MMR
+              }
+            </p>
+          </div>
+        </div>
+
+        <div class="system-actions-list">
+          @if (authService.isAdmin()) {
+            <button
+              type="button"
+              class="sys-action-btn gold"
+              (click)="apriAreaSegreta()"
+            >
+              <ion-icon name="shield-checkmark"></ion-icon>
+              <div class="sab-text">
+                <strong>🔬 Apri Area Segreta (Motore MMR & Raggi X)</strong>
+                <small>Formule ELO, parametri stagionali Firebase e simulatore</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="sys-action-btn"
+              (click)="ripristinaDefaultAudio()"
+            >
+              <ion-icon name="refresh-outline"></ion-icon>
+              <div class="sab-text">
+                <strong>🔄 Ripristina Impostazioni Audio Predefinite</strong>
+                <small>Riporta i suoni e i turni portiere ai valori di fabbrica</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="sys-action-btn danger"
+              (click)="logoutSuperUser()"
+            >
+              <ion-icon name="log-out-outline"></ion-icon>
+              <div class="sab-text">
+                <strong>🚪 Esci dalla modalità Super User (Logout)</strong>
+                <small>Torna alla visualizzazione standard giocatore</small>
+              </div>
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="sys-action-btn gold"
+              (click)="promptLoginSuperUser()"
+            >
+              <ion-icon name="lock-closed-outline"></ion-icon>
+              <div class="sab-text">
+                <strong>🔐 Accedi come Super User (Admin)</strong>
+                <small>Sblocca la gestione match, suoni cambio portiere e Area Segreta</small>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SEZIONE VERSIONE, NOTE DI RILASCIO & CACHE -->
+      <div class="settings-section-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">🚀</span>
+          <div>
+            <h4>
+              Versione App v{{ appUpdate.version }}
+              @if (isDevEnvironment) {
+                <span class="dev-pill">DEV MODE</span>
+              }
+            </h4>
+            <p>Build: {{ appUpdate.buildDate }}</p>
+          </div>
+        </div>
+
+        <div class="system-actions-list">
+          <button
+            type="button"
+            class="sys-action-btn"
+            (click)="apriNoteDiRilascio()"
+          >
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <div class="sab-text">
+              <strong>✨ Note di Rilascio & Novità (v{{ appUpdate.version }})</strong>
+              <small>Scopri tutte le ultime funzioni aggiunte all'app</small>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="sys-action-btn"
+            (click)="forzaAggiornamentoApp()"
+          >
+            <ion-icon name="refresh-outline"></ion-icon>
+            <div class="sab-text">
+              <strong>🔄 Forza Aggiornamento & Svuota Cache</strong>
+              <small>Verifica nuove versioni e ricarica i file più recenti</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</ion-content>
+

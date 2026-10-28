@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.0.8",
+    "date": "28/10/2026",
+    "title": "Nuova Centrale Suoni Cambio Portiere & Pannello Impostazioni",
+    "userChanges": [
+      "Nuovo pannello 'Impostazioni & Suoni' accessibile direttamente toccando il pulsante delle impostazioni in alto a destra su ogni schermata.",
+      "Selettore rapido del Tema (☀️ Chiaro / 🌙 Scuro / ⚙️ Automatico) con un tocco immediato da qualsiasi pagina dell'applicazione."
+    ],
+    "superUserChanges": [
+      "12 Nuovi Segnali di Cambio Portiere Iper-Avvisanti: sirena antiaerea da stadio, bomboletta da curva, fischietto arbitrale Fox-40, klaxon nucleare, buzzer NBA, sirena bitonale, gong da boxe, allarme laser UFO, corno da nave e bomba a tempo.",
+      "Anteprima audio live con tasto '▶ PROVA' per ascoltare e testare ogni segnale a volume massimo prima di sceglierlo.",
+      "Turbo Boost Bordo Campo (0 dBFS Overdrive + Compressore Brickwall): massimizza la resa fisica dello speaker del telefono sulle frequenze 1000–3200 Hz.",
+      "Annuncio Vocale Nomi Portieri: lo speaker vocale urla 'Cambio portiere!' annunciando chi deve entrare in porta per Bianchi e Neri.",
+      "Preavviso sonoro a -30 secondi dal cambio e durata turni portiere configurabile (3, 4, 5, 6, 7, 8, 10 min).",
+      "Soundboard istantanea da bordo campo con 6 effetti sonori rapidi (fischio arbitro, triplice fischio finale, tromba curva, VAR, esultanza gol e trombone per papere).",
+      "Pannello Super User dedicato con accesso diretto all'Area Segreta e reset impostazioni audio."
+    ]
+  },
+  {
     "version": "1.0.7",
     "date": "28/10/2026",
     "title": "Gestione Match Bordo Campo & Release Notes Automatiche",
@@ -39,8 +57,9 @@
       "Poster Face-Off dinamico con i volti delle due squadre per le partite senza foto ufficiale."
     ],
     "superUserChanges": [
-      "Nuova Area Segreta Super User (/area-segreta) con raggi X giocatori, audit partite, simulatore What-If e parametri motore MMR salvabili su Firebase per singola stagione.",
-      "Sistema di sicurezza a 2 livelli con Super-Lock PIN e auto-lock a 5 minuti per la modifica o il sigillo dei regolamenti stagionali."
+      "Area Segreta del Motore con formule matematiche in chiaro, ricalcolo storico per-stagione salvato su Firestore e simulatore What-If singola partita.",
+      "Sistema di sicurezza a 2 livelli: sessione Admin + Cassaforte Super-Lock con PIN Master (default: 1000) e auto-lock dopo 5 minuti.",
+      "Regole di congelamento stagione conclusa per preservare immutabile l'albo d'oro storico."
     ]
   }
 ]
