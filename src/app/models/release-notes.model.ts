@@ -11,6 +11,24 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.11",
+    "date": "28/10/2026",
+    "title": "Centrale Suoni Portiere & Ottimizzazioni Mobile",
+    "userChanges": [
+      "Nuovo pannello 'Impostazioni & Suoni' con selettore tema rapido (Chiaro / Scuro / Auto) e centrale audio di gara.",
+      "12 Nuovi Segnali di Cambio Portiere ad alto impatto con anteprima live per sentirli anche all'aperto durante la partita.",
+      "Header e interfaccia match ottimizzati: titolo e controlli non vengono mai tagliati o sovrapposti su mobile.",
+      "Nuovo box di stato sincronizzazione cloud: tocca il badge per vedere subito orario dell'ultimo salvataggio e stato rete."
+    ],
+    "superUserChanges": [
+      "Turbo Boost Bordo Campo: compressore dinamico brickwall + filtro risonanza smartphone (1000-3200 Hz) per la massima pressione acustica.",
+      "Sintesi vocale automatica 'Cambio Portiere' con annuncio dei nomi dei giocatori entranti e preavviso a -30s.",
+      "Soundboard istantanea da bordocampo con 6 effetti audio rapidi (fischio arbitro, triplice fischio finale, VAR, esultanza, curva, trombone).",
+      "Toolbar Partita Detail con layout Flexbox anti-clipping e badge sincronizzazione compatto (nuvoletta + LED luminoso).",
+      "Popup di sincronizzazione convertito in AlertController nativo con supporto offline protetto."
+    ]
+  },
+  {
     "version": "1.0.10",
     "date": "28/10/2026",
     "title": "Fix Header Match & Finestra Stato Sincronizzazione",
@@ -91,15 +109,15 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
     "version": "1.0.0",
     "date": "28/10/2026",
-    "title": "Classifica Portieri, Piantina Tattica & Area Segreta Motore",
+    "title": "Calcetto a Buffo 2.0 - Motore MMR & Nuova Architettura",
     "userChanges": [
-      "Nuova Classifica Portieri 🧤 dedicata: media Gol Subiti su 50 min, Clean Sheet da 5 min e minuti giocati tra i pali.",
-      "Piantina Tattica in lista partite con schieramento automatico dei portieri in porta e formazione espandibile.",
-      "Poster Face-Off dinamico con i volti delle due squadre per le partite senza foto ufficiale."
+      "Nuovo algoritmo Matchmaking con bilanciamento ruoli e posizioni difensive.",
+      "Classifica generale con punteggi MMR dinamici calcolati su vittorie, gol e rendimento.",
+      "Scheda profilo giocatore con cronologia match, trend prestazioni e statistiche dettagliate."
     ],
     "superUserChanges": [
-      "Area Segreta del Motore con formule matematiche in chiaro, ricalcolo storico per-stagione salvato su Firestore e simulatore What-If singola partita.",
-      "Sistema di sicurezza a 2 livelli: sessione Admin + Cassaforte Super-Lock con PIN Master (default: 1000) e auto-lock dopo 5 minuti.",
+      "Pannello Area Segreta con gestione avanzata parametri MMR (K-factor, bonus portiere, handicap).",
+      "Gestione ruoli giocatori con override manuale per ogni singolo match.",
       "Regole di congelamento stagione conclusa per preservare immutabile l'albo d'oro storico."
     ]
   }
