@@ -1043,6 +1043,62 @@
     }
 
     .scouting-footer {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
+      .scouting-saved-tag {
+        font-size: 0.7rem;
+        color: var(--app-text-muted, #94a3b8);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        opacity: 0.9;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #10b981;
+        }
+      }
+    }
+
+    .scouting-loading-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 14px;
+      background: rgba(16, 185, 129, 0.06);
+      border-radius: 12px;
+      border: 1px dashed rgba(16, 185, 129, 0.3);
+
+      ion-spinner {
+        width: 24px;
+        height: 24px;
+        color: #10b981;
+        flex-shrink: 0;
+      }
+
+      .loading-text-group {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        strong {
+          font-size: 0.84rem;
+          color: var(--app-text, #f8fafc);
+        }
+
+        span {
+          font-size: 0.74rem;
+          color: var(--app-text-muted, #94a3b8);
+        }
+      }
+    }
+
+    ._old_scouting_footer {
       margin-top: 8px;
       text-align: right;
       color: var(--app-text-muted);

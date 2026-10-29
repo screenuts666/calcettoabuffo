@@ -49,7 +49,7 @@
           labelPlacement="stacked"
           placeholder="Es. Campetto dei Pioppi"
           [value]="state.luogo()"
-          (ionInput)="state.luogo.set($event.detail.value || '')"
+          (ionInput)="aggiornaLuogo($event.detail.value || '')"
         ></ion-input>
       </ion-item>
 
@@ -76,7 +76,7 @@
             label="Orario *"
             labelPlacement="stacked"
             [value]="state.orario()"
-            (ionInput)="state.orario.set($event.detail.value || '')"
+            (ionInput)="aggiornaOrario($event.detail.value || '')"
           ></ion-input>
         </ion-item>
       </div>

@@ -110,7 +110,7 @@
   <div class="section-card-header">
     <div class="header-left">
       <ion-icon name="trending-up-outline" class="section-icon odds-icon"></ion-icon>
-      <span class="section-title">Pronostico Pre-Match</span>
+      <span class="section-title">Verdetto vs Pronostico Iniziale</span>
     </div>
     <div class="favorite-pill" [class.white-fav]="report.odds.favoriteTeam === 'A'" [class.black-fav]="report.odds.favoriteTeam === 'B'">
       @if (report.odds.favoriteTeam === 'A') {
@@ -186,7 +186,7 @@
       </div>
     } @else {
       <div class="ai-empty-prompt">
-        <p>Scopri l'analisi del Mister su questa sfida tra Bianchi e Neri!</p>
+        <p>Nessun pronostico registrato prima del match. Vuoi generare l'analisi a posteriori del Mister?</p>
         <button
           type="button"
           class="ai-generate-main-btn"

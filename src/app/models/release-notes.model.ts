@@ -11,6 +11,207 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.32",
+    "date": "29/10/2026",
+    "title": "Restauro Effetti Match (Fischi e Gol), Redesign Impostazioni e Fix Responsive Turni Portieri",
+    "userChanges": [
+      "⚽ Effetti Stadio e Fischietto Arbitro Live: tornano i fischi d'inizio e di fine partita, l'esultanza con tromba da stadio per ogni gol e il trombone comico per gli autogol.",
+      "🎨 Nuova Scheda \"Match & Gol\" in Impostazioni: menu completamente riprogettato con switch toggle dedicati e pulsanti di ascolto anteprima per ogni suono.",
+      "🧤 Tasto Turni e Controlli Portieri Perfetti su Mobile: layout a 4 colonne perfettamente proporzionato che elimina qualsiasi overflow o troncamento del pulsante [Turni] / [Chiudi] su smartphone."
+    ],
+    "superUserChanges": [
+      "Creazione e gestione del branch dedicato git feat/sound-effects-and-settings-turn-controls.",
+      "Integrazione SoundSettingsService con sintesi PCM WAV Float32 per fischi e celebrazioni gol, senza distorsioni.",
+      "Refactoring responsive per .gk-header-actions e styling globale di .pill-switch."
+    ]
+  },
+  {
+    "version": "1.0.31",
+    "date": "29/10/2026",
+    "title": "Fix Stile e Visualizzazione Scheda Match e Gol nel Menu Impostazioni",
+    "userChanges": [
+      "🎨 Menu Impostazioni & Match Graficamente Impeccabile: ripristinati tutti gli stili e le card con design moderno e rifinito nella scheda \"Match & Gol\".",
+      "🔘 Switch e Pulsanti Anteprima Riconfigurati: i toggle di attivazione stile iOS e i pulsanti di prova rapida per i fischi dell'arbitro e i gol ora sono perfettamente visibili, posizionati e cliccabili.",
+      "✨ Header Pulito: risolta la sovrapposizione del testo tra titolo e sottotitolo nella barra superiore."
+    ],
+    "superUserChanges": [
+      "Aggiunte le classi CSS complete per .match-hero-card, .effect-card, .ec-header, .ec-info, .ec-buttons-grid e .ec-btn in impostazioni-modal.component.scss.",
+      "Rilasciato lo stile di .pill-switch a livello globale del componente per renderizzare i selettori ON/OFF in tutte le schede della modale.",
+      "Strutturato il gruppo titolo con .gear-badge e .mtb-title-text a layout verticale per impedire il collasso testuale."
+    ]
+  },
+  {
+    "version": "1.0.30",
+    "date": "29/10/2026",
+    "title": "Fix Layout e Allineamento Pulsante Turni Portieri su Mobile",
+    "userChanges": [
+      "🧤 Pulsante Turni Portieri Sempre Visibile: risolto il problema di overflow nella schermata di match dove il tasto [Turni] / [Chiudi] veniva tagliato fuori dal bordo destro dello schermo.",
+      "📱 Layout Pulsanti Perfettamente Proporzionato: i controlli rapidi dei portieri (Suono, Chiama, Rimescola, Turni) ora si distribuiscono armoniosamente su tutta la larghezza della card senza mai sbordare o venire tagliati su smartphone."
+    ],
+    "superUserChanges": [
+      "Refactoring responsive di .gk-panel-header e .gk-header-actions in StepMatchComponent.",
+      "Impostato width: 100% su .gk-header-actions con flex: 1 1 0, min-width: 0 e text-overflow: ellipsis su .gk-ctrl-btn per garantire una distribuzione uniforme a 4 colonne ed eliminare ogni overflow.",
+      "Snellita l'etichetta dell'allarme cambio a \"Chiama\" / \"Ferma\" per ottimizzare lo spazio orizzontale."
+    ]
+  },
+  {
+    "version": "1.0.29",
+    "date": "29/10/2026",
+    "title": "Restauro Effetti Stadio (Fischi Arbitro, Tromba Gol, Trombone Autogol) e Redesign Menu Impostazioni",
+    "userChanges": [
+      "⚽ Effetti Audio Match Ripristinati: torna la magia dello stadio con i suoni dedicati agli eventi del match! Fischio d'inizio e triplice fischio finale dell'arbitro, fanfara d'ottoni a tutto volume per festeggiare ogni gol segnato e trombone comico \"Wah-Wah-Waaah\" per gli autogol.",
+      "🎨 Menu Impostazioni Rinnovato e Più Elegante: schermata impostazioni completamente ridisegnata con grafica moderna, nuova scheda dedicata \"Match e Gol\" e tasti di anteprima istantanea per ascoltare ciascun effetto prima della partita."
+    ],
+    "superUserChanges": [
+      "Aggiunti switch dedicati in Impostazioni per Super User: matchWhistleEffects, goalSoundEffects, autogoalSoundEffects con salvataggio persistente in LocalStorage.",
+      "Integrazione nativa in StepMatchComponent: trigger del fischio iniziale all'avvio del timer da 0, fanfara su registraGol (con routing differenziato per autogol) e triplice fischio alla chiusura del match.",
+      "Sintesi audio pulita ad alta fedeltà tramite Web Audio PCM Float32 WAV, con inviluppi armonici privi di distorsioni stridenti."
+    ]
+  },
+  {
+    "version": "1.0.28",
+    "date": "29/10/2026",
+    "title": "Fix Condivisione Audio WhatsApp su Safari iOS e Chrome Android",
+    "userChanges": [
+      "📲 Condivisione Audio WhatsApp Garantita su Mobile: risolto l'errore di sistema del browser (\"Must be handling a user gesture\") che impediva l'invio delle note vocali su smartphone a causa del tempo di elaborazione dell'AI.",
+      "🎙️ Dialogo Diretto \"Audio Pronto\": appena la registrazione vocale MP3 è generata, compare una modale pulita per confermare ed effettuare l'invio immediato su WhatsApp in 1 tap senza blocchi."
+    ],
+    "superUserChanges": [
+      "Risolto il blocco di transient user activation su iOS Safari e Android in TtsService.shareAudioToWhatsApp.",
+      "Implementato promptShareWithFreshUserGesture con AlertController: aggancia la chiamata a navigator.share() direttamente al click handler dell'utente con il file MP3 già pronto in memoria.",
+      "Mantenuto il fallback trasparente su download file MP3 + apertura WhatsApp con link online diretto in caso di mancato supporto della Web Share API."
+    ]
+  },
+  {
+    "version": "1.0.27",
+    "date": "29/10/2026",
+    "title": "Fix Layout Responsive Confronto 1v1 su Schermi Mobile",
+    "userChanges": [
+      "⚔️ Confronto 1v1 Perfettamente Allineato: risolto il problema di visualizzazione nella schermata di confronto che tagliava il secondo giocatore fuori dallo schermo sui dispositivi mobili.",
+      "✨ Gestione Soprannomi AI Lunghi: gli alias generati dall'AI ora si adattano armoniosamente allo spazio disponibile con troncamento automatico a puntini sospensivi (...) senza deformare la card."
+    ],
+    "superUserChanges": [
+      "Refactoring layout CSS Grid in ConfrontoPage: sostituito grid-template-columns: 1fr auto 1fr con minmax(0, 1fr) auto minmax(0, 1fr).",
+      "Aggiunto min-width: 0, box-sizing: border-box e overflow: hidden su .player-card, .player-info e .tier-pill per prevenire l'allargamento anomalo della colonna H2H."
+    ]
+  },
+  {
+    "version": "1.0.26",
+    "date": "29/10/2026",
+    "title": "Voce Naturale Umana con Motore AI TtsService & Rimozione Sintetizzatore Robotico",
+    "userChanges": [
+      "🎙️ Voce Naturale & Umana: risolto definitivamente l'effetto robotico! La chiamata del cambio portiere ora sfrutta il motore vocale AI di Calcetto Abbuffo (ElevenLabs & Gemini TTS) per pronunciare i nomi dei portieri con voce calda e naturale da telecronista.",
+      "🚫 Addio Voci Metalliche: eliminate e penalizzate tutte le vecchie voci sintetiche desktop di Windows (escluso Microsoft Cosimo/Elsa robotici) a favore di voci neurali fluide e realistiche."
+    ],
+    "superUserChanges": [
+      "Collegato SoundSettingsService direttamente a TtsService: il richiamo vocale dei portieri sfrutta la pipeline AI con caching MP3 in memoria e su Firebase Storage.",
+      "Algoritmo di scoring per la sintesi vocale: prioritizzazione rigida per voci Microsoft Online Natural (100pt), Google Neural (85pt) e Apple Siri/Enhanced (75pt), declassando a 10pt le voci SAPI desktop."
+    ]
+  },
+  {
+    "version": "1.0.25",
+    "date": "29/10/2026",
+    "title": "Salvataggio & Persistenza Automatica dei Setup Match e Sincronizzazione Impostazioni",
+    "userChanges": [
+      "💾 Setup Match Sempre Memorizzato: il campetto (luogo), l'orario abituale e le impostazioni dei portieri vengono ora ricordati e salvati automaticamente per ogni nuova partita.",
+      "🔄 Ripristino Completo Convocati e Dati: se torni indietro o ricarichi la schermata, la lista dei convocati selezionati e le coordinate del campo rimangono perfettamente intatte e salvate in locale."
+    ],
+    "superUserChanges": [
+      "☁️ Sincronizzazione Cloud Setup Audio Super User: le impostazioni suoni (preset audio, voce annunciatore, vibrazione e minuti di turno) vengono ora sincronizzate anche su Firestore in config_stagioni per essere ricordate su qualsiasi dispositivo.",
+      "⚙️ Persistenza Continua MatchStateService: salvaSetupPredefinito e ripristinaSnapshotLocale memorizzano e ripristinano integralmente luogo, orario, dataPartita, tutti i giocatori convocati e la rotazione portieri.",
+      "⏱️ Risolto l'override cablato a 5 minuti nella rotazione: ora viene sempre rispettata la durata personalizzata configurata dall'admin."
+    ]
+  },
+  {
+    "version": "1.0.24",
+    "date": "29/10/2026",
+    "title": "Conferma Anti-Reset Indietro, Auto-selezione Top 14 (7v7) e Campetto Predefinito in DEV",
+    "userChanges": [
+      "🛡️ Protezione Anti-Reset Match: tornando indietro dal menu di navigazione durante una partita in corso, una modale di conferma impedisce l'azzeramento accidentale di punteggio, cronometro ed eventi.",
+      "📋 Uscita Sicura alla Lista: l'opzione \"Torna alla Lista Partite\" chiarisce esplicitamente che il match rimane attivo e salvato nella scheda In Corso."
+    ],
+    "superUserChanges": [
+      "⚡ Auto-selezione Rapida 7 vs 7 (solo DEV): pulsante rapido nei Convocati che seleziona automaticamente i primi 14 giocatori in classifica per testare istantaneamente partite a 14.",
+      "📍 Pre-selezione Campetto (solo DEV): all'avvio di un nuovo match, il campo viene pre-compilato automaticamente con l'ultimo luogo registrato nelle partite recenti.",
+      "⚠️ Modale di conferma ad alto contrasto per l'opzione distruttiva di ritorno a Formazioni & Squadre con reset controllato dello stato."
+    ]
+  },
+  {
+    "version": "1.0.23",
+    "date": "29/10/2026",
+    "title": "Fix Scatto Automatico Cambio Portiere & Chiarezza Scheda Rotazione",
+    "userChanges": [
+      "⚡ Cambio Portiere Automatico Garantito: risolto il problema per cui a fine countdown il cambio non scattava. Ora al raggiungimento dello 00:00 scattano puntualmente sia il segnale acustico che l'annuncio vocale.",
+      "🎯 Chiarezza Cockpit Rotazione: corretto il titolo con la dicitura pulita \"Rotazione Portieri · Ogni 15s (DEV ⚡)\" o \"Ogni 5 min\" senza doppie parentesi.",
+      "🚨 Tasto Azione Immediato \"Chiama Cambio\": pulsante chiaro che ti permette in ogni momento di chiamare subito il cambio, oppure premere \"Ferma Allarme\"."
+    ],
+    "superUserChanges": [
+      "Sincronizzato il trigger periodico su turnoAttualeIndex() derivato direttamente da durataTurnoSecondi() anziché un calcolo statico a minuti.",
+      "Risolto il blocco che impediva lo scatto della rotazione a 15 secondi in ambiente di sviluppo/staging."
+    ]
+  },
+  {
+    "version": "1.0.22",
+    "date": "29/10/2026",
+    "title": "Pulizia Completa Codice & Rimozione Funzioni e Tipi Deprecati",
+    "userChanges": [
+      "🧹 App più leggera e reattiva: rimosse tutte le opzioni, allarmi e suoni inutilizzati e obsoleti.",
+      "Esperienza audio pulita: solo i controlli necessari per la gestione dei portieri (suono, voce nomi, durata e vibrazione)."
+    ],
+    "superUserChanges": [
+      "Rimozione completa di turboVolumeBoost, preAlert30Sec, goalSoundId, autogoalSoundEffect e matchWhistleEffects dalla configurazione SuperUserSoundConfig.",
+      "Eliminazione metodi stub e deprecati: playGoalSound, playGoalPresetById, playSadTrombone, playMatchWhistle, playQuickSoundboard e playPreAlert30SecBeep.",
+      "Ripulito ImpostazioniModalComponent da tutti i metodi e handler dismessi (toggleTurboBoost, selezionaGoalSound, suonaSoundboard, ecc.).",
+      "Rimozione di tutti i vecchi ID sonori deprecati da GkSoundId (ridotto ai soli 6 preset attivi e supportati)."
+    ]
+  },
+  {
+    "version": "1.0.21",
+    "date": "29/10/2026",
+    "title": "Loop Allarme, Nuovi Livelli Suoni Puliti, Nomi su Tasto Chiama & Voce Naturale",
+    "userChanges": [
+      "🔁 Loop Allarme Ripristinato: il segnale e la voce si ripetono ogni 7.5 secondi fino a quando l'admin non preme il pulsantone STOP.",
+      "🗣️ Tasto \"Chiama\" con Nomi Portieri: premendo Chiama nella tab rotazione viene ora sempre annunciato chi deve entrare in porta per Bianchi e Neri.",
+      "🎙️ Sintesi Vocale Naturale Italiana: integrata la selezione automatica delle migliori voci neurali/naturali (Google, Apple, Microsoft) senza effetto metallico o robotico.",
+      "🔊 5 Livelli di Intensità Sonori Puliti: Originale CAMBIO.wav, Fischietto Arbitro, Campanella Stadio, Tromba da Curva, Buzzer Palazzetto e Solo Voce, tutti a volume pieno e bilanciato."
+    ],
+    "superUserChanges": [
+      "startMatchCambioAlarm gestito con loop continuo e speechText reattivo ai portieri in campo.",
+      "Attivazione manuale suonaCambioManuale svincolata dal timer: l'allarme parte e chiama i nomi anche se il timer della partita è in pausa.",
+      "Refactoring audio con forme d'onda armoniche pure senza saturazione, distorsione o picchi fastidiosi."
+    ]
+  },
+  {
+    "version": "1.0.20",
+    "date": "29/10/2026",
+    "title": "Eliminazione Completa Suoni Sintetizzati & Audio Originale CAMBIO.wav",
+    "userChanges": [
+      "🎺 Audio Naturale al 100%: cancellati tutti i suoni artificiali, le frotte di allarmi e i fastidiosi fischi sintetizzati. Ora esiste solo il file audio storico originale CAMBIO.wav e la sola voce naturale.",
+      "Nessun disturbo o allarme finto: niente più sirene, tromboni o oscillatori fastidiosi in nessun punto dell'app.",
+      "Pannello Suoni pulito e immediato: puoi scegliere tra CAMBIO.wav originale, solo voce o silenzioso."
+    ],
+    "superUserChanges": [
+      "Cancellazione totale di WebAudio synthetic oscillators, PCM wave synthesis e compressore overdrive.",
+      "Eliminata la tab soundboard superflua e rimossi tutti i preset acustici fake (hyper_siren, nuclear_klaxon, referee_whistle synth, ecc.).",
+      "Ripristinata l'architettura nativa leggera basata unicamente su HTMLAudioElement (/assets/sound/CAMBIO.wav) e SpeechSynthesis."
+    ]
+  },
+  {
+    "version": "1.0.19",
+    "date": "29/10/2026",
+    "title": "Eliminazione Definitiva Suoni Fastidiosi & Audio CAMBIO.wav Pulito",
+    "userChanges": [
+      "🎺 Audio Cambio Pulito al 100%: rimosso definitivamente ogni suono fastidioso o fischio sintetizzato sovrapposto. Ora parte solo l'audio naturale senza distorsioni.",
+      "Riproduzione discreta: l'avviso acustico suona una volta senza ripetersi all'infinito durante la partita.",
+      "Sintesi vocale morbida e chiara per chiamare chi entra in porta senza disturbare il gioco."
+    ],
+    "superUserChanges": [
+      "Rimozione completa di generatori di oscillatori ad alta frequenza e sintetizzatori sovrapposti (playWebAudioBoosterOverlay e playWebAudioSynthCycle).",
+      "selectedGkSoundId impostato stabilmente su cambio_wav con sanitizzazione automatica delle preferenze salvate in locale.",
+      "Preset sonori sportivi ripuliti (fischietto naturale, gong morbido, campana stadio, solo voce)."
+    ]
+  },
+  {
     "version": "1.0.13",
     "date": "28/10/2026",
     "title": "Navigazione Libera & Fix Suoni Fantasma",

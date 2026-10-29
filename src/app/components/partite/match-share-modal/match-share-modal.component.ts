@@ -102,6 +102,7 @@ export class MatchShareModalComponent implements OnInit {
   includeLink = signal<boolean>(true);
   includeFoto = signal<boolean>(true);
   includeCronacaAi = signal<boolean>(true);
+  includePronosticoAi = signal<boolean>(true);
   includeCommentoPartita = signal<boolean>(true);
 
   isSharingNative = signal<boolean>(false);
@@ -146,6 +147,8 @@ export class MatchShareModalComponent implements OnInit {
       this.includePagelle.set(false);
     }
 
+    const hasPronostico = Boolean(this.partita.pronosticoAi || this.reportData()?.pronosticoAi);
+    this.includePronosticoAi.set(hasPronostico);
     const hasCronaca = Boolean(this.partita.cronacaAi || this.reportData()?.cronacaAi);
     this.includeCronacaAi.set(hasCronaca);
 
@@ -155,6 +158,10 @@ export class MatchShareModalComponent implements OnInit {
       this.includeFoto.set(false);
     }
   }
+
+  hasPronosticoDisponibile = computed(() => {
+    return Boolean(this.partita?.pronosticoAi || this.reportData()?.pronosticoAi);
+  });
 
   hasCronacaDisponibile = computed(() => {
     return Boolean(this.partita?.cronacaAi || this.reportData()?.cronacaAi);
@@ -188,12 +195,13 @@ export class MatchShareModalComponent implements OnInit {
       includeLink: this.includeLink(),
       includeFoto: this.includeFoto(),
       includeCronacaAi: this.includeCronacaAi(),
+      includePronosticoAi: this.includePronosticoAi(),
       includeCommentoPartita: this.includeCommentoPartita(),
     };
     return formatMatchForWhatsApp(this.partita, options, this.reportData());
   });
 
-  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca' | 'commento') {
+  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca' | 'pronostico' | 'commento') {
     switch (key) {
       case 'risultato':
         this.includeRisultato.update((v) => !v);

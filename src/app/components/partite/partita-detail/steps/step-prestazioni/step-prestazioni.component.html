@@ -76,6 +76,11 @@
         [gkSummary]="gkSummary()"
         (shareClick)="apriCondivisione()"
         (editAssistClick)="modificaAssistEvento($event)"
+        [cronacaAi]="state.cronacaAi()"
+        [isGeneratingCronaca]="isGeneratingCronaca()"
+        [matchId]="state.matchId()"
+        (generateCronacaClick)="generaCronaca($event)"
+        (goToSpogliatoioClick)="activeTab.set('spogliatoio')"
       ></app-prestazioni-tab-sintesi>
     }
 

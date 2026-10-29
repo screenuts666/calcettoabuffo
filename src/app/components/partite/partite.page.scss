@@ -715,3 +715,48 @@ ion-item-option {
   }
 }
 
+
+
+.cronaca-pill {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    color: #10b981 !important;
+  }
+
+  &:hover {
+    background: rgba(16, 185, 129, 0.22) !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.pronostico-pill {
+  background: rgba(139, 92, 246, 0.12) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    color: #a78bfa !important;
+  }
+
+  &:hover {
+    background: rgba(139, 92, 246, 0.22) !important;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}

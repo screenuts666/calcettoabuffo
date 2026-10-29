@@ -174,6 +174,110 @@
   </p>
 }
 
+<!-- SEZIONE QUOTE PRE-MATCH & PRONOSTICO DEL MISTER -->
+@if (currentOdds(); as odds) {
+  <div class="odds-and-pronostico-card animate-fade-in">
+    <div class="card-header-row">
+      <div class="header-left">
+        <ion-icon name="trending-up-outline" class="section-icon"></ion-icon>
+        <span class="section-title">Quote & Pronostico Pre-Match</span>
+      </div>
+      <div class="favorite-pill" [class.white-fav]="odds.favoriteTeam === 'A'" [class.black-fav]="odds.favoriteTeam === 'B'">
+        @if (odds.favoriteTeam === 'A') {
+          <span>⚪ Favoriti Bianchi (+{{ odds.favoriteMargin }}%)</span>
+        } @else if (odds.favoriteTeam === 'B') {
+          <span>⚫ Favoriti Neri (+{{ odds.favoriteMargin }}%)</span>
+        } @else {
+          <span>⚖️ Sfida Equilibrata</span>
+        }
+      </div>
+    </div>
+
+    <!-- Barra Percentuale Pre-Match -->
+    <div class="odds-bar-container">
+      <div class="odds-labels-row">
+        <span class="odds-label white-label">
+          ⚪ Bianchi <strong>{{ odds.probAPercent }}%</strong>
+        </span>
+        <span class="odds-label black-label">
+          <strong>{{ odds.probBPercent }}%</strong> Neri ⚫
+        </span>
+      </div>
+
+      <div class="odds-progress-track">
+        <div class="odds-progress-fill white-fill" [style.width.%]="odds.probAPercent"></div>
+        <div class="odds-progress-fill black-fill" [style.width.%]="odds.probBPercent"></div>
+      </div>
+
+      <div class="odds-mmr-sub">
+        <span>MMR medio: {{ odds.mmrA }}</span>
+        <span>MMR medio: {{ odds.mmrB }}</span>
+      </div>
+    </div>
+
+    <!-- BOX PRONOSTICO DEL MISTER GEMINI AI -->
+    <div class="ai-pronostico-box">
+      <div class="ai-box-header">
+        <div class="ai-header-left">
+          <span class="ai-badge">✨ GEMINI AI</span>
+          <span class="ai-name">🔮 Il Pronostico del Mister</span>
+        </div>
+
+        @if (state.pronosticoAi()) {
+          <div class="ai-header-actions">
+            <app-ai-tts-button
+              [text]="state.pronosticoAi()!"
+              [id]="'pronostico-squadre-' + (state.matchId() || 'temp')"
+              label="Ascolta Pronostico"
+              shareTitle="Pronostico del Mister Pre-Match"
+            ></app-ai-tts-button>
+            <button
+              type="button"
+              class="ai-refresh-btn"
+              (click)="generaPronostico(true)"
+              [disabled]="isGeneratingPronostico()"
+              title="Rigenera il pronostico con Gemini"
+            >
+              <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico()"></ion-icon>
+              <span>{{ isGeneratingPronostico() ? 'Ricalcolo...' : '🔄 Rigenera' }}</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (state.pronosticoAi(); as pronostico) {
+        <div class="ai-box-body">
+          <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(pronostico)"></div>
+          <div class="ai-box-footer">
+            <span class="ai-saved-hint">
+              <ion-icon name="cloud-done-outline"></ion-icon>
+              Salvato nel database · Ascolta l'audio o rigenera se vuoi una nuova versione
+            </span>
+          </div>
+        </div>
+      } @else {
+        <div class="ai-empty-prompt">
+          <p>Scopri cosa ne pensa il Mister prima di scendere in campo!</p>
+          <button
+            type="button"
+            class="ai-generate-main-btn"
+            (click)="generaPronostico(false)"
+            [disabled]="isGeneratingPronostico()"
+          >
+            @if (isGeneratingPronostico()) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Il Mister sta studiando le formazioni...</span>
+            } @else {
+              <ion-icon name="sparkles"></ion-icon>
+              <span>🔮 Chiedi il Pronostico al Mister</span>
+            }
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
 <!-- MODALE MATCHMAKING INTELLIGENTE -->
 <app-matchmaking-modal
   [isOpen]="isMatchmakingOpen()"

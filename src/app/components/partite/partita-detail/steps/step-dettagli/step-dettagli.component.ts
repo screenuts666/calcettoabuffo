@@ -102,6 +102,18 @@ export class StepDettagliComponent {
     return '';
   }
 
+  aggiornaLuogo(val: string) {
+    this.state.luogo.set(val);
+    this.state.salvaSnapshotLocale();
+    this.state.salvaSetupPredefinito();
+  }
+
+  aggiornaOrario(val: string) {
+    this.state.orario.set(val);
+    this.state.salvaSnapshotLocale();
+    this.state.salvaSetupPredefinito();
+  }
+
   tornaAConvocati() {
     this.state.step.set('convocati');
   }
@@ -110,12 +122,16 @@ export class StepDettagliComponent {
     const next =
       modalita ?? (this.state.modalitaPortieriA() === 'fisso' ? 'rotazione' : 'fisso');
     this.state.impostaModalitaPortiere('A', next);
+    this.state.salvaSnapshotLocale();
+    this.state.salvaSetupPredefinito();
   }
 
   toggleModalitaB(modalita?: 'rotazione' | 'fisso') {
     const next =
       modalita ?? (this.state.modalitaPortieriB() === 'fisso' ? 'rotazione' : 'fisso');
     this.state.impostaModalitaPortiere('B', next);
+    this.state.salvaSnapshotLocale();
+    this.state.salvaSetupPredefinito();
   }
 
   vaiASquadre() {

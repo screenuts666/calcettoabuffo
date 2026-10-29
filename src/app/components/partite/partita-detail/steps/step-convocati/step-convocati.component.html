@@ -5,6 +5,15 @@
       <div class="count-badge">{{ state.totaleConvocati() }} Selezionati</div>
     </div>
 
+    @if (isDev) {
+      <div class="dev-bulk-container">
+        <button type="button" class="dev-bulk-btn" (click)="selezionaPrimi14Classifica()">
+          <ion-icon name="flash-outline"></ion-icon>
+          <span>DEV ⚡ Auto-seleziona Top 14 (7 vs 7)</span>
+        </button>
+      </div>
+    }
+
     <ion-searchbar
       placeholder="Cerca per nome, piede, anno..."
       [value]="state.filtro()"

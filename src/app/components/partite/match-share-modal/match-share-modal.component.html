@@ -85,6 +85,14 @@
         </ion-chip>
         }
 
+        @if (hasPronosticoDisponibile()) {
+        <ion-chip [class.chip-active]="includePronosticoAi()" (click)="toggleOption('pronostico')" class="ai-chip">
+          <ion-icon [name]="includePronosticoAi() ? 'checkmark-circle' : 'sparkles'"
+            [color]="includePronosticoAi() ? 'success' : 'medium'"></ion-icon>
+          <ion-label>🔮 Pronostico AI</ion-label>
+        </ion-chip>
+        }
+
         @if (hasCronacaDisponibile()) {
         <ion-chip [class.chip-active]="includeCronacaAi()" (click)="toggleOption('cronaca')" class="ai-chip">
           <ion-icon [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"

@@ -10,8 +10,8 @@ import {
   IonFab,
   IonFabButton,
   AlertController,
-  ToastController,
-  IonBackButton,
+  ActionSheetController,
+  ToastController,
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { CommonModule } from '@angular/common';
@@ -23,12 +23,17 @@ import {
   getDocs,
   query,
   orderBy,
+  limit,
 } from 'firebase/firestore';
+import { environment } from 'src/environments/environment';
 import { Firestore } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   arrowBack,
+      arrowBackOutline,
+      listOutline,
+      closeOutline,
   close,
   arrowForward,
   checkmark,
@@ -37,6 +42,7 @@ import {
 import { AuthService } from '../../../services/auth.service';
 import { MatchStateService } from './match-state.service';
 import { MIN_CURRENT_SEASON_DATE } from '../../../utils/season-utils';
+import { ModalitaPortiere } from 'src/app/models/partita.model';
 import { StepConvocatiComponent } from './steps/step-convocati/step-convocati.component';
 import { StepDettagliComponent } from './steps/step-dettagli/step-dettagli.component';
 import { StepSquadreComponent } from './steps/step-squadre/step-squadre.component';
@@ -61,7 +67,6 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
     IonIcon,
     IonFab,
     IonFabButton,
-    IonBackButton,
     IonSpinner,
     StepConvocatiComponent,
     StepDettagliComponent,
@@ -76,6 +81,7 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
 export class PartitaDetailPage implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
   private alertCtrl = inject(AlertController);
+  private actionSheetCtrl = inject(ActionSheetController);
   private toastCtrl = inject(ToastController);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -136,6 +142,57 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         selezionato: false,
       }));
 
+      let luogoPredefinito = '';
+      let orarioPredefinito = '21:00';
+      let modalitaAPredefinita: ModalitaPortiere = 'rotazione';
+      let modalitaBPredefinita: ModalitaPortiere = 'rotazione';
+      let durataTurnoMinutiPredefinita = 5;
+
+      // 1. Prova prima dal setup ricordato e salvato in localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          const rawSetup = localStorage.getItem('calcetto_last_match_setup');
+          if (rawSetup) {
+            const parsed = JSON.parse(rawSetup);
+            if (parsed.luogo) luogoPredefinito = parsed.luogo;
+            if (parsed.orario) orarioPredefinito = parsed.orario;
+            if (parsed.modalitaA) modalitaAPredefinita = parsed.modalitaA;
+            if (parsed.modalitaB) modalitaBPredefinita = parsed.modalitaB;
+            if (parsed.durataTurnoMinuti) durataTurnoMinutiPredefinita = parsed.durataTurnoMinuti;
+          }
+        }
+      } catch {}
+
+      // 2. Se mancanti o su nuovo device, recupera dall'ultima partita memorizzata su Firestore
+      try {
+        const lastMatchSnap = await getDocs(
+          query(
+            collection(this.firestore, 'partite'),
+            orderBy('dataOra', 'desc'),
+            limit(5)
+          )
+        );
+        for (const docSnap of lastMatchSnap.docs) {
+          const d = docSnap.data();
+          if (d) {
+            if (!luogoPredefinito && d['luogo'] && typeof d['luogo'] === 'string' && d['luogo'].trim() !== '') {
+              luogoPredefinito = d['luogo'].trim();
+            }
+            if ((!orarioPredefinito || orarioPredefinito === '21:00') && d['orario'] && typeof d['orario'] === 'string') {
+              orarioPredefinito = d['orario'];
+            }
+            if (d['rotazionePortieri']) {
+              if (d['rotazionePortieri'].modalitaA) modalitaAPredefinita = d['rotazionePortieri'].modalitaA;
+              if (d['rotazionePortieri'].modalitaB) modalitaBPredefinita = d['rotazionePortieri'].modalitaB;
+              if (d['rotazionePortieri'].durataTurnoMinuti) durataTurnoMinutiPredefinita = d['rotazionePortieri'].durataTurnoMinuti;
+            }
+            if (luogoPredefinito) break;
+          }
+        }
+      } catch (e) {
+        console.warn('Impossibile recuperare ultimo setup partita da Firestore:', e);
+      }
+
       const nuovaData: any = {
         id: null,
         isAdmin: this.isAdmin,
@@ -146,6 +203,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         teamB: [],
         convocati: [],
         status: 'pronta',
+        luogo: luogoPredefinito,
+        orario: orarioPredefinito,
+        rotazionePortieri: {
+          modalitaA: modalitaAPredefinita,
+          modalitaB: modalitaBPredefinita,
+          teamA: [],
+          teamB: [],
+          durataTurnoMinuti: durataTurnoMinutiPredefinita,
+        },
       };
 
       this.initMatchData(nuovaData);
@@ -271,12 +337,13 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.avviaAscoltoReale();
     } else {
       this.state.tutti.set(baseGiocatori);
+      this.state.luogo.set(matchData.luogo || '');
       this.state.dataPartita.set(this.getProssimoMercoledi());
-      this.state.orario.set('21:00');
+      this.state.orario.set(matchData.orario || '21:00');
       this.state.fotoUrl.set(null);
       this.state.fotoPath.set(null);
       this.state.commentoPartita.set('');
-      this.state.rotazionePortieri.set(null);
+      this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
       this.state.resetMatchState();
       this.state.step.set('convocati');
     }
@@ -302,6 +369,88 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
    * Torna alla pagina /partite senza chiudere o concludere la partita.
    * Il match resta attivo, salvato in locale e nel DB, e riapribile dall'elenco "In Corso".
    */
+  /**
+   * Gestisce il tap sulla freccia indietro: chiede all'utente se tornare alla lista partite
+   * oppure andare allo step precedente del match.
+   */
+  async gestisciIndietro() {
+    const currentStep = this.state.step();
+
+    // Se siamo nel primo step ('convocati') o la partita è già conclusa in 'prestazioni', torna direttamente
+    if (currentStep === 'convocati' || (this.state.matchConcluso() && currentStep === 'prestazioni')) {
+      this.tornaAPartite();
+      return;
+    }
+
+    let prevStepName = '';
+    let prevStepTarget: 'convocati' | 'dettagli' | 'squadre' | 'match' | null = null;
+
+    switch (currentStep) {
+      case 'dettagli':
+        prevStepName = 'Convocati';
+        prevStepTarget = 'convocati';
+        break;
+      case 'squadre':
+        prevStepName = 'Dettagli';
+        prevStepTarget = 'dettagli';
+        break;
+      case 'match':
+        prevStepName = 'Formazioni & Squadre';
+        prevStepTarget = 'squadre';
+        break;
+      case 'prestazioni':
+        prevStepName = 'Tabellone Match';
+        prevStepTarget = 'match';
+        break;
+    }
+
+    const isMatchInProgress = currentStep === 'match' && !this.state.matchConcluso();
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Dove vuoi tornare?',
+      subHeader: isMatchInProgress
+        ? 'La partita in corso rimane attiva e riapribile'
+        : undefined,
+      buttons: [
+        {
+          text: isMatchInProgress
+            ? 'Torna alla Lista Partite (Match salvato)'
+            : 'Torna alla Lista Partite',
+          icon: 'list-outline',
+          handler: () => {
+            this.tornaAPartite();
+          },
+        },
+        ...(prevStepTarget
+          ? [
+              {
+                text: isMatchInProgress
+                  ? `Step precedente (Resetta Match e torna a ${prevStepName})`
+                  : `Step precedente (${prevStepName})`,
+                icon: 'arrow-back-outline',
+                role: isMatchInProgress ? ('destructive' as const) : undefined,
+                handler: () => {
+                  if (isMatchInProgress) {
+                    this.confermaTornaASquadre();
+                  } else {
+                    this.state.salvaSnapshotLocale();
+                    this.state.step.set(prevStepTarget!);
+                  }
+                },
+              },
+            ]
+          : []),
+        {
+          text: 'Resta qui (Annulla)',
+          icon: 'close-outline',
+          role: 'cancel',
+        },
+      ],
+    });
+
+    await actionSheet.present();
+  }
+
   tornaAPartite() {
     this.state.salvaSnapshotLocale();
     this.router.navigate(['/partite']);
@@ -309,16 +458,18 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
   async confermaTornaASquadre() {
     const alert = await this.alertCtrl.create({
-      header: 'Sei sicuro?',
+      header: 'Attenzione: Reset Match',
+      subHeader: 'Sei sicuro di voler tornare a Formazioni & Squadre?',
       message:
-        'Tornando indietro resetterai il punteggio e il cronometro. I dati di questa partita andranno persi.',
+        'Tornando indietro il punteggio, il cronometro e la rotazione portieri verranno azzerati. I dati correnti del match andranno persi.',
       buttons: [
         {
-          text: 'Annulla',
+          text: 'Annulla (Resta nel Match)',
           role: 'cancel',
         },
         {
-          text: 'Conferma',
+          text: 'Sì, resetta e torna indietro',
+          role: 'destructive',
           handler: () => {
             this.state.resetMatchState();
             this.state.step.set('squadre');

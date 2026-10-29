@@ -6,16 +6,24 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonAvatar, IonIcon } from '@ionic/angular/standalone';
+import { IonAvatar, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   trophy,
   football,
   createOutline,
   logoWhatsapp,
+  micOutline,
+  sparkles,
+  refreshOutline,
+  arrowForwardOutline,
+  chatbubblesOutline,
+  cloudDoneOutline,
 } from 'ionicons/icons';
 import { MatchReportPlayer } from '../../../../../../../models/mmr.model';
 import { PlayerAvatarComponent, MatchPhotoComponent } from '../../../../../../../shared/components';
+import { AiTtsButtonComponent } from '../../../../../../ai-tts-button/ai-tts-button.component';
+import { formatAiMarkdown } from '../../../../../../../utils/ai-format.utils';
 
 @Component({
   selector: 'app-prestazioni-tab-sintesi',
@@ -29,6 +37,8 @@ import { PlayerAvatarComponent, MatchPhotoComponent } from '../../../../../../..
     IonIcon,
     PlayerAvatarComponent,
     MatchPhotoComponent,
+    IonSpinner,
+    AiTtsButtonComponent,
   ],
 })
 export class PrestazioniTabSintesiComponent {
@@ -40,6 +50,19 @@ export class PrestazioniTabSintesiComponent {
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editAssistClick = new EventEmitter<number>();
+  @Input() cronacaAi?: string | null = null;
+  @Input() isGeneratingCronaca: boolean = false;
+  @Input() matchId?: string | null = null;
+
+  @Output() generateCronacaClick = new EventEmitter<boolean>();
+  @Output() goToSpogliatoioClick = new EventEmitter<void>();
+
+  readonly formatAiMarkdown = formatAiMarkdown;
+  isCronacaExpanded: boolean = false;
+
+  toggleCronacaExpand() {
+    this.isCronacaExpanded = !this.isCronacaExpanded;
+  }
 
   constructor() {
     addIcons({
@@ -47,6 +70,11 @@ export class PrestazioniTabSintesiComponent {
       football,
       createOutline,
       logoWhatsapp,
+  micOutline,
+  sparkles,
+  refreshOutline,
+  arrowForwardOutline,
+  chatbubblesOutline,
     });
   }
 }

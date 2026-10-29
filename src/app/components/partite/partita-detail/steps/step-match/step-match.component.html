@@ -1,6 +1,6 @@
-<!-- ─── BANNER CAMBIO PORTIERE (solo admin, quando il suono è attivo) ─── -->
-@if (isAdmin && state.cambioAttivo()) {
-  <div class="cambio-banner">
+<!-- ─── BANNER CAMBIO PORTIERE (CON PULSANTONE STOP GIGANTESCO) ─── -->
+@if (state.cambioAttivo()) {
+  <div class="cambio-banner" [class.is-admin]="isAdmin" (click)="isAdmin ? fermaCambio() : null">
     <div class="cambio-pulse-ring"></div>
     <div class="cambio-content">
       <span class="cambio-icon-preset">{{ soundSettings.selectedGkPreset().emoji }}</span>
@@ -9,21 +9,23 @@
           <span class="cambio-title">⏱️ CAMBIO PORTIERE!</span>
           <span class="cambio-preset-tag">{{ soundSettings.selectedGkPreset().name }}</span>
         </div>
-        <small class="cambio-gk-names">
+        <div class="cambio-gk-names-box">
           @if (state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione') {
-            In porta: {{ state.portieriInfoA().attuale?.nome }} (Bianchi) & {{ state.portieriInfoB().attuale?.nome }} (Neri)
+            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) & <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri)</span>
           } @else if (state.modalitaPortieriA() === 'rotazione') {
-            In porta: {{ state.portieriInfoA().attuale?.nome }} (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso 🧤)
+            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso 🧤)</span>
           } @else {
-            In porta: {{ state.portieriInfoB().attuale?.nome }} (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso 🧤)
+            <span>In porta: <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso 🧤)</span>
           }
-        </small>
+        </div>
       </div>
     </div>
-    <button class="cambio-stop-btn" (click)="fermaCambio()">
-      <ion-icon name="volume-mute"></ion-icon>
-      STOP
-    </button>
+    @if (isAdmin) {
+      <button type="button" class="cambio-stop-btn-giant" (click)="$event.stopPropagation(); fermaCambio()">
+        <ion-icon name="volume-mute"></ion-icon>
+        <span>🛑 FERMA ALLARME (STOP)</span>
+      </button>
+    }
   </div>
 }
 
@@ -252,9 +254,8 @@
   </div>
 }
 
-<!-- ─── SEZIONE ROTAZIONE PORTIERI (SOLO SUPERUSER) ─────────── -->
-@if (isAdmin) {
-  <div class="gk-rotation-section">
+<!-- ─── SEZIONE ROTAZIONE PORTIERI (VISIBILE A TUTTI) ─────────── -->
+<div class="gk-rotation-section">
     <div class="gk-panel-header">
       <div class="gk-header-left">
         <span class="gk-badge-icon">🧤</span>
@@ -263,43 +264,47 @@
             <span class="gk-header-title">Portieri Fissi di Ruolo 🧤</span>
             <span class="gk-header-sub">Entrambe le formazioni con portiere fisso tutta la gara</span>
           } @else {
-            <span class="gk-header-title">Rotazione Portieri (Ogni {{ state.durataTurnoMinuti() }} min)</span>
+            <span class="gk-header-title">Rotazione Portieri · {{ state.durataTurnoLabel() }}</span>
             <span class="gk-header-sub">
-              Prossimo cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
+              Prossimo cambio automatico tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
             </span>
           }
         </div>
       </div>
       <div class="gk-header-actions">
-        <button
-          type="button"
-          class="gk-ctrl-btn sound-picker-btn"
-          (click)="apriImpostazioniSuoni()"
-          [title]="'Impostazioni suoni e cambio segnale (Attuale: ' + soundSettings.selectedGkPreset().name + ')'"
-        >
-          <ion-icon name="volume-high"></ion-icon>
-          <span>{{ soundSettings.selectedGkPreset().emoji }} Suono</span>
-        </button>
-        <button
-          type="button"
-          class="gk-ctrl-btn alarm-call-btn"
-          [class.active]="state.cambioAttivo()"
-          (click)="suonaCambioManuale()"
-          title="Attiva o disattiva manualmente il suono di cambio portiere"
-        >
-          <ion-icon [name]="state.cambioAttivo() ? 'volume-mute' : 'notifications-outline'"></ion-icon>
-          <span>{{ state.cambioAttivo() ? 'Ferma' : 'Chiama' }}</span>
-        </button>
-        @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
+        @if (isAdmin) {
           <button
             type="button"
-            class="gk-ctrl-btn"
-            (click)="rimescolaPortieri()"
-            title="Rimescola casualmente i portieri a rotazione"
+            class="gk-ctrl-btn sound-picker-btn"
+            (click)="apriImpostazioniSuoni()"
+            [title]="'Impostazioni suoni e cambio segnale (Attuale: ' + soundSettings.selectedGkPreset().name + ')'"
           >
-            <ion-icon name="dice-outline"></ion-icon>
-            <span>Rimescola</span>
+            <ion-icon name="volume-high"></ion-icon>
+            <span>{{ soundSettings.selectedGkPreset().emoji }} Suono</span>
           </button>
+          <button
+            type="button"
+            class="gk-ctrl-btn alarm-call-btn"
+            [class.active]="state.cambioAttivo()"
+            (click)="suonaCambioManuale()"
+            title="Attiva o disattiva manualmente il suono di cambio portiere"
+          >
+            <ion-icon [name]="state.cambioAttivo() ? 'volume-mute' : 'megaphone-outline'"></ion-icon>
+            <span>{{ state.cambioAttivo() ? 'Ferma' : 'Chiama' }}</span>
+          </button>
+        }
+        @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
+          @if (isAdmin) {
+            <button
+              type="button"
+              class="gk-ctrl-btn"
+              (click)="rimescolaPortieri()"
+              title="Rimescola casualmente i portieri a rotazione"
+            >
+              <ion-icon name="dice-outline"></ion-icon>
+              <span>Rimescola</span>
+            </button>
+          }
           <button
             type="button"
             class="gk-ctrl-btn"
@@ -319,24 +324,26 @@
       <div class="gk-team-box team-a" [class.is-fisso]="state.modalitaPortieriA() === 'fisso'">
         <div class="gk-team-header">
           <span class="gk-team-name">BIANCHI</span>
-          @if (state.modalitaPortieriA() === 'rotazione') {
-            <button
-              type="button"
-              class="gk-team-reroll"
-              (click)="rimescolaPortieri('A')"
-              title="Rimescola solo Bianchi"
-            >
-              <ion-icon name="dice-outline"></ion-icon>
-            </button>
-          } @else {
-            <button
-              type="button"
-              class="gk-team-switch"
-              (click)="cambiaPortiereFisso('A')"
-              title="Sostituisci portiere fisso"
-            >
-              <span>Cambia</span>
-            </button>
+          @if (isAdmin) {
+            @if (state.modalitaPortieriA() === 'rotazione') {
+              <button
+                type="button"
+                class="gk-team-reroll"
+                (click)="rimescolaPortieri('A')"
+                title="Rimescola solo Bianchi"
+              >
+                <ion-icon name="dice-outline"></ion-icon>
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="gk-team-switch"
+                (click)="cambiaPortiereFisso('A')"
+                title="Sostituisci portiere fisso"
+              >
+                <span>Cambia</span>
+              </button>
+            }
           }
         </div>
 
@@ -402,24 +409,26 @@
       <div class="gk-team-box team-b" [class.is-fisso]="state.modalitaPortieriB() === 'fisso'">
         <div class="gk-team-header">
           <span class="gk-team-name">NERI</span>
-          @if (state.modalitaPortieriB() === 'rotazione') {
-            <button
-              type="button"
-              class="gk-team-reroll"
-              (click)="rimescolaPortieri('B')"
-              title="Rimescola solo Neri"
-            >
-              <ion-icon name="dice-outline"></ion-icon>
-            </button>
-          } @else {
-            <button
-              type="button"
-              class="gk-team-switch"
-              (click)="cambiaPortiereFisso('B')"
-              title="Sostituisci portiere fisso"
-            >
-              <span>Cambia</span>
-            </button>
+          @if (isAdmin) {
+            @if (state.modalitaPortieriB() === 'rotazione') {
+              <button
+                type="button"
+                class="gk-team-reroll"
+                (click)="rimescolaPortieri('B')"
+                title="Rimescola solo Neri"
+              >
+                <ion-icon name="dice-outline"></ion-icon>
+              </button>
+            } @else {
+              <button
+                type="button"
+                class="gk-team-switch"
+                (click)="cambiaPortiereFisso('B')"
+                title="Sostituisci portiere fisso"
+              >
+                <span>Cambia</span>
+              </button>
+            }
           }
         </div>
 
@@ -501,10 +510,12 @@
                     } @else if (p.isProssimo) {
                       <span class="seq-tag tag-prox">Prossimo</span>
                     }
-                    <div class="seq-swap-btns">
-                      <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('A', i, i - 1)">▲</button>
-                      <button type="button" [disabled]="i === state.portieriInfoA().lista.length - 1" (click)="scambiaOrdine('A', i, i + 1)">▼</button>
-                    </div>
+                    @if (isAdmin) {
+                      <div class="seq-swap-btns">
+                        <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('A', i, i - 1)">▲</button>
+                        <button type="button" [disabled]="i === state.portieriInfoA().lista.length - 1" (click)="scambiaOrdine('A', i, i + 1)">▼</button>
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -526,10 +537,12 @@
                     } @else if (p.isProssimo) {
                       <span class="seq-tag tag-prox">Prossimo</span>
                     }
-                    <div class="seq-swap-btns">
-                      <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('B', i, i - 1)">▲</button>
-                      <button type="button" [disabled]="i === state.portieriInfoB().lista.length - 1" (click)="scambiaOrdine('B', i, i + 1)">▼</button>
-                    </div>
+                    @if (isAdmin) {
+                      <div class="seq-swap-btns">
+                        <button type="button" [disabled]="i === 0" (click)="scambiaOrdine('B', i, i - 1)">▲</button>
+                        <button type="button" [disabled]="i === state.portieriInfoB().lista.length - 1" (click)="scambiaOrdine('B', i, i + 1)">▼</button>
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -539,7 +552,6 @@
       </div>
     }
   </div>
-}
 
 <div class="ion-padding">
   <ion-button

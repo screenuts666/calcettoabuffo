@@ -4,6 +4,7 @@ import { ref, getDownloadURL, uploadBytes, getBlob } from 'firebase/storage';
 import { Firestore } from '@angular/fire/firestore';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Mp3Encoder } from '@breezystack/lamejs';
+import { AlertController } from '@ionic/angular/standalone';
 import { GeminiService } from './gemini.service';
 import { cleanTextForSpeech, computeTextHash } from '../utils/text-sanitizer';
 
@@ -21,6 +22,7 @@ export class TtsService {
   private geminiService = inject(GeminiService);
   private storage = inject(Storage);
   private firestore = inject(Firestore);
+  private alertCtrl = inject(AlertController);
 
   // Stato reattivo globale (Single Player)
   readonly isPlaying = signal<boolean>(false);
@@ -91,7 +93,34 @@ export class TtsService {
    * 2. Livello 2 (Secondario): Gemini TTS (Puck con prompt telecronista calcetto)
    * 3. Livello 3 (Terziario/Fallback estremo): Web Speech API del browser nativo
    */
-  async play(rawText: string, id: string): Promise<void> {
+  /**
+   * Invalida la cache in memoria e opzionalmente svuota l'audio associato per consentire una nuova generazione vocale.
+   */
+  invalidateCache(id?: string, rawText?: string): void {
+    if (this.currentPlayingId() === id) {
+      this.stop();
+    }
+    if (id && rawText) {
+      const cleaned = this.cleanTextForSpeech(rawText);
+      const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const textHash = this.computeHash(cleaned);
+      const cacheKey = 'v3_' + safeId + '_' + textHash;
+      this.audioCache.delete(cacheKey);
+      this.storageMissCache.delete(cacheKey);
+    } else if (id) {
+      const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+      for (const k of Array.from(this.audioCache.keys())) {
+        if (k.includes(safeId)) {
+          this.audioCache.delete(k);
+        }
+      }
+    } else {
+      this.audioCache.clear();
+      this.storageMissCache.clear();
+    }
+  }
+
+  async play(rawText: string, id: string, forceFresh = false): Promise<void> {
     // Se è già attivo sullo stesso id, toggle stop
     if (this.currentPlayingId() === id && (this.isPlaying() || this.isLoadingAudio())) {
       this.stop();
@@ -112,33 +141,40 @@ export class TtsService {
 
     const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
     const textHash = this.computeHash(cleaned);
-    const cacheKey = `v3_${safeId}_${textHash}`;
+    const cacheKey = 'v3_' + safeId + '_' + textHash;
 
-    // 1. Controllo se l'audio è già presente nella cache in memoria
-    const cachedUrl = this.audioCache.get(cacheKey);
-    if (cachedUrl) {
-      this.playAudioUrl(cachedUrl, id);
-      return;
+    if (forceFresh) {
+      this.audioCache.delete(cacheKey);
+      this.storageMissCache.delete(cacheKey);
+    } else {
+      // 1. Controllo se l'audio è già presente nella cache in memoria
+      const cachedUrl = this.audioCache.get(cacheKey);
+      if (cachedUrl) {
+        this.playAudioUrl(cachedUrl, id);
+        return;
+      }
     }
 
     this.isLoadingAudio.set(true);
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
 
-    // 2. Controllo se l'audio è già presente e indicizzato su Firebase Storage (condiviso tra tutti gli utenti)
-    try {
-      const remoteUrl = await this.checkFirebaseStorageCache(cacheKey);
-      if (remoteUrl) {
-        if (this.currentPlayingId() !== id) return;
-        this.audioCache.set(cacheKey, remoteUrl);
-        this.playAudioUrl(remoteUrl, id);
-        return;
+    if (!forceFresh) {
+      // 2. Controllo se l'audio è già presente e indicizzato su Firebase Storage (condiviso tra tutti gli utenti)
+      try {
+        const remoteUrl = await this.checkFirebaseStorageCache(cacheKey);
+        if (remoteUrl) {
+          if (this.currentPlayingId() !== id) return;
+          this.audioCache.set(cacheKey, remoteUrl);
+          this.playAudioUrl(remoteUrl, id);
+          return;
+        }
+      } catch (e) {
+        console.warn('Controllo cache Firebase Storage non riuscito, procedo alla generazione:', e);
       }
-    } catch (e) {
-      console.warn('Controllo cache Firebase Storage non riuscito, procedo alla generazione:', e);
     }
 
-    // Recupera la configurazione AI da Firestore (con cache in-memory)
+        // Recupera la configurazione AI da Firestore (con cache in-memory)
     const aiConfig = await this.geminiService.getAiConfig();
 
     // =========================================================================
@@ -364,7 +400,7 @@ export class TtsService {
 
     const safeId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
     const textHash = this.computeHash(cleaned);
-    const cacheKey = `v3_${safeId}_${textHash}`;
+    const cacheKey = 'v3_' + safeId + '_' + textHash;
 
     // 1. Controllo cache in memoria (SOLO se MP3, mai WAV)
     const cachedUrl = this.audioCache.get(cacheKey);
@@ -486,6 +522,50 @@ export class TtsService {
    * - Su Desktop o browser senza supporto file: scarica il file audio localmente
    *   e apre WhatsApp Web con il messaggio formattato e link all'audio online.
    */
+  private async promptShareWithFreshUserGesture(file: File, title: string): Promise<boolean> {
+    return new Promise(async (resolve) => {
+      try {
+        const alert = await this.alertCtrl.create({
+          header: '🎙️ Audio Pronto!',
+          subHeader: title,
+          message: 'Tocca "Invia su WhatsApp" per condividere subito la registrazione vocale.',
+          mode: 'ios',
+          buttons: [
+            {
+              text: 'Annulla',
+              role: 'cancel',
+              handler: () => resolve(false),
+            },
+            {
+              text: 'Invia su WhatsApp 📲',
+              handler: async () => {
+                try {
+                  if (typeof navigator !== 'undefined' && 'share' in navigator) {
+                    await navigator.share({
+                      title,
+                      files: [file],
+                    });
+                    resolve(true);
+                    return;
+                  }
+                } catch (e: any) {
+                  if (e?.name !== 'AbortError') {
+                    console.warn('Share fallito anche con gesture fresca:', e);
+                  }
+                }
+                resolve(false);
+              },
+            },
+          ],
+        });
+
+        await alert.present();
+      } catch {
+        resolve(false);
+      }
+    });
+  }
+
   async shareAudioToWhatsApp(
     rawText: string,
     id: string,
@@ -523,15 +603,28 @@ export class TtsService {
         (navigator as any).canShare({ files: [file] });
 
       if (isMobile && canShareFiles) {
-        // Condivisione nativa su mobile (iOS Safari / Chrome Android)
-        // NOTA FONDAMENTALE PER WHATSAPP:
-        // Passare solo `files` e `title`. Omettere `text` per evitare che WhatsApp
-        // interpreti erroneamente l'audio con caption vuota bloccandone l'ascolto.
-        await navigator.share({
-          title: safeTitle,
-          files: [file],
-        });
-        return { success: true, method: 'web-share' };
+        // Prova a condividere direttamente se il token gesture è ancora valido
+        try {
+          await navigator.share({
+            title: safeTitle,
+            files: [file],
+          });
+          return { success: true, method: 'web-share' };
+        } catch (shareErr: any) {
+          if (shareErr?.name === 'AbortError') {
+            return { success: false, method: 'aborted' };
+          }
+
+          // Se fallisce per 'NotAllowedError' (gesto utente scaduto durante l'elaborazione dell'audio AI)
+          // Apriamo subito una modale con gesture utente fresca per condividere in 1 tap senza errori!
+          if (shareErr?.name === 'NotAllowedError' || shareErr?.message?.includes('user gesture')) {
+            const sharedViaDialog = await this.promptShareWithFreshUserGesture(file, safeTitle);
+            if (sharedViaDialog) {
+              return { success: true, method: 'web-share' };
+            }
+          }
+          console.warn('navigator.share diretto fallito, passo al fallback WhatsApp:', shareErr);
+        }
       }
 
       // Modalità Desktop o browser senza canShare files:
@@ -820,22 +913,26 @@ export class TtsService {
     );
     if (itVoices.length === 0) return null;
 
-    // Priorità a voci espressive Google o native iOS/macOS di qualità superiore
-    const preferred = itVoices.find((v) => {
+    // Ordina le voci per livello di naturalezza (evita rigorosamente le vecchie voci robotiche SAPI/Cosimo)
+    const scoreVoice = (v: SpeechSynthesisVoice): number => {
       const name = v.name.toLowerCase();
-      return (
-        name.includes('google') ||
-        name.includes('natural') ||
-        name.includes('alice') ||
-        name.includes('luca') ||
-        name.includes('siri') ||
-        name.includes('federica') ||
-        name.includes('cosimo') ||
-        name.includes('premium')
-      );
-    });
+      // 1. Voci Edge/Azure Neural (Microsoft Diego/Isabella/Elsa Online Natural) -> Qualità umana studio
+      if (name.includes('online') || name.includes('natural')) return 100;
+      // 2. Voci Google Neural (Chrome / Android "Google italiano")
+      if (name.includes('google')) return 85;
+      // 3. Voci Apple Neural / Premium (iOS / macOS Siri, Premium, Enhanced)
+      if (name.includes('premium') || name.includes('enhanced') || name.includes('siri')) return 75;
+      // 4. Servizio cloud remoto non-locale
+      if (v.localService === false) return 60;
+      // 5. Voci standard iOS (Alice, Federica, Luca)
+      if (name.includes('alice') || name.includes('federica') || name.includes('luca')) return 50;
+      // 6. Penalizza pesantemente le vecchie voci desktop meccaniche (Cosimo, Elsa Desktop)
+      if (name.includes('cosimo') || name.includes('desktop') || name.includes('sapi')) return 10;
+      return 30;
+    };
 
-    return preferred || itVoices.find((v) => v.default) || itVoices[0];
+    const sorted = [...itVoices].sort((a, b) => scoreVoice(b) - scoreVoice(a));
+    return sorted[0] || itVoices[0];
   }
 
   private playNativeSpeech(text: string, id: string): void {

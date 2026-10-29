@@ -1,0 +1,46 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ai-modal-toolbar">
+    <div class="modal-title-wrapper" slot="start">
+      <span class="modal-emoji">{{ tipo === 'pronostico' ? '🔮' : '🎙️' }}</span>
+      <div class="modal-headings">
+        <ion-title class="main-title">{{ titolo || (tipo === 'pronostico' ? 'Pronostico del Mister' : 'Telecronaca Ignorante') }}</ion-title>
+        @if (sottotitolo) {
+          <span class="sub-title">{{ sottotitolo }}</span>
+        }
+      </div>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="chiudi()" class="close-btn" aria-label="Chiudi">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ai-modal-content">
+  <div class="ai-modal-inner">
+    <!-- BARRA AZIONI AUDIO -->
+    <div class="audio-action-banner">
+      <div class="ai-source-tag">
+        <span class="sparkle">✨</span>
+        <span>Generato con Gemini AI</span>
+      </div>
+      @if (testo) {
+        <app-ai-tts-button
+          [text]="testo"
+          [id]="tipo + '-modal-' + matchId"
+          [label]="audioLabel || (tipo === 'pronostico' ? 'Ascolta Pronostico' : 'Ascolta Telecronaca')"
+          [shareTitle]="titolo"
+        ></app-ai-tts-button>
+      }
+    </div>
+
+    <!-- CORPO DEL TESTO FORMATTATO -->
+    <div class="story-bubble-card">
+      <div class="bubble-header-quote">“</div>
+      <div class="bubble-text-content" [innerHTML]="formatAiMarkdown(testo)"></div>
+      <div class="bubble-footer-quote">”</div>
+    </div>
+  </div>
+</ion-content>
+

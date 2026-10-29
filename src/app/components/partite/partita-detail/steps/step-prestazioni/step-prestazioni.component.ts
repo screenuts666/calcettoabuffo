@@ -1,3 +1,4 @@
+import { TtsService } from '../../../../../services/tts.service';
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -53,6 +54,7 @@ export class StepPrestazioniComponent {
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
+  private ttsService = inject(TtsService);
   private actionSheetCtrl = inject(ActionSheetController);
   private router = inject(Router);
 

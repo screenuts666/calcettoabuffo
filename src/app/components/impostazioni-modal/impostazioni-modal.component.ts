@@ -47,14 +47,9 @@ import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
 import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
-import {
-  SoundSettingsService,
-  GkSoundId,
-  GoalSoundId,
-  QuickSoundboardId,
-} from '../../services/sound-settings.service';
+import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
 
-export type SettingsTab = 'portiere' | 'effetti' | 'sistema';
+export type SettingsTab = 'portiere' | 'match' | 'sistema';
 
 @Component({
   selector: 'app-impostazioni-modal',
@@ -157,18 +152,6 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     this.soundSettings.togglePreviewGkSound(id);
   }
 
-  toggleTurboBoost() {
-    if (!this.authService.isAdmin()) return;
-    const next = !this.soundSettings.config().turboVolumeBoost;
-    this.soundSettings.updateConfig({ turboVolumeBoost: next });
-    this.mostraToast(
-      next
-        ? '🔥 Turbo Boost Volume Massimo ATTIVATO!'
-        : '🔉 Turbo Boost disattivato',
-      next ? 'success' : 'medium'
-    );
-  }
-
   toggleVoiceAnnouncement() {
     if (!this.authService.isAdmin()) return;
     const next = !this.soundSettings.config().voiceAnnouncement;
@@ -186,56 +169,34 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     this.soundSettings.updateConfig({ gkTurnMinutes: min });
     this.mostraToast(`⏱️ Turno portieri impostato a ${min} minuti`, 'success');
   }
-
-  togglePreAlert30Sec() {
-    if (!this.authService.isAdmin()) return;
-    const next = !this.soundSettings.config().preAlert30Sec;
-    this.soundSettings.updateConfig({ preAlert30Sec: next });
-    if (next) {
-      this.soundSettings.playPreAlert30SecBeep();
-    }
-  }
-
-  // ─── EFFETTI PARTITA & SOUNDBOARD ──────────────────────────────────────────
-
-  selezionaGoalSound(id: GoalSoundId) {
-    if (!this.authService.isAdmin()) return;
-    this.soundSettings.updateConfig({ goalSoundId: id });
-    if (id !== 'none') {
-      this.soundSettings.playGoalPresetById(id);
-    }
-  }
-
-  provaGoalSound(id: GoalSoundId, event: Event) {
-    event.stopPropagation();
-    this.soundSettings.playGoalPresetById(id);
-  }
-
-  toggleAutogoalSound() {
-    if (!this.authService.isAdmin()) return;
-    const next = !this.soundSettings.config().autogoalSoundEffect;
-    this.soundSettings.updateConfig({ autogoalSoundEffect: next });
-    if (next) {
-      this.soundSettings.playSadTrombone();
-    }
-  }
-
-  toggleMatchWhistles() {
-    if (!this.authService.isAdmin()) return;
-    const next = !this.soundSettings.config().matchWhistleEffects;
-    this.soundSettings.updateConfig({ matchWhistleEffects: next });
-    if (next) {
-      this.soundSettings.playMatchWhistle('kickoff');
-    }
-  }
-
-  suonaSoundboard(id: QuickSoundboardId) {
-    this.soundSettings.playQuickSoundboard(id);
-  }
-
   async ripristinaDefaultAudio() {
     this.soundSettings.resetToDefaults();
     await this.mostraToast('🔄 Impostazioni audio riportate ai valori consigliati', 'success');
+  }
+
+  // ─── GESTIONE EFFETTI MATCH & FISCHIETTO ──────────────────────────────────
+
+  toggleMatchWhistleEffects() {
+    if (!this.authService.isAdmin()) return;
+    this.soundSettings.toggleMatchWhistleEffects();
+  }
+
+  toggleGoalSoundEffects() {
+    if (!this.authService.isAdmin()) return;
+    this.soundSettings.toggleGoalSoundEffects();
+  }
+
+  toggleAutogoalSoundEffects() {
+    if (!this.authService.isAdmin()) return;
+    this.soundSettings.toggleAutogoalSoundEffects();
+  }
+
+  testaEffetto(effectId: 'whistle_kickoff' | 'whistle_final' | 'goal_celebration' | 'sad_trombone') {
+    if (this.soundSettings.previewingEffectId() === effectId) {
+      this.soundSettings.stopEffect();
+    } else {
+      this.soundSettings.playEffect(effectId);
+    }
   }
 
   // ─── TEMA & SISTEMA ────────────────────────────────────────────────────────

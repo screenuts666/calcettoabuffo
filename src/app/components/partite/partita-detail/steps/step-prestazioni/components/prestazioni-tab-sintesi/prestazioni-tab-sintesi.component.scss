@@ -170,6 +170,35 @@
     margin-bottom: 10px;
     gap: 6px;
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .ai-refresh-btn {
+        @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
+        border-radius: 8px;
+        padding: 5px 9px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        @include btn-press;
+
+        &:hover {
+          background: var(--app-surface-hover);
+          color: var(--app-text-primary);
+        }
+
+        ion-icon.spin {
+          animation: spin 1s linear infinite;
+        }
+      }
+    }
+
     .header-left {
       display: flex;
       align-items: center;
@@ -420,5 +449,240 @@
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(var(--app-primary-rgb), 0.35);
     @include btn-press(0.97);
+  }
+}
+
+
+// ==========================================
+// TELECRONACA IGNORANTE SPOTLIGHT IN SINTESI
+// ==========================================
+.cronaca-spotlight-card {
+  margin: 14px 14px 16px;
+  @include card-surface(16px, 16px);
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+
+  .section-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .mic-icon {
+        color: #10b981;
+        font-size: 1.25rem;
+      }
+
+      .section-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        letter-spacing: -0.2px;
+      }
+
+      .ai-sparkle-pill {
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.15);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+    }
+  }
+
+  .cronaca-preview-box {
+    .cronaca-bubble {
+      position: relative;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+
+      &.collapsed {
+        max-height: 110px;
+        overflow: hidden;
+      }
+
+      .cronaca-text {
+        font-size: 0.88rem;
+        line-height: 1.55;
+        color: var(--app-text-primary);
+        white-space: pre-wrap;
+        word-break: break-word;
+
+        p {
+          margin: 0 0 8px 0;
+          &:last-child { margin-bottom: 0; }
+        }
+
+        strong {
+          color: #fff;
+          font-weight: 700;
+        }
+
+        em {
+          color: #fbbf24;
+          font-style: italic;
+        }
+      }
+
+      .fade-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background: linear-gradient(to bottom, transparent, rgba(15, 23, 42, 0.95));
+        pointer-events: none;
+      }
+    }
+
+    .cronaca-footer-info {
+      margin-top: 10px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
+      .cronaca-saved-hint {
+        font-size: 0.7rem;
+        color: var(--app-text-muted);
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        opacity: 0.9;
+
+        ion-icon {
+          font-size: 0.9rem;
+          color: #10b981;
+        }
+      }
+    }
+
+    .cronaca-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+
+      .expand-text-btn {
+        background: transparent;
+        border: none;
+        color: #38bdf8;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 4px 6px;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover {
+          color: #7dd3fc;
+        }
+      }
+
+      .spogliatoio-link-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--app-card-border);
+        border-radius: 8px;
+        color: var(--app-text-muted);
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--app-text-primary);
+        }
+      }
+    }
+  }
+}
+
+.cronaca-prompt-card {
+  margin: 14px 14px 16px;
+  @include card-surface(14px, 14px);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06), rgba(59, 130, 246, 0.06));
+  border: 1px dashed rgba(16, 185, 129, 0.35);
+
+  .prompt-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .prompt-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .prompt-text {
+      flex: 1;
+      min-width: 180px;
+
+      h4 {
+        margin: 0;
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      p {
+        margin: 3px 0 0;
+        font-size: 0.74rem;
+        color: var(--app-text-muted);
+        line-height: 1.35;
+      }
+    }
+
+    .ai-generate-cronaca-quick-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.45);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      ion-spinner {
+        width: 16px;
+        height: 16px;
+        --color: #fff;
+      }
+    }
   }
 }

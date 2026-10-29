@@ -72,10 +72,12 @@ import {
   chatboxEllipsesOutline,
   chevronDown,
   chevronUp,
+  mic,
 } from 'ionicons/icons';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
 import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
+import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
 import {
   CURRENT_SEASON,
@@ -287,6 +289,7 @@ export class PartitePage {
       chatboxEllipsesOutline,
       chevronDown,
       chevronUp,
+  mic,
     });
   }
 
@@ -301,7 +304,7 @@ export class PartitePage {
     await modal.present();
   }
 
-  async mostraToastPartitaNonTrovata() {
+    async mostraToastPartitaNonTrovata() {
     const toast = await this.toastController.create({
       message: 'Partita non trovata',
       duration: 3000,
@@ -436,6 +439,34 @@ export class PartitePage {
       },
     });
 
+    await modal.present();
+  }
+
+  async apriAiModal(tipo: 'cronaca' | 'pronostico', m: any) {
+    if (!m) return;
+    const isPronostico = tipo === 'pronostico';
+    const testo = isPronostico ? m.pronosticoAi : m.cronacaAi;
+    if (!testo) return;
+
+    const dataFmt = m.dataPartita ? new Date(m.dataPartita).toLocaleDateString('it-IT') : '';
+    const sottotitolo = m.status === 'conclusa'
+      ? `Partita del ${dataFmt} · Risultato: Bianchi ${m.scoreA} - ${m.scoreB} Neri`
+      : `Partita del ${dataFmt} · ${m.luogo || 'Bordocampo'}`;
+
+    const modal = await this.modalCtrl.create({
+      component: AiStoryModalComponent,
+      componentProps: {
+        tipo,
+        titolo: isPronostico ? "🔮 Il Pronostico del Mister" : "🎙️ Telecronaca Ignorante",
+        sottotitolo,
+        testo,
+        matchId: m.id || 'temp',
+        audioLabel: isPronostico ? 'Ascolta Pronostico' : 'Ascolta Telecronaca',
+      },
+      breakpoints: [0, 0.9, 1],
+      initialBreakpoint: 0.9,
+      handle: true,
+    });
     await modal.present();
   }
 

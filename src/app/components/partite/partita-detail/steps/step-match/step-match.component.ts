@@ -33,6 +33,7 @@ import {
   volumeMute,
   volumeHigh,
   notificationsOutline,
+      megaphoneOutline,
   settingsOutline,
   diceOutline,
   listOutline,
@@ -79,7 +80,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private wakeLock: any = null;
 
   // Traccia l'ultimo minuto di cambio già triggerato per evitare doppioni
-  private ultimoCambioMinuto: number = -1;
+  private ultimoCambioTurno: number = -1;
   private ultimoPreAlertTurno: number = -1;
 
   isSequenzaAperta = signal<boolean>(false);
@@ -140,6 +141,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.ultimoCambioTurno = this.state.turnoAttualeIndex();
     if (this.isAdmin && !this.state.rotazionePortieri()) {
       this.state.inizializzaRotazionePortieri(false);
     }
@@ -174,31 +176,24 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           this.state.modalitaPortieriB() === 'rotazione';
 
         if (this.isAdmin && hasRotatingTeam) {
-          const turnMin = this.state.durataTurnoMinuti();
-          const turnSec = Math.max(60, turnMin * 60);
+          const turnSec = this.state.durataTurnoSecondi();
+          const turnIndex = this.state.turnoAttualeIndex();
           const secInTurn = newCronometro % turnSec;
           const secRim = turnSec - secInTurn;
-          const currentTurnIndex = Math.floor(newCronometro / turnSec);
 
-          // Preavviso sonoro a -30s prima del cambio
+          // Preavviso toast a -30s prima del cambio (solo se il turno è di almeno 60s)
           if (
+            turnSec >= 60 &&
             secRim === 30 &&
-            this.ultimoPreAlertTurno !== currentTurnIndex
+            this.ultimoPreAlertTurno !== turnIndex
           ) {
-            this.ultimoPreAlertTurno = currentTurnIndex;
-            this.soundSettings.playPreAlert30SecBeep();
+            this.ultimoPreAlertTurno = turnIndex;
             this.mostraToastFeedback('⏳ Tra 30 secondi cambio portiere!', 'warning');
           }
 
           // Cambio portiere quando scade il turno
-          const minutiGiocati = Math.floor(newCronometro / 60);
-          const isCambioTurno =
-            newCronometro > 0 &&
-            secInTurn === 0 &&
-            minutiGiocati !== this.ultimoCambioMinuto;
-
-          if (isCambioTurno) {
-            this.ultimoCambioMinuto = minutiGiocati;
+          if (newCronometro > 0 && turnIndex > 0 && turnIndex !== this.ultimoCambioTurno) {
+            this.ultimoCambioTurno = turnIndex;
             this.state.setCambioPortiereAttivo(true);
           }
         }
@@ -206,13 +201,12 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         this.state.cronometro.set(this.state.accumulatedTime());
       }
 
-      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato Firestore, MAI a timer fermo) ──────
+      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato cambioAttivo) ──────
       if (this.isAdmin) {
-        const isRunning = this.state.isTimerRunning();
         const cambioAttivo = this.state.cambioAttivo();
-        if (isRunning && cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
+        if (cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
           this.avviaAudio();
-        } else if ((!isRunning || !cambioAttivo) && this.soundSettings.isMatchAlarmPlaying()) {
+        } else if (!cambioAttivo && this.soundSettings.isMatchAlarmPlaying()) {
           this.fermaAudio();
         }
       }
@@ -499,8 +493,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       isAutogoal,
       assistMan
     );
-
     this.soundSettings.playGoalSound(isAutogoal);
+
 
     const portiereTag = portiereSubitoNome
       ? ` · 🧤 in porta: ${portiereSubitoNome}`

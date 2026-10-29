@@ -1,25 +1,9 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="detail-header-toolbar">
     <ion-buttons slot="start">
-      @if (state.step() === "dettagli" && !state.matchConcluso()) {
-        <ion-button (click)="state.step.set('convocati')"
-          ><ion-icon name="arrow-back"></ion-icon
-        ></ion-button>
-      }
-      @if (state.step() === "squadre" && !state.matchConcluso()) {
-        <ion-button (click)="state.step.set('dettagli')"
-          ><ion-icon name="arrow-back"></ion-icon
-        ></ion-button>
-      }
-      <!-- FRECCIA INDIETRO DURANTE IL MATCH: TORNA ALLA LISTA PARTITE SENZA RESETTARE NÉ CONCLUDERE -->
-      @if (state.step() === "match" && !state.matchConcluso()) {
-        <ion-button (click)="tornaAPartite()" aria-label="Torna alle partite" title="Torna alle partite (match in corso)">
-          <ion-icon name="arrow-back"></ion-icon>
-        </ion-button>
-      }
-      @if (state.step() === 'convocati' || state.step() === 'prestazioni') {
-        <ion-back-button defaultHref="/partite" text=""></ion-back-button>
-      }
+      <ion-button (click)="gestisciIndietro()" aria-label="Torna indietro" title="Torna indietro">
+        <ion-icon name="arrow-back"></ion-icon>
+      </ion-button>
     </ion-buttons>
 
     <ion-title class="detail-header-title">{{

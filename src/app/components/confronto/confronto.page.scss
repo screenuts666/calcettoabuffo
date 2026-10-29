@@ -61,13 +61,17 @@
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   box-shadow: var(--app-card-shadow);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .players-clash-grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .player-card {
@@ -75,7 +79,12 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 8px 4px;
+  padding: 8px 2px;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 
   .avatar-wrapper {
     position: relative;
@@ -127,6 +136,9 @@
   .player-info {
     margin-top: 10px;
     width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
 
     .player-name {
       margin: 0;
@@ -177,6 +189,10 @@
       background: var(--app-surface-subtle);
       font-size: 0.72rem;
       font-weight: 700;
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       ion-icon {
         font-size: 0.85rem;
@@ -252,6 +268,8 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
+  flex-shrink: 0;
+  padding: 0 2px;
 
   .vs-glow-badge {
     display: flex;
@@ -622,9 +640,17 @@
 // --- STATO DI FORMA ATTUALE ---
 .form-comparison-grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   gap: 10px;
   align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+
+  .form-col {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
 
   .form-col {
     display: flex;

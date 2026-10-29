@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import {
   EnvironmentInjector,
   Injectable,
@@ -159,14 +160,28 @@ export class MatchStateService {
       5
   );
 
+  durataTurnoSecondi = computed(() => {
+    // Solo per DEV / Staging: rotazione accelerata ogni 15 secondi per facilitare le prove
+    if (!environment.production) {
+      return 15;
+    }
+    return this.durataTurnoMinuti() * 60;
+  });
+
+  durataTurnoLabel = computed(() => {
+    if (!environment.production) {
+      return 'Ogni 15s (DEV ⚡)';
+    }
+    return `Ogni ${this.durataTurnoMinuti()} min`;
+  });
+
   turnoAttualeIndex = computed(() => {
-    const minuti = Math.floor(this.cronometro() / 60);
-    return Math.floor(minuti / this.durataTurnoMinuti());
+    return Math.floor(this.cronometro() / this.durataTurnoSecondi());
   });
 
   minutiRimanentiAlCambio = computed(() => {
     const sec = this.cronometro();
-    const durataSec = this.durataTurnoMinuti() * 60;
+    const durataSec = this.durataTurnoSecondi();
     const passati = sec % durataSec;
     const rim = durataSec - passati;
     const m = Math.floor(rim / 60)
@@ -301,7 +316,7 @@ export class MatchStateService {
     const current = this.rotazionePortieri() || {
       teamA: this.teamA().map((p) => p.id),
       teamB: this.teamB().map((p) => p.id),
-      durataTurnoMinuti: 5,
+      durataTurnoMinuti: this.rotazionePortieri()?.durataTurnoMinuti || this.soundSettings?.config().gkTurnMinutes || 5,
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
     };
@@ -493,6 +508,7 @@ export class MatchStateService {
       this.cronometro.set(nuovoAccumulo);
 
       this.salvaSnapshotLocale();
+    this.salvaSetupPredefinito();
 
       try {
         this.syncStatus.notifySyncPending();
@@ -716,6 +732,20 @@ export class MatchStateService {
     if (this.matchSub) this.matchSub.unsubscribe();
   }
 
+  salvaSetupPredefinito() {
+    try {
+      if (typeof localStorage === 'undefined') return;
+      const setup = {
+        luogo: this.luogo(),
+        orario: this.orario(),
+        modalitaA: this.modalitaPortieriA(),
+        modalitaB: this.modalitaPortieriB(),
+        durataTurnoMinuti: this.durataTurnoMinuti(),
+      };
+      localStorage.setItem('calcetto_last_match_setup', JSON.stringify(setup));
+    } catch {}
+  }
+
   salvaSnapshotLocale() {
     try {
       if (typeof localStorage === 'undefined') return;
@@ -773,6 +803,10 @@ export class MatchStateService {
       const isRecent = Date.now() - (snap.timestamp || 0) < 24 * 60 * 60 * 1000;
 
       if (isMatchingId && isRecent && !snap.matchConcluso) {
+        if (snap.luogo) this.luogo.set(snap.luogo);
+        if (snap.orario) this.orario.set(snap.orario);
+        if (snap.dataPartita) this.dataPartita.set(snap.dataPartita);
+        if (Array.isArray(snap.tutti) && snap.tutti.length > 0) this.tutti.set(snap.tutti);
         if (snap.teamA && snap.teamA.length > 0) this.teamA.set(snap.teamA);
         if (snap.teamB && snap.teamB.length > 0) this.teamB.set(snap.teamB);
         if (typeof snap.scoreA === 'number') this.scoreA.set(snap.scoreA);

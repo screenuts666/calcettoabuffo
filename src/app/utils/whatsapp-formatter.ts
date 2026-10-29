@@ -9,6 +9,7 @@ export interface WhatsAppShareOptions {
   includeLink: boolean;
   includeFoto: boolean;
   includeCronacaAi?: boolean;
+  includePronosticoAi?: boolean;
   includeCommentoPartita?: boolean;
 }
 
@@ -183,6 +184,14 @@ export function formatMatchForWhatsApp(
     parts.push('');
     parts.push('📝 *NOTE A BORDOCAMPO:*');
     parts.push(`"${commentoPartita}"`);
+  }
+
+  // Pronostico del Mister (Gemini AI)
+  if (options.includePronosticoAi && (partita.pronosticoAi || reportData?.pronosticoAi)) {
+    const pronostico = (partita.pronosticoAi || reportData?.pronosticoAi)!.trim();
+    parts.push("");
+    parts.push("🔮 *IL PRONOSTICO DEL MISTER (by Gemini AI)*");
+    parts.push(`"${pronostico}"`);
   }
 
   // Cronaca Sportiva Ignorante (Gemini AI)
