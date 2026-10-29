@@ -11,15 +11,16 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.35",
+    "version": "1.0.36",
     "date": "29/10/2026",
-    "title": "Fix Anteprima e Caricamento Foto Giocatore con Badge Fotocamera e Rimozione",
+    "title": "Rilascio in Produzione: Fix Anteprima e Caricamento Foto Giocatore con Badge Fotocamera e Rimozione",
     "userChanges": [
       "📸 Anteprima e Foto Giocatore Immediate: risolto il problema per cui in modifica giocatore l'avatar non caricava la foto del giocatore né la nuova foto selezionata dal dispositivo.",
       "📷 Badge Fotocamera Intuitivo: aggiunto il badge fotocamera sull'avatar per rendere immediata la modifica della foto profilo.",
       "🗑️ Rimozione Foto: aggiunto il pulsante rapido per rimuovere o resettare la foto del giocatore impostando l'avatar predefinito."
     ],
     "superUserChanges": [
+      "Rilascio ufficiale e sincronizzazione in ambiente di Produzione PROD.",
       "Risolto il difetto di reattività in PlayerAvatarComponent: collegato @Input() fotoUrl a un Signal Angular reattivo con supporto completo a URL Storage, base64 e blob.",
       "Rimosso opacity: 0 bloccante sul rendering iniziale delle immagini dell'avatar.",
       "Gestione upload asincrono e compressione JPEG automatica (max 384x384px) verificati."
