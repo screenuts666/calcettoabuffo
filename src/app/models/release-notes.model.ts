@@ -11,6 +11,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.34",
+    "date": "29/10/2026",
+    "title": "Rilascio Ufficiale in Produzione: Effetti Stadio Live, Redesign Impostazioni e Ottimizzazioni Mobile",
+    "userChanges": [
+      "⚽ Effetti Audio Partita Live: fischio d'inizio e triplice fischio finale dell'arbitro, esultanza con fanfara da curva per ogni gol e trombone comico per gli autogol.",
+      "🎨 Menu Impostazioni Rinnovato: interfaccia moderna a 3 schede con switch dedicati per gestire ciascun effetto audio e pulsanti di anteprima istantanea.",
+      "🧤 Controlli Turni Portieri Ottimizzati: pulsante [Turni] / [Chiudi] e controlli di cambio sempre visibili e perfettamente proporzionati su tutti i dispositivi mobili.",
+      "📲 Condivisione Audio WhatsApp Mobile: note vocali AI condivisibili istantaneamente senza blocchi di sistema del browser."
+    ],
+    "superUserChanges": [
+      "Rilascio ufficiale e sincronizzazione in ambiente di Produzione PROD.",
+      "Gestione suoni con sintesi armonica Web Audio PCM Float32 WAV, eliminando ogni distorsione acustica.",
+      "Setup match e parametri configurazione salvati con persistenza locale e sincronizzati."
+    ]
+  },
+  {
     "version": "1.0.33",
     "date": "29/10/2026",
     "title": "Impostazione Turno Portieri Rapido a 30 Secondi per Ambiente DEV",
