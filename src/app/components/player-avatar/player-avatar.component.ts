@@ -18,7 +18,18 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
 })
 export class PlayerAvatarComponent implements OnChanges {
-  @Input() fotoUrl?: string | null = null;
+  readonly fotoUrlSignal = signal<string | null | undefined>(null);
+
+  @Input()
+  set fotoUrl(val: string | null | undefined) {
+    this.fotoUrlSignal.set(val);
+    this.imageError.set(false);
+    this.imageLoaded.set(false);
+  }
+  get fotoUrl(): string | null | undefined {
+    return this.fotoUrlSignal();
+  }
+
   @Input() alt?: string | null = 'Avatar';
 
   imageError = signal(false);
@@ -26,6 +37,7 @@ export class PlayerAvatarComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['fotoUrl']) {
+      this.fotoUrlSignal.set(changes['fotoUrl'].currentValue);
       this.imageError.set(false);
       this.imageLoaded.set(false);
     }
@@ -33,7 +45,7 @@ export class PlayerAvatarComponent implements OnChanges {
 
   isValidPhoto = computed(() => {
     if (this.imageError()) return false;
-    const url = this.fotoUrl;
+    const url = this.fotoUrlSignal();
     if (!url || typeof url !== 'string') return false;
     const clean = url.trim();
     if (!clean || clean === 'null' || clean === 'undefined') return false;
@@ -52,4 +64,3 @@ export class PlayerAvatarComponent implements OnChanges {
     this.imageLoaded.set(true);
   }
 }
-

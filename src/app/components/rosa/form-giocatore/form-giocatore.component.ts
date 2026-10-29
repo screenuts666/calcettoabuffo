@@ -26,6 +26,7 @@ import {
   IonSelectOption,
   IonAvatar,
   IonBackButton,
+  IonIcon,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -47,7 +48,7 @@ import {
 import { Storage } from '@angular/fire/storage';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { createOutline, arrowBack } from 'ionicons/icons';
+import { createOutline, arrowBack, cameraOutline, trashOutline } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
 import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
@@ -85,6 +86,7 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonSelectOption,
     IonAvatar,
     PlayerAvatarComponent,
+    IonIcon,
   ],
 })
 export class FormGiocatoreComponent implements OnInit, OnDestroy {
@@ -122,7 +124,7 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   @ViewChild('f') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor() {
-    addIcons({ createOutline, arrowBack });
+    addIcons({ createOutline, arrowBack, cameraOutline, trashOutline });
   }
 
   get isAdmin(): boolean {
@@ -177,6 +179,18 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       this.router.navigate(['/giocatori', this.giocatore.id]);
     } else {
       this.router.navigate(['/rosa']);
+    }
+  }
+
+  
+  rimuoviFoto(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.fileSelezionato = null;
+    this.anteprimaFoto.set(null);
+    if (this.fileInput?.nativeElement) {
+      this.fileInput.nativeElement.value = '';
     }
   }
 

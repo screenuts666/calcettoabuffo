@@ -9,9 +9,16 @@
 
 <ion-content class="ion-padding deep-black-content">
   <div class="photo-container">
-    <ion-avatar class="editable-avatar" (click)="openFilePicker()">
-      <app-player-avatar [fotoUrl]="anteprimaFoto()"></app-player-avatar>
-    </ion-avatar>
+    <div class="avatar-preview-box" (click)="openFilePicker()">
+      <ion-avatar class="editable-avatar">
+        <app-player-avatar [fotoUrl]="anteprimaFoto()"></app-player-avatar>
+      </ion-avatar>
+      @if (isAdmin) {
+        <div class="avatar-edit-badge" title="Cambia foto">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      }
+    </div>
     <input
       #f
       type="file"
@@ -20,7 +27,15 @@
       accept="image/*"
     />
     @if (isAdmin) {
-      <p class="photo-hint">Tocca l'avatar per cambiare foto</p>
+      <div class="photo-actions">
+        <span class="photo-hint" (click)="openFilePicker()">Tocca l'avatar per cambiare foto</span>
+        @if (anteprimaFoto()) {
+          <button type="button" class="btn-remove-photo" (click)="rimuoviFoto($event)">
+            <ion-icon name="trash-outline"></ion-icon>
+            <span>Rimuovi foto</span>
+          </button>
+        }
+      </div>
     }
   </div>
 
