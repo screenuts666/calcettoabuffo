@@ -216,7 +216,7 @@ export class TacticalPitchComponent {
     if (rotIds.length > 0) {
       const m = this.currentMatch();
       const crono = m?.cronometro || m?.accumulatedTime || 0;
-      const durataSec = !environment.production ? 15 : ((rot?.durataTurnoMinuti || 5) * 60);
+      const durataSec = !environment.production ? 30 : ((rot?.durataTurnoMinuti || 5) * 60);
       const turnoCalculated = Math.floor(crono / durataSec);
       const activeIdx = turnoCalculated % rotIds.length;
       const activeId = rotIds[activeIdx];

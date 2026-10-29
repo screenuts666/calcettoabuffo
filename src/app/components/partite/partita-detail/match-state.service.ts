@@ -161,16 +161,16 @@ export class MatchStateService {
   );
 
   durataTurnoSecondi = computed(() => {
-    // Solo per DEV / Staging: rotazione accelerata ogni 15 secondi per facilitare le prove
+    // Solo per DEV / Staging: rotazione accelerata ogni 30 secondi per facilitare le prove
     if (!environment.production) {
-      return 15;
+      return 30;
     }
     return this.durataTurnoMinuti() * 60;
   });
 
   durataTurnoLabel = computed(() => {
     if (!environment.production) {
-      return 'Ogni 15s (DEV ⚡)';
+      return 'Ogni 30s (DEV ⚡)';
     }
     return `Ogni ${this.durataTurnoMinuti()} min`;
   });

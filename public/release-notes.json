@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.0.33",
+    "date": "29/10/2026",
+    "title": "Impostazione Turno Portieri Rapido a 30 Secondi per Ambiente DEV",
+    "userChanges": [
+      "⚡ Rotazione Portieri Accelerata per Test DEV: impostato il turno automatico dei portieri a 30 secondi (anziché 15s) in modalità DEV per consentire prove più fluide e comode della rotazione e degli allarmi audio.",
+      "⏳ Preavviso a 10 Secondi in DEV: avviso a video con countdown a -10 secondi dal cambio per prepararsi al turnover."
+    ],
+    "superUserChanges": [
+      "Aggiornato durataTurnoSecondi() a 30s per ambiente !environment.production in MatchStateService e TacticalPitchComponent.",
+      "Allineato il preavviso toast a -10s quando il turno è impostato a 30s."
+    ]
+  },
+  {
     "version": "1.0.32",
     "date": "29/10/2026",
     "title": "Restauro Effetti Match (Fischi e Gol), Redesign Impostazioni e Fix Responsive Turni Portieri",

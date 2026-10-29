@@ -181,14 +181,14 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           const secInTurn = newCronometro % turnSec;
           const secRim = turnSec - secInTurn;
 
-          // Preavviso toast a -30s prima del cambio (solo se il turno è di almeno 60s)
+          // Preavviso toast prima del cambio (-30s standard, -10s in DEV)
+          const isPreAlertTime = (turnSec >= 60 && secRim === 30) || (turnSec === 30 && secRim === 10);
           if (
-            turnSec >= 60 &&
-            secRim === 30 &&
+            isPreAlertTime &&
             this.ultimoPreAlertTurno !== turnIndex
           ) {
             this.ultimoPreAlertTurno = turnIndex;
-            this.mostraToastFeedback('⏳ Tra 30 secondi cambio portiere!', 'warning');
+            this.mostraToastFeedback(`⏳ Tra ${secRim} secondi cambio portiere!`, 'warning');
           }
 
           // Cambio portiere quando scade il turno
