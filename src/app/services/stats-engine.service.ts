@@ -284,8 +284,8 @@ export class StatsEngineService {
         } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
           matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
         }
-        if (matchSec > 7200) {
-          matchSec = 3600;
+        if (matchSec > 21600) {
+          matchSec = 3600; // Capping di sicurezza (> 6 ore)
         }
         secondiGiocatiTotali += matchSec;
         const scoreA = Number(p.scoreA);
@@ -531,7 +531,7 @@ export class StatsEngineService {
       const durataTurnoSec = durataTurno * 60;
       let cronometroTotale =
         p.cronometro || (p.accumulatedTime ?? 0) || 3000;
-      if (cronometroTotale > 7200) cronometroTotale = 3600;
+      if (cronometroTotale > 21600) cronometroTotale = 3600; // Capping di sicurezza (> 6 ore)
 
       let playerTeam: 'A' | 'B' | null = null;
       let orderList: string[] = [];
@@ -725,8 +725,9 @@ export class StatsEngineService {
       playerTeam === 'A'
         ? rot.portiereFissoAId || rot.teamA?.[0]
         : rot.portiereFissoBId || rot.teamB?.[0];
-    const cronometroTotale =
+    let cronometroTotale =
       match.cronometro || (match.accumulatedTime ?? 0) || 3000;
+    if (cronometroTotale > 21600) cronometroTotale = 3600;
     const durataTurno = rot.durataTurnoMinuti || 5;
     const durataTurnoSec = durataTurno * 60;
     const totalTurni = Math.max(

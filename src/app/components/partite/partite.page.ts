@@ -646,8 +646,8 @@ export class PartitePage {
     } else if (m.status === 'conclusa' || m.matchConcluso) {
       sec = 3000; // 50 minuti standard
     }
-    if (sec > 7200) {
-      sec = 3600; // Capping di sicurezza se timer dimenticato acceso
+    if (sec > 21600) {
+      sec = 3600; // Capping di sicurezza se timer dimenticato acceso (> 6 ore)
     }
     return sec;
   }

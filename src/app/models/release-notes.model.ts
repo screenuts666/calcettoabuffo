@@ -11,6 +11,17 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.60",
+    "date": "30/10/2026",
+    "title": "Soglia di Sicurezza Timer Partite Estesa a 6 Ore (21600s)",
+    "userChanges": [
+      "⏱️ Tolleranza Timer Più Flessibile: la protezione automatica contro i timer lasciati inavvertitamente accesi interviene ora solo oltre le 6 ore consecutive (21.600 secondi), permettendo di gestire senza problemi anche maratone di calcetto, tornei lunghi o sessioni prolungate."
+    ],
+    "superUserChanges": [
+      "Aggiornata la costante di sicurezza anti-overflow da 7200s (2h) a 21600s (6h) in StatsEngineService (calcolo presenze, portieri e profilo), ClassificaPage e PartitePage con capping a 3600s solo in caso di effettivo sforamento anomalo."
+    ]
+  },
+  {
     "version": "1.0.58",
     "date": "30/10/2026",
     "title": "Partite ad Accordion: Schede Compatte, Consultazione Veloce ed Espansione Intelligente",

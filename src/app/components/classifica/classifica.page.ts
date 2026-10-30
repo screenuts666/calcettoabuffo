@@ -273,7 +273,9 @@ export class ClassificaPage {
           } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
             matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
           }
-          if (matchSec > 7200) {
+          // Se per qualsiasi errore umano o dimenticanza il timer supera le 6 ore (21600 sec),
+          // viene automaticamente limitato a 3600 sec (60 min)
+          if (matchSec > 21600) {
             matchSec = 3600;
           }
           secondiGiocatiTotali += matchSec;
