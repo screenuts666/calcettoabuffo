@@ -36,6 +36,7 @@ export interface SeasonEngineConfig {
   votoMoltiplicatore: number;
   pesoGolMmr: number;
   pesoAssistMmr: number;
+  bonusParataIncredibile: number; // Bonus MMR per parata miracolosa / decisiva
 }
 
 export function seasonToDocId(seasonId: string): string {
@@ -74,6 +75,6 @@ export function getDefaultSeasonConfig(seasonId: string): SeasonEngineConfig {
     votoMoltiplicatore: 6,
     pesoGolMmr: 0.8,
     pesoAssistMmr: 0.6,
+    bonusParataIncredibile: 1.0,
   };
 }
-

@@ -266,6 +266,7 @@ export class StatsEngineService {
     let assistTotali = 0;
     let sommaVoti = 0;
     let partiteGiocate = 0;
+    let secondiGiocatiTotali = 0;
     let wins = 0;
     let draws = 0;
     let losses = 0;
@@ -276,6 +277,8 @@ export class StatsEngineService {
 
       if (inTeamA || inTeamB) {
         partiteGiocate++;
+        const matchSec = p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+        secondiGiocatiTotali += matchSec;
         const scoreA = Number(p.scoreA);
         const scoreB = Number(p.scoreB);
         const won =
@@ -327,6 +330,9 @@ export class StatsEngineService {
     });
 
     punti = Math.round(punti * 10) / 10;
+    const minutiTotali = Math.floor(secondiGiocatiTotali / 60);
+    const secondiRimanenti = secondiGiocatiTotali % 60;
+    const minutiGiocatiDisplay = `${minutiTotali}' ${secondiRimanenti.toString().padStart(2, '0')}"`;
     const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
 
     const playerMmr =
@@ -405,6 +411,8 @@ export class StatsEngineService {
       mediaVotoVal: mediaVoto,
       mediaVotoDisplay: mediaVoto.toFixed(2),
       partiteGiocate,
+      secondiGiocatiTotali,
+      minutiGiocatiDisplay,
       wins,
       draws,
       losses,
@@ -506,6 +514,7 @@ export class StatsEngineService {
     let golSubiti = 0;
     let cleanSheetTurni = 0;
     let cleanSheetPartite = 0;
+    let parateIncredibili = 0;
 
     for (const p of matches) {
       const rot = p.rotazionePortieri;
@@ -533,6 +542,8 @@ export class StatsEngineService {
       }
 
       if (!playerTeam) continue;
+      const parateMatch = p.parateIncredibili?.[playerId] || (playerTeam === 'A' ? p.teamA : p.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+      parateIncredibili += parateMatch;
 
       const modalita =
         playerTeam === 'A'
@@ -670,6 +681,7 @@ export class StatsEngineService {
       cleanSheetPartite,
       mediaGolSubiti50m,
       isClassificabile,
+      parateIncredibili,
     };
   }
 
@@ -680,9 +692,9 @@ export class StatsEngineService {
     playerId: string,
     match: Partita,
     playerTeam: 'A' | 'B',
-  ): { turniGiocati: number; golSubiti: number; cleanSheetTurni: number } {
+  ): { turniGiocati: number; golSubiti: number; cleanSheetTurni: number; parateIncredibili: number } {
     const rot = match.rotazionePortieri;
-    if (!rot) return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+    if (!rot) return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0, parateIncredibili: 0 };
 
     const modalita =
       playerTeam === 'A'
@@ -705,7 +717,7 @@ export class StatsEngineService {
 
     if (modalita === 'fisso') {
       if (playerId !== fixedId) {
-        return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+        return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0, parateIncredibili: 0 };
       }
       const golSubiti = eventi.filter((eg: any) => {
         if (eg.portiereSubitoId) {
@@ -718,12 +730,13 @@ export class StatsEngineService {
       }).length;
 
       const cleanSheetTurni = golSubiti === 0 ? totalTurni : 0;
-      return { turniGiocati: totalTurni, golSubiti, cleanSheetTurni };
+      const parateIncredibili = match.parateIncredibili?.[playerId] || (playerTeam === 'A' ? match.teamA : match.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+      return { turniGiocati: totalTurni, golSubiti, cleanSheetTurni, parateIncredibili };
     }
 
     const orderList = playerTeam === 'A' ? rot.teamA : rot.teamB;
     if (!orderList || orderList.length === 0) {
-      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0, parateIncredibili: 0 };
     }
 
     const playerIndices: number[] = [];
@@ -731,7 +744,7 @@ export class StatsEngineService {
       if (id === playerId) playerIndices.push(idx);
     });
     if (playerIndices.length === 0) {
-      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0 };
+      return { turniGiocati: 0, golSubiti: 0, cleanSheetTurni: 0, parateIncredibili: 0 };
     }
 
     let turniGiocati = 0;
@@ -774,7 +787,8 @@ export class StatsEngineService {
       }
     }
 
-    return { turniGiocati, golSubiti, cleanSheetTurni };
+    const parateIncredibili = match.parateIncredibili?.[playerId] || (playerTeam === 'A' ? match.teamA : match.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+    return { turniGiocati, golSubiti, cleanSheetTurni, parateIncredibili };
   }
 
   /**
@@ -1004,6 +1018,9 @@ export class StatsEngineService {
               gkBonus = -1;
             } else if (gkMatch.golSubiti >= 3) {
               gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
+            }
+            if (gkMatch.parateIncredibili > 0) {
+              gkBonus += gkMatch.parateIncredibili * (mCfg.bonusParataIncredibile ?? 1.0);
             }
           }
         }
@@ -1684,6 +1701,9 @@ export class StatsEngineService {
               gkBonus = -1;
             } else if (gkMatch.golSubiti >= 3) {
               gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
+            }
+            if (gkMatch.parateIncredibili > 0) {
+              gkBonus += gkMatch.parateIncredibili * (mCfg.bonusParataIncredibile ?? 1.0);
             }
           }
         }

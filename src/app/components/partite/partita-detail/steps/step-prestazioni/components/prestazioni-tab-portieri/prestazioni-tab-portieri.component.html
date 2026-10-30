@@ -1,0 +1,228 @@
+<div class="prestazioni-tab-portieri-container animate-fade-in">
+
+  <!-- BANNER INTRODUTTIVO PORTIERI -->
+  <div class="gk-intro-banner">
+    <div class="gk-intro-icon">🧤</div>
+    <div class="gk-intro-text">
+      <h3>Prestazioni & Turni Portieri</h3>
+      <p>Rendimento tra i pali, gol subiti, turni imbattuti (Clean Sheet) e parate decisive con bonus MMR.</p>
+    </div>
+  </div>
+
+  <!-- SQUADRA BIANCHI -->
+  <div class="gk-team-section">
+    <div class="gk-team-header white-team">
+      <span class="team-dot white"></span>
+      <h4>Portieri BIANCHI</h4>
+      <span class="team-count">({{ portieriBianchi().length }})</span>
+    </div>
+
+    @if (portieriBianchi().length > 0) {
+      <div class="gk-cards-grid">
+        @for (gk of portieriBianchi(); track (gk.player.id || gk.player.nome) + '_' + $index) {
+          <div class="gk-player-card">
+            <div class="gk-card-left">
+              <ion-avatar class="gk-avatar">
+                <app-player-avatar [fotoUrl]="gk.player.fotoUrl" [alt]="gk.player.nome"></app-player-avatar>
+              </ion-avatar>
+              <div class="gk-player-info">
+                <span class="gk-player-name">{{ gk.player.nome }}</span>
+                @if (gk.player.soprannome) {
+                  <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
+                }
+                <div class="gk-role-badge">
+                  {{ gk.isFisso ? '🧤 Portiere di Ruolo (Fisso)' : '🧤 ' + gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="gk-card-right">
+              <div class="gk-stats-chips">
+                <span class="gk-stat-chip danger" title="Gol subiti in questo match">
+                  🧤 <b>{{ gk.golSubiti }}</b> subiti
+                </span>
+                <span class="gk-stat-chip success" title="Turni con rete inviolata">
+                  🛡️ <b>{{ gk.cleanSheetTurni }}</b> CS
+                </span>
+              </div>
+
+              <!-- CONTATORE PARATE INCREDIBILI / MIRACOLI -->
+              <div class="gk-parate-stepper">
+                <span class="parata-label">✨ Parate Incredibili:</span>
+                <div class="stepper-controls">
+                  @if (isAdmin) {
+                    <button
+                      type="button"
+                      class="step-btn minus"
+                      (click)="modificaParate(gk.player.id, -1)"
+                      [disabled]="gk.parateIncredibili <= 0"
+                      title="Diminuisci parate"
+                    >
+                      -
+                    </button>
+                  }
+                  <span class="step-value" [class.highlight]="gk.parateIncredibili > 0">
+                    {{ gk.parateIncredibili }}
+                  </span>
+                  @if (isAdmin) {
+                    <button
+                      type="button"
+                      class="step-btn plus"
+                      (click)="modificaParate(gk.player.id, 1)"
+                      title="Aggiungi parata incredibile"
+                    >
+                      +
+                    </button>
+                  }
+                  @if (gk.parateIncredibili > 0) {
+                    <span class="bonus-tag">+{{ (gk.parateIncredibili * bonusParataMmr).toFixed(1) }} MMR</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-gk-hint">Nessun portiere registrato per i Bianchi.</div>
+    }
+
+    @if (gkSummary?.summaryA) {
+      <div class="gk-summary-bubble white">
+        <span class="summary-tag">📊 Resoconto Bianchi:</span>
+        <p>{{ gkSummary!.summaryA }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- SQUADRA NERI -->
+  <div class="gk-team-section">
+    <div class="gk-team-header black-team">
+      <span class="team-dot black"></span>
+      <h4>Portieri NERI</h4>
+      <span class="team-count">({{ portieriNeri().length }})</span>
+    </div>
+
+    @if (portieriNeri().length > 0) {
+      <div class="gk-cards-grid">
+        @for (gk of portieriNeri(); track (gk.player.id || gk.player.nome) + '_' + $index) {
+          <div class="gk-player-card">
+            <div class="gk-card-left">
+              <ion-avatar class="gk-avatar">
+                <app-player-avatar [fotoUrl]="gk.player.fotoUrl" [alt]="gk.player.nome"></app-player-avatar>
+              </ion-avatar>
+              <div class="gk-player-info">
+                <span class="gk-player-name">{{ gk.player.nome }}</span>
+                @if (gk.player.soprannome) {
+                  <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
+                }
+                <div class="gk-role-badge">
+                  {{ gk.isFisso ? '🧤 Portiere di Ruolo (Fisso)' : '🧤 ' + gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}
+                </div>
+              </div>
+            </div>
+
+            <div class="gk-card-right">
+              <div class="gk-stats-chips">
+                <span class="gk-stat-chip danger" title="Gol subiti in questo match">
+                  🧤 <b>{{ gk.golSubiti }}</b> subiti
+                </span>
+                <span class="gk-stat-chip success" title="Turni con rete inviolata">
+                  🛡️ <b>{{ gk.cleanSheetTurni }}</b> CS
+                </span>
+              </div>
+
+              <!-- CONTATORE PARATE INCREDIBILI / MIRACOLI -->
+              <div class="gk-parate-stepper">
+                <span class="parata-label">✨ Parate Incredibili:</span>
+                <div class="stepper-controls">
+                  @if (isAdmin) {
+                    <button
+                      type="button"
+                      class="step-btn minus"
+                      (click)="modificaParate(gk.player.id, -1)"
+                      [disabled]="gk.parateIncredibili <= 0"
+                      title="Diminuisci parate"
+                    >
+                      -
+                    </button>
+                  }
+                  <span class="step-value" [class.highlight]="gk.parateIncredibili > 0">
+                    {{ gk.parateIncredibili }}
+                  </span>
+                  @if (isAdmin) {
+                    <button
+                      type="button"
+                      class="step-btn plus"
+                      (click)="modificaParate(gk.player.id, 1)"
+                      title="Aggiungi parata incredibile"
+                    >
+                      +
+                    </button>
+                  }
+                  @if (gk.parateIncredibili > 0) {
+                    <span class="bonus-tag">+{{ (gk.parateIncredibili * bonusParataMmr).toFixed(1) }} MMR</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="empty-gk-hint">Nessun portiere registrato per i Neri.</div>
+    }
+
+    @if (gkSummary?.summaryB) {
+      <div class="gk-summary-bubble black">
+        <span class="summary-tag">📊 Resoconto Neri:</span>
+        <p>{{ gkSummary!.summaryB }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- SEZIONE NOTE PORTIERI (OPZIONALE) -->
+  <div class="gk-notes-section">
+    <div class="notes-header">
+      <div class="notes-title-wrap">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h4>Note Portieri & Interventi</h4>
+        <span class="optional-chip">Opzionale</span>
+      </div>
+      @if (isAdmin) {
+        <button
+          type="button"
+          class="btn-save-notes"
+          (click)="onSalvaNote()"
+          [class.saved]="isNoteSaved()"
+        >
+          <ion-icon [name]="isNoteSaved() ? 'checkmark-circle-outline' : 'save-outline'"></ion-icon>
+          <span>{{ isNoteSaved() ? 'Salvate!' : 'Salva Note' }}</span>
+        </button>
+      }
+    </div>
+
+    @if (isAdmin) {
+      <div class="notes-editor-box">
+        <textarea
+          class="notes-textarea"
+          rows="3"
+          placeholder="Es. Grande prestazione di Angelo nel 2° tempo con due uscite decisive; Paolo determinante sulle conclusioni ravvicinate..."
+          [ngModel]="noteInput()"
+          (ngModelChange)="onNoteChange($event)"
+        ></textarea>
+        <span class="notes-hint">Le note sono visibili a tutti i giocatori nel report della partita.</span>
+      </div>
+    } @else {
+      <div class="notes-view-box">
+        @if (noteInput()) {
+          <p class="notes-view-text">{{ noteInput() }}</p>
+        } @else {
+          <p class="notes-empty-text">Nessuna nota specifica registrata per i portieri di questa partita.</p>
+        }
+      </div>
+    }
+  </div>
+
+</div>
+

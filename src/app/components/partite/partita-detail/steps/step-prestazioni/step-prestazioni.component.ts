@@ -17,6 +17,7 @@ import {
   clipboardOutline,
   micOutline,
   trendingUpOutline,
+      shieldOutline,
 } from 'ionicons/icons';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { Partita } from '../../../../../models/partita.model';
@@ -31,6 +32,7 @@ import { PrestazioniTabSintesiComponent } from './components/prestazioni-tab-sin
 import { PrestazioniTabPagelleComponent } from './components/prestazioni-tab-pagelle/prestazioni-tab-pagelle.component';
 import { PrestazioniTabSpogliatoioComponent } from './components/prestazioni-tab-spogliatoio/prestazioni-tab-spogliatoio.component';
 import { PrestazioniTabStatisticheComponent } from './components/prestazioni-tab-statistiche/prestazioni-tab-statistiche.component';
+import { PrestazioniTabPortieriComponent } from './components/prestazioni-tab-portieri/prestazioni-tab-portieri.component';
 
 @Component({
   selector: 'app-step-prestazioni',
@@ -45,6 +47,7 @@ import { PrestazioniTabStatisticheComponent } from './components/prestazioni-tab
     PrestazioniTabPagelleComponent,
     PrestazioniTabSpogliatoioComponent,
     PrestazioniTabStatisticheComponent,
+    PrestazioniTabPortieriComponent,
   ],
 })
 export class StepPrestazioniComponent {
@@ -59,7 +62,7 @@ export class StepPrestazioniComponent {
   private router = inject(Router);
 
   // Navigazione a Schede (Sintesi, Pagelle, Spogliatoio & AI, Statistiche)
-  activeTab = signal<'sintesi' | 'pagelle' | 'spogliatoio' | 'statistiche'>('sintesi');
+  activeTab = signal<'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'>('sintesi');
 
   isGeneratingPronostico = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);
@@ -101,6 +104,60 @@ export class StepPrestazioniComponent {
     };
     return this.statsEngine.getMatchReport(currentMatch);
   });
+
+  
+  match = computed<Partita>(() => ({
+    id: this.state.matchId() || '',
+    dataPartita: this.state.dataPartita(),
+    luogo: this.state.luogo(),
+    orario: this.state.orario(),
+    scoreA: this.state.scoreA(),
+    scoreB: this.state.scoreB(),
+    teamA: this.state.teamA(),
+    teamB: this.state.teamB(),
+    eventiGol: this.state.eventiGol(),
+    rotazionePortieri: this.state.rotazionePortieri(),
+    cronometro: this.state.cronometro(),
+    accumulatedTime: this.state.accumulatedTime(),
+    matchConcluso: this.state.matchConcluso(),
+    pagelleInserite: this.state.pagelleInserite(),
+    fotoUrl: this.state.fotoUrl(),
+    fotoPath: this.state.fotoPath(),
+    status: this.state.status(),
+    convocati: this.state.convocati(),
+    pronosticoAi: this.state.pronosticoAi(),
+    cronacaAi: this.state.cronacaAi(),
+    commentoPartita: this.state.commentoPartita(),
+    notePortieri: this.state.notePortieri(),
+    parateIncredibili: this.state.parateIncredibili(),
+  }));
+
+  bonusParataMmr = computed<number>(() => {
+    return this.statsEngine.getSeasonConfig().bonusParataIncredibile ?? 1.0;
+  });
+
+  onParataChange(event: { playerId: string; delta: number }) {
+    this.state.aggiornaParataIncredibile(event.playerId, event.delta);
+  }
+
+  async onSalvaNotePortieri(note: string) {
+    this.state.salvaNotePortieri(note);
+    try {
+      await this.state.salvaInDatabase(
+        this.state.pagelleInserite(),
+        this.state.matchConcluso()
+      );
+      const toast = await this.toastCtrl.create({
+        message: '🧤 Note sui portieri salvate!',
+        duration: 2000,
+        color: 'success',
+        position: 'top',
+      });
+      await toast.present();
+    } catch (err) {
+      console.error('Errore salvataggio note portieri:', err);
+    }
+  }
 
   scorersA = computed(() => {
     const list = this.report()?.playersA || [];

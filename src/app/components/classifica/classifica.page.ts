@@ -97,7 +97,8 @@ export type CriterioOrdinamento =
   | 'assist'
   | 'portieri'
   | 'wins'
-  | 'presenze';
+  | 'presenze'
+  | 'minuti';
 
 export interface CriterioOption {
   id: CriterioOrdinamento;
@@ -115,6 +116,7 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'PRESENZE' },
+  { id: 'minuti', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'MINUTI' },
 ];
 export { GiocatoreConPunti };
 
@@ -252,6 +254,7 @@ export class ClassificaPage {
       let assistTotali = 0;
       let sommaVoti = 0;
       let partiteGiocate = 0;
+      let secondiGiocatiTotali = 0;
       let wins = 0;
       let draws = 0;
       let losses = 0;
@@ -263,6 +266,8 @@ export class ClassificaPage {
 
         if (inTeamA || inTeamB) {
           partiteGiocate++;
+          const matchSec = p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+          secondiGiocatiTotali += matchSec;
 
           const scoreA = Number(p.scoreA);
           const scoreB = Number(p.scoreB);
@@ -315,6 +320,9 @@ export class ClassificaPage {
       });
 
       punti = Math.round(punti * 10) / 10;
+      const minutiTotali = Math.floor(secondiGiocatiTotali / 60);
+      const secondiRimanenti = secondiGiocatiTotali % 60;
+      const minutiGiocatiDisplay = `${minutiTotali}' ${secondiRimanenti.toString().padStart(2, '0')}"`;
       const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
 
       // 2. Dati del Nuovo Motore MMR & Statistiche
@@ -385,6 +393,8 @@ export class ClassificaPage {
         mediaVotoVal: mediaVoto,
         mediaVotoDisplay: mediaVoto.toFixed(2),
         partiteGiocate,
+        secondiGiocatiTotali,
+        minutiGiocatiDisplay,
         wins,
         draws,
         losses,
@@ -435,7 +445,17 @@ export class ClassificaPage {
           }
           return b.golTotali - a.golTotali;
 
-        case 'presenze':
+        case 'minuti':
+          if (b.secondiGiocatiTotali !== a.secondiGiocatiTotali) {
+            return b.secondiGiocatiTotali - a.secondiGiocatiTotali;
+          }
+          if (b.partiteGiocate !== a.partiteGiocate) {
+            return b.partiteGiocate - a.partiteGiocate;
+          }
+          return b.puntiVal - a.puntiVal;
+
+
+      case 'presenze':
           if (b.partiteGiocate !== a.partiteGiocate) {
             return b.partiteGiocate - a.partiteGiocate;
           }

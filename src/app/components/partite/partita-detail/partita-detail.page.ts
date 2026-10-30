@@ -290,6 +290,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.pronosticoAi.set(matchData.pronosticoAi || null);
       this.state.cronacaAi.set(matchData.cronacaAi || null);
       this.state.commentoPartita.set(matchData.commentoPartita || matchData.commento || '');
+      this.state.notePortieri.set(matchData.notePortieri || null);
+      this.state.parateIncredibili.set(matchData.parateIncredibili || {});
 
       this.state.scoreA.set(matchData.scoreA || 0);
       this.state.scoreB.set(matchData.scoreB || 0);

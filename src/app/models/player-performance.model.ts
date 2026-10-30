@@ -4,6 +4,7 @@ export interface PlayerPerformance extends Giocatore {
   voto?: number;
   note?: string;
   assist?: number;
+  parateIncredibili?: number;
 }
 
 export type RatingClass = '' | 'voto-alto' | 'voto-medio' | 'voto-basso';

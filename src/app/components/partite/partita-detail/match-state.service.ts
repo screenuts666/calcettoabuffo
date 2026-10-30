@@ -90,6 +90,8 @@ export class MatchStateService {
   pronosticoAi = signal<string | null>(null);
   cronacaAi = signal<string | null>(null);
   commentoPartita = signal<string>('');
+  notePortieri = signal<string | null>(null);
+  parateIncredibili = signal<Record<string, number>>({});
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -771,6 +773,8 @@ export class MatchStateService {
         matchConcluso: this.matchConcluso(),
         pagelleInserite: this.pagelleInserite(),
         commentoPartita: this.commentoPartita(),
+      notePortieri: this.notePortieri(),
+      parateIncredibili: this.parateIncredibili(),
       };
       localStorage.setItem(LOCAL_STORAGE_MATCH_KEY, JSON.stringify(snapshot));
       this.syncStatus.notifyLocalSave();
@@ -883,6 +887,8 @@ export class MatchStateService {
       pronosticoAi: this.pronosticoAi() || null,
       cronacaAi: this.cronacaAi() || null,
       commentoPartita: this.commentoPartita()?.trim() || null,
+      notePortieri: this.notePortieri()?.trim() || null,
+      parateIncredibili: this.parateIncredibili() || {},
     };
 
     try {
@@ -916,6 +922,29 @@ export class MatchStateService {
       );
       this.syncStatus.notifySyncError();
     }
+  }
+
+  
+  aggiornaParataIncredibile(playerId: string, delta: number) {
+    this.parateIncredibili.update((map) => {
+      const next = { ...(map || {}) };
+      const cur = next[playerId] || 0;
+      const val = Math.max(0, cur + delta);
+      if (val === 0) {
+        delete next[playerId];
+      } else {
+        next[playerId] = val;
+      }
+      return next;
+    });
+    this.salvaSnapshotLocale();
+    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(err => console.warn(err));
+  }
+
+  salvaNotePortieri(note: string) {
+    this.notePortieri.set(note.trim() || null);
+    this.salvaSnapshotLocale();
+    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(err => console.warn(err));
   }
 
   resetMatchState() {

@@ -48,6 +48,10 @@ export interface GiocatoreConPunti extends Giocatore {
   draws: number;
   losses: number;
 
+  // Minuti e secondi giocati sul campo
+  secondiGiocatiTotali: number;
+  minutiGiocatiDisplay: string;
+
   // Nuovo Motore MMR & Statistiche
   isRanked: boolean;
   seasonStartMmr?: number;
@@ -80,5 +84,5 @@ export interface PortiereStats {
   cleanSheetPartite: number;
   mediaGolSubiti50m: number;
   isClassificabile: boolean;
+  parateIncredibili?: number;
 }
-

@@ -1,0 +1,460 @@
+@use 'mixins' as *;
+
+:host {
+  display: block;
+}
+
+.prestazioni-tab-portieri-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 14px 28px;
+}
+
+// 1. BANNER INTRODUTTIVO
+.gk-intro-banner {
+  @include card-surface(14px, 12px);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(16, 185, 129, 0.08));
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .gk-intro-icon {
+    font-size: 2rem;
+    line-height: 1;
+    filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.35));
+  }
+
+  .gk-intro-text {
+    flex: 1;
+
+    h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.74rem;
+      color: var(--app-text-muted);
+      line-height: 1.35;
+    }
+  }
+}
+
+// 2. SEZIONE SQUADRA
+.gk-team-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .gk-team-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 4px;
+
+    .team-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+
+      &.white {
+        background: #f8fafc;
+        box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+        border: 1px solid #94a3b8;
+      }
+
+      &.black {
+        background: #0f172a;
+        box-shadow: 0 0 6px rgba(15, 23, 42, 0.8);
+        border: 1px solid #475569;
+      }
+    }
+
+    h4 {
+      margin: 0;
+      font-size: 0.86rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--app-text-primary);
+    }
+
+    .team-count {
+      font-size: 0.75rem;
+      color: var(--app-text-muted);
+      font-weight: 600;
+    }
+  }
+
+  .gk-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+// 3. CARD SINGOLO PORTIERE
+.gk-player-card {
+  @include card-surface(14px, 12px);
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  @media (min-width: 600px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .gk-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .gk-avatar {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(251, 191, 36, 0.4);
+      overflow: hidden;
+      background: var(--app-surface-subtle);
+    }
+
+    .gk-player-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .gk-player-name {
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        line-height: 1.2;
+      }
+
+      .gk-player-alias {
+        font-size: 0.74rem;
+        font-style: italic;
+        color: var(--app-text-muted);
+      }
+
+      .gk-role-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.12);
+        padding: 2px 7px;
+        border-radius: 6px;
+        margin-top: 2px;
+        width: fit-content;
+      }
+    }
+  }
+
+  .gk-card-right {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    @media (min-width: 600px) {
+      justify-content: flex-end;
+    }
+  }
+
+  .gk-stats-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .gk-stat-chip {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &.danger {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+      }
+
+      &.success {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+    }
+  }
+
+  // CONTATORE PARATE
+  .gk-parate-stepper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--app-surface-subtle);
+    padding: 4px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--app-border-color);
+
+    .parata-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--app-text-secondary);
+      white-space: nowrap;
+    }
+
+    .stepper-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .step-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-primary);
+        font-size: 1rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover:not(:disabled) {
+          background: rgba(251, 191, 36, 0.2);
+          border-color: #fbbf24;
+          color: #fbbf24;
+        }
+
+        &:disabled {
+          opacity: 0.35;
+          cursor: not-allowed;
+        }
+      }
+
+      .step-value {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--app-text-muted);
+        min-width: 18px;
+        text-align: center;
+
+        &.highlight {
+          color: #fbbf24;
+          font-weight: 900;
+        }
+      }
+
+      .bonus-tag {
+        font-size: 0.68rem;
+        font-weight: 900;
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.15);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+    }
+  }
+}
+
+.empty-gk-hint {
+  font-size: 0.76rem;
+  color: var(--app-text-muted);
+  font-style: italic;
+  padding: 8px 12px;
+  background: var(--app-surface-subtle);
+  border-radius: 8px;
+}
+
+// 4. RESOCONTO E NOTE TESTUALI SQUADRA (AI / ALGORITMICO)
+.gk-summary-bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--app-card-border);
+
+  &.white {
+    background: rgba(248, 250, 252, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.black {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(51, 65, 85, 0.5);
+  }
+
+  .summary-tag {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #fbbf24;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--app-text-secondary);
+  }
+}
+
+// 5. SEZIONE NOTE PORTIERI LIBERE (OPZIONALE)
+.gk-notes-section {
+  @include card-surface(16px, 14px);
+  background: var(--app-card-bg);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .notes-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        font-size: 1.25rem;
+        color: #10b981;
+      }
+
+      h4 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      .optional-chip {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--app-text-muted);
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 6px;
+        border-radius: 6px;
+        border: 1px solid var(--app-card-border);
+        text-transform: uppercase;
+      }
+    }
+
+    .btn-save-notes {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #fff;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 1rem;
+      }
+
+      &.saved {
+        background: #059669;
+      }
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      }
+    }
+  }
+
+  .notes-editor-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .notes-textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--app-card-border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.85rem;
+      color: var(--app-text-primary);
+      font-family: inherit;
+      line-height: 1.45;
+      resize: vertical;
+      min-height: 70px;
+      outline: none;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        border-color: #10b981;
+      }
+
+      &::placeholder {
+        color: var(--app-text-muted);
+        opacity: 0.7;
+      }
+    }
+
+    .notes-hint {
+      font-size: 0.7rem;
+      color: var(--app-text-muted);
+      font-style: italic;
+    }
+  }
+
+  .notes-view-box {
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    border: 1px solid var(--app-border-color);
+
+    .notes-view-text {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--app-text-primary);
+      white-space: pre-wrap;
+    }
+
+    .notes-empty-text {
+      margin: 0;
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--app-text-muted);
+    }
+  }
+}
+

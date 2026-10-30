@@ -282,6 +282,16 @@
         </div>
         <div class="stat-box-sub">{{ prof.portiereStats.turniInPorta }} turni ({{ prof.portiereStats.golSubiti }} gol subiti)</div>
       </div>
+
+      @if (prof.portiereStats.parateIncredibili) {
+        <div class="stat-box">
+          <div class="stat-box-title">MIRACOLI ✨</div>
+          <div class="stat-box-num" style="color: #fbbf24">
+            {{ prof.portiereStats.parateIncredibili }}
+          </div>
+          <div class="stat-box-sub">Parate incredibili</div>
+        </div>
+      }
     </div>
   }
 
@@ -606,15 +616,28 @@
       </div>
     </ion-col>
 
-    <ion-col size="12" class="stat-col">
+    <ion-col size="6" class="stat-col">
       <div class="stat-card card-dark">
         <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
         <div class="stat-label">Rendimento Match</div>
         <div
           class="stat-value text-normal"
-          style="font-size: 1.25em; letter-spacing: 0.5px;"
+          style="font-size: 1.15em; letter-spacing: 0.5px;"
         >
           {{ prof?.partiteGiocate ?? 0 }}/{{ prof?.wins ?? 0 }}/{{ prof?.draws ?? 0 }}/{{ prof?.losses ?? 0 }}
+        </div>
+      </div>
+    </ion-col>
+
+    <ion-col size="6" class="stat-col">
+      <div class="stat-card card-dark">
+        <ion-icon name="time-outline" color="primary" class="stat-icon"></ion-icon>
+        <div class="stat-label">Minuti Giocati</div>
+        <div
+          class="stat-value text-normal"
+          style="font-size: 1.15em; letter-spacing: 0.5px; color: #38bdf8;"
+        >
+          ⏱️ {{ prof?.minutiGiocatiDisplay || "0' 00\"" }}
         </div>
       </div>
     </ion-col>

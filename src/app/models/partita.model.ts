@@ -53,4 +53,6 @@ export interface Partita {
   pronosticoAi?: string | null;
   cronacaAi?: string | null;
   commentoPartita?: string | null;
+  notePortieri?: string | null;
+  parateIncredibili?: Record<string, number>;
 }

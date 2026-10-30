@@ -59,6 +59,7 @@ import {
   arrowBack,
   createOutline,
   cloudDoneOutline,
+  timeOutline,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';

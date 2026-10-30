@@ -103,6 +103,19 @@
       ></app-prestazioni-tab-pagelle>
     }
 
+    @if (activeTab() === 'portieri') {
+      <app-prestazioni-tab-portieri
+        [match]="match()"
+        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [gkSummary]="gkSummary()"
+        [parateIncredibili]="state.parateIncredibili()"
+        [notePortieri]="state.notePortieri()"
+        [bonusParataMmr]="bonusParataMmr()"
+        (parataChange)="onParataChange($event)"
+        (salvaNote)="onSalvaNotePortieri($event)"
+      ></app-prestazioni-tab-portieri>
+    }
+
     @if (activeTab() === 'spogliatoio') {
       <app-prestazioni-tab-spogliatoio
         [matchId]="state.matchId()"
