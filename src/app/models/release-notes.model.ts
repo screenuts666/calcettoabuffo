@@ -11,6 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.50",
+    "date": "30/10/2026",
+    "title": "Salvataggio Cloud Real-Time Impostazioni App & Suoni, Feedback Immediato e Allineamento Durata Turni",
+    "userChanges": [
+      "⚙️ Salvataggio Impostazioni Cloud & Multipiattaforma: tutte le preferenze su segnale cambio portiere, speaker vocale, vibrazione, durata turnover ed effetti stadio vengono ora salvate all'istante su Firestore e sincronizzate in tempo reale su ogni dispositivo.",
+      "⏱️ Durata Turni Portieri Reale: le partite rispettano ora fedelmente il minutaggio impostato (es. 3, 4, 5, 6, 7, 8 o 10 minuti) sia in DEV che in PROD, senza forzature o ripristini imprevisti.",
+      "📢 Feedback Immediato & Cloud Banner: aggiunta la barra di stato cloud nelle impostazioni che conferma il salvataggio avvenuto su Firebase e toast specifici per ogni opzione attivata o disattivata."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Persistenza automatica Firestore: implementato setDoc con merge su config_stagioni/superuser_sound_settings in SoundSettingsService.updateConfig e resetToDefaults.",
+      "Sincronizzazione real-time onSnapshot per riflettere istantaneamente le impostazioni decise dal Super User su tutti i client connessi.",
+      "Rimosso l'override hardcoded a 30s da MatchStateService.durataTurnoSecondi e TacticalPitchComponent, allineando DEV e PROD alla reale durata configurata.",
+      "Inizializzazione delle nuove partite con durata turnover prelevata dinamicamente dalle impostazioni superuser."
+    ]
+  },
+  {
     "version": "1.0.48",
     "date": "30/10/2026",
     "title": "Tab Dedicata Portieri nel Report Partita, Sincronizzazione Foto Piantina Tattica e Fix Calcolo Gol Subiti",
