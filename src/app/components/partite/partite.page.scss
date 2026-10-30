@@ -396,9 +396,16 @@
 .section-divider-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  margin: 12px 4px 6px 4px;
+  margin: 14px 4px 6px 4px;
   padding: 4px 0;
+
+  .header-left-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
 
   .section-title {
     font-size: 0.8rem;
@@ -415,6 +422,35 @@
     border-radius: 10px;
     font-size: 0.7rem;
     font-weight: 800;
+  }
+
+  .toggle-all-accordion-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-secondary);
+    border-radius: 12px;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+
+    ion-icon {
+      font-size: 0.85rem;
+      color: var(--ion-color-success);
+    }
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
   }
 
   .sort-meta-hint {
@@ -479,17 +515,17 @@
 }
 
 // ==========================================
-// STILE CARD MATCH MODERNA
+// STILE CARD MATCH MODERNA AD ACCORDION
 // ==========================================
 .match-card {
   width: 100%;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 16px;
-  padding: 14px 14px 12px 14px;
+  padding: 10px 12px;
   margin: 6px 0;
   box-shadow: var(--app-card-shadow);
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
   &.card-season-current {
     border-left: 4px solid var(--ion-color-success);
@@ -511,9 +547,8 @@
     border-color: var(--app-primary) !important;
   }
 
-  &:active {
-    transform: scale(0.985);
-    background: var(--app-surface-hover);
+  &.is-accordion-open {
+    border-color: rgba(var(--app-primary-rgb), 0.35);
   }
 }
 
@@ -535,40 +570,52 @@
 }
 
 // ==========================================
-// 1. HEADER CARD (DATA, STAGIONE, STATUS)
+// 1. TESTATA CARD ACCORDION (COMPATTA E CLICCABILE)
 // ==========================================
-.match-header {
+.match-card-header-bar {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: opacity 0.15s ease;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.match-meta-top-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--app-card-border);
+  gap: 6px;
 }
 
-.match-header-left {
+.match-meta-left {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .match-date {
   display: flex;
   align-items: center;
   font-weight: 800;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--app-text-secondary);
 
   ion-icon {
     margin-right: 4px;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: var(--ion-color-success);
   }
 }
 
 .season-tag {
-  font-size: 0.66rem;
+  font-size: 0.65rem;
   font-weight: 800;
   padding: 1px 6px;
   border-radius: 6px;
@@ -607,7 +654,7 @@
   }
 }
 
-.match-header-right {
+.match-meta-right {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -618,16 +665,16 @@
 .status-badge {
   display: flex;
   align-items: center;
-  padding: 3px 8px;
-  border-radius: 14px;
-  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 0.66rem;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 
   ion-icon {
     margin-right: 3px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   &.blink {
@@ -664,26 +711,22 @@
 }
 
 // ==========================================
-// 2. MAIN ROW: TABELLONE SQUADRE + HERO STAT BOX
+// 2. RIGA COMPATTA SCOREBOARD + HERO + CHEVRON
 // ==========================================
-.match-main-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 8px 0;
-}
-
-.match-scoreboard-block {
-  flex: 1;
-  min-width: 0;
-}
-
-.teams-score-header {
+.match-summary-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.match-teams-score-compact {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
 }
 
 .team-label {
@@ -691,11 +734,15 @@
   align-items: center;
   gap: 5px;
   flex: 1;
+  min-width: 0;
 
   .team-name {
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     font-weight: 800;
     color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .team-dot {
@@ -725,14 +772,15 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 4px 14px;
+  padding: 3px 12px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
 
   .score-num {
-    font-size: 1.5rem;
+    font-size: 1.35rem;
     font-weight: 900;
     font-family: 'SF Pro Display', -apple-system, Roboto, sans-serif;
     color: var(--app-text-primary);
@@ -740,9 +788,59 @@
   }
 
   .score-sep {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--app-text-muted);
     font-weight: 800;
+  }
+}
+
+// INDICATORE CHEVRON ACCORDION
+.accordion-chevron-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-muted);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 1rem;
+    color: var(--app-text-secondary);
+  }
+}
+
+.is-accordion-open .accordion-chevron-box {
+  background: var(--app-primary-subtle);
+  border-color: var(--app-primary-border);
+
+  ion-icon {
+    color: var(--ion-color-success);
+  }
+}
+
+// ==========================================
+// 3. CASSETTO ESPANDIBILE DELL'ACCORDION
+// ==========================================
+.match-accordion-content {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--app-card-border);
+  animation: accordion-drop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes accordion-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -1138,6 +1236,37 @@
       background: rgba(var(--app-primary-rgb), 0.28);
       transform: translateY(-1px);
     }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.open-detail-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--ion-color-success);
+  color: #052e16;
+  border: none;
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(var(--app-primary-rgb), 0.25);
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.85rem;
+    font-weight: 900;
+  }
+
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
   }
 
   &:active {

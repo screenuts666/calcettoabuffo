@@ -251,12 +251,21 @@
     <!-- ========================================== -->
     @if (partiteArchiviateOrdinate().length > 0) {
       <div class="section-divider-header archive-header">
-        <ion-icon name="trophy"></ion-icon>
-        <span class="section-title">Storico Gare</span>
-        <span class="section-count">{{ partiteArchiviateOrdinate().length }}</span>
-        <span class="sort-meta-hint">
-          (Ordina: <b>{{ criterioOrdinamento() }}</b> {{ ordineCrescente() ? '▲' : '▼' }})
-        </span>
+        <div class="header-left-title">
+          <ion-icon name="trophy"></ion-icon>
+          <span class="section-title">Storico Gare</span>
+          <span class="section-count">{{ partiteArchiviateOrdinate().length }}</span>
+        </div>
+
+        <button
+          type="button"
+          class="toggle-all-accordion-btn"
+          (click)="toggleAllMatches()"
+          [title]="areAllExpanded() ? 'Comprimi tutte le partite' : 'Espandi tutte le partite'"
+        >
+          <ion-icon [name]="areAllExpanded() ? 'chevron-up' : 'chevron-down'"></ion-icon>
+          <span>{{ areAllExpanded() ? 'Comprimi tutte' : 'Espandi tutte' }}</span>
+        </button>
       </div>
       <ion-list mode="ios" class="match-list-group">
         @for (m of partiteArchiviateOrdinate(); track (m.id || m.data || '') + '_' + $index) {
@@ -269,53 +278,51 @@
   }
 
   <!-- ========================================== -->
-  <!-- REUSABLE TEMPLATE SCHEDA MATCH             -->
+  <!-- REUSABLE TEMPLATE SCHEDA MATCH AD ACCORDION -->
   <!-- ========================================== -->
   <ng-template #matchCardTpl let-m let-isLive="isLive">
     <ion-item-sliding #slidingItem>
-      <ion-item (click)="apriPartita(m)" lines="none" class="match-card-item">
+      <ion-item lines="none" class="match-card-item">
         <div
           class="match-card"
           [ngClass]="stagioneCardClass(m)"
           [class.card-is-live]="isLive"
+          [class.is-accordion-open]="isMatchAccordionOpen(m.id, isLive)"
           [class.highlight-active]="highlightMatchId() === m.id"
           [id]="'match-card-' + m.id"
         >
-          <!-- 1. HEADER CARD: Data + Stagione + Luogo + Status Badge -->
-          <div class="match-header">
-            <div class="match-header-left">
-              <div class="match-date">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <span>{{ m.dataPartita | date:'dd/MM/yyyy' }}</span>
-              </div>
-              <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
-                {{ stagioneBadgeLabel(m) }}
-              </div>
-              @if (m.luogo) {
-                <div class="location-chip" [title]="m.luogo">
-                  <ion-icon name="location-outline"></ion-icon>
-                  <span>{{ m.luogo }}</span>
+          <!-- TESTATA ACCORDION DELLA CARD (Sempre visibile, tocca per espandere/collassare) -->
+          <div class="match-card-header-bar" (click)="toggleMatchAccordion(m.id)">
+            <!-- RIGA 1: Data, Stagione, Luogo, Status Badge -->
+            <div class="match-meta-top-row">
+              <div class="match-meta-left">
+                <div class="match-date">
+                  <ion-icon name="calendar-outline"></ion-icon>
+                  <span>{{ m.dataPartita | date:'dd/MM/yyyy' }}</span>
                 </div>
-              }
-            </div>
+                <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                  {{ stagioneBadgeLabel(m) }}
+                </div>
+                @if (m.luogo) {
+                  <div class="location-chip" [title]="m.luogo">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>{{ m.luogo }}</span>
+                  </div>
+                }
+              </div>
 
-            <div class="match-header-right">
-              <div class="status-badge" [ngClass]="badgeClass(m)">
-                <ion-icon [name]="badgeIcon(m)"></ion-icon>
-                <span>{{ badgeLabel(m) }}</span>
+              <div class="match-meta-right">
+                <div class="status-badge" [ngClass]="badgeClass(m)">
+                  <ion-icon [name]="badgeIcon(m)"></ion-icon>
+                  <span>{{ badgeLabel(m) }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- 2. CORPO PRINCIPALE: TABELLONE SQUADRE + HERO STAT BOX -->
-          @let hero = getHeroStat(m);
-          @let marcatoriA = getMarcatoriSquadra(m, 'A');
-          @let marcatoriB = getMarcatoriSquadra(m, 'B');
-
-          <div class="match-main-row">
-            <!-- TABELLONE CON PUNTEGGIO E SQUADRE -->
-            <div class="match-scoreboard-block">
-              <div class="teams-score-header">
+            <!-- RIGA 2: TABELLONE COMPATTO BIANCHI vs NERI + HERO STAT + CHEVRON -->
+            @let hero = getHeroStat(m);
+            <div class="match-summary-row">
+              <div class="match-teams-score-compact">
                 <div class="team-label team-white">
                   <span class="team-dot white"></span>
                   <span class="team-name">Bianchi</span>
@@ -333,7 +340,36 @@
                 </div>
               </div>
 
+              <!-- HERO STAT BOX A DESTRA (Mostra il dato del criterio attivo!) -->
+              <div class="match-hero-stat-box">
+                <span class="hero-stat-val" [class.highlight]="criterioOrdinamento() !== 'data'">
+                  {{ hero.valore }}
+                </span>
+                <span class="hero-stat-label">
+                  {{ hero.etichetta }}
+                </span>
+                @if (hero.subText) {
+                  <span class="hero-stat-sub" [class.up]="hero.subType === 'up'">
+                    {{ hero.subText }}
+                  </span>
+                }
+              </div>
+
+              <!-- INDICATORE CHEVRON ACCORDION -->
+              <div class="accordion-chevron-box">
+                <ion-icon
+                  [name]="isMatchAccordionOpen(m.id, isLive) ? 'chevron-up' : 'chevron-down'"
+                ></ion-icon>
+              </div>
+            </div>
+          </div>
+
+          <!-- CORPO ESPANDIBILE DELL'ACCORDION (Dettagli, Marcatori, Piantina, Azioni) -->
+          @if (isMatchAccordionOpen(m.id, isLive)) {
+            <div class="match-accordion-content" (click)="$event.stopPropagation()">
               <!-- MARCATORI PER SQUADRA CON EMOJI E DOPPIETTE/TRIPLETTE -->
+              @let marcatoriA = getMarcatoriSquadra(m, 'A');
+              @let marcatoriB = getMarcatoriSquadra(m, 'B');
               @if (marcatoriA.length > 0 || marcatoriB.length > 0) {
                 <div class="scorers-split-row">
                   <div class="scorers-col team-a">
@@ -358,152 +394,137 @@
                   </div>
                 </div>
               }
-            </div>
 
-            <!-- HERO STAT BOX A DESTRA (Mostra il dato del criterio attivo!) -->
-            <div class="match-hero-stat-box">
-              <span class="hero-stat-val" [class.highlight]="criterioOrdinamento() !== 'data'">
-                {{ hero.valore }}
-              </span>
-              <span class="hero-stat-label">
-                {{ hero.etichetta }}
-              </span>
-              @if (hero.subText) {
-                <span class="hero-stat-sub" [class.up]="hero.subType === 'up'">
-                  {{ hero.subText }}
+              <!-- RIGA MICRO-METADATI (Giocatori, Durata eff., Media voti) -->
+              <div class="match-micro-meta">
+                <span class="meta-item" title="Giocatori convocati / in campo">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>{{ calcolaNumeroGiocatori(m) }} giocatori</span>
                 </span>
+                <span class="meta-sep">·</span>
+                <span class="meta-item" title="Durata effettiva gara">
+                  <ion-icon name="time-outline"></ion-icon>
+                  <span>{{ getTempoPartitaDisplay(m) }}</span>
+                </span>
+                @if (calcolaVotiPartita(m).media > 0) {
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item rating" title="Media pagelle gara">
+                    <ion-icon name="star"></ion-icon>
+                    <span>Media <strong>{{ calcolaVotiPartita(m).media }}</strong></span>
+                  </span>
+                }
+                @if (m.rotazionePortieri) {
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item gk" title="Portieri a rotazione attivi">
+                    <span>🧤 Rotaz. {{ m.rotazionePortieri.durataTurnoMinuti || 5 }}'</span>
+                  </span>
+                }
+              </div>
+
+              <!-- BANNER FOTO MATCH (se presente) -->
+              @if (m.fotoUrl) {
+                <div
+                  class="match-photo-banner"
+                  (click)="$event.stopPropagation(); apriFotoViewer(m)"
+                >
+                  <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
+                  <div class="photo-banner-overlay">
+                    <div class="photo-pill-badge">
+                      <ion-icon name="image"></ion-icon>
+                      <span>Foto di Gruppo</span>
+                    </div>
+                    <div class="expand-circle">
+                      <ion-icon name="expand-outline"></ion-icon>
+                    </div>
+                  </div>
+                </div>
               }
-            </div>
-          </div>
 
-          <!-- 3. RIGA MICRO-METADATI (Giocatori, Durata eff., Media voti) -->
-          <div class="match-micro-meta">
-            <span class="meta-item" title="Giocatori convocati / in campo">
-              <ion-icon name="people-outline"></ion-icon>
-              <span>{{ calcolaNumeroGiocatori(m) }} giocatori</span>
-            </span>
-            <span class="meta-sep">·</span>
-            <span class="meta-item" title="Durata effettiva gara">
-              <ion-icon name="time-outline"></ion-icon>
-              <span>{{ getTempoPartitaDisplay(m) }}</span>
-            </span>
-            @if (calcolaVotiPartita(m).media > 0) {
-              <span class="meta-sep">·</span>
-              <span class="meta-item rating" title="Media pagelle gara">
-                <ion-icon name="star"></ion-icon>
-                <span>Media <strong>{{ calcolaVotiPartita(m).media }}</strong></span>
-              </span>
-            }
-            @if (m.rotazionePortieri) {
-              <span class="meta-sep">·</span>
-              <span class="meta-item gk" title="Portieri a rotazione attivi">
-                <span>🧤 Rotaz. {{ m.rotazionePortieri.durataTurnoMinuti || 5 }}'</span>
-              </span>
-            }
-          </div>
+              <!-- ACCORDION PIANTINA TATTICA COLLASSABILE -->
+              <div
+                class="pitch-accordion-bar"
+                (click)="$event.stopPropagation(); togglePiantina(m.id)"
+                [class.is-expanded]="isPiantinaAperta(m.id)"
+              >
+                <div class="accordion-bar-left">
+                  <span class="pitch-badge-icon">
+                    <ion-icon name="football-outline"></ion-icon>
+                  </span>
+                  <span class="accordion-title">Piantina Tattica</span>
+                  <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
+                </div>
+                <div class="accordion-bar-right">
+                  <span class="tap-hint-text">
+                    {{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}
+                  </span>
+                  <ion-icon
+                    [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"
+                  ></ion-icon>
+                </div>
+              </div>
 
-          <!-- 4. BANNER FOTO MATCH (se presente) -->
-          @if (m.fotoUrl) {
-            <div
-              class="match-photo-banner"
-              (click)="$event.stopPropagation(); apriFotoViewer(m)"
-            >
-              <img [src]="m.fotoUrl" alt="Foto partita" loading="lazy" />
-              <div class="photo-banner-overlay">
-                <div class="photo-pill-badge">
-                  <ion-icon name="image"></ion-icon>
-                  <span>Foto di Gruppo</span>
+              @if (isPiantinaAperta(m.id)) {
+                <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
+                  <app-tactical-pitch [match]="m"></app-tactical-pitch>
                 </div>
-                <div class="expand-circle">
-                  <ion-icon name="expand-outline"></ion-icon>
+              }
+
+              <!-- AZIONI RAPIDE & PULSANTE APRI DETTAGLIO GARA -->
+              <div class="match-footer-actions">
+                @if (haNote(m)) {
+                  <div
+                    class="action-pill note-pill"
+                    (click)="$event.stopPropagation(); mostraNote(m)"
+                    title="Leggi le note a bordocampo e sui portieri"
+                  >
+                    <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+                    <span>Note</span>
+                  </div>
+                }
+
+                @if (m.cronacaAi) {
+                  <div
+                    class="action-pill cronaca-pill"
+                    (click)="$event.stopPropagation(); apriAiModal('cronaca', m)"
+                    title="Ascolta o leggi la telecronaca ignorante"
+                  >
+                    <ion-icon name="mic"></ion-icon>
+                    <span>Telecronaca</span>
+                  </div>
+                }
+
+                @if (m.pronosticoAi) {
+                  <div
+                    class="action-pill pronostico-pill"
+                    (click)="$event.stopPropagation(); apriAiModal('pronostico', m)"
+                    title="Ascolta o leggi il pronostico del Mister"
+                  >
+                    <ion-icon name="sparkles"></ion-icon>
+                    <span>Pronostico</span>
+                  </div>
+                }
+
+                <div
+                  class="action-pill share-pill"
+                  (click)="$event.stopPropagation(); apriCondivisione(m)"
+                  title="Condividi su WhatsApp"
+                >
+                  <ion-icon name="logo-whatsapp"></ion-icon>
+                  <span>Condividi</span>
                 </div>
+
+                <button
+                  type="button"
+                  class="open-detail-cta-btn"
+                  (click)="$event.stopPropagation(); apriPartita(m)"
+                  title="Apri scheda dettagliata del match"
+                >
+                  <span>Dettagli</span>
+                  <ion-icon name="chevron-forward"></ion-icon>
+                </button>
               </div>
             </div>
           }
-
-          <!-- 5. ACCORDION PIANTINA TATTICA COLLASSABILE -->
-          <div
-            class="pitch-accordion-bar"
-            (click)="$event.stopPropagation(); togglePiantina(m.id)"
-            [class.is-expanded]="isPiantinaAperta(m.id)"
-          >
-            <div class="accordion-bar-left">
-              <span class="pitch-badge-icon">
-                <ion-icon name="football-outline"></ion-icon>
-              </span>
-              <span class="accordion-title">Piantina Tattica</span>
-              <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
-            </div>
-            <div class="accordion-bar-right">
-              <span class="tap-hint-text">
-                {{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}
-              </span>
-              <ion-icon
-                [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"
-              ></ion-icon>
-            </div>
-          </div>
-
-          @if (isPiantinaAperta(m.id)) {
-            <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
-              <app-tactical-pitch [match]="m"></app-tactical-pitch>
-            </div>
-          }
-
-          <!-- 6. AZIONI RAPIDE IN BASSO ALLA CARD -->
-          <div class="match-footer-actions">
-            @if (haNote(m)) {
-              <div
-                class="action-pill note-pill"
-                (click)="$event.stopPropagation(); mostraNote(m)"
-                title="Leggi le note a bordocampo e sui portieri"
-              >
-                <ion-icon name="chatbox-ellipses-outline"></ion-icon>
-                <span>Note</span>
-              </div>
-            }
-
-            @if (m.fotoUrl) {
-              <div
-                class="action-pill photo-pill"
-                (click)="$event.stopPropagation(); apriFotoViewer(m)"
-              >
-                <ion-icon name="image-outline"></ion-icon>
-                <span>Foto</span>
-              </div>
-            }
-
-            @if (m.cronacaAi) {
-              <div
-                class="action-pill cronaca-pill"
-                (click)="$event.stopPropagation(); apriAiModal('cronaca', m)"
-                title="Ascolta o leggi la telecronaca ignorante"
-              >
-                <ion-icon name="mic"></ion-icon>
-                <span>Telecronaca</span>
-              </div>
-            }
-
-            @if (m.pronosticoAi) {
-              <div
-                class="action-pill pronostico-pill"
-                (click)="$event.stopPropagation(); apriAiModal('pronostico', m)"
-                title="Ascolta o leggi il pronostico del Mister"
-              >
-                <ion-icon name="sparkles"></ion-icon>
-                <span>Pronostico</span>
-              </div>
-            }
-
-            <div
-              class="action-pill share-pill"
-              (click)="$event.stopPropagation(); apriCondivisione(m)"
-              title="Condividi su WhatsApp"
-            >
-              <ion-icon name="logo-whatsapp"></ion-icon>
-              <span>Condividi</span>
-            </div>
-          </div>
         </div>
       </ion-item>
 

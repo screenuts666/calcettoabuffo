@@ -66,6 +66,7 @@ import {
   chatboxEllipsesOutline,
   chevronDown,
   chevronUp,
+  chevronForward,
   mic,
   filter,
   closeCircle,
@@ -164,6 +165,35 @@ export class PartitePage {
 
   highlightMatchId = signal<string | null>(null);
   openedPitches = signal<Record<string, boolean>>({});
+  openedMatches = signal<Record<string, boolean>>({});
+  areAllExpanded = signal<boolean>(false);
+
+  toggleMatchAccordion(matchId?: string) {
+    if (!matchId) return;
+    this.openedMatches.update((prev) => ({
+      ...prev,
+      [matchId]: !prev[matchId],
+    }));
+  }
+
+  isMatchAccordionOpen(matchId?: string, isLive?: boolean): boolean {
+    if (!matchId) return false;
+    // Se la partita è LIVE, mostriamola espansa di default a meno che non sia stata chiusa esplicitamente
+    if (isLive && this.openedMatches()[matchId] === undefined) {
+      return true;
+    }
+    return !!this.openedMatches()[matchId];
+  }
+
+  toggleAllMatches() {
+    const nextState = !this.areAllExpanded();
+    this.areAllExpanded.set(nextState);
+    const updated: Record<string, boolean> = {};
+    for (const m of this.partite() || []) {
+      if (m.id) updated[m.id] = nextState;
+    }
+    this.openedMatches.set(updated);
+  }
 
   // Criteri di ordinamento e filtri
   readonly CRITERI_ORDINAMENTO = CRITERI_ORDINAMENTO_PARTITE;
@@ -531,6 +561,7 @@ export class PartitePage {
       chatboxEllipsesOutline,
       chevronDown,
       chevronUp,
+      chevronForward,
       mic,
       filter,
       closeCircle,

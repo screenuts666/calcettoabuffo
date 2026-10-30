@@ -11,6 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.58",
+    "date": "30/10/2026",
+    "title": "Partite ad Accordion: Schede Compatte, Consultazione Veloce ed Espansione Intelligente",
+    "userChanges": [
+      "🪗 Schede Partita ad Accordion: le partite storiche si presentano ora in un layout compatto ed elegante (~70px di altezza), ideale da mobile per scorrere rapidamente decine di partite senza scroll infiniti.",
+      "👆 Tocca per Espandere: con un tocco sulla testata della gara si apre fluidamente la scheda dettagliata con marcatori divisi per squadra (⚽), giocatori, durata effettiva, pagelle, piantina tattica, foto di gruppo e azioni rapide.",
+      "⚡ Espandi / Comprimi Tutte: comodo pulsante in alto nello 'Storico Gare' per espandere o richiudere tutte le partite con un solo gesto.",
+      "🔴 Partite LIVE sempre aperte: le gare in corso restano automaticamente espanse per seguire il risultato in tempo reale senza dover toccare alcunché.",
+      "🎯 Tasto Diretto Dettagli: aggiunto un tasto 'Dettagli ➔' per aprire all'istante la schermata completa della partita selezionata."
+    ],
+    "superUserChanges": [
+      "Implementata architettura Accordion reattiva con Signals (openedMatches, areAllExpanded) e rotazione fluida delle icone chevron.",
+      "Separazione ed isolamento eventi click ($event.stopPropagation()) su piantina, foto, bottoni AI e condivisione per prevenire chiusure accidentali.",
+      "Ottimizzazione stile SCSS per layout compatto con micro-meta, tabellone unificato Bianchi vs Neri e Hero Stat contestuale."
+    ]
+  },
+  {
     "version": "1.0.56",
     "date": "30/10/2026",
     "title": "Rettifica e Normalizzazione Minutaggio Storico Gare & Protezione Automatica Anti-Anomalie Timer",
