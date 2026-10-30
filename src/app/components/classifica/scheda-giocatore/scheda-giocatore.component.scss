@@ -1139,3 +1139,223 @@
     }
   }
 }
+
+
+// ==========================================
+// CARD BILANCIO MATCH PARLANTE 👥
+// ==========================================
+.card-bilancio {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+
+  .bilancio-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .bilancio-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .stat-icon {
+        margin-bottom: 0;
+        font-size: 1.8rem;
+        color: var(--app-text-secondary);
+      }
+
+      .stat-label {
+        font-size: 0.76rem;
+        letter-spacing: 0.5px;
+      }
+
+      .bilancio-sub-total {
+        font-size: 0.78rem;
+        color: var(--app-text-muted);
+        margin-top: 1px;
+
+        b {
+          color: var(--app-text-primary);
+        }
+      }
+    }
+
+    .bilancio-winrate-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 8px;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  .bilancio-grid-boxes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+
+    .bilancio-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 4px;
+      border-radius: 12px;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-border-color);
+      position: relative;
+      transition: transform 0.15s ease;
+
+      .box-badge-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        margin-bottom: 4px;
+      }
+
+      .box-num-val {
+        font-size: 1.35rem;
+        font-weight: 900;
+        line-height: 1.1;
+      }
+
+      .box-lbl-text {
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+      }
+
+      &.win {
+        border-color: rgba(16, 185, 129, 0.35);
+        background: rgba(16, 185, 129, 0.08);
+
+        .box-badge-dot {
+          background: #10b981;
+          box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+        }
+
+        .box-num-val,
+        .box-lbl-text {
+          color: #34d399;
+        }
+      }
+
+      &.draw {
+        border-color: rgba(251, 191, 36, 0.35);
+        background: rgba(251, 191, 36, 0.08);
+
+        .box-badge-dot {
+          background: #fbbf24;
+          box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+        }
+
+        .box-num-val,
+        .box-lbl-text {
+          color: #fbbf24;
+        }
+      }
+
+      &.loss {
+        border-color: rgba(239, 68, 68, 0.35);
+        background: rgba(239, 68, 68, 0.08);
+
+        .box-badge-dot {
+          background: #ef4444;
+          box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+        }
+
+        .box-num-val,
+        .box-lbl-text {
+          color: #f87171;
+        }
+      }
+    }
+  }
+
+  .bilancio-bar-wrapper {
+    height: 8px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    background: rgba(255, 255, 255, 0.06);
+    gap: 2px;
+    margin-top: 2px;
+
+    .bar-seg {
+      height: 100%;
+      border-radius: 4px;
+      transition: flex 0.3s ease;
+
+      &.win {
+        background: #10b981;
+      }
+
+      &.draw {
+        background: #fbbf24;
+      }
+
+      &.loss {
+        background: #ef4444;
+      }
+    }
+  }
+}
+
+// ==========================================
+// CARD MINUTI BANNER PARLANTE ⏱️
+// ==========================================
+.card-minuti-banner {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  flex-wrap: wrap;
+
+  .minuti-banner-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .stat-icon {
+      margin-bottom: 0;
+      font-size: 1.8rem;
+    }
+
+    .stat-label {
+      font-size: 0.76rem;
+      letter-spacing: 0.5px;
+    }
+
+    .minuti-sub-desc {
+      font-size: 0.74rem;
+      color: var(--app-text-muted);
+      margin-top: 1px;
+    }
+  }
+
+  .minuti-banner-val {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 6px 14px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}

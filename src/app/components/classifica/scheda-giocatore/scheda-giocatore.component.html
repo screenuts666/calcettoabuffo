@@ -616,35 +616,83 @@
       </div>
     </ion-col>
 
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-dark">
-        <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
-        <div class="stat-label">Rendimento Match</div>
-        <div
-          class="stat-value text-normal"
-          style="font-size: 1.15em; letter-spacing: 0.5px;"
-        >
-          {{ prof?.partiteGiocate ?? 0 }}/{{ prof?.wins ?? 0 }}/{{ prof?.draws ?? 0 }}/{{ prof?.losses ?? 0 }}
+    <!-- BILANCIO PARTITE PARLANTE -->
+    <ion-col size="12" class="stat-col">
+      <div class="stat-card card-dark card-bilancio">
+        <div class="bilancio-header">
+          <div class="bilancio-title-wrap">
+            <ion-icon name="people" color="medium" class="stat-icon"></ion-icon>
+            <div>
+              <div class="stat-label">Bilancio Partite</div>
+              <div class="bilancio-sub-total">
+                <b>{{ prof?.partiteGiocate ?? 0 }}</b> partite disputate
+              </div>
+            </div>
+          </div>
+          @if (prof?.winRate !== undefined) {
+            <span class="bilancio-winrate-pill">
+              <b>{{ prof?.winRate }}%</b> Win Rate
+            </span>
+          }
         </div>
+
+        <div class="bilancio-grid-boxes">
+          <div class="bilancio-box win" title="{{ prof?.wins ?? 0 }} Partite Vinte">
+            <span class="box-badge-dot"></span>
+            <div class="box-num-val">{{ prof?.wins ?? 0 }}</div>
+            <div class="box-lbl-text">Vinte</div>
+          </div>
+
+          <div class="bilancio-box draw" title="{{ prof?.draws ?? 0 }} Partite Pareggiate">
+            <span class="box-badge-dot"></span>
+            <div class="box-num-val">{{ prof?.draws ?? 0 }}</div>
+            <div class="box-lbl-text">Pareggiate</div>
+          </div>
+
+          <div class="bilancio-box loss" title="{{ prof?.losses ?? 0 }} Partite Perse">
+            <span class="box-badge-dot"></span>
+            <div class="box-num-val">{{ prof?.losses ?? 0 }}</div>
+            <div class="box-lbl-text">Perse</div>
+          </div>
+        </div>
+
+        @if ((prof?.partiteGiocate ?? 0) > 0) {
+          <div class="bilancio-bar-wrapper">
+            <div
+              class="bar-seg win"
+              [style.flex]="(prof?.wins ?? 0) || 0.001"
+              title="Vittorie: {{ prof?.wins ?? 0 }}"
+            ></div>
+            <div
+              class="bar-seg draw"
+              [style.flex]="(prof?.draws ?? 0) || 0.001"
+              title="Pareggi: {{ prof?.draws ?? 0 }}"
+            ></div>
+            <div
+              class="bar-seg loss"
+              [style.flex]="(prof?.losses ?? 0) || 0.001"
+              title="Sconfitte: {{ prof?.losses ?? 0 }}"
+            ></div>
+          </div>
+        }
       </div>
     </ion-col>
 
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-dark">
-        <ion-icon name="time-outline" color="primary" class="stat-icon"></ion-icon>
-        <div class="stat-label">Minuti Giocati</div>
-        <div
-          class="stat-value text-normal"
-          style="font-size: 1.15em; letter-spacing: 0.5px; color: #38bdf8;"
-        >
+    <!-- MINUTI GIOCATI TOTALI -->
+    <ion-col size="12" class="stat-col">
+      <div class="stat-card card-dark card-minuti-banner">
+        <div class="minuti-banner-left">
+          <ion-icon name="time-outline" color="primary" class="stat-icon"></ion-icon>
+          <div>
+            <div class="stat-label">Minuti Giocati Totali</div>
+            <div class="minuti-sub-desc">Tempo effettivo trascorso in campo nelle partite disputate</div>
+          </div>
+        </div>
+        <div class="minuti-banner-val">
           ⏱️ {{ prof?.minutiGiocatiDisplay || "0' 00\"" }}
         </div>
       </div>
     </ion-col>
   </ion-row>
-
-  <p class="legend-note">
-    Legenda: <b>P</b> (Disputate) / <b>W</b> (Vinte) / <b>D</b> (Pari) / <b>L</b> (Perse)
-  </p>
   }
 </ion-content>
