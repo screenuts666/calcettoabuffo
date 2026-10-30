@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.0.46",
+    "date": "30/10/2026",
+    "title": "Fix Layout Scheda Giocatore: spaziatura inferiore e card Minuti senza tagli",
+    "userChanges": [
+      "📱 Scheda Giocatore Perfettamente Scrollabile: aggiunto spazio di sicurezza inferiore (padding e spacer dedicato) per evitare che la card dei 'Minuti Giocati' venga tagliata dal bordo inferiore dello schermo o del modal.",
+      "⏱️ Layout Compatto Minuti: ottimizzata la disposizione di testo e badge per garantire leggibilità immediata su tutti i dispositivi mobile."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Aggiunto spacer dedicato .profile-scroll-bottom-spacer (50px) e definita la variabile --padding-bottom su .player-profile-content.",
+      "Rifiniti i margini e la tipografia di .card-minuti-banner."
+    ]
+  },
+  {
     "version": "1.0.44",
     "date": "30/10/2026",
     "title": "Fix Visualizzazione Minuti in Classifica: tempo effettivo al posto dei punti",
