@@ -11,6 +11,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.44",
+    "date": "30/10/2026",
+    "title": "Fix Visualizzazione Minuti in Classifica: tempo effettivo al posto dei punti",
+    "userChanges": [
+      "⏱️ Minuti in Classifica Risolti: selezionando il filtro 'Minuti ⏱️' la colonna di destra mostra ora correttamente il tempo effettivo giocato (es. 1100' 00\") con label 'MINUTI' e numero di gare giocate, anziché ricadere sui punti classici.",
+      "📲 Condivisione WhatsApp: il report WhatsApp formattato include ora il minutaggio effettivo quando si ordina la classifica per Minuti."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Aggiunto case 'minuti' in ClassificaPage.getValorePrincipale (in precedenza ricadeva su default restituendo puntiDisplay).",
+      "Raffinato il calcolo della durata gara con supporto dinamico a cronometro e accumulatedTime (millisecondi vs secondi)."
+    ]
+  },
+  {
     "version": "1.0.42",
     "date": "30/10/2026",
     "title": "Restyling Parlante del Bilancio Partite (Vinte, Pareggiate, Perse) e Minuti Giocati",
