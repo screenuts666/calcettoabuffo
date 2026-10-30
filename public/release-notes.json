@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.0.48",
+    "date": "30/10/2026",
+    "title": "Tab Dedicata Portieri nel Report Partita, Sincronizzazione Foto Piantina Tattica e Fix Calcolo Gol Subiti",
+    "userChanges": [
+      "🧤 Nuova Tab Portieri nel Report Partita: aggiunta la scheda dedicata [🧤 Portieri] nella barra principale del resoconto gara, tra Pagelle e Spogliatoio, con resoconto dettagliato per squadra, minuti in porta, clean sheet e miracoli.",
+      "⚽ Conteggio Gol Subiti Preciso: corretto il conteggio dei gol incassati dai portieri a rotazione; eliminata la duplicazione delle reti prive di timestamp e garantita la coerenza perfetta con il risultato effettivo del match.",
+      "📸 Foto in Tempo Reale sulla Piantina Tattica: la lavagna tattica sincronizza ora dinamicamente le foto profilo dei giocatori caricate su Firestore (tramite ID, nome o soprannome), anche se aggiunte successivamente alla creazione della partita."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Integrazione quinto segmento [🧤 Portieri] nella report-segments-bar con ottimizzazioni CSS responsive per schermi mobile stretti.",
+      "Spostamento completo delle note portieri: rimosso il pulsante legacy dallo Spogliatoio e aggiunto il tasto ⚡ Importa Resoconto nel pannello note dedicato ai portieri.",
+      "Risolto bug di duplicazione gol subiti in StatsEngineService (assegnazione al primo turno per reti untimed e cap sui gol avversari).",
+      "Aggiunta liveByNameMap in TacticalPitchComponent con fallback su nome completo, nome proprio e soprannome per il caricamento dinamico degli avatar."
+    ]
+  },
+  {
     "version": "1.0.46",
     "date": "30/10/2026",
     "title": "Fix Layout Scheda Giocatore: spaziatura inferiore e card Minuti senza tagli",
