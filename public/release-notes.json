@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.0.52",
+    "date": "30/10/2026",
+    "title": "Formato Orario Completo con Ore e Minuti Parlante (Es. 18h 20' 00\") per Classifica e Schede Giocatore",
+    "userChanges": [
+      "⏱️ Ore e Minuti Parlanti: quando il minutaggio complessivo supera i 60 minuti, il tempo giocato viene ora espresso chiaramente con ore, minuti e secondi (es. \"18h 20' 00\\\"\" anziché \"1100' 00\\\"\"), garantendo una lettura istantanea.",
+      "🧤 Tempo in Porta con Ore: anche il minutaggio dei portieri (in classifica portieri, scheda profilo e report gara) adotta il formato con le ore quando supera i 60 minuti (es. \"1h 30'\" anziché \"90'\").",
+      "📲 Report WhatsApp & Badge Hero: la classifica con filtro \"Minuti ⏱️\" e i resoconti WhatsApp condividono ora la label \"TEMPO\" e il formato orario esteso per tutte le gare disputate."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Creata utility centralizzata time-format.util.ts con le funzioni formatTempoTotale (per secondi precisi) e formatMinuti (per minuti interi).",
+      "Aggiornato StatsEngineService (getGiocatoreProfile, calculateGoalkeeperStatsForPlayer, calculateGoalkeeperStatsForMatch, generateGoalkeeperMatchSummary).",
+      "Aggiornati ClassificaPage, SchedaGiocatoreComponent, PrestazioniTabPortieriComponent e AreaSegretaPage per integrare minutiInPortaDisplay e la nuova etichetta TEMPO."
+    ]
+  },
+  {
     "version": "1.0.50",
     "date": "30/10/2026",
     "title": "Salvataggio Cloud Real-Time Impostazioni App & Suoni, Feedback Immediato e Allineamento Durata Turni",
