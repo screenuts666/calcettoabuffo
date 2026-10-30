@@ -791,27 +791,11 @@ export class PartitePage {
       }
       case 'data':
       default: {
-        const d = m.dataPartita ? new Date(m.dataPartita) : null;
-        const day =
-          d && !isNaN(d.getTime())
-            ? d
-                .toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
-                .toUpperCase()
-            : '-';
-        const weekday =
-          d && !isNaN(d.getTime())
-            ? d.toLocaleDateString('it-IT', { weekday: 'short' }).toUpperCase()
-            : 'DATA';
+        const golTot = (m.scoreA || 0) + (m.scoreB || 0);
         return {
-          valore: day,
-          etichetta: weekday,
-          subText: m.orario
-            ? `Ore ${m.orario}`
-            : m.dataPartita
-              ? new Date(m.dataPartita).toLocaleDateString('it-IT', {
-                  year: 'numeric',
-                })
-              : undefined,
+          valore: `${golTot}`,
+          etichetta: 'GOL TOTALI',
+          subText: `${m.scoreA || 0} - ${m.scoreB || 0}`,
           subType: 'neutral',
         };
       }

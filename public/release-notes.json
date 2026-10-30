@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.0.67",
+    "date": "30/10/2026",
+    "title": "UX Partite Raffinata: Navigazione Immediata al Dettaglio, Azioni Ottimizzate e Layout Senza Tagli",
+    "userChanges": [
+      "🎯 Accesso Diretto al Dettaglio in 1 Tap: ora puoi toccare direttamente il tabellone del punteggio o il comodo pulsante 'Dettagli ➔' sempre presente in testata per aprire all'istante la scheda completa della partita, anche a card chiusa senza passaggi intermedi.",
+      "📱 Pulsanti Azione Senza Più Tagli: le azioni rapide della partita (Note, Telecronaca AI, Pronostico, Condividi) sono ora flessibili e fluide su qualsiasi display mobile senza tagli orizzontali.",
+      "🌟 Scheda Completa in Evidenza: nuovo pulsante a tutta larghezza 'Apri Scheda Partita Completa' a contrasto elevato in fondo al cassetto aperto per una navigazione chiarissima.",
+      "🧹 Pulizia Info & Label Chiare: eliminata la data duplicata accanto al punteggio lasciando spazio ai gol totali, orario posizionato elegantemente in riga 1 e badge portieri reso esplicito ('🧤 Portieri 5'')."
+    ],
+    "superUserChanges": [
+      "Separazione netta degli eventi click: lo scoreboard naviga direttamente alla scheda del match tramite apriPartita(m) con stopPropagation, mentre il toggle accordion gestisce solo l'anteprima.",
+      "Refactoring layout SCSS: implementato .match-quick-pills con flex-wrap per prevenire overflow-x orizzontale e pulsante primario full-width .open-detail-full-btn.",
+      "Ottimizzazione getHeroStat per l'ordinamento predefinito 'data' per evitare ridondanze grafiche."
+    ]
+  },
+  {
     "version": "1.0.65",
     "date": "30/10/2026",
     "title": "Rinfrescamento Grafico & UX Sezione Chimica: Schede Compatte, Filtri Rapidi e Label Chiare",

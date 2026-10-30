@@ -293,12 +293,16 @@
         >
           <!-- TESTATA ACCORDION DELLA CARD (Sempre visibile, tocca per espandere/collassare) -->
           <div class="match-card-header-bar" (click)="toggleMatchAccordion(m.id)">
-            <!-- RIGA 1: Data, Stagione, Luogo, Status Badge -->
+            <!-- RIGA 1: Data, Orario, Stagione, Luogo, Status Badge -->
             <div class="match-meta-top-row">
               <div class="match-meta-left">
                 <div class="match-date">
                   <ion-icon name="calendar-outline"></ion-icon>
                   <span>{{ m.dataPartita | date:'dd/MM/yyyy' }}</span>
+                  @if (m.orario || m.ora) {
+                    <span class="match-time-dot">·</span>
+                    <span class="match-time-val">{{ m.orario || m.ora }}</span>
+                  }
                 </div>
                 <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
                   {{ stagioneBadgeLabel(m) }}
@@ -319,10 +323,15 @@
               </div>
             </div>
 
-            <!-- RIGA 2: TABELLONE COMPATTO BIANCHI vs NERI + HERO STAT + CHEVRON -->
+            <!-- RIGA 2: TABELLONE BIANCHI vs NERI + AZIONE DIRETTA DETTAGLI / HERO STAT + CHEVRON -->
             @let hero = getHeroStat(m);
             <div class="match-summary-row">
-              <div class="match-teams-score-compact">
+              <!-- Scoreboard cliccabile per andare direttamente alla scheda del match! -->
+              <div
+                class="match-teams-score-compact"
+                (click)="$event.stopPropagation(); apriPartita(m)"
+                title="Tocca per andare direttamente alla scheda della partita"
+              >
                 <div class="team-label team-white">
                   <span class="team-dot white"></span>
                   <span class="team-name">Bianchi</span>
@@ -340,26 +349,38 @@
                 </div>
               </div>
 
-              <!-- HERO STAT BOX A DESTRA (Mostra il dato del criterio attivo!) -->
-              <div class="match-hero-stat-box">
-                <span class="hero-stat-val" [class.highlight]="criterioOrdinamento() !== 'data'">
-                  {{ hero.valore }}
-                </span>
-                <span class="hero-stat-label">
-                  {{ hero.etichetta }}
-                </span>
-                @if (hero.subText) {
-                  <span class="hero-stat-sub" [class.up]="hero.subType === 'up'">
-                    {{ hero.subText }}
-                  </span>
+              <!-- LATO DESTRO: Se ordinamento non è data mostra Hero Stat, altrimenti tasto diretto Dettagli -->
+              <div class="match-header-actions-box">
+                @if (criterioOrdinamento() !== 'data') {
+                  <div class="match-hero-stat-box" [title]="hero.etichetta + ': ' + hero.valore">
+                    <span class="hero-stat-val highlight">{{ hero.valore }}</span>
+                    <span class="hero-stat-label">{{ hero.etichetta }}</span>
+                  </div>
                 }
-              </div>
 
-              <!-- INDICATORE CHEVRON ACCORDION -->
-              <div class="accordion-chevron-box">
-                <ion-icon
-                  [name]="isMatchAccordionOpen(m.id, isLive) ? 'chevron-up' : 'chevron-down'"
-                ></ion-icon>
+                <!-- TASTO DIRETTO DETTAGLI (Accessibile in 1 TAP, anche a card chiusa!) -->
+                <button
+                  type="button"
+                  class="direct-detail-btn"
+                  (click)="$event.stopPropagation(); apriPartita(m)"
+                  title="Apri scheda dettagliata della partita"
+                >
+                  <span>Dettagli</span>
+                  <ion-icon name="chevron-forward"></ion-icon>
+                </button>
+
+                <!-- FRECCIA ACCORDION (Tocca per espandere/chiudere l'anteprima rapida) -->
+                <button
+                  type="button"
+                  class="accordion-toggle-btn"
+                  (click)="$event.stopPropagation(); toggleMatchAccordion(m.id)"
+                  [class.is-open]="isMatchAccordionOpen(m.id, isLive)"
+                  [title]="isMatchAccordionOpen(m.id, isLive) ? 'Chiudi anteprima' : 'Espandi anteprima'"
+                >
+                  <ion-icon
+                    [name]="isMatchAccordionOpen(m.id, isLive) ? 'chevron-up' : 'chevron-down'"
+                  ></ion-icon>
+                </button>
               </div>
             </div>
           </div>
@@ -416,7 +437,7 @@
                 @if (m.rotazionePortieri) {
                   <span class="meta-sep">·</span>
                   <span class="meta-item gk" title="Portieri a rotazione attivi">
-                    <span>🧤 Rotaz. {{ m.rotazionePortieri.durataTurnoMinuti || 5 }}'</span>
+                    <span>🧤 Portieri {{ m.rotazionePortieri.durataTurnoMinuti || 5 }}'</span>
                   </span>
                 }
               </div>
@@ -469,60 +490,65 @@
                 </div>
               }
 
-              <!-- AZIONI RAPIDE & PULSANTE APRI DETTAGLIO GARA -->
-              <div class="match-footer-actions">
+              <!-- RIGA 1: AZIONI RAPIDE SECONDARIE (Pillole che avvolgono senza tagliarsi mai) -->
+              <div class="match-quick-pills">
                 @if (haNote(m)) {
-                  <div
+                  <button
+                    type="button"
                     class="action-pill note-pill"
                     (click)="$event.stopPropagation(); mostraNote(m)"
                     title="Leggi le note a bordocampo e sui portieri"
                   >
                     <ion-icon name="chatbox-ellipses-outline"></ion-icon>
                     <span>Note</span>
-                  </div>
+                  </button>
                 }
 
                 @if (m.cronacaAi) {
-                  <div
+                  <button
+                    type="button"
                     class="action-pill cronaca-pill"
                     (click)="$event.stopPropagation(); apriAiModal('cronaca', m)"
                     title="Ascolta o leggi la telecronaca ignorante"
                   >
                     <ion-icon name="mic"></ion-icon>
                     <span>Telecronaca</span>
-                  </div>
+                  </button>
                 }
 
                 @if (m.pronosticoAi) {
-                  <div
+                  <button
+                    type="button"
                     class="action-pill pronostico-pill"
                     (click)="$event.stopPropagation(); apriAiModal('pronostico', m)"
                     title="Ascolta o leggi il pronostico del Mister"
                   >
                     <ion-icon name="sparkles"></ion-icon>
                     <span>Pronostico</span>
-                  </div>
+                  </button>
                 }
 
-                <div
+                <button
+                  type="button"
                   class="action-pill share-pill"
                   (click)="$event.stopPropagation(); apriCondivisione(m)"
                   title="Condividi su WhatsApp"
                 >
                   <ion-icon name="logo-whatsapp"></ion-icon>
                   <span>Condividi</span>
-                </div>
-
-                <button
-                  type="button"
-                  class="open-detail-cta-btn"
-                  (click)="$event.stopPropagation(); apriPartita(m)"
-                  title="Apri scheda dettagliata del match"
-                >
-                  <span>Dettagli</span>
-                  <ion-icon name="chevron-forward"></ion-icon>
                 </button>
               </div>
+
+              <!-- RIGA 2: CTA PRINCIPALE A TUTTA LARGHEZZA (IMPOSSIBILE DA SEGATI!) -->
+              <button
+                type="button"
+                class="open-detail-full-btn"
+                (click)="$event.stopPropagation(); apriPartita(m)"
+                title="Apri scheda dettagliata e pagelle del match"
+              >
+                <span>Apri Scheda Partita Completa</span>
+                <ion-icon name="chevron-forward"></ion-icon>
+              </button>
             </div>
           }
         </div>

@@ -612,6 +612,17 @@
     font-size: 0.92rem;
     color: var(--ion-color-success);
   }
+
+  .match-time-dot {
+    color: var(--app-text-muted);
+    opacity: 0.6;
+    margin: 0 3px;
+  }
+
+  .match-time-val {
+    color: var(--app-text-primary);
+    font-weight: 700;
+  }
 }
 
 .season-tag {
@@ -727,6 +738,23 @@
   justify-content: space-between;
   gap: 8px;
   min-width: 0;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 12px;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.04);
+
+    .score-display {
+      border-color: rgba(var(--app-primary-rgb), 0.5);
+      box-shadow: 0 0 10px rgba(var(--app-primary-rgb), 0.25);
+    }
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
 }
 
 .team-label {
@@ -778,6 +806,7 @@
   border-radius: 10px;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
   flex-shrink: 0;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 
   .score-num {
     font-size: 1.35rem;
@@ -794,8 +823,49 @@
   }
 }
 
-// INDICATORE CHEVRON ACCORDION
-.accordion-chevron-box {
+.match-header-actions-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.direct-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--ion-color-success);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.82rem;
+    font-weight: 900;
+    transition: transform 0.18s ease;
+  }
+
+  &:hover {
+    background: var(--ion-color-success);
+    color: #052e16;
+    border-color: var(--ion-color-success);
+
+    ion-icon {
+      transform: translateX(2px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.accordion-toggle-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -805,21 +875,31 @@
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
   flex-shrink: 0;
-  transition: all 0.2s ease;
 
   ion-icon {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--app-text-secondary);
   }
-}
 
-.is-accordion-open .accordion-chevron-box {
-  background: var(--app-primary-subtle);
-  border-color: var(--app-primary-border);
+  &.is-open {
+    background: var(--app-primary-subtle);
+    border-color: var(--app-primary-border);
 
-  ion-icon {
-    color: var(--ion-color-success);
+    ion-icon {
+      color: var(--ion-color-success);
+    }
+  }
+
+  &:hover {
+    background: var(--app-surface-hover);
+    color: var(--app-text-primary);
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 }
 
@@ -1153,30 +1233,29 @@
 }
 
 // ==========================================
-// 6. AZIONI RAPIDE IN BASSO ALLA CARD
+// 6. AZIONI RAPIDE E CTA SCHEDA PARTITA COMPLETA
 // ==========================================
-.match-footer-actions {
+.match-quick-pills {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 10px;
   padding-top: 8px;
   border-top: 1px solid var(--app-card-border);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
 }
 
 .action-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 9px;
+  padding: 5px 10px;
   border-radius: 20px;
   font-size: 0.72rem;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
+  border: 1px solid transparent;
   flex-shrink: 0;
   transition: all 0.18s ease;
 
@@ -1187,7 +1266,7 @@
   &.note-pill {
     background: var(--app-surface-subtle);
     color: var(--app-text-secondary);
-    border: 1px solid var(--app-card-border);
+    border-color: var(--app-card-border);
 
     &:hover {
       background: var(--app-surface-hover);
@@ -1198,13 +1277,13 @@
   &.photo-pill {
     background: var(--app-primary-subtle);
     color: var(--app-primary);
-    border: 1px solid var(--app-primary-border);
+    border-color: var(--app-primary-border);
   }
 
   &.cronaca-pill {
     background: rgba(16, 185, 129, 0.12);
     color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.3);
 
     ion-icon {
       color: #10b981;
@@ -1214,7 +1293,7 @@
   &.pronostico-pill {
     background: rgba(139, 92, 246, 0.12);
     color: #a78bfa;
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-color: rgba(139, 92, 246, 0.3);
 
     ion-icon {
       color: #a78bfa;
@@ -1224,11 +1303,11 @@
   &.share-pill {
     background: var(--app-primary-subtle);
     color: var(--app-primary);
-    border: 1px solid var(--app-primary-border);
+    border-color: var(--app-primary-border);
     margin-left: auto;
 
     ion-icon {
-      color: var(--app-primary);
+      color: var(--ion-color-success);
       font-size: 0.95rem;
     }
 
@@ -1243,34 +1322,41 @@
   }
 }
 
-.open-detail-cta-btn {
-  display: inline-flex;
+.open-detail-full-btn {
+  display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  background: var(--ion-color-success);
-  color: #052e16;
-  border: none;
-  font-size: 0.74rem;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.12) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: var(--ion-color-success);
+  font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(var(--app-primary-rgb), 0.25);
-  transition: all 0.18s ease;
+  transition: all 0.2s ease;
 
   ion-icon {
-    font-size: 0.85rem;
-    font-weight: 900;
+    font-size: 0.95rem;
+    transition: transform 0.2s ease;
   }
 
   &:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+    background: var(--ion-color-success);
+    color: #052e16;
+    border-color: var(--ion-color-success);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+
+    ion-icon {
+      transform: translateX(3px);
+    }
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
 }
 
