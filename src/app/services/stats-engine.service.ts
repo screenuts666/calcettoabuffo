@@ -607,19 +607,25 @@ export class StatsEngineService {
             const eventi = p.eventiGol || [];
 
             const golNelTurno = eventi.filter((eg: any) => {
-              if (eg.portiereSubitoId) {
-                return (
-                  eg.portiereSubitoId === playerId &&
-                  eg.teamVantaggio === teamAvversario
-                );
-              }
-              if (eg.teamVantaggio === teamAvversario && eg.tempo) {
+              if (eg.teamVantaggio !== teamAvversario) return false;
+
+              let isInThisTurn = false;
+              if (eg.tempo) {
                 const [mStr, sStr] = eg.tempo.split(':');
                 const golSec =
                   (parseInt(mStr, 10) || 0) * 60 + (parseInt(sStr, 10) || 0);
-                return golSec >= inizioSec && golSec < fineSec;
+                isInThisTurn =
+                  turno === totalTurni - 1
+                    ? golSec >= inizioSec
+                    : golSec >= inizioSec && golSec < fineSec;
               }
-              return false;
+
+              if (eg.portiereSubitoId) {
+                if (eg.portiereSubitoId !== playerId) return false;
+                return eg.tempo ? isInThisTurn : true;
+              }
+
+              return isInThisTurn;
             }).length;
 
             matchGolSubiti += golNelTurno;
@@ -740,19 +746,25 @@ export class StatsEngineService {
         const fineSec = Math.min(cronometroTotale, (turno + 1) * durataTurnoSec);
 
         const golNelTurno = eventi.filter((eg: any) => {
-          if (eg.portiereSubitoId) {
-            return (
-              eg.portiereSubitoId === playerId &&
-              eg.teamVantaggio === teamAvversario
-            );
-          }
-          if (eg.teamVantaggio === teamAvversario && eg.tempo) {
+          if (eg.teamVantaggio !== teamAvversario) return false;
+
+          let isInThisTurn = false;
+          if (eg.tempo) {
             const [mStr, sStr] = eg.tempo.split(':');
             const golSec =
               (parseInt(mStr, 10) || 0) * 60 + (parseInt(sStr, 10) || 0);
-            return golSec >= inizioSec && golSec < fineSec;
+            isInThisTurn =
+              turno === totalTurni - 1
+                ? golSec >= inizioSec
+                : golSec >= inizioSec && golSec < fineSec;
           }
-          return false;
+
+          if (eg.portiereSubitoId) {
+            if (eg.portiereSubitoId !== playerId) return false;
+            return eg.tempo ? isInThisTurn : true;
+          }
+
+          return isInThisTurn;
         }).length;
 
         golSubiti += golNelTurno;

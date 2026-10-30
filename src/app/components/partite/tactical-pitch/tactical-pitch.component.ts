@@ -7,6 +7,7 @@ import {
   signal,
   Output,
   EventEmitter,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -21,6 +22,8 @@ import {
   syncOutline,
 } from 'ionicons/icons';
 import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
+import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import { Giocatore } from 'src/app/models/giocatore.model';
 
 export interface PositionedPlayer {
   id: string;
@@ -62,6 +65,17 @@ export class TacticalPitchComponent {
 
   @Output() playerSelect = new EventEmitter<any>();
   @Output() uploadPhotoClick = new EventEmitter<Event>();
+
+  private statsEngine = inject(StatsEngineService, { optional: true });
+
+  readonly livePlayersMap = computed<Map<string, Giocatore>>(() => {
+    const map = new Map<string, Giocatore>();
+    const list = this.statsEngine?.giocatoriRaw() || [];
+    for (const g of list) {
+      if (g.id) map.set(g.id, g);
+    }
+    return map;
+  });
 
   selectedPlayer = signal<PositionedPlayer | null>(null);
 
@@ -105,8 +119,24 @@ export class TacticalPitchComponent {
 
   readonly normalizedTeams = computed<{ teamA: any[]; teamB: any[] }>(() => {
     const m = this.currentMatch();
-    let listA = [...this.unwrapList(m.teamA)];
-    let listB = [...this.unwrapList(m.teamB)];
+    const liveMap = this.livePlayersMap();
+    const enrich = (pl: any) => {
+      if (!pl || !pl.id) return pl;
+      const live = liveMap.get(pl.id);
+      if (!live) return pl;
+      return {
+        ...pl,
+        nome: live.nome || pl.nome,
+        fotoUrl: live.fotoUrl || pl.fotoUrl || null,
+        foto: live.fotoUrl || pl.foto || null,
+        ruoloPreferito: live.ruoloPreferito || pl.ruoloPreferito,
+        piedePreferito: live.piedePreferito || pl.piedePreferito,
+        soprannome: live.soprannome || pl.soprannome,
+      };
+    };
+
+    let listA = [...this.unwrapList(m.teamA || m.squadraBianca)].map(enrich);
+    let listB = [...this.unwrapList(m.teamB || m.squadraNera)].map(enrich);
 
     if (listA.length > 0 && listB.length === 0) {
       if (listA.length >= 2) {
@@ -121,7 +151,7 @@ export class TacticalPitchComponent {
         listB = listB.slice(0, half);
       }
     } else if (listA.length === 0 && listB.length === 0) {
-      const convocati = this.unwrapList(m.convocati);
+      const convocati = this.unwrapList(m.convocati).map(enrich);
       if (convocati.length >= 2) {
         const half = Math.ceil(convocati.length / 2);
         listA = convocati.slice(0, half);
@@ -937,8 +967,14 @@ export class TacticalPitchComponent {
     if (this.selectedPlayer()?.id === p.id) {
       this.selectedPlayer.set(null);
     } else {
-      this.selectedPlayer.set(p);
-      this.playerSelect.emit(p.originalPlayer);
+      const live = p.id ? this.livePlayersMap().get(p.id) : null;
+      const resolved: PositionedPlayer = {
+        ...p,
+        nome: live?.nome || p.nome,
+        fotoUrl: live?.fotoUrl || p.fotoUrl || null,
+      };
+      this.selectedPlayer.set(resolved);
+      this.playerSelect.emit(p.originalPlayer || p);
     }
   }
 

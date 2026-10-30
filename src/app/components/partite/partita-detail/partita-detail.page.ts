@@ -311,15 +311,23 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         })),
       );
       const eventi = matchData.eventiGol || [];
-      const normalizePlayer = (p: any) => ({
-        ...p,
-        gol: p.gol || 0,
-        autogol: p.autogol || 0,
-        assist:
-          p.assist !== undefined
-            ? p.assist
-            : eventi.filter((eg: any) => eg.assistId === p.id || (!eg.assistId && eg.assistNome === p.nome)).length,
-      });
+      const normalizePlayer = (p: any) => {
+        const liveG = baseGiocatori.find((bg: any) => bg.id === p.id);
+        return {
+          ...p,
+          nome: liveG?.nome || p.nome,
+          fotoUrl: liveG?.fotoUrl || p.fotoUrl || null,
+          soprannome: liveG?.soprannome || p.soprannome,
+          ruoloPreferito: liveG?.ruoloPreferito || p.ruoloPreferito,
+          piedePreferito: liveG?.piedePreferito || p.piedePreferito,
+          gol: p.gol || 0,
+          autogol: p.autogol || 0,
+          assist:
+            p.assist !== undefined
+              ? p.assist
+              : eventi.filter((eg: any) => eg.assistId === p.id || (!eg.assistId && eg.assistNome === p.nome)).length,
+        };
+      };
 
       this.state.teamA.set((matchData.teamA || []).map(normalizePlayer));
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));

@@ -11,8 +11,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.37",
+    "date": "30/10/2026",
+    "title": "Risoluzione Gol Subiti Portieri a Rotazione e Foto Giocatori Dinamiche sulla Piantina Tattica",
+    "userChanges": [
+      "🧤 Statistiche Gol Subiti Portieri Corrette: risolto il problema di duplicazione dei gol subiti nelle rotazioni dei portieri (i gol vengono ora attribuiti con precisione assoluta al solo turno di porta in cui sono stati incassati).",
+      "🗺️ Piantina Tattica con Foto in Tempo Reale: le foto profilo dei giocatori caricate o modificate dopo la creazione della partita compaiono ora istantaneamente sulla piantina tattica e nella schermata match."
+    ],
+    "superUserChanges": [
+      "Corretto il loop di filtraggio in calculateGoalkeeperStatsForPlayer e calculateGoalkeeperStatsForMatch che moltiplicava i gol subiti per il numero di turni giocati dal portiere.",
+      "Integrazione reattiva di StatsEngineService.giocatoriRaw in TacticalPitchComponent con mapping dinamico livePlayersMap.",
+      "Riconciliazione live dei dati anagrafici e foto profilo in PartitaDetailPage (normalizePlayer)."
+    ]
+  },
+  {
     "version": "1.0.36",
-    "date": "29/10/2026",
+    "date": "30/10/2026",
     "title": "Rilascio in Produzione: Fix Anteprima e Caricamento Foto Giocatore con Badge Fotocamera e Rimozione",
     "userChanges": [
       "📸 Anteprima e Foto Giocatore Immediate: risolto il problema per cui in modifica giocatore l'avatar non caricava la foto del giocatore né la nuova foto selezionata dal dispositivo.",
