@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.0.62",
+    "date": "30/10/2026",
+    "title": "Rinfrescamento Grafico & UX Sezione Chimica: Schede Compatte, Filtri Rapidi e Label Chiare",
+    "userChanges": [
+      "🤝 Schede Chimica Compatte ad Alto Impatto: le card dei Gemelli del Gol e delle Bestie Nere sono state riprogettate in un layout orizzontale moderno (~68px di altezza), dimezzando lo spazio verticale occupato e consentendo di visualizzare molte più coppie a colpo d'occhio.",
+      "🏷️ Informazioni e Label Chiare: il rendimento di coppia è ora spiegato in modo trasparente (es. '+18 MMR/gara'), con bilanci puntuali (V-P-S) e badge contestuali come '🔥 Imbattuti' e '⚽ Gol assistiti' per celebrare le intese perfette.",
+      "😈 Rivalità e Nemesi Immediate: evidenziazione visiva immediata di chi domina lo scontro ('😈 Nemesi: Pietro' o '⚖️ Derby in Equilibrio') con bilancio vittorie per singolo giocatore e tasto rapido per aprire il Confronto 1v1.",
+      "⚡ Filtri Rapidi in Testata: pulsanti dedicati in alto per alternare istantaneamente tra 'Tutte', solo '🤝 Gemelli' o solo '😈 Bestie Nere'."
+    ],
+    "superUserChanges": [
+      "Refactoring reattivo di ClassificaPage con introduzione del signal filtroChimica ('all' | 'gemelli' | 'rivalita').",
+      "Esposizione assistedGoals da statsEngine e normalizzazione dello stato di dominanza con gestione esplicita dei pareggi (Derby in Equilibrio).",
+      "Nuova architettura SCSS .chem-row-card e .chem-compact-list con supporto responsive mobile e desktop."
+    ]
+  },
+  {
     "version": "1.0.60",
     "date": "30/10/2026",
     "title": "Soglia di Sicurezza Timer Partite Estesa a 6 Ore (21600s)",

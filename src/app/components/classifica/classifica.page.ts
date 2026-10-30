@@ -161,6 +161,13 @@ export class ClassificaPage {
   // Vista attiva: classifica principale o sezione dedicata chimica & rivalità
   vistaSelezionata = signal<'classifica' | 'chimica'>('classifica');
 
+  // Filtro sottosezione Chimica: tutte, solo gemelli del gol o solo rivalità
+  filtroChimica = signal<'all' | 'gemelli' | 'rivalita'>('all');
+
+  setFiltroChimica(f: 'all' | 'gemelli' | 'rivalita') {
+    this.filtroChimica.set(f);
+  }
+
   // Stagione e Criterio di ordinamento (Default: Punti Classici del campionato)
   stagioneSelezionata = signal<string>(CURRENT_SEASON);
   criterioOrdinamento = signal<CriterioOrdinamento>('punti');
@@ -618,29 +625,37 @@ export class ClassificaPage {
       losses: number;
       winRate: number;
       avgDeltaTogether?: number;
+      assistedGoals: number;
+      isUnbeaten: boolean;
     }[] = [];
 
     for (const [p1Id, prof] of chemMap.entries()) {
       for (const s of prof.allSynergies) {
         if (s.matchesTogether < 2) continue;
-        const pairKey = [p1Id, s.partnerId].sort().join('___');
+        const pairKey = [p1Id, s.partnerId].sort().join("___");
         if (seenPairs.has(pairKey)) continue;
         seenPairs.add(pairKey);
 
         const p1 = this.giocatoriRaw().find((g) => g.id === p1Id);
+        const p2 = this.giocatoriRaw().find((g) => g.id === s.partnerId);
+        const lossesTogether = s.lossesTogether;
+        const matchesTogether = s.matchesTogether;
+
         duos.push({
           p1Id,
           p1Nome: p1?.nome || prof.nome,
           p1Foto: p1?.fotoUrl,
           p2Id: s.partnerId,
-          p2Nome: s.partnerNome,
-          p2Foto: s.partnerFotoUrl,
-          matches: s.matchesTogether,
+          p2Nome: p2?.nome || s.partnerNome,
+          p2Foto: p2?.fotoUrl || s.partnerFotoUrl,
+          matches: matchesTogether,
           wins: s.winsTogether,
           draws: s.drawsTogether,
-          losses: s.lossesTogether,
+          losses: lossesTogether,
           winRate: s.winRateTogether,
           avgDeltaTogether: s.avgMmrDeltaTogether,
+          assistedGoals: s.assistedGoals || 0,
+          isUnbeaten: lossesTogether === 0 && matchesTogether >= 2,
         });
       }
     }
@@ -669,35 +684,61 @@ export class ClassificaPage {
       p2Wins: number;
       dominancePercent: number;
       dominatorNome: string;
+      isEquilibrio: boolean;
+      statusLabel: string;
+      statusClass: string;
     }[] = [];
 
     for (const [p1Id, prof] of chemMap.entries()) {
       for (const n of prof.allNemesis) {
         if (n.matchesAgainst < 2) continue;
-        const pairKey = [p1Id, n.opponentId].sort().join('___');
+        const pairKey = [p1Id, n.opponentId].sort().join("___");
         if (seenRivals.has(pairKey)) continue;
         seenRivals.add(pairKey);
 
         const p1 = this.giocatoriRaw().find((g) => g.id === p1Id);
+        const p2 = this.giocatoriRaw().find((g) => g.id === n.opponentId);
+        const p1Nome = p1?.nome || prof.nome;
+        const p2Nome = p2?.nome || n.opponentNome;
         const p1Wins = n.winsAgainst;
         const p2Wins = n.lossesAgainst;
-        const domPercent = Math.max(n.winRateAgainst, n.opponentWinRate);
-        const dominatorNome =
-          p1Wins >= p2Wins ? (p1?.nome || prof.nome) : n.opponentNome;
+        const draws = n.drawsAgainst;
+        const matches = n.matchesAgainst;
+
+        const isEquilibrio = p1Wins === p2Wins;
+        let dominatorNome = "Pari";
+        let dominancePercent = 50;
+        let statusLabel = "⚖️ Derby in Equilibrio";
+        let statusClass = "status-equal";
+
+        if (p1Wins > p2Wins) {
+          dominatorNome = p1Nome;
+          dominancePercent = Math.round((p1Wins / matches) * 100);
+          statusLabel = "😈 Nemesi: " + p1Nome;
+          statusClass = "status-p1";
+        } else if (p2Wins > p1Wins) {
+          dominatorNome = p2Nome;
+          dominancePercent = Math.round((p2Wins / matches) * 100);
+          statusLabel = "😈 Nemesi: " + p2Nome;
+          statusClass = "status-p2";
+        }
 
         rivalries.push({
           p1Id,
-          p1Nome: p1?.nome || prof.nome,
+          p1Nome,
           p1Foto: p1?.fotoUrl,
           p2Id: n.opponentId,
-          p2Nome: n.opponentNome,
-          p2Foto: n.opponentFotoUrl,
-          matches: n.matchesAgainst,
+          p2Nome,
+          p2Foto: p2?.fotoUrl || n.opponentFotoUrl,
+          matches,
           p1Wins,
-          draws: n.drawsAgainst,
+          draws,
           p2Wins,
-          dominancePercent: domPercent,
+          dominancePercent,
           dominatorNome,
+          isEquilibrio,
+          statusLabel,
+          statusClass,
         });
       }
     }

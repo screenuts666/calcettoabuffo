@@ -667,96 +667,117 @@
 }
 
 // ==========================================
-// SEZIONE CHIMICA & RIVALITÀ
+// ==========================================
+// SEZIONE CHIMICA & RIVALITÀ (REDESIGN COMPATTO)
 // ==========================================
 .chemistry-container {
   max-width: 900px;
   margin: 0 auto;
+  padding: 8px 6px 36px 6px;
 }
 
-.chemistry-hero-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(37, 211, 102, 0.12) 0%,
-    rgba(0, 229, 255, 0.08) 100%
-  );
-  border: 1px solid var(--app-card-border);
-  border-radius: 16px;
-  padding: 14px 16px;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-
-  .hero-icon {
-    font-size: 2rem;
-  }
-
-  .hero-text {
-    h3 {
-      margin: 0 0 3px 0;
-      font-size: 1.05rem;
-      font-weight: 900;
-      color: var(--app-text-primary);
-    }
-
-    p {
-      margin: 0;
-      font-size: 0.78rem;
-      color: var(--app-text-secondary);
-      line-height: 1.35;
-    }
-  }
-}
-
-.section-title-bar {
+// STRIP INFORMATIVA COMPATTA
+.chemistry-info-strip {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 18px 0 10px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
 
-  h4 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 900;
+  .strip-emoji {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+  }
+
+  .strip-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+
+    .strip-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+
+    .strip-desc {
+      font-size: 0.71rem;
+      color: var(--app-text-secondary);
+      line-height: 1.3;
+    }
+  }
+}
+
+// HEADER SEZIONE (GEMELLI / RIVALITÀ)
+.chem-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 14px 4px 8px 4px;
+  padding: 4px 0;
+
+  .header-left {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .header-icon {
+    font-size: 1.05rem;
+  }
+
+  .header-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--app-text-secondary);
+  }
+
+  .header-count {
+    background: var(--app-surface-subtle);
     color: var(--app-text-primary);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
   }
 
-  .icon-partner {
-    color: var(--app-player2);
-    font-size: 1.25rem;
+  .header-sub-hint {
+    font-size: 0.68rem;
+    color: var(--app-text-muted);
   }
 
-  .icon-nemesis {
-    color: var(--app-accent-purple);
-    font-size: 1.25rem;
+  &.rivalry-header {
+    margin-top: 22px;
   }
 }
 
-.rivalry-title-bar {
-  margin-top: 26px;
+// LISTA COMPATTA A RIGHE
+.chem-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.duo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 12px;
-}
-
-.duo-card {
-  position: relative;
+// CARD COMPATTA (ALTEZZA ~68px)
+.chem-row-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 14px;
+  padding: 8px 10px;
   box-shadow: var(--app-card-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  }
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  cursor: pointer;
+  user-select: none;
 
   &.partner-card {
     border-left: 4px solid var(--ion-color-success);
@@ -765,153 +786,297 @@
   &.nemesis-card {
     border-left: 4px solid var(--app-accent-orange);
   }
-}
 
-.duo-rank {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: var(--app-text-muted);
-}
-
-.duo-players {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  margin: 6px 0 10px;
-}
-
-.player-mini {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: transform 0.15s ease;
-  width: 90px;
-  max-width: 90px;
-  text-align: center;
+  &:hover {
+    border-color: rgba(var(--app-primary-rgb), 0.35);
+  }
 
   &:active {
-    transform: scale(0.94);
-  }
-
-  .duo-avatar,
-  app-player-avatar,
-  img {
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    min-height: 52px;
-    max-width: 52px;
-    max-height: 52px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--app-card-border);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    display: inline-block;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-
-  .mini-name {
-    margin-top: 4px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--app-text-primary);
-    max-width: 95px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    transform: scale(0.985);
+    background: var(--app-surface-hover);
   }
 }
 
-.duo-link-icon {
-  font-size: 1.4rem;
+// POSIZIONE RANK (#1, #2, #3)
+.chem-rank {
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
 
-  &.vs-icon {
-    font-size: 0.78rem;
+  .rank-num {
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--app-text-muted);
+  }
+
+  &.rank-gold .rank-num {
+    color: #f59e0b;
+  }
+
+  &.rank-silver .rank-num {
+    color: #94a3b8;
+  }
+
+  &.rank-bronze .rank-num {
+    color: #d97706;
+  }
+}
+
+// AVATAR TWIN
+.chem-avatar-pair {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+
+  .avatar-wrap {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1.5px solid var(--app-card-border);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+
+    &:active {
+      transform: scale(0.92);
+    }
+
+    app-player-avatar {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  }
+
+  .avatar-link-icon {
+    font-size: 0.82rem;
+    margin: 0 1px;
+    flex-shrink: 0;
+  }
+
+  .vs-chip {
+    font-size: 0.58rem;
     font-weight: 900;
     background: var(--app-accent-orange);
-    color: var(--app-white);
-    padding: 3px 6px;
-    border-radius: 8px;
-    letter-spacing: 0.5px;
+    color: #ffffff;
+    padding: 1px 4px;
+    border-radius: 6px;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
   }
 }
 
-.duo-stats {
-  text-align: center;
-  border-top: 1px solid var(--app-divider);
-  padding-top: 8px;
+// INFO CENTRALI (NOMI & METADATI)
+.chem-main-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.duo-rate {
-  font-size: 0.95rem;
-  font-weight: 900;
-  color: var(--ion-color-success);
+.chem-names-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
-  &.dominance {
+  .player-name-link {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ion-color-success);
+    }
+  }
+
+  .name-amp,
+  .name-vs {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--app-text-muted);
+    flex-shrink: 0;
+  }
+}
+
+.chem-meta-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: var(--app-text-secondary);
+  line-height: 1.2;
+
+  .record-pill {
+    font-weight: 600;
+    color: var(--app-text-secondary);
+
+    b {
+      color: var(--app-text-primary);
+      font-weight: 800;
+    }
+  }
+
+  .matches-text {
+    color: var(--app-text-muted);
+    font-size: 0.68rem;
+  }
+
+  .meta-dot {
+    color: var(--app-text-muted);
+    opacity: 0.5;
+  }
+
+  .assist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--ion-color-success);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 8px;
+    padding: 0 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+  }
+
+  .unbeaten-tag {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(245, 158, 11, 0.14);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 0 5px;
+    font-size: 0.65rem;
+    font-weight: 800;
+  }
+
+  .nemesis-status-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.67rem;
+    font-weight: 800;
+    border-radius: 8px;
+    padding: 1px 6px;
+
+    &.status-p1,
+    &.status-p2 {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--app-accent-danger);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    &.status-equal {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--app-text-secondary);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+  }
+}
+
+// HERO KPI A DESTRA
+.chem-hero-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 62px;
+  flex-shrink: 0;
+  text-align: right;
+
+  .hero-val {
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--ion-color-success);
+    font-family: 'SF Pro Display', -apple-system, Roboto, sans-serif;
+  }
+
+  .hero-lbl {
+    font-size: 0.56rem;
+    font-weight: 800;
+    color: var(--app-text-muted);
+    letter-spacing: 0.4px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  .hero-sub {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--app-text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+
+    &.positive {
+      color: var(--ion-color-success);
+    }
+
+    &.negative {
+      color: var(--app-accent-danger);
+    }
+  }
+
+  &.rivalry .hero-val {
     color: var(--app-accent-orange);
   }
 }
 
-.duo-delta {
-  font-size: 0.73rem;
-  font-weight: 800;
-  margin: 3px 0;
-  color: var(--app-accent-blue);
-
-  &.positive {
-    color: var(--app-primary);
-  }
-  &.negative {
-    color: var(--app-accent-danger);
-  }
+// AZIONI DESTRA PER RIVALITÀ
+.chem-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
-.duo-record {
-  font-size: 0.72rem;
-  color: var(--app-text-secondary);
-  margin-top: 2px;
+.compact-1v1-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--app-player1-subtle);
+  border: 1px solid var(--app-player1-border);
+  color: var(--app-player1);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.8rem;
+  }
+
+  &:hover,
+  &:active {
+    background: rgba(0, 180, 216, 0.25);
+    transform: scale(0.96);
+  }
 }
 
 .empty-duo-msg {
   padding: 20px;
   text-align: center;
   color: var(--app-text-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   background: var(--app-surface-subtle);
+  border: 1px dashed var(--app-card-border);
   border-radius: 12px;
-}
-
-.rivalry-h2h-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  margin-top: 10px;
-  padding: 7px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--app-player1-border);
-  background: var(--app-player1-subtle);
-  color: var(--app-player1);
-  font-size: 0.75rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  ion-icon {
-    font-size: 0.95rem;
-  }
-
-  &:hover,
-  &:active {
-    background: rgba(0, 180, 216, 0.2);
-    transform: scale(0.98);
-  }
 }
 
 // ==========================================

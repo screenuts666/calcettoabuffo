@@ -71,6 +71,35 @@
         }
       </div>
     }
+
+    @if (vistaSelezionata() === 'chimica') {
+      <div class="season-pills">
+        <button
+          type="button"
+          class="season-pill-btn"
+          [class.active]="filtroChimica() === 'all'"
+          (click)="setFiltroChimica('all')"
+        >
+          Tutte ({{ topDuos().length + topRivalries().length }})
+        </button>
+        <button
+          type="button"
+          class="season-pill-btn"
+          [class.active]="filtroChimica() === 'gemelli'"
+          (click)="setFiltroChimica('gemelli')"
+        >
+          🤝 Gemelli ({{ topDuos().length }})
+        </button>
+        <button
+          type="button"
+          class="season-pill-btn"
+          [class.active]="filtroChimica() === 'rivalita'"
+          (click)="setFiltroChimica('rivalita')"
+        >
+          😈 Rivalità ({{ topRivalries().length }})
+        </button>
+      </div>
+    }
   </div>
 
   @if (vistaSelezionata() === 'classifica') {
@@ -481,125 +510,211 @@
 
   <!-- VISTA 2: SEZIONE DEDICATA CHIMICA & RIVALITÀ -->
   @if (vistaSelezionata() === 'chimica') {
-    <div class="chemistry-container ion-padding">
-      <div class="chemistry-hero-card">
-        <div class="hero-icon">⚡</div>
-        <div class="hero-text">
-          <h3>Chimica di Coppia & Rivalità</h3>
-          <p>
-            Scopri le coppie più vincenti (I Gemelli del Gol 🤝) e le rivalità
-            più accese (Le Bestie Nere 😈) calcolate dallo storico partite.
-          </p>
+    <div class="chemistry-container">
+      <!-- MINI STRIP INFORMATIVA COMPATTA -->
+      <div class="chemistry-info-strip">
+        <span class="strip-emoji">⚡</span>
+        <div class="strip-content">
+          <span class="strip-title">Algoritmo Chimica & Rivalità</span>
+          <span class="strip-desc">Coppie più vincenti (🤝) e domini 1v1 negli scontri diretti (😈) calcolati sullo storico partite (min. 2 gare).</span>
         </div>
       </div>
 
-      <!-- I GEMELLI DEL GOL (TOP DUOS) -->
-      <div class="section-title-bar">
-        <ion-icon name="heart" class="icon-partner"></ion-icon>
-        <h4>I Gemelli del Gol 🤝</h4>
-      </div>
+      <!-- 1. I GEMELLI DEL GOL (TOP DUOS) -->
+      @if (filtroChimica() === 'all' || filtroChimica() === 'gemelli') {
+        <div class="chem-section-header">
+          <div class="header-left">
+            <span class="header-icon partner">🤝</span>
+            <span class="header-title">I Gemelli del Gol</span>
+            <span class="header-count">{{ topDuos().length }}</span>
+          </div>
+          <span class="header-sub-hint">Miglior % vittorie insieme</span>
+        </div>
 
-      <div class="duo-grid">
-        @for (duo of topDuos(); track (duo.p1Id || '') + '_' + (duo.p2Id || '') + '_' + $index; let i = $index) {
-          <div class="duo-card partner-card">
-            <div class="duo-rank">#{{ i + 1 }}</div>
-            <div class="duo-players">
-              <div
-                class="player-mini"
-                (click)="apriDettagliPerId(duo.p1Id)"
-                title="Vedi scheda {{ duo.p1Nome }}"
-              >
-                <app-player-avatar class="duo-avatar" [fotoUrl]="duo.p1Foto" [alt]="duo.p1Nome"></app-player-avatar>
-                <span class="mini-name">{{ duo.p1Nome }}</span>
+        <div class="chem-compact-list">
+          @for (duo of topDuos(); track (duo.p1Id || '') + '_' + (duo.p2Id || '') + '_' + $index; let i = $index) {
+            <div class="chem-row-card partner-card" (click)="apriDettagliPerId(duo.p1Id)">
+              <!-- POSIZIONE RANK -->
+              <div class="chem-rank" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                <span class="rank-num">#{{ i + 1 }}</span>
               </div>
 
-              <div class="duo-link-icon">🤝</div>
-
-              <div
-                class="player-mini"
-                (click)="apriDettagliPerId(duo.p2Id)"
-                title="Vedi scheda {{ duo.p2Nome }}"
-              >
-                <app-player-avatar class="duo-avatar" [fotoUrl]="duo.p2Foto" [alt]="duo.p2Nome"></app-player-avatar>
-                <span class="mini-name">{{ duo.p2Nome }}</span>
-              </div>
-            </div>
-
-            <div class="duo-stats">
-              <div class="duo-rate">{{ duo.winRate }}% Vittorie</div>
-              @if (duo.avgDeltaTogether !== undefined) {
-                <div class="duo-delta" [class.positive]="duo.avgDeltaTogether >= 0" [class.negative]="duo.avgDeltaTogether < 0">
-                  ⚡ Rendimento coppia: {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} pt/gara
+              <!-- AVATAR TWIN DEI DUE GIOCATORI -->
+              <div class="chem-avatar-pair">
+                <div
+                  class="avatar-wrap p1"
+                  (click)="apriDettagliPerId(duo.p1Id); $event.stopPropagation()"
+                  [title]="'Apri scheda ' + duo.p1Nome"
+                >
+                  <app-player-avatar [fotoUrl]="duo.p1Foto" [alt]="duo.p1Nome"></app-player-avatar>
                 </div>
-              }
-              <div class="duo-record">
-                {{ duo.wins }}V - {{ duo.draws }}P - {{ duo.losses }}S ({{ duo.matches }} partite insieme)
+                <span class="avatar-link-icon">🤝</span>
+                <div
+                  class="avatar-wrap p2"
+                  (click)="apriDettagliPerId(duo.p2Id); $event.stopPropagation()"
+                  [title]="'Apri scheda ' + duo.p2Nome"
+                >
+                  <app-player-avatar [fotoUrl]="duo.p2Foto" [alt]="duo.p2Nome"></app-player-avatar>
+                </div>
+              </div>
+
+              <!-- INFORMAZIONI NOMI & MICRO-METADATI -->
+              <div class="chem-main-info">
+                <div class="chem-names-row">
+                  <span
+                    class="player-name-link"
+                    (click)="apriDettagliPerId(duo.p1Id); $event.stopPropagation()"
+                  >
+                    {{ duo.p1Nome }}
+                  </span>
+                  <span class="name-amp">&</span>
+                  <span
+                    class="player-name-link"
+                    (click)="apriDettagliPerId(duo.p2Id); $event.stopPropagation()"
+                  >
+                    {{ duo.p2Nome }}
+                  </span>
+                </div>
+
+                <div class="chem-meta-strip">
+                  <span class="record-pill">
+                    <b>{{ duo.wins }}V</b> {{ duo.draws }}P {{ duo.losses }}S
+                  </span>
+                  <span class="meta-dot">·</span>
+                  <span class="matches-text">{{ duo.matches }} gare</span>
+                  @if (duo.assistedGoals && duo.assistedGoals > 0) {
+                    <span class="meta-dot">·</span>
+                    <span class="assist-badge" title="Gol segnati su assist reciproco tra compagni">
+                      ⚽ {{ duo.assistedGoals }} assist
+                    </span>
+                  }
+                  @if (duo.isUnbeaten) {
+                    <span class="unbeaten-tag">🔥 Imbattuti</span>
+                  }
+                </div>
+              </div>
+
+              <!-- HERO STAT BADGE A DESTRA -->
+              <div class="chem-hero-badge">
+                <span class="hero-val">{{ duo.winRate }}%</span>
+                <span class="hero-lbl">VITTORIE</span>
+                @if (duo.avgDeltaTogether !== undefined) {
+                  <span
+                    class="hero-sub"
+                    [class.positive]="duo.avgDeltaTogether >= 0"
+                    [class.negative]="duo.avgDeltaTogether < 0"
+                    title="Impatto medio MMR guadagnato a partita giocando insieme"
+                  >
+                    {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} MMR/gara
+                  </span>
+                }
               </div>
             </div>
-          </div>
-        } @empty {
-          <div class="empty-duo-msg">
-            <p>Servono almeno 2 partite insieme tra due giocatori per calcolare le coppie sinergiche.</p>
-          </div>
-        }
-      </div>
+          } @empty {
+            <div class="empty-duo-msg">
+              <p>Servono almeno 2 partite insieme tra due giocatori per calcolare le coppie sinergiche.</p>
+            </div>
+          }
+        </div>
+      }
 
-      <!-- LE BESTIE NERE & RIVALITÀ (TOP NEMESIS) -->
-      <div class="section-title-bar rivalry-title-bar">
-        <ion-icon name="skull" class="icon-nemesis"></ion-icon>
-        <h4>Le Bestie Nere 😈</h4>
-      </div>
+      <!-- 2. LE BESTIE NERE & RIVALITÀ (TOP NEMESIS) -->
+      @if (filtroChimica() === 'all' || filtroChimica() === 'rivalita') {
+        <div class="chem-section-header rivalry-header">
+          <div class="header-left">
+            <span class="header-icon nemesis">😈</span>
+            <span class="header-title">Le Bestie Nere</span>
+            <span class="header-count">{{ topRivalries().length }}</span>
+          </div>
+          <span class="header-sub-hint">Scontri diretti e domini 1v1</span>
+        </div>
 
-      <div class="duo-grid">
-        @for (riv of topRivalries(); track (riv.p1Id || '') + '_' + (riv.p2Id || '') + '_' + $index; let i = $index) {
-          <div class="duo-card nemesis-card">
-            <div class="duo-rank">#{{ i + 1 }}</div>
-            <div class="duo-players">
-              <div
-                class="player-mini"
-                (click)="apriDettagliPerId(riv.p1Id)"
-                title="Vedi scheda {{ riv.p1Nome }}"
-              >
-                <app-player-avatar class="duo-avatar" [fotoUrl]="riv.p1Foto" [alt]="riv.p1Nome"></app-player-avatar>
-                <span class="mini-name">{{ riv.p1Nome }}</span>
+        <div class="chem-compact-list">
+          @for (riv of topRivalries(); track (riv.p1Id || '') + '_' + (riv.p2Id || '') + '_' + $index; let i = $index) {
+            <div class="chem-row-card nemesis-card" (click)="apriConfronto(riv.p1Id, riv.p2Id)">
+              <!-- POSIZIONE RANK -->
+              <div class="chem-rank" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
+                <span class="rank-num">#{{ i + 1 }}</span>
               </div>
 
-              <div class="duo-link-icon vs-icon">VS</div>
+              <!-- AVATAR TWIN CON BADGE VS -->
+              <div class="chem-avatar-pair">
+                <div
+                  class="avatar-wrap p1"
+                  (click)="apriDettagliPerId(riv.p1Id); $event.stopPropagation()"
+                  [title]="'Apri scheda ' + riv.p1Nome"
+                >
+                  <app-player-avatar [fotoUrl]="riv.p1Foto" [alt]="riv.p1Nome"></app-player-avatar>
+                </div>
+                <span class="vs-chip">VS</span>
+                <div
+                  class="avatar-wrap p2"
+                  (click)="apriDettagliPerId(riv.p2Id); $event.stopPropagation()"
+                  [title]="'Apri scheda ' + riv.p2Nome"
+                >
+                  <app-player-avatar [fotoUrl]="riv.p2Foto" [alt]="riv.p2Nome"></app-player-avatar>
+                </div>
+              </div>
 
-              <div
-                class="player-mini"
-                (click)="apriDettagliPerId(riv.p2Id)"
-                title="Vedi scheda {{ riv.p2Nome }}"
-              >
-                <app-player-avatar class="duo-avatar" [fotoUrl]="riv.p2Foto" [alt]="riv.p2Nome"></app-player-avatar>
-                <span class="mini-name">{{ riv.p2Nome }}</span>
+              <!-- INFORMAZIONI NOMI & SCORE -->
+              <div class="chem-main-info">
+                <div class="chem-names-row">
+                  <span
+                    class="player-name-link"
+                    (click)="apriDettagliPerId(riv.p1Id); $event.stopPropagation()"
+                  >
+                    {{ riv.p1Nome }}
+                  </span>
+                  <span class="name-vs">vs</span>
+                  <span
+                    class="player-name-link"
+                    (click)="apriDettagliPerId(riv.p2Id); $event.stopPropagation()"
+                  >
+                    {{ riv.p2Nome }}
+                  </span>
+                </div>
+
+                <div class="chem-meta-strip">
+                  <span class="nemesis-status-pill" [ngClass]="riv.statusClass">
+                    {{ riv.statusLabel }}
+                  </span>
+                  <span class="meta-dot">·</span>
+                  <span class="record-pill">
+                    <b>{{ riv.p1Wins }}V</b> {{ riv.p1Nome }} - <b>{{ riv.p2Wins }}V</b> {{ riv.p2Nome }}
+                    @if (riv.draws > 0) {
+                      ({{ riv.draws }}P)
+                    }
+                  </span>
+                  <span class="meta-dot">·</span>
+                  <span class="matches-text">{{ riv.matches }} gare</span>
+                </div>
+              </div>
+
+              <!-- HERO STAT BADGE & TASTO 1v1 RAPIDO -->
+              <div class="chem-right-actions">
+                <div class="chem-hero-badge rivalry">
+                  <span class="hero-val">{{ riv.dominancePercent }}%</span>
+                  <span class="hero-lbl">{{ riv.isEquilibrio ? 'PARI' : 'DOMINIO' }}</span>
+                </div>
+
+                <button
+                  type="button"
+                  class="compact-1v1-btn"
+                  (click)="apriConfronto(riv.p1Id, riv.p2Id); $event.stopPropagation()"
+                  title="Confronto diretto 1v1 tra {{ riv.p1Nome }} e {{ riv.p2Nome }}"
+                >
+                  <ion-icon name="swap-horizontal"></ion-icon>
+                  <span>1v1</span>
+                </button>
               </div>
             </div>
-
-            <div class="duo-stats">
-              <div class="duo-rate dominance">
-                {{ riv.dominatorNome }} domina ({{ riv.dominancePercent }}%)
-              </div>
-              <div class="duo-record">
-                Bilancio: {{ riv.p1Wins }}V ({{ riv.p1Nome }}) - {{ riv.draws }}P - {{ riv.p2Wins }}V ({{ riv.p2Nome }}) in {{ riv.matches }} scontri
-              </div>
+          } @empty {
+            <div class="empty-duo-msg">
+              <p>Servono almeno 2 scontri diretti tra due avversari per calcolare le rivalità.</p>
             </div>
-
-            <button
-              type="button"
-              class="rivalry-h2h-btn"
-              (click)="apriConfronto(riv.p1Id, riv.p2Id); $event.stopPropagation()"
-            >
-              <ion-icon name="swap-horizontal"></ion-icon>
-              <span>⚔️ Confronto 1v1</span>
-            </button>
-          </div>
-        } @empty {
-          <div class="empty-duo-msg">
-            <p>Servono almeno 2 scontri diretti tra due avversari per calcolare le rivalità.</p>
-          </div>
-        }
-      </div>
+          }
+        </div>
+      }
     </div>
   }
 </ion-content>
