@@ -11,9 +11,9 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.39",
+    "version": "1.0.40",
     "date": "30/10/2026",
-    "title": "Nuova Sezione Match Portieri, Parate Incredibili con Bonus MMR, Note Libere e Filtro Minuti Giocati",
+    "title": "Rilascio Ufficiale PROD: Nuova Scheda Portieri, Parate Incredibili con Bonus MMR, Note Libere e Filtro Minuti Giocati",
     "userChanges": [
       "🧤 Scheda Dedicata Portieri: ogni partita ha ora una scheda 'Portieri' riservata dove consultare i turni tra i pali, i gol subiti, i Clean Sheet e il resoconto completo per i Bianchi e per i Neri.",
       "✨ Parate Incredibili & Miracoli: aggiunto il parametro opzionale per registrare le parate decisive e gli interventi spettacolari di ciascun portiere, che attribuiscono punti bonus al rendimento MMR.",
@@ -21,6 +21,7 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
       "⏱️ Minuti Giocati & Filtro Classifica: conteggio dettagliato di minuti e secondi effettivi trascorsi in campo per ogni giocatore, visibile nella scheda giocatore e utilizzabile come nuovo filtro di ordinamento in Classifica."
     ],
     "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
       "Nuovo componente standalone PrestazioniTabPortieriComponent integrato nello step prestazioni con navigazione a 5 tab.",
       "Aggiunta del contatore parateIncredibili per giocatore nella partita con persistenza Firestore e reattività su MatchStateService.",
       "Aggiunta del parametro bonusParataIncredibile a SeasonEngineConfig con visualizzazione e configurazione dinamica in Area Segreta.",
