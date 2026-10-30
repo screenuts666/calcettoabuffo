@@ -146,7 +146,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       let orarioPredefinito = '21:00';
       let modalitaAPredefinita: ModalitaPortiere = 'rotazione';
       let modalitaBPredefinita: ModalitaPortiere = 'rotazione';
-      let durataTurnoMinutiPredefinita = 5;
+      let durataTurnoMinutiPredefinita = this.state.soundSettings?.config().gkTurnMinutes || 5;
 
       // 1. Prova prima dal setup ricordato e salvato in localStorage
       try {

@@ -163,17 +163,10 @@ export class MatchStateService {
   );
 
   durataTurnoSecondi = computed(() => {
-    // Solo per DEV / Staging: rotazione accelerata ogni 30 secondi per facilitare le prove
-    if (!environment.production) {
-      return 30;
-    }
     return this.durataTurnoMinuti() * 60;
   });
 
   durataTurnoLabel = computed(() => {
-    if (!environment.production) {
-      return 'Ogni 30s (DEV ⚡)';
-    }
     return `Ogni ${this.durataTurnoMinuti()} min`;
   });
 
@@ -356,7 +349,7 @@ export class MatchStateService {
     const current = this.rotazionePortieri() || {
       teamA: this.teamA().map((p) => p.id),
       teamB: this.teamB().map((p) => p.id),
-      durataTurnoMinuti: 5,
+      durataTurnoMinuti: this.durataTurnoMinuti(),
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
     };
@@ -429,7 +422,7 @@ export class MatchStateService {
       portiereFissoBId: defaultFissoB,
       teamA: modalitaA === 'rotazione' ? this.shuffleIds(teamAIds) : teamAIds,
       teamB: modalitaB === 'rotazione' ? this.shuffleIds(teamBIds) : teamBIds,
-      durataTurnoMinuti: 5,
+      durataTurnoMinuti: this.durataTurnoMinuti(),
     };
     this.rotazionePortieri.set(nuovaRotazione);
   }
@@ -438,7 +431,7 @@ export class MatchStateService {
     const current = this.rotazionePortieri() || {
       teamA: this.teamA().map((p) => p.id),
       teamB: this.teamB().map((p) => p.id),
-      durataTurnoMinuti: 5,
+      durataTurnoMinuti: this.durataTurnoMinuti(),
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
     };

@@ -42,6 +42,8 @@ import {
   logOutOutline,
   flash,
   notificationsOutline,
+  cloudDoneOutline,
+  syncOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
@@ -105,6 +107,8 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       logOutOutline,
       flash,
       notificationsOutline,
+      cloudDoneOutline,
+      syncOutline,
     });
   }
 
@@ -133,15 +137,15 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
 
   // ─── GESTIONE SUONO CAMBIO PORTIERE ────────────────────────────────────────
 
-  selezionaSuonoPortiere(id: GkSoundId) {
+  async selezionaSuonoPortiere(id: GkSoundId) {
     if (!this.authService.isAdmin()) {
       this.mostraToast('🔒 Solo il Super User può modificare il suono ufficiale', 'warning');
       return;
     }
-    this.soundSettings.selectGkSound(id);
+    await this.soundSettings.updateConfig({ selectedGkSoundId: id });
     const preset = this.soundSettings.gkPresets.find((p) => p.id === id);
     if (preset) {
-      this.mostraToast(`${preset.emoji} Scelto: ${preset.name}`, 'success');
+      this.mostraToast(`${preset.emoji} Scelto: ${preset.name} (salvato nel cloud)`, 'success');
     }
   }
 
@@ -152,43 +156,67 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     this.soundSettings.togglePreviewGkSound(id);
   }
 
-  toggleVoiceAnnouncement() {
+  async toggleVoiceAnnouncement() {
     if (!this.authService.isAdmin()) return;
     const next = !this.soundSettings.config().voiceAnnouncement;
-    this.soundSettings.updateConfig({ voiceAnnouncement: next });
+    await this.soundSettings.updateConfig({ voiceAnnouncement: next });
+    this.mostraToast(
+      next ? '🗣️ Speaker vocale portieri attivato' : '🔇 Speaker vocale disattivato',
+      'success'
+    );
   }
 
-  toggleVibrationAlert() {
+  async toggleVibrationAlert() {
     if (!this.authService.isAdmin()) return;
     const next = !this.soundSettings.config().vibrationAlert;
-    this.soundSettings.updateConfig({ vibrationAlert: next });
+    await this.soundSettings.updateConfig({ vibrationAlert: next });
+    this.mostraToast(
+      next ? '📳 Vibrazione emergenza attivata' : '📴 Vibrazione emergenza disattivata',
+      'success'
+    );
   }
 
-  setTurnMinutes(min: number) {
+  async setTurnMinutes(min: number) {
     if (!this.authService.isAdmin()) return;
-    this.soundSettings.updateConfig({ gkTurnMinutes: min });
-    this.mostraToast(`⏱️ Turno portieri impostato a ${min} minuti`, 'success');
+    await this.soundSettings.updateConfig({ gkTurnMinutes: min });
+    this.mostraToast(`⏱️ Turno portieri impostato a ${min} minuti (salvato nel cloud)`, 'success');
   }
+
   async ripristinaDefaultAudio() {
-    this.soundSettings.resetToDefaults();
-    await this.mostraToast('🔄 Impostazioni audio riportate ai valori consigliati', 'success');
+    await this.soundSettings.resetToDefaults();
+    await this.mostraToast('🔄 Impostazioni audio ripristinate ai valori di fabbrica', 'success');
   }
 
   // ─── GESTIONE EFFETTI MATCH & FISCHIETTO ──────────────────────────────────
 
-  toggleMatchWhistleEffects() {
+  async toggleMatchWhistleEffects() {
     if (!this.authService.isAdmin()) return;
-    this.soundSettings.toggleMatchWhistleEffects();
+    const next = !this.soundSettings.config().matchWhistleEffects;
+    await this.soundSettings.updateConfig({ matchWhistleEffects: next });
+    this.mostraToast(
+      next ? '🏁 Fischi arbitro attivati' : '🏁 Fischi arbitro disattivati',
+      'success'
+    );
   }
 
-  toggleGoalSoundEffects() {
+  async toggleGoalSoundEffects() {
     if (!this.authService.isAdmin()) return;
-    this.soundSettings.toggleGoalSoundEffects();
+    const next = !this.soundSettings.config().goalSoundEffects;
+    await this.soundSettings.updateConfig({ goalSoundEffects: next });
+    this.mostraToast(
+      next ? '🎺 Fanfara celebrazione gol attivata' : '🎺 Celebrazione gol disattivata',
+      'success'
+    );
   }
 
-  toggleAutogoalSoundEffects() {
+  async toggleAutogoalSoundEffects() {
     if (!this.authService.isAdmin()) return;
-    this.soundSettings.toggleAutogoalSoundEffects();
+    const next = !this.soundSettings.config().autogoalSoundEffects;
+    await this.soundSettings.updateConfig({ autogoalSoundEffects: next });
+    this.mostraToast(
+      next ? '🎷 Trombone autogol attivato' : '🎷 Trombone autogol disattivato',
+      'success'
+    );
   }
 
   testaEffetto(effectId: 'whistle_kickoff' | 'whistle_final' | 'goal_celebration' | 'sad_trombone') {

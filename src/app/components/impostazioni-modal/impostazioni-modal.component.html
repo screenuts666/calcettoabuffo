@@ -37,6 +37,22 @@
     </div>
   </div>
 
+  <!-- BANNER STATO SINCRONIZZAZIONE CLOUD -->
+  <div class="cloud-sync-banner" [class.saving]="soundSettings.isSavingCloud()">
+    <div class="csb-content">
+      <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
+      <span>
+        @if (soundSettings.isSavingCloud()) {
+          Salvataggio impostazioni sul cloud in corso...
+        } @else if (soundSettings.lastSavedAt()) {
+          Sincronizzato sul cloud alle {{ soundSettings.lastSavedAt() }}
+        } @else {
+          Sincronizzazione cloud attiva (Firebase)
+        }
+      </span>
+    </div>
+  </div>
+
   <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
   <div class="settings-tabs-bar">
     <button

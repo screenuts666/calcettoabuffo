@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, setDoc, onSnapshot } from '@angular/fire/firestore';
 import { TtsService } from './tts.service';
 import { computeTextHash } from '../utils/text-sanitizer';
 
@@ -113,6 +113,8 @@ export class SoundSettingsService {
   readonly gkPresets = GK_SOUND_PRESETS;
 
   config = signal<SuperUserSoundConfig>(this.loadConfig());
+  isSavingCloud = signal<boolean>(false);
+  lastSavedAt = signal<string | null>(null);
 
   selectedGkPreset = computed<GkSoundPreset>(() => {
     const id = this.config().selectedGkSoundId;
@@ -153,22 +155,33 @@ export class SoundSettingsService {
       this.htmlSynthAudio.preload = 'auto';
 
       if (this.firestore) {
-        getDoc(doc(this.firestore, 'config_stagioni/superuser_sound_settings'))
-          .then((snap) => {
-            if (snap.exists()) {
-              const data = snap.data() as Partial<SuperUserSoundConfig>;
-              if (data && typeof data === 'object') {
-                this.config.update((prev) => {
-                  const merged = { ...prev, ...data };
-                  if (typeof localStorage !== 'undefined') {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-                  }
-                  return merged;
-                });
+        try {
+          const configDocRef = doc(this.firestore, 'config_stagioni/superuser_sound_settings');
+          onSnapshot(
+            configDocRef,
+            (snap) => {
+              if (snap.exists()) {
+                const data = snap.data() as Partial<SuperUserSoundConfig>;
+                if (data && typeof data === 'object') {
+                  this.config.update((prev) => {
+                    const merged = { ...prev, ...data };
+                    if (typeof localStorage !== 'undefined') {
+                      try {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+                      } catch {}
+                    }
+                    return merged;
+                  });
+                }
               }
+            },
+            (err) => {
+              console.warn('Avviso sincronizzazione impostazioni Firestore:', err);
             }
-          })
-          .catch(() => {});
+          );
+        } catch (e) {
+          console.warn('Inizializzazione onSnapshot impostazioni fallita:', e);
+        }
       }
 
       if ('speechSynthesis' in window) {
@@ -230,7 +243,7 @@ export class SoundSettingsService {
     return { ...DEFAULT_SOUND_CONFIG };
   }
 
-  updateConfig(partial: Partial<SuperUserSoundConfig>) {
+  async updateConfig(partial: Partial<SuperUserSoundConfig>): Promise<void> {
     const updated: SuperUserSoundConfig = {
       ...this.config(),
       ...partial,
@@ -241,6 +254,28 @@ export class SoundSettingsService {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       }
     } catch {}
+
+    if (this.firestore) {
+      try {
+        this.isSavingCloud.set(true);
+        await setDoc(
+          doc(this.firestore, 'config_stagioni/superuser_sound_settings'),
+          updated,
+          { merge: true }
+        );
+        this.lastSavedAt.set(
+          new Date().toLocaleTimeString('it-IT', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })
+        );
+      } catch (err) {
+        console.warn('Errore salvataggio impostazioni su Firestore:', err);
+      } finally {
+        this.isSavingCloud.set(false);
+      }
+    }
   }
 
   toggleMatchWhistleEffects() {
@@ -313,14 +348,37 @@ export class SoundSettingsService {
     this.updateConfig({ selectedGkSoundId: valid });
   }
 
-  resetToDefaults() {
+  async resetToDefaults(): Promise<void> {
     this.stopAllSounds();
-    this.config.set({ ...DEFAULT_SOUND_CONFIG });
+    const defaults = { ...DEFAULT_SOUND_CONFIG };
+    this.config.set(defaults);
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
       }
     } catch {}
+
+    if (this.firestore) {
+      try {
+        this.isSavingCloud.set(true);
+        await setDoc(
+          doc(this.firestore, 'config_stagioni/superuser_sound_settings'),
+          defaults,
+          { merge: true }
+        );
+        this.lastSavedAt.set(
+          new Date().toLocaleTimeString('it-IT', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          })
+        );
+      } catch (err) {
+        console.warn('Errore reset impostazioni su Firestore:', err);
+      } finally {
+        this.isSavingCloud.set(false);
+      }
+    }
   }
 
   /**
