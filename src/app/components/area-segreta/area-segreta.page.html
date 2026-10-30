@@ -844,7 +844,7 @@
                         🧤 Portiere ({{ p.gk.isClassificabile ? '✅ Classificabile' : '⏳ 0 presenze' }})
                       </div>
                       <p><code>{{ p.gk.formulaStr }}</code></p>
-                      <p>{{ p.gk.turniInPorta }} turni ({{ p.gk.minutiInPorta }}') · {{ p.gk.golSubiti }} subiti · {{ p.gk.cleanSheetTurni }} CS</p>
+                      <p>{{ p.gk.turniInPorta }} turni ({{ p.gk.minutiInPortaDisplay || (p.gk.minutiInPorta + "'") }}) · {{ p.gk.golSubiti }} subiti · {{ p.gk.cleanSheetTurni }} CS</p>
                     </div>
                     <div class="mini-audit-box">
                       <div class="cs-title">🤝 Chimica</div>

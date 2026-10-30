@@ -1,3 +1,4 @@
+import { formatTempoTotale, formatMinuti } from '../../utils/time-format.util';
 import {
   Component,
   inject,
@@ -116,7 +117,7 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'PRESENZE' },
-  { id: 'minuti', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'MINUTI' },
+  { id: 'minuti', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'TEMPO' },
 ];
 export { GiocatoreConPunti };
 
@@ -325,9 +326,7 @@ export class ClassificaPage {
       });
 
       punti = Math.round(punti * 10) / 10;
-      const minutiTotali = Math.floor(secondiGiocatiTotali / 60);
-      const secondiRimanenti = secondiGiocatiTotali % 60;
-      const minutiGiocatiDisplay = `${minutiTotali}' ${secondiRimanenti.toString().padStart(2, '0')}"`;
+      const minutiGiocatiDisplay = formatTempoTotale(secondiGiocatiTotali);
       const mediaVoto = partiteGiocate > 0 ? sommaVoti / partiteGiocate : 0;
 
       // 2. Dati del Nuovo Motore MMR & Statistiche
@@ -835,7 +834,7 @@ export class ClassificaPage {
       case 'minuti':
         return {
           valore: g.minutiGiocatiDisplay || "0' 00\"",
-          etichetta: 'MINUTI',
+          etichetta: 'TEMPO',
           subText: g.partiteGiocate > 0 ? `${g.partiteGiocate} gare` : '',
           subType: 'muted',
         };
@@ -949,7 +948,7 @@ export class ClassificaPage {
         msg += `   └ ⏱️ *${g.minutiGiocatiDisplay}* | 👥 ${g.partiteGiocate} gare | 🏆 ${g.puntiDisplay} pt | ⭐ ${g.mediaVotoDisplay}\n`;
       } else if (this.criterioOrdinamento() === 'portieri') {
         const ps = g.portiereStats;
-        msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPorta}' (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
+        msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPortaDisplay || (ps?.minutiInPorta + '\'')} (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
       } else {
         msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 👥 ${g.partiteGiocate} gare | ⭐ ${g.mediaVotoDisplay} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
       }

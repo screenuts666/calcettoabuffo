@@ -1,3 +1,4 @@
+import { formatMinuti } from '../../../../../../../utils/time-format.util';
 import {
   Component,
   ChangeDetectionStrategy,
@@ -35,6 +36,7 @@ export interface GoalkeeperMatchRow {
   isFisso: boolean;
   turniInPorta: number;
   minutiInPorta: number;
+  minutiInPortaDisplay: string;
   golSubiti: number;
   cleanSheetTurni: number;
   parateIncredibili: number;
@@ -116,6 +118,7 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
           isFisso,
           turniInPorta: stats.turniGiocati,
           minutiInPorta,
+          minutiInPortaDisplay: formatMinuti(minutiInPorta),
           golSubiti: stats.golSubiti,
           cleanSheetTurni: stats.cleanSheetTurni,
           parateIncredibili: parate,

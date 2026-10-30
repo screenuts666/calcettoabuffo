@@ -257,7 +257,7 @@
                 </span>
                 <span class="stat-sep">·</span>
                 <span class="stat-mini" title="Minuti e turni in porta">
-                  ⏱️ <b>{{ g.portiereStats.minutiInPorta }}'</b> ({{ g.portiereStats.turniInPorta }}t)
+                  ⏱️ <b>{{ g.portiereStats.minutiInPortaDisplay || (g.portiereStats.minutiInPorta + "'") }}</b> ({{ g.portiereStats.turniInPorta }}t)
                 </span>
                 <span class="stat-sep">·</span>
                 <span class="stat-mini success" title="Turni imbattuto (Clean Sheet)">

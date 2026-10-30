@@ -168,6 +168,7 @@ export interface PlayerXRayAudit {
   };
   gk: {
     minutiInPorta: number;
+    minutiInPortaDisplay?: string;
     turniInPorta: number;
     golSubiti: number;
     cleanSheetTurni: number;

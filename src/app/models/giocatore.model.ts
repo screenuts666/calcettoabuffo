@@ -78,6 +78,7 @@ export interface GiocatoreConPunti extends Giocatore {
 
 export interface PortiereStats {
   minutiInPorta: number;
+  minutiInPortaDisplay?: string;
   turniInPorta: number;
   golSubiti: number;
   cleanSheetTurni: number;

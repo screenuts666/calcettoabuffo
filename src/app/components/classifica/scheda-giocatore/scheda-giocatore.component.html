@@ -278,7 +278,7 @@
       <div class="stat-box">
         <div class="stat-box-title">TEMPO IN PORTA ⏱️</div>
         <div class="stat-box-num">
-          {{ prof.portiereStats.minutiInPorta }}'
+          {{ prof.portiereStats.minutiInPortaDisplay || (prof.portiereStats.minutiInPorta + "'") }}
         </div>
         <div class="stat-box-sub">{{ prof.portiereStats.turniInPorta }} turni ({{ prof.portiereStats.golSubiti }} gol subiti)</div>
       </div>
