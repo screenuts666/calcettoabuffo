@@ -606,6 +606,7 @@ export class StatsEngineService {
         let matchTurniGiocati = 0;
         let matchGolSubiti = 0;
         let matchCleanSheetTurni = 0;
+        const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
 
         for (let turno = 0; turno < totalTurni; turno++) {
           const idxInOrder = turno % orderList.length;
@@ -618,8 +619,6 @@ export class StatsEngineService {
             );
             const secondiEffettivi = Math.max(0, fineSec - inizioSec);
             minutiInPorta += secondiEffettivi > 0 ? Math.max(1, Math.round(secondiEffettivi / 60)) : 0;
-
-            const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
             const eventi = p.eventiGol || [];
 
             const golNelTurno = eventi.filter((eg: any) => {
@@ -638,7 +637,7 @@ export class StatsEngineService {
 
               if (eg.portiereSubitoId) {
                 if (eg.portiereSubitoId !== playerId) return false;
-                return eg.tempo ? isInThisTurn : true;
+                return eg.tempo ? isInThisTurn : (turno === playerIndices[0]);
               }
 
               return isInThisTurn;
@@ -652,6 +651,10 @@ export class StatsEngineService {
         }
 
         if (matchTurniGiocati > 0) {
+          const totalAvvGol = (p.eventiGol || []).filter((eg: any) => eg.teamVantaggio === teamAvversario).length;
+          if (totalAvvGol > 0 && matchGolSubiti > totalAvvGol) {
+            matchGolSubiti = totalAvvGol;
+          }
           turniInPorta += matchTurniGiocati;
           golSubiti += matchGolSubiti;
           cleanSheetTurni += matchCleanSheetTurni;
@@ -779,7 +782,7 @@ export class StatsEngineService {
 
           if (eg.portiereSubitoId) {
             if (eg.portiereSubitoId !== playerId) return false;
-            return eg.tempo ? isInThisTurn : true;
+            return eg.tempo ? isInThisTurn : (turno === playerIndices[0]);
           }
 
           return isInThisTurn;
@@ -792,6 +795,10 @@ export class StatsEngineService {
       }
     }
 
+    const totalAvvGol = eventi.filter((eg: any) => eg.teamVantaggio === teamAvversario).length;
+    if (totalAvvGol > 0 && golSubiti > totalAvvGol) {
+      golSubiti = totalAvvGol;
+    }
     const parateIncredibili = match.parateIncredibili?.[playerId] || (playerTeam === 'A' ? match.teamA : match.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
     return { turniGiocati, golSubiti, cleanSheetTurni, parateIncredibili };
   }

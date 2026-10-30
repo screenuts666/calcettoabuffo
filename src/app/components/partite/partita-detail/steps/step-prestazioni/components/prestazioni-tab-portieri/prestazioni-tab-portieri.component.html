@@ -190,15 +190,27 @@
         <span class="optional-chip">Opzionale</span>
       </div>
       @if (isAdmin) {
-        <button
-          type="button"
-          class="btn-save-notes"
+        <div class="notes-actions-row">
+          @if (gkSummary?.notesPrompt) {
+            <button
+              type="button"
+              class="btn-import-summary"
+              (click)="importaResocontoAutomatico()"
+              title="Importa il resoconto statistico generato automaticamente"
+            >
+              <span>⚡ Importa Resoconto</span>
+            </button>
+          }
+          <button
+            type="button"
+            class="btn-save-notes"
           (click)="onSalvaNote()"
           [class.saved]="isNoteSaved()"
         >
           <ion-icon [name]="isNoteSaved() ? 'checkmark-circle-outline' : 'save-outline'"></ion-icon>
           <span>{{ isNoteSaved() ? 'Salvate!' : 'Salva Note' }}</span>
         </button>
+        </div>
       }
     </div>
 

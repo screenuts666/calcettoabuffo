@@ -136,6 +136,15 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
     this.isNoteSaved.set(false);
   }
 
+  importaResocontoAutomatico() {
+    if (!this.gkSummary?.notesPrompt) return;
+    const current = this.noteInput().trim();
+    const prompt = this.gkSummary.notesPrompt;
+    const next = current ? `${current}\n\n${prompt}` : prompt;
+    this.noteInput.set(next);
+    this.isNoteSaved.set(false);
+  }
+
   onSalvaNote() {
     this.salvaNote.emit(this.noteInput());
     this.isNoteSaved.set(true);

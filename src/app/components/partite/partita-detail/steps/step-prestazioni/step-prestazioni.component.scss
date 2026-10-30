@@ -119,3 +119,19 @@
     }
   }
 }
+
+@media (max-width: 380px) {
+  .report-segments-bar {
+    gap: 2px;
+    padding: 4px 6px;
+
+    .segment-tab-btn {
+      padding: 6px 1px;
+      font-size: 0.65rem;
+
+      ion-icon {
+        font-size: 1.05rem;
+      }
+    }
+  }
+}

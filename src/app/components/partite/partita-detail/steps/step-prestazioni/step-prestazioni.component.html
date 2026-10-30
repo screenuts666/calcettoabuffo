@@ -46,6 +46,16 @@
       <button
         type="button"
         class="segment-tab-btn"
+        [class.active]="activeTab() === 'portieri'"
+        (click)="activeTab.set('portieri')"
+      >
+        <ion-icon name="shield-outline"></ion-icon>
+        <span class="tab-label-text">Portieri</span>
+      </button>
+
+      <button
+        type="button"
+        class="segment-tab-btn"
         [class.active]="activeTab() === 'spogliatoio'"
         (click)="activeTab.set('spogliatoio')"
       >

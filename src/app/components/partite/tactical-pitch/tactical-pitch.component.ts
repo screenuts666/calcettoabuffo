@@ -77,6 +77,25 @@ export class TacticalPitchComponent {
     return map;
   });
 
+  readonly liveByNameMap = computed<Map<string, Giocatore>>(() => {
+    const map = new Map<string, Giocatore>();
+    const list = this.statsEngine?.giocatoriRaw() || [];
+    for (const g of list) {
+      if (g.nome) {
+        const full = g.nome.trim().toLowerCase();
+        map.set(full, g);
+        const first = full.split(' ')[0];
+        if (first && !map.has(first)) {
+          map.set(first, g);
+        }
+      }
+      if (g.soprannome) {
+        map.set(g.soprannome.trim().toLowerCase(), g);
+      }
+    }
+    return map;
+  });
+
   selectedPlayer = signal<PositionedPlayer | null>(null);
 
   // Override manuale dei portieri (permette di ciclare tra i turni o scegliere chi va in porta)
@@ -120,15 +139,28 @@ export class TacticalPitchComponent {
   readonly normalizedTeams = computed<{ teamA: any[]; teamB: any[] }>(() => {
     const m = this.currentMatch();
     const liveMap = this.livePlayersMap();
+    const byName = this.liveByNameMap();
     const enrich = (pl: any) => {
-      if (!pl || !pl.id) return pl;
-      const live = liveMap.get(pl.id);
+      if (!pl) return pl;
+      const pid = pl.id || pl.giocatoreId || pl.playerId;
+      const pNome = (pl.nome || '').trim().toLowerCase();
+      const pFirst = pNome.split(' ')[0];
+      const pSoprannome = (pl.soprannome || '').trim().toLowerCase();
+
+      const live =
+        (pid ? liveMap.get(pid) : null) ||
+        (pNome ? byName.get(pNome) : null) ||
+        (pSoprannome ? byName.get(pSoprannome) : null) ||
+        (pFirst ? byName.get(pFirst) : null);
+
       if (!live) return pl;
+      const liveFoto = live.fotoUrl || (live as any).foto || null;
       return {
         ...pl,
+        id: pl.id || live.id,
         nome: live.nome || pl.nome,
-        fotoUrl: live.fotoUrl || pl.fotoUrl || null,
-        foto: live.fotoUrl || pl.foto || null,
+        fotoUrl: liveFoto || pl.fotoUrl || pl.foto || null,
+        foto: liveFoto || pl.foto || pl.fotoUrl || null,
         ruoloPreferito: live.ruoloPreferito || pl.ruoloPreferito,
         piedePreferito: live.piedePreferito || pl.piedePreferito,
         soprannome: live.soprannome || pl.soprannome,
@@ -967,11 +999,20 @@ export class TacticalPitchComponent {
     if (this.selectedPlayer()?.id === p.id) {
       this.selectedPlayer.set(null);
     } else {
-      const live = p.id ? this.livePlayersMap().get(p.id) : null;
+      const liveMap = this.livePlayersMap();
+      const byName = this.liveByNameMap();
+      const pid = p.id;
+      const pNome = (p.nome || '').trim().toLowerCase();
+      const pFirst = pNome.split(' ')[0];
+      const live =
+        (pid ? liveMap.get(pid) : null) ||
+        (pNome ? byName.get(pNome) : null) ||
+        (pFirst ? byName.get(pFirst) : null);
+      const liveFoto = live?.fotoUrl || (live as any)?.foto || null;
       const resolved: PositionedPlayer = {
         ...p,
         nome: live?.nome || p.nome,
-        fotoUrl: live?.fotoUrl || p.fotoUrl || null,
+        fotoUrl: liveFoto || p.fotoUrl || null,
       };
       this.selectedPlayer.set(resolved);
       this.playerSelect.emit(p.originalPlayer || p);
