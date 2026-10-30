@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.0.69",
+    "date": "30/10/2026",
+    "title": "Fix Critico Timer Partita: Eliminato Trigger e Allarme Cambio Portiere all'Avvio (Minuto 00:00)",
+    "userChanges": [
+      "⏱️ Partenza Pulita del Cronometro: risolta l'anomalia per cui alla pressione di ▶ AVVIA al minuto 00:00 partiva immediatamente l'avviso o l'allarme di cambio portiere.",
+      "🛡️ Protezione Blindata del 1° Turno: il cambio portiere (audio, sintesi vocale e banner) può ora attivarsi esclusivamente dopo che sono effettivamente trascorsi tutti i minuti del primo turno di gioco (es. 5 minuti effettivi)."
+    ],
+    "superUserChanges": [
+      "Introdotta guardia rigida in StepMatchComponent, MatchStateService e PartitaDetailPage: cambioAttivo è forzato a false e non può essere valorizzato a true se cronometro < durataTurnoSecondi.",
+      "Reset preventivo di cambioAttivo nel payload Firestore e silenziamento di ogni allarme su toggleTimer se il timer parte da 00:00.",
+      "Rimossa riproduzione automatica del fischio arbitrale kickoff su toggleTimer per evitare qualsiasi ambiguità con il segnale acustico del turnover."
+    ]
+  },
+  {
     "version": "1.0.67",
     "date": "30/10/2026",
     "title": "UX Partite Raffinata: Navigazione Immediata al Dettaglio, Azioni Ottimizzate e Layout Senza Tagli",

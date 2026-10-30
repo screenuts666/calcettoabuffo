@@ -527,6 +527,12 @@ export class MatchStateService {
         isTimerRunning: true,
         timerStartAt: startAt,
       };
+
+      // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
+      if (this.cronometro() < this.durataTurnoSecondi()) {
+        this.cambioAttivo.set(false);
+        payload['cambioAttivo'] = false;
+      }
       const currentStatus = this.status();
       if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
         payload['status'] = 'in_corso';
@@ -707,8 +713,12 @@ export class MatchStateService {
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
           this.status.set(data.status || 'da_definire');
-          // Allarme cambio consentito solo se il timer della partita è effettivamente attivo
-          this.cambioAttivo.set(data.isTimerRunning ? (data.cambioAttivo || false) : false);
+          // Allarme cambio consentito solo se il timer è attivo e la partita ha superato la durata del primo turno
+          const turnSec = this.durataTurnoSecondi();
+          const isPastFirstTurn = (data.cronometro || this.cronometro() || 0) >= turnSec;
+          this.cambioAttivo.set(
+            data.isTimerRunning && isPastFirstTurn ? (data.cambioAttivo || false) : false
+          );
           this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.fotoUrl.set(data.fotoUrl || null);
           this.fotoPath.set(data.fotoPath || null);

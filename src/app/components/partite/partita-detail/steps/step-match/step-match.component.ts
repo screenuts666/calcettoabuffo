@@ -141,7 +141,16 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.ultimoCambioTurno = this.state.turnoAttualeIndex();
+    const currentTurn = this.state.turnoAttualeIndex();
+    this.ultimoCambioTurno = currentTurn;
+    this.ultimoPreAlertTurno = currentTurn;
+
+    // Se la partita è all'inizio (inferiore alla durata del primo turno), azzera categoricamente qualsiasi allarme residuo
+    if (this.state.cronometro() < this.state.durataTurnoSecondi()) {
+      this.state.setCambioPortiereAttivo(false);
+      this.soundSettings.stopMatchCambioAlarm();
+    }
+
     if (this.isAdmin && !this.state.rotazionePortieri()) {
       this.state.inizializzaRotazionePortieri(false);
     }
@@ -181,20 +190,28 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           const secInTurn = newCronometro % turnSec;
           const secRim = turnSec - secInTurn;
 
-          // Preavviso toast prima del cambio (-30s standard, -10s in DEV)
-          const isPreAlertTime = (turnSec >= 60 && secRim === 30) || (turnSec === 30 && secRim === 10);
-          if (
-            isPreAlertTime &&
-            this.ultimoPreAlertTurno !== turnIndex
-          ) {
-            this.ultimoPreAlertTurno = turnIndex;
-            this.mostraToastFeedback(`⏳ Tra ${secRim} secondi cambio portiere!`, 'warning');
-          }
+          // Protezione assoluta: nel primo turno (< turnSec), nessun cambio o allarme è ammesso
+          if (newCronometro < turnSec) {
+            if (this.state.cambioAttivo()) {
+              this.state.setCambioPortiereAttivo(false);
+              this.fermaAudio();
+            }
+          } else {
+            // Preavviso toast prima del cambio (-30s standard, -10s in DEV)
+            const isPreAlertTime = (turnSec >= 60 && secRim === 30) || (turnSec === 30 && secRim === 10);
+            if (
+              isPreAlertTime &&
+              this.ultimoPreAlertTurno !== turnIndex
+            ) {
+              this.ultimoPreAlertTurno = turnIndex;
+              this.mostraToastFeedback(`⏳ Tra ${secRim} secondi cambio portiere!`, 'warning');
+            }
 
-          // Cambio portiere quando scade il turno
-          if (newCronometro > 0 && turnIndex > 0 && turnIndex !== this.ultimoCambioTurno) {
-            this.ultimoCambioTurno = turnIndex;
-            this.state.setCambioPortiereAttivo(true);
+            // Cambio portiere quando scade il turno
+            if (newCronometro > 0 && turnIndex > 0 && turnIndex !== this.ultimoCambioTurno) {
+              this.ultimoCambioTurno = turnIndex;
+              this.state.setCambioPortiereAttivo(true);
+            }
           }
         }
       } else {
@@ -398,8 +415,12 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   async toggleTimer() {
     this.triggerHaptic(40);
+    // Se avviamo il cronometro dall'inizio (00:00), azzeriamo e silenziamo categoricamente qualsiasi allarme residuo
     if (this.state.cronometro() === 0 && !this.state.isTimerRunning()) {
-      this.soundSettings.playMatchWhistle('kickoff');
+      this.ultimoCambioTurno = 0;
+      this.ultimoPreAlertTurno = 0;
+      this.soundSettings.stopMatchCambioAlarm();
+      await this.state.setCambioPortiereAttivo(false);
     }
     await this.state.toggleTimerState();
   }

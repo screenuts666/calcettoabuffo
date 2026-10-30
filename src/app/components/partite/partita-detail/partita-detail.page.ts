@@ -301,8 +301,10 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.accumulatedTime.set(matchData.accumulatedTime || 0);
       this.state.timerStartAt.set(matchData.timerStartAt || null);
       this.state.isTimerRunning.set(matchData.isTimerRunning || false);
+      const turnSec = (matchData.rotazionePortieri?.durataTurnoMinuti || 5) * 60;
+      const isPastFirstTurn = (matchData.cronometro || 0) >= turnSec;
       this.state.cambioAttivo.set(
-        matchData.isTimerRunning ? (matchData.cambioAttivo || false) : false
+        matchData.isTimerRunning && isPastFirstTurn ? (matchData.cambioAttivo || false) : false
       );
 
       const idsSalvati = (matchData.convocati || []).map((c: any) => c.id);
