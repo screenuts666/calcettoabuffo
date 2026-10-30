@@ -40,3 +40,4 @@ export function formatMinuti(minutiTotali: number | null | undefined): string {
   }
   return `${minTot}'`;
 }
+

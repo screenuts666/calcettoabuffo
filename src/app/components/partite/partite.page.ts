@@ -4,7 +4,6 @@ import {
   ChangeDetectionStrategy,
   computed,
   signal,
-  effect,
 } from '@angular/core';
 import {
   IonHeader,
@@ -17,14 +16,11 @@ import {
   ModalController,
   AlertController,
   ToastController,
-  IonButton,
   IonList,
   IonItem,
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonListHeader,
-  IonLabel,
   IonSpinner,
   IonButtons,
 } from '@ionic/angular/standalone';
@@ -33,9 +29,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import {
-  // Firestore imported from @angular/fire/firestore
   collection,
-  // collectionData imported from @angular/fire/firestore
   doc,
   query,
   orderBy,
@@ -73,6 +67,15 @@ import {
   chevronDown,
   chevronUp,
   mic,
+  filter,
+  closeCircle,
+  star,
+  flash,
+  flame,
+  trophy,
+  searchOutline,
+  swapVerticalOutline,
+  shieldCheckmark,
 } from 'ionicons/icons';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
@@ -83,11 +86,44 @@ import {
   CURRENT_SEASON,
   PREVIOUS_SEASON,
   ALL_SEASONS,
-  STAGIONI,
   getStagionePartita,
   getStagioniDisponibili,
   formatShortSeason,
 } from 'src/app/utils/season-utils';
+import { formatTempoTotale, formatMinuti } from '../../utils/time-format.util';
+
+export type CriterioOrdinamentoPartite =
+  | 'data'
+  | 'gol'
+  | 'assist'
+  | 'tempo'
+  | 'mediaVoto'
+  | 'giocatori'
+  | 'campetto';
+
+export interface CriterioPartitaOption {
+  id: CriterioOrdinamentoPartite;
+  label: string;
+  icon: string;
+  unit: string;
+}
+
+export interface MatchHeroStat {
+  valore: string;
+  etichetta: string;
+  subText?: string;
+  subType?: 'up' | 'down' | 'neutral';
+}
+
+export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
+  { id: 'data', label: 'Data', icon: 'calendar-outline', unit: 'DATA' },
+  { id: 'gol', label: 'Gol Totali', icon: 'football-outline', unit: 'GOL' },
+  { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
+  { id: 'tempo', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'TEMPO' },
+  { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
+  { id: 'giocatori', label: 'Giocatori', icon: 'people-outline', unit: 'GIOCATORI' },
+  { id: 'campetto', label: 'Campetto', icon: 'location-outline', unit: 'CAMPO' },
+];
 
 @Component({
   selector: 'app-partite',
@@ -105,8 +141,6 @@ import {
     IonFab,
     IonFabButton,
     IonList,
-    IonListHeader,
-    IonLabel,
     IonItem,
     IonItemSliding,
     IonItemOptions,
@@ -130,6 +164,14 @@ export class PartitePage {
 
   highlightMatchId = signal<string | null>(null);
   openedPitches = signal<Record<string, boolean>>({});
+
+  // Criteri di ordinamento e filtri
+  readonly CRITERI_ORDINAMENTO = CRITERI_ORDINAMENTO_PARTITE;
+  criterioOrdinamento = signal<CriterioOrdinamentoPartite>('data');
+  ordineCrescente = signal<boolean>(false);
+  searchQuery = signal<string>('');
+  filtroCampetto = signal<string>('all');
+  isFiltriCampettoOpen = signal<boolean>(false);
 
   togglePiantina(matchId?: string) {
     if (!matchId) return;
@@ -165,9 +207,6 @@ export class PartitePage {
       { idField: 'id' },
     ).pipe(
       map((list: any[]) => {
-        // priority: 0 = LIVE (matchConcluso === false)
-        // 1 = DA VOTARE (matchConcluso === true && pagelleInserite === false)
-        // 2 = ARCHIVIATA (pagelleInserite === true)
         const priority = (m: any) =>
           m.matchConcluso ? (m.pagelleInserite ? 2 : 1) : 0;
 
@@ -217,49 +256,252 @@ export class PartitePage {
     return counts;
   });
 
+  // KPI Dashboard della stagione selezionata
+  kpiStagione = computed(() => {
+    const matches = this.partiteFiltrate() || [];
+    const concluse = matches.filter(
+      (m: any) => m.status === 'conclusa' || m.matchConcluso,
+    );
+    const totalePartite = matches.length;
+    let totaleGol = 0;
+    let totaleAssist = 0;
+    let totaleSecondi = 0;
+    let votiSomma = 0;
+    let votiConteggio = 0;
+
+    for (const m of matches) {
+      totaleGol += (m.scoreA || 0) + (m.scoreB || 0);
+      totaleAssist += this.calcolaAssistPartita(m);
+      totaleSecondi += this.calcolaDurataSecondiPartita(m);
+      const v = this.calcolaVotiPartita(m);
+      if (v.media > 0) {
+        votiSomma += v.media;
+        votiConteggio++;
+      }
+    }
+
+    const mediaGolPartita =
+      concluse.length > 0 ? (totaleGol / concluse.length).toFixed(1) : '0';
+    const mediaVotiStagione =
+      votiConteggio > 0 ? (votiSomma / votiConteggio).toFixed(1) : '-';
+
+    return {
+      totalePartite,
+      partiteConcluse: concluse.length,
+      totaleGol,
+      mediaGolPartita,
+      totaleAssist,
+      totaleSecondi,
+      tempoTotaleDisplay: formatTempoTotale(totaleSecondi),
+      mediaVotiStagione,
+    };
+  });
+
+  // Campetti unici presenti nella stagione selezionata
+  campettiDisponibili = computed(() => {
+    const list = this.partiteFiltrate() || [];
+    const set = new Set<string>();
+    for (const m of list) {
+      if (m.luogo && typeof m.luogo === 'string' && m.luogo.trim() !== '') {
+        set.add(m.luogo.trim());
+      }
+    }
+    return Array.from(set).sort();
+  });
+
+  activeFilterCampettoLabel = computed(() => {
+    const c = this.filtroCampetto();
+    return c === 'all' ? null : `📍 ${c}`;
+  });
+
+  // Helper per filtrare un singolo match per testo e campetto
+  private matchSoddisfaFiltri(m: any, q: string, campetto: string): boolean {
+    if (campetto !== 'all') {
+      if ((m.luogo || '').trim().toLowerCase() !== campetto.toLowerCase()) {
+        return false;
+      }
+    }
+    if (!q) return true;
+
+    const matchLuogo = (m.luogo || '').toLowerCase().includes(q);
+    const matchData = (m.dataPartita || '').toLowerCase().includes(q);
+    const matchCommento = (m.commentoPartita || '').toLowerCase().includes(q);
+    const matchNotePortieri = (m.notePortieri || '').toLowerCase().includes(q);
+    const matchScorer = (m.eventiGol || []).some(
+      (e: any) =>
+        (e.nome || '').toLowerCase().includes(q) ||
+        (e.assistNome || '').toLowerCase().includes(q),
+    );
+    const matchPlayer = [
+      ...(m.teamA || []),
+      ...(m.teamB || []),
+      ...(m.convocati || []),
+    ].some((p: any) => (p.nome || '').toLowerCase().includes(q));
+
+    return (
+      matchLuogo ||
+      matchData ||
+      matchCommento ||
+      matchNotePortieri ||
+      matchScorer ||
+      matchPlayer
+    );
+  }
+
+  // --- SEZIONI IN EVIDENZA (PINNED) ---
   partiteInCorso = computed(() => {
     const list = this.partiteFiltrate();
     if (!list) return [];
-    return [...list.filter((m: any) => m.status === 'in_corso')].sort(
-      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
-    );
+    const q = this.searchQuery().toLowerCase().trim();
+    const c = this.filtroCampetto();
+    return list
+      .filter((m: any) => m.status === 'in_corso')
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .sort(
+        (a: any, b: any) =>
+          (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+      );
   });
 
   partitePronte = computed(() => {
     const list = this.partiteFiltrate();
     if (!list) return [];
-    return [
-      ...list.filter((m: any) => m.status === 'pronta' || !m.status),
-    ].sort(
-      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
-    );
+    const q = this.searchQuery().toLowerCase().trim();
+    const c = this.filtroCampetto();
+    return list
+      .filter(
+        (m: any) =>
+          m.status === 'pronta' || (!m.status && !m.matchConcluso),
+      )
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .sort(
+        (a: any, b: any) =>
+          (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+      );
   });
 
   partiteDaVotare = computed(() => {
     const list = this.partiteFiltrate();
     if (!list) return [];
-    return [
-      ...list.filter((m: any) => m.status === 'conclusa' && !m.pagelleInserite),
-    ].sort(
-      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    const q = this.searchQuery().toLowerCase().trim();
+    const c = this.filtroCampetto();
+    return list
+      .filter(
+        (m: any) =>
+          (m.status === 'conclusa' || m.matchConcluso) && !m.pagelleInserite,
+      )
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .sort(
+        (a: any, b: any) =>
+          (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+      );
+  });
+
+  totalePartiteInEvidenza = computed(() => {
+    return (
+      this.partiteInCorso().length +
+      this.partitePronte().length +
+      this.partiteDaVotare().length
     );
   });
 
-  partiteArchiviate = computed(() => {
+  // Base concluse con pagelle
+  private partiteArchiviateBase = computed(() => {
     const list = this.partiteFiltrate();
     if (!list) return [];
-    return [
-      ...list.filter((m: any) => m.status === 'conclusa' && m.pagelleInserite),
-    ].sort(
-      (a: any, b: any) => (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+    return list.filter(
+      (m: any) =>
+        (m.status === 'conclusa' || m.matchConcluso) && m.pagelleInserite,
     );
   });
 
-  giocatori = toSignal<any[], any[]>((
-    collectionData(
-      query(collection(this.firestore, 'giocatori'), orderBy('nome')),
-      { idField: 'id' },
-    ) as Observable<any[]>).pipe(catchError(() => of([] as any[]))),
+  // --- SEZIONE ORDINABILE & FILTRABILE (STORICO GARE) ---
+  partiteArchiviateOrdinate = computed(() => {
+    const base = this.partiteArchiviateBase();
+    const q = this.searchQuery().toLowerCase().trim();
+    const c = this.filtroCampetto();
+
+    // Filtra per testo e campetto
+    let list = base.filter((m: any) => this.matchSoddisfaFiltri(m, q, c));
+
+    // Ordinamento in base al criterio selezionato
+    const criterio = this.criterioOrdinamento();
+    const asc = this.ordineCrescente();
+
+    return [...list].sort((a: any, b: any) => {
+      let diff = 0;
+      switch (criterio) {
+        case 'gol': {
+          const ga = (a.scoreA || 0) + (a.scoreB || 0);
+          const gb = (b.scoreA || 0) + (b.scoreB || 0);
+          diff = gb - ga;
+          break;
+        }
+        case 'assist': {
+          const aa = this.calcolaAssistPartita(a);
+          const ab = this.calcolaAssistPartita(b);
+          diff = ab - aa;
+          break;
+        }
+        case 'tempo': {
+          const ta = this.calcolaDurataSecondiPartita(a);
+          const tb = this.calcolaDurataSecondiPartita(b);
+          diff = tb - ta;
+          break;
+        }
+        case 'mediaVoto': {
+          const va = this.calcolaVotiPartita(a).media;
+          const vb = this.calcolaVotiPartita(b).media;
+          diff = vb - va;
+          break;
+        }
+        case 'giocatori': {
+          const ja = this.calcolaNumeroGiocatori(a);
+          const jb = this.calcolaNumeroGiocatori(b);
+          diff = jb - ja;
+          break;
+        }
+        case 'campetto': {
+          const la = (a.luogo || '').trim().toLowerCase();
+          const lb = (b.luogo || '').trim().toLowerCase();
+          diff = la.localeCompare(lb);
+          return asc ? -diff : diff;
+        }
+        case 'data':
+        default: {
+          const da =
+            a.dataOra?.seconds ??
+            (a.dataPartita ? new Date(a.dataPartita).getTime() / 1000 : 0);
+          const db =
+            b.dataOra?.seconds ??
+            (b.dataPartita ? new Date(b.dataPartita).getTime() / 1000 : 0);
+          diff = db - da;
+          break;
+        }
+      }
+
+      if (diff !== 0) {
+        return diff * (asc ? -1 : 1);
+      }
+
+      // Ordinamento secondario di stabilizzazione: Data più recente
+      const da =
+        a.dataOra?.seconds ??
+        (a.dataPartita ? new Date(a.dataPartita).getTime() / 1000 : 0);
+      const db =
+        b.dataOra?.seconds ??
+        (b.dataPartita ? new Date(b.dataPartita).getTime() / 1000 : 0);
+      return db - da;
+    });
+  });
+
+  giocatori = toSignal<any[], any[]>(
+    (
+      collectionData(
+        query(collection(this.firestore, 'giocatori'), orderBy('nome')),
+        { idField: 'id' },
+      ) as Observable<any[]>
+    ).pipe(catchError(() => of([] as any[]))),
     { initialValue: [] },
   );
 
@@ -289,8 +531,283 @@ export class PartitePage {
       chatboxEllipsesOutline,
       chevronDown,
       chevronUp,
-  mic,
+      mic,
+      filter,
+      closeCircle,
+      star,
+      flash,
+      flame,
+      trophy,
+      searchOutline,
+      swapVerticalOutline,
+      shieldCheckmark,
     });
+
+    this.route.queryParams.subscribe((params) => {
+      if (params['highlight']) {
+        this.highlightMatchId.set(params['highlight']);
+      }
+    });
+  }
+
+  // --- GESTIONE INTERAZIONI ORDINAMENTO E FILTRI ---
+  selezionaCriterio(c: CriterioOrdinamentoPartite) {
+    if (this.criterioOrdinamento() === c) {
+      this.ordineCrescente.update((v) => !v);
+    } else {
+      this.criterioOrdinamento.set(c);
+      this.ordineCrescente.set(false);
+    }
+  }
+
+  toggleFiltriCampetto() {
+    this.isFiltriCampettoOpen.update((v) => !v);
+  }
+
+  selezionaFiltroCampetto(campetto: string) {
+    this.filtroCampetto.set(campetto);
+  }
+
+  resetFiltroCampetto() {
+    this.filtroCampetto.set('all');
+  }
+
+  onSearchInput(ev: any) {
+    this.searchQuery.set(ev?.target?.value || '');
+  }
+
+  clearSearch() {
+    this.searchQuery.set('');
+  }
+
+  resetTuttiIFiltri() {
+    this.searchQuery.set('');
+    this.filtroCampetto.set('all');
+    this.criterioOrdinamento.set('data');
+    this.ordineCrescente.set(false);
+  }
+
+  // --- CALCOLI METRICHE PARTITA ---
+  calcolaAssistPartita(m: any): number {
+    if (Array.isArray(m.eventiGol) && m.eventiGol.length > 0) {
+      const fromEvents = m.eventiGol.filter(
+        (e: any) =>
+          Boolean(e.assistId) ||
+          (Boolean(e.assistNome) && e.assistNome.trim() !== ''),
+      ).length;
+      if (fromEvents > 0) return fromEvents;
+    }
+    const fromPlayers = [
+      ...(m.teamA || []),
+      ...(m.teamB || []),
+    ].reduce((acc, p) => acc + (p.assist || 0), 0);
+    return fromPlayers;
+  }
+
+  calcolaDurataSecondiPartita(m: any): number {
+    if (typeof m.cronometro === 'number' && m.cronometro > 0) {
+      return m.cronometro;
+    }
+    if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
+      return m.accumulatedTime > 10000
+        ? Math.round(m.accumulatedTime / 1000)
+        : m.accumulatedTime;
+    }
+    if (m.status === 'conclusa' || m.matchConcluso) {
+      return 3000; // 50 minuti standard
+    }
+    return 0;
+  }
+
+  getTempoPartitaDisplay(m: any): string {
+    const sec = this.calcolaDurataSecondiPartita(m);
+    return formatTempoTotale(sec);
+  }
+
+  calcolaVotiPartita(m: any): {
+    media: number;
+    mvp: { nome: string; voto: number } | null;
+  } {
+    const players = [...(m.teamA || []), ...(m.teamB || [])];
+    const rated = players.filter(
+      (p: any) => p && typeof p.voto === 'number' && p.voto > 0,
+    );
+    if (rated.length === 0) return { media: 0, mvp: null };
+    const sum = rated.reduce((acc, p) => acc + p.voto, 0);
+    const media = Math.round((sum / rated.length) * 10) / 10;
+    const sorted = [...rated].sort((a, b) => b.voto - a.voto);
+    return {
+      media,
+      mvp: { nome: sorted[0].nome || 'Giocatore', voto: sorted[0].voto },
+    };
+  }
+
+  calcolaNumeroGiocatori(m: any): number {
+    if (Array.isArray(m.convocati) && m.convocati.length > 0) {
+      return m.convocati.length;
+    }
+    return (m.teamA?.length || 0) + (m.teamB?.length || 0);
+  }
+
+  getMarcatoriSquadra(
+    m: any,
+    team: 'A' | 'B',
+  ): { nome: string; gol: number; isAutogoal?: boolean }[] {
+    if (Array.isArray(m.eventiGol) && m.eventiGol.length > 0) {
+      const goalsOfTeam = m.eventiGol.filter(
+        (e: any) => e.teamVantaggio === team,
+      );
+      if (goalsOfTeam.length > 0) {
+        const counts: Record<
+          string,
+          { nome: string; gol: number; isAutogoal?: boolean }
+        > = {};
+        for (const e of goalsOfTeam) {
+          const displayName = e.isAutogoal
+            ? e.nome
+              ? `${e.nome} (Aut.)`
+              : 'Autogol'
+            : (e.nome || 'Marcatore').trim();
+          if (!counts[displayName]) {
+            counts[displayName] = {
+              nome: displayName,
+              gol: 0,
+              isAutogoal: Boolean(e.isAutogoal),
+            };
+          }
+          counts[displayName].gol += 1;
+        }
+        return Object.values(counts).sort((a, b) => b.gol - a.gol);
+      }
+    }
+    // Fallback su teamA / teamB performance
+    const players = team === 'A' ? m.teamA : m.teamB;
+    if (Array.isArray(players)) {
+      return players
+        .filter((p: any) => (p.gol || 0) > 0)
+        .map((p: any) => ({
+          nome: (p.nome || 'Giocatore').trim(),
+          gol: p.gol,
+        }))
+        .sort((a, b) => b.gol - a.gol);
+    }
+    return [];
+  }
+
+  getHeroStat(m: any): MatchHeroStat {
+    const criterio = this.criterioOrdinamento();
+    switch (criterio) {
+      case 'gol': {
+        const golTot = (m.scoreA || 0) + (m.scoreB || 0);
+        return {
+          valore: `${golTot}`,
+          etichetta: 'GOL TOTALI',
+          subText: `⚪ ${m.scoreA || 0} - ${m.scoreB || 0} ⚫`,
+          subType: 'neutral',
+        };
+      }
+      case 'assist': {
+        const assists = this.calcolaAssistPartita(m);
+        return {
+          valore: `${assists}`,
+          etichetta: 'ASSIST',
+          subText: assists > 0 ? 'Totali gara' : 'Nessun assist',
+          subType: assists > 0 ? 'up' : 'neutral',
+        };
+      }
+      case 'tempo': {
+        const sec = this.calcolaDurataSecondiPartita(m);
+        return {
+          valore: formatTempoTotale(sec),
+          etichetta: 'TEMPO EFF.',
+          subText: sec > 0 ? `${Math.round(sec / 60)}' giocati` : 'Tempo base',
+          subType: 'neutral',
+        };
+      }
+      case 'mediaVoto': {
+        const stats = this.calcolaVotiPartita(m);
+        return {
+          valore: stats.media > 0 ? `⭐ ${stats.media.toFixed(1)}` : '-',
+          etichetta: 'MEDIA VOTI',
+          subText: stats.mvp
+            ? `Top: ${stats.mvp.nome} (${stats.mvp.voto})`
+            : m.pagelleInserite
+              ? 'Pagelle OK'
+              : 'Da votare',
+          subType: stats.media >= 6.5 ? 'up' : 'neutral',
+        };
+      }
+      case 'giocatori': {
+        const tot = this.calcolaNumeroGiocatori(m);
+        const teamA = m.teamA?.length || 0;
+        const teamB = m.teamB?.length || 0;
+        return {
+          valore: `${tot}`,
+          etichetta: 'GIOCATORI',
+          subText: teamA > 0 && teamB > 0 ? `${teamA} vs ${teamB}` : 'Convocati',
+          subType: 'neutral',
+        };
+      }
+      case 'campetto': {
+        return {
+          valore: '📍',
+          etichetta: 'CAMPETTO',
+          subText: m.luogo || 'Non spec.',
+          subType: 'neutral',
+        };
+      }
+      case 'data':
+      default: {
+        const d = m.dataPartita ? new Date(m.dataPartita) : null;
+        const day =
+          d && !isNaN(d.getTime())
+            ? d
+                .toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+                .toUpperCase()
+            : '-';
+        const weekday =
+          d && !isNaN(d.getTime())
+            ? d.toLocaleDateString('it-IT', { weekday: 'short' }).toUpperCase()
+            : 'DATA';
+        return {
+          valore: day,
+          etichetta: weekday,
+          subText: m.orario
+            ? `Ore ${m.orario}`
+            : m.dataPartita
+              ? new Date(m.dataPartita).toLocaleDateString('it-IT', {
+                  year: 'numeric',
+                })
+              : undefined,
+          subType: 'neutral',
+        };
+      }
+    }
+  }
+
+  haNote(m: any): boolean {
+    return Boolean(
+      (m.commentoPartita && m.commentoPartita.trim() !== '') ||
+        (m.notePortieri && m.notePortieri.trim() !== ''),
+    );
+  }
+
+  async mostraNote(m: any) {
+    const list: string[] = [];
+    if (m.commentoPartita) {
+      list.push(`📝 Bordocampo: ${m.commentoPartita}`);
+    }
+    if (m.notePortieri) {
+      list.push(`🧤 Portieri: ${m.notePortieri}`);
+    }
+    const msg = list.join('\n\n') || 'Nessuna nota registrata.';
+    const alert = await this.alertController.create({
+      header: 'Note Partita',
+      subHeader: `${m.luogo || 'Calcetto'} · ${m.dataPartita || ''}`,
+      message: msg,
+      buttons: ['Chiudi'],
+    });
+    await alert.present();
   }
 
   async apriCondivisione(partita: any) {
@@ -304,7 +821,7 @@ export class PartitePage {
     await modal.present();
   }
 
-    async mostraToastPartitaNonTrovata() {
+  async mostraToastPartitaNonTrovata() {
     const toast = await this.toastController.create({
       message: 'Partita non trovata',
       duration: 3000,
@@ -448,16 +965,21 @@ export class PartitePage {
     const testo = isPronostico ? m.pronosticoAi : m.cronacaAi;
     if (!testo) return;
 
-    const dataFmt = m.dataPartita ? new Date(m.dataPartita).toLocaleDateString('it-IT') : '';
-    const sottotitolo = m.status === 'conclusa'
-      ? `Partita del ${dataFmt} · Risultato: Bianchi ${m.scoreA} - ${m.scoreB} Neri`
-      : `Partita del ${dataFmt} · ${m.luogo || 'Bordocampo'}`;
+    const dataFmt = m.dataPartita
+      ? new Date(m.dataPartita).toLocaleDateString('it-IT')
+      : '';
+    const sottotitolo =
+      m.status === 'conclusa'
+        ? `Partita del ${dataFmt} · Risultato: Bianchi ${m.scoreA} - ${m.scoreB} Neri`
+        : `Partita del ${dataFmt} · ${m.luogo || 'Bordocampo'}`;
 
     const modal = await this.modalCtrl.create({
       component: AiStoryModalComponent,
       componentProps: {
         tipo,
-        titolo: isPronostico ? "🔮 Il Pronostico del Mister" : "🎙️ Telecronaca Ignorante",
+        titolo: isPronostico
+          ? '🔮 Il Pronostico del Mister'
+          : '🎙️ Telecronaca Ignorante',
         sottotitolo,
         testo,
         matchId: m.id || 'temp',

@@ -6,13 +6,17 @@
 .matches-container {
   --background: var(--app-bg) !important;
   background: var(--app-bg) !important;
-  padding: 10px;
+  padding: 8px 10px 80px 10px;
 
   ion-list {
     background: transparent !important;
     --background: transparent !important;
-    padding-bottom: 80px;
+    padding-bottom: 20px;
   }
+}
+
+.match-list-group {
+  margin-bottom: 12px;
 }
 
 // FIX ION-ITEM: Rimuoviamo i padding di default per allineare tutto
@@ -30,46 +34,47 @@
 }
 
 // ==========================================
-// SELETTORE STAGIONE IN ALTO
+// BARRA 1: SELETTORE STAGIONE UNIFICATO
 // ==========================================
-.season-filter-bar {
+.season-header-bar {
+  background: var(--app-header-bg, var(--app-card-bg));
+  padding: 6px 12px 6px;
+  border-bottom: 1px solid var(--app-border-color);
+}
+
+.season-pills {
   display: flex;
-  gap: 8px;
-  padding: 6px 4px 14px 4px;
+  gap: 6px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   @include hide-scrollbar;
 }
 
-.season-filter-chip {
-  flex: 1;
-  min-width: fit-content;
+.season-pill-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
-  border-radius: 24px;
-  background: var(--app-card-bg);
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 1.05rem;
+    font-size: 0.9rem;
   }
 
-  .season-count {
-    background: var(--app-surface-subtle);
+  .season-pill-count {
+    background: rgba(255, 255, 255, 0.08);
     color: var(--app-text-primary);
-    padding: 1px 7px;
-    border-radius: 12px;
-    font-size: 0.72rem;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 0.68rem;
     font-weight: 800;
   }
 
@@ -77,33 +82,412 @@
     background: var(--app-primary-subtle);
     border-color: var(--ion-color-success);
     color: var(--ion-color-success);
-    box-shadow: 0 2px 10px var(--app-primary-subtle);
+    box-shadow: 0 2px 8px var(--app-primary-subtle);
 
-    .season-count {
+    .season-pill-count {
       background: var(--ion-color-success);
       color: var(--app-black);
     }
   }
 
   &:active {
-    transform: scale(0.97);
+    transform: scale(0.96);
   }
 }
 
-.empty-season-box {
-  padding: 40px 20px;
+// ==========================================
+// MINI DASHBOARD KPI STAGIONE
+// ==========================================
+.season-kpi-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-border-color);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @include hide-scrollbar;
+}
+
+.kpi-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 10px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 0.85rem;
+    color: var(--app-text-muted);
+  }
+
+  strong {
+    color: var(--app-text-primary);
+    font-weight: 800;
+  }
+
+  small {
+    color: var(--app-text-muted);
+  }
+
+  &.highlight {
+    border-color: rgba(var(--app-primary-rgb), 0.3);
+
+    ion-icon {
+      color: var(--app-accent-orange);
+    }
+
+    strong {
+      color: var(--ion-color-success);
+    }
+  }
+
+  &.rating {
+    border-color: rgba(var(--app-accent-gold-rgb), 0.35);
+
+    ion-icon {
+      color: var(--app-accent-gold);
+    }
+
+    strong {
+      color: var(--app-accent-gold);
+    }
+  }
 }
 
 // ==========================================
-// STILE CARD PARTITA
+// BARRA 2: SEARCH RAPIDA
+// ==========================================
+.search-section {
+  padding: 6px 12px 4px 12px;
+  background: var(--app-header-bg, var(--app-card-bg));
+}
+
+.search-box-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  transition: border-color 0.2s ease;
+
+  &:focus-within {
+    border-color: var(--app-primary);
+    box-shadow: 0 0 8px rgba(var(--app-primary-rgb), 0.2);
+  }
+
+  .search-icon {
+    font-size: 1rem;
+    color: var(--app-text-muted);
+    flex-shrink: 0;
+  }
+
+  .custom-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--app-text-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+
+    &::placeholder {
+      color: var(--app-text-muted);
+      font-weight: 500;
+    }
+  }
+
+  .search-clear-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--app-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+
+    &:hover {
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+// ==========================================
+// BARRA 3: CRITERI DI ORDINAMENTO + FILTRO CAMPETTO
+// ==========================================
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 8px 12px;
+  background: var(--app-header-bg, var(--app-card-bg));
+  border-bottom: 1px solid var(--app-border-color);
+  overflow-x: hidden;
+}
+
+.filter-trigger-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.95rem;
+  }
+
+  &.active {
+    background: var(--app-primary-subtle);
+    border-color: var(--ion-color-success);
+    color: var(--ion-color-success);
+  }
+
+  .filter-dot {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--app-accent-orange);
+    box-shadow: 0 0 4px var(--app-accent-orange);
+  }
+}
+
+.active-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: var(--app-accent-orange-subtle);
+  border: 1px solid var(--app-accent-orange-border);
+  color: var(--app-accent-orange);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
+.sort-scroll {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @include hide-scrollbar;
+}
+
+.sort-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.84rem;
+  }
+
+  .sort-direction-indicator {
+    font-size: 0.65rem;
+    margin-left: 2px;
+    font-weight: 900;
+  }
+
+  &.active {
+    background: var(--ion-color-success);
+    color: var(--app-black);
+    border-color: var(--ion-color-success);
+    font-weight: 800;
+    box-shadow: 0 2px 8px rgba(var(--app-primary-rgb), 0.22);
+
+    ion-icon {
+      color: var(--app-black);
+    }
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+// ==========================================
+// CASSETTO FILTRI CAMPETTO (Collassabile)
+// ==========================================
+.filter-drawer {
+  background: var(--app-surface-subtle);
+  padding: 6px 12px 8px 12px;
+  border-bottom: 1px solid var(--app-border-color);
+  animation: fadeInDown 0.18s ease-out;
+}
+
+.filter-scroll {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @include hide-scrollbar;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &.active {
+    background: var(--app-text-primary);
+    color: var(--app-card-bg);
+    border-color: var(--app-text-primary);
+    font-weight: 700;
+  }
+
+  &.campetto-chip {
+    ion-icon {
+      font-size: 0.82rem;
+    }
+  }
+}
+
+// ==========================================
+// SEPARATORI SEZIONI LISTA
+// ==========================================
+.section-divider-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 4px 6px 4px;
+  padding: 4px 0;
+
+  .section-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-text-secondary);
+  }
+
+  .section-count {
+    background: var(--app-surface-subtle);
+    color: var(--app-text-primary);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 800;
+  }
+
+  .sort-meta-hint {
+    font-size: 0.68rem;
+    color: var(--app-text-muted);
+    margin-left: auto;
+
+    b {
+      color: var(--ion-color-success);
+    }
+  }
+
+  &.live-header {
+    .section-title {
+      color: var(--app-accent-danger);
+    }
+    .section-count {
+      background: var(--app-accent-danger-subtle);
+      color: var(--app-accent-danger);
+      border: 1px solid var(--app-accent-danger-border);
+    }
+  }
+
+  &.ready-header {
+    .section-title {
+      color: var(--app-accent-blue);
+    }
+    ion-icon {
+      color: var(--app-accent-blue);
+    }
+  }
+
+  &.pending-header {
+    .section-title {
+      color: var(--app-accent-gold);
+    }
+    ion-icon {
+      color: var(--app-accent-gold);
+    }
+  }
+
+  &.archive-header {
+    ion-icon {
+      color: var(--ion-color-success);
+    }
+  }
+}
+
+.pulsing-red-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--app-accent-danger);
+  box-shadow: 0 0 8px var(--app-accent-danger);
+  animation: pulse-dot 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+// ==========================================
+// STILE CARD MATCH MODERNA
 // ==========================================
 .match-card {
   width: 100%;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 16px;
-  padding: 15px;
-  margin: 8px 0;
+  padding: 14px 14px 12px 14px;
+  margin: 6px 0;
   box-shadow: var(--app-card-shadow);
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 
@@ -116,15 +500,27 @@
     opacity: 0.95;
   }
 
+  &.card-is-live {
+    border-left: 4px solid var(--app-accent-danger) !important;
+    border-color: rgba(var(--app-accent-danger-rgb, 239, 68, 68), 0.4) !important;
+    animation: live-glow 2s infinite ease-in-out;
+  }
+
   &.highlight-active {
     animation: card-glow 1s ease-in-out infinite alternate;
     border-color: var(--app-primary) !important;
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.985);
     background: var(--app-surface-hover);
   }
+}
+
+@keyframes live-glow {
+  0% { box-shadow: 0 0 10px rgba(var(--app-accent-danger-rgb, 239, 68, 68), 0.25); }
+  50% { box-shadow: 0 0 20px rgba(var(--app-accent-danger-rgb, 239, 68, 68), 0.55); }
+  100% { box-shadow: 0 0 10px rgba(var(--app-accent-danger-rgb, 239, 68, 68), 0.25); }
 }
 
 @keyframes card-glow {
@@ -138,76 +534,45 @@
   }
 }
 
+// ==========================================
+// 1. HEADER CARD (DATA, STAGIONE, STATUS)
+// ==========================================
 .match-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--app-divider);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--app-card-border);
 }
 
 .match-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-}
-
-.match-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.share-icon-btn {
-  background: var(--app-primary-subtle);
-  color: var(--app-primary);
-  border: 1px solid var(--app-primary-border);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  padding: 0;
-
-  ion-icon {
-    font-size: 1.15rem;
-    color: var(--app-primary);
-  }
-
-  &:hover {
-    background: rgba(var(--app-primary-rgb), 0.25);
-    transform: scale(1.08);
-  }
-
-  &:active {
-    transform: scale(0.92);
-  }
 }
 
 .match-date {
   display: flex;
   align-items: center;
-  font-weight: bold;
-  font-size: 0.9em;
+  font-weight: 800;
+  font-size: 0.84rem;
   color: var(--app-text-secondary);
+
   ion-icon {
-    margin-right: 6px;
-    font-size: 1.2em;
+    margin-right: 4px;
+    font-size: 0.95rem;
     color: var(--ion-color-success);
   }
 }
 
 .season-tag {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 800;
-  padding: 2px 7px;
+  padding: 1px 6px;
   border-radius: 6px;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
 
   &.badge-season-current {
     background: var(--app-primary-subtle);
@@ -222,25 +587,49 @@
   }
 }
 
-// ==========================================
+.location-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--app-surface-subtle);
+  color: var(--app-text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  ion-icon {
+    font-size: 0.76rem;
+  }
+}
+
+.match-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 // BADGES STATO
-// ==========================================
 .status-badge {
   display: flex;
   align-items: center;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75em;
+  padding: 3px 8px;
+  border-radius: 14px;
+  font-size: 0.68rem;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 
   ion-icon {
-    margin-right: 4px;
-    font-size: 1.3em;
+    margin-right: 3px;
+    font-size: 0.9rem;
   }
 
-  // Classe per l'animazione lampeggiante
   &.blink {
     animation: blinker 2s linear infinite;
   }
@@ -270,113 +659,223 @@
   border: 1px solid var(--app-accent-blue-border);
 }
 
-.badge-medium {
-  background: var(--app-neutral-gray-subtle);
-  color: var(--ion-color-medium);
-  border: 1px solid var(--app-card-border);
-}
-
-// Animazione per il badge LIVE
 @keyframes blinker {
-  50% {
-    opacity: 0.4;
-  }
+  50% { opacity: 0.4; }
 }
 
 // ==========================================
-// SCOREBOARD (RISULTATO)
+// 2. MAIN ROW: TABELLONE SQUADRE + HERO STAT BOX
 // ==========================================
-.match-body {
-  margin: 15px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.scoreboard {
+.match-main-row {
   display: flex;
   align-items: center;
-  background: var(--app-surface-subtle);
-  border: 1px solid var(--app-card-border);
-  padding: 10px 25px;
-  border-radius: 12px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  justify-content: space-between;
+  gap: 12px;
+  margin: 8px 0;
 }
 
-.score-box {
-  font-size: 2.2em;
-  font-weight: 900;
-  min-width: 45px;
-  text-align: center;
-  color: var(--app-text-primary);
+.match-scoreboard-block {
+  flex: 1;
+  min-width: 0;
 }
 
-.score-divider {
-  font-size: 1.5em;
-  font-weight: bold;
-  color: var(--app-text-muted);
-  margin: 0 15px;
-}
-
-// ==========================================
-// FOOTER
-// ==========================================
-.match-footer {
+.teams-score-header {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
   gap: 8px;
 }
 
-.info-pill {
+.team-label {
   display: flex;
   align-items: center;
-  font-size: 0.85em;
-  color: var(--app-text-secondary);
+  gap: 5px;
+  flex: 1;
+
+  .team-name {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+  }
+
+  .team-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &.white {
+      background: #ffffff;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+    }
+
+    &.black {
+      background: #475569;
+      border: 1px solid #94a3b8;
+    }
+  }
+
+  &.team-black {
+    justify-content: flex-end;
+  }
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 14px;
   background: var(--app-surface-subtle);
-  padding: 6px 10px;
-  border-radius: 8px;
   border: 1px solid var(--app-card-border);
-  ion-icon {
-    margin-right: 5px;
-    font-size: 1.1em;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+
+  .score-num {
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-family: 'SF Pro Display', -apple-system, Roboto, sans-serif;
+    color: var(--app-text-primary);
+    line-height: 1;
+  }
+
+  .score-sep {
+    font-size: 1.1rem;
+    color: var(--app-text-muted);
+    font-weight: 800;
   }
 }
 
-.share-pill {
-  background: var(--app-primary-subtle) !important;
-  color: var(--app-primary) !important;
-  border: 1px solid var(--app-primary-border) !important;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
+// MARCATORI PER SQUADRA
+.scorers-split-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  padding-top: 4px;
+}
 
-  ion-icon {
-    color: var(--app-primary) !important;
-  }
+.scorers-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 
-  &:hover {
-    background: rgba(var(--app-primary-rgb), 0.22) !important;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: scale(0.95);
+  &.team-b {
+    align-items: flex-end;
+    text-align: right;
   }
 }
 
-.comment-pill {
-  background: var(--app-accent-purple-subtle) !important;
-  color: var(--app-accent-purple) !important;
-  border: 1px solid var(--app-accent-purple-border) !important;
-  font-weight: 700;
+.scorer-pill {
+  font-size: 0.72rem;
+  color: var(--app-text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 
-  ion-icon {
-    color: var(--app-accent-purple) !important;
+  .goal-qty {
+    color: var(--ion-color-success);
+    font-weight: 800;
+    margin-left: 2px;
   }
 }
 
 // ==========================================
-// FOTO DI GRUPPO ANTEPRIMA NELLA CARD
+// 4. HERO STAT BOX A DESTRA (STILE CLASSIFICA!)
+// ==========================================
+.match-hero-stat-box {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  min-width: 66px;
+  padding-left: 8px;
+  border-left: 1px solid var(--app-card-border);
+  flex-shrink: 0;
+
+  .hero-stat-val {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--app-text-primary);
+    line-height: 1.1;
+
+    &.highlight {
+      color: var(--app-primary);
+    }
+  }
+
+  .hero-stat-label {
+    font-size: 0.58rem;
+    color: var(--app-text-muted);
+    font-weight: 800;
+    letter-spacing: 0.45px;
+    margin-top: 2px;
+    text-transform: uppercase;
+  }
+
+  .hero-stat-sub {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+    margin-top: 2px;
+    white-space: nowrap;
+
+    &.up {
+      color: var(--app-primary);
+    }
+  }
+}
+
+// ==========================================
+// 3. RIGA MICRO-METADATI
+// ==========================================
+.match-micro-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--app-card-border);
+  font-size: 0.72rem;
+  color: var(--app-text-muted);
+
+  .meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    ion-icon {
+      font-size: 0.82rem;
+    }
+
+    &.rating {
+      color: var(--app-accent-gold);
+      font-weight: 700;
+
+      ion-icon {
+        color: var(--app-accent-gold);
+      }
+    }
+
+    &.gk {
+      color: #c084fc;
+      font-weight: 700;
+    }
+  }
+
+  .meta-sep {
+    color: var(--app-text-muted);
+    opacity: 0.5;
+  }
+}
+
+// ==========================================
+// 4. BANNER FOTO MATCH
 // ==========================================
 .match-photo-banner {
   position: relative;
@@ -384,144 +883,20 @@
   height: 140px;
   border-radius: 12px;
   overflow: hidden;
-  margin: 10px 0 12px 0;
+  margin: 8px 0;
   cursor: pointer;
   background: var(--app-surface-subtle);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--app-card-border);
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    display: block;
     transition: transform 0.3s ease;
   }
 
   &:hover img {
     transform: scale(1.03);
-  }
-
-  &:active img {
-    transform: scale(0.98);
-  }
-
-  &.collage-banner-wrap {
-    height: auto;
-    background: transparent;
-    box-shadow: none;
-    border-radius: 14px;
-    padding: 0;
-  }
-}
-
-// ==========================================
-// ACCORDION PIANTINA TATTICA NELLA CARD
-// ==========================================
-.pitch-accordion-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin: 10px 0 6px 0;
-  padding: 8px 12px;
-  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
-  border-radius: 10px;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--app-surface-hover, rgba(255, 255, 255, 0.08));
-    border-color: rgba(var(--app-primary-rgb, 16, 185, 129), 0.4);
-  }
-
-  &:active {
-    transform: scale(0.985);
-  }
-
-  &.is-expanded {
-    background: rgba(16, 185, 129, 0.12);
-    border-color: rgba(16, 185, 129, 0.4);
-
-    .pitch-badge-icon {
-      background: var(--ion-color-success, #10b981);
-      color: #000000;
-    }
-
-    .tap-hint-text {
-      color: var(--ion-color-success, #10b981);
-    }
-  }
-
-  .accordion-bar-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-
-    .pitch-badge-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--ion-color-success, #10b981);
-      font-size: 0.9rem;
-      transition: all 0.2s ease;
-      flex-shrink: 0;
-    }
-
-    .accordion-title {
-      font-size: 0.8rem;
-      font-weight: 800;
-      color: var(--app-text, #ffffff);
-      white-space: nowrap;
-    }
-
-    .formation-pill {
-      font-size: 0.65rem;
-      font-weight: 800;
-      padding: 1px 6px;
-      border-radius: 9999px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--app-text-muted, #94a3b8);
-      white-space: nowrap;
-    }
-  }
-
-  .accordion-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--app-text-muted, #94a3b8);
-    font-size: 0.72rem;
-    font-weight: 700;
-    flex-shrink: 0;
-
-    ion-icon {
-      font-size: 1rem;
-      transition: transform 0.2s ease;
-    }
-  }
-}
-
-.pitch-accordion-drawer {
-  width: 100%;
-  margin: 4px 0 10px 0;
-  animation: drawer-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes drawer-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -537,14 +912,14 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 10px;
+  padding: 8px 10px;
 }
 
 .photo-pill-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--app-white);
   background: var(--app-overlay-dark);
@@ -554,14 +929,14 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
 
   ion-icon {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--app-primary);
   }
 }
 
 .expand-circle {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--app-overlay-dark);
   backdrop-filter: blur(6px);
@@ -570,7 +945,7 @@
   align-items: center;
   justify-content: center;
   color: var(--app-white);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: transform 0.2s ease, background 0.2s ease;
 
   &:hover {
@@ -580,53 +955,276 @@
   }
 }
 
-.photo-pill {
-  background: var(--app-primary-subtle) !important;
-  color: var(--app-primary) !important;
-  border: 1px solid var(--app-primary-border);
-  font-weight: 600;
+// ==========================================
+// 5. ACCORDION PIANTINA TATTICA
+// ==========================================
+.pitch-accordion-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 8px 0 4px 0;
+  padding: 7px 10px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  border-radius: 10px;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  user-select: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--app-surface-hover);
+    border-color: rgba(var(--app-primary-rgb), 0.4);
+  }
+
+  &.is-expanded {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.4);
+
+    .pitch-badge-icon {
+      background: var(--ion-color-success);
+      color: #000000;
+    }
+
+    .tap-hint-text {
+      color: var(--ion-color-success);
+    }
+  }
+
+  .accordion-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+
+    .pitch-badge-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ion-color-success);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .accordion-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+    }
+
+    .formation-pill {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--app-text-muted);
+      white-space: nowrap;
+    }
+  }
+
+  .accordion-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--app-text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.pitch-accordion-drawer {
+  width: 100%;
+  margin: 4px 0 8px 0;
+  animation: drawer-fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawer-fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// ==========================================
+// 6. AZIONI RAPIDE IN BASSO ALLA CARD
+// ==========================================
+.match-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-card-border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @include hide-scrollbar;
+}
+
+.action-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
 
   ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &.note-pill {
+    background: var(--app-surface-subtle);
+    color: var(--app-text-secondary);
+    border: 1px solid var(--app-card-border);
+
+    &:hover {
+      background: var(--app-surface-hover);
+      color: var(--app-text-primary);
+    }
+  }
+
+  &.photo-pill {
+    background: var(--app-primary-subtle);
     color: var(--app-primary);
+    border: 1px solid var(--app-primary-border);
+  }
+
+  &.cronaca-pill {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+
+    ion-icon {
+      color: #10b981;
+    }
+  }
+
+  &.pronostico-pill {
+    background: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+
+    ion-icon {
+      color: #a78bfa;
+    }
+  }
+
+  &.share-pill {
+    background: var(--app-primary-subtle);
+    color: var(--app-primary);
+    border: 1px solid var(--app-primary-border);
+    margin-left: auto;
+
+    ion-icon {
+      color: var(--app-primary);
+      font-size: 0.95rem;
+    }
+
+    &:hover {
+      background: rgba(var(--app-primary-rgb), 0.28);
+      transform: translateY(-1px);
+    }
   }
 
   &:active {
     transform: scale(0.95);
-    background: rgba(var(--app-primary-rgb), 0.3) !important;
   }
 }
 
 // ==========================================
-// 🔥 FIX DEFINITIVO TASTO ELIMINA
+// TASTO ELIMINA SLIDING
 // ==========================================
 ion-item-options {
   border: none;
 }
 
 ion-item-option {
-  // Pareggiamo il margine della card (8px top e 8px bottom)
-  margin-top: 8px;
-  margin-bottom: 8px;
-  margin-right: 10px; // Un po' di aria dal bordo schermo
-  margin-left: 5px; // Stacco visivo dalla card
-  border-radius: 16px;
-
-  // Calcoliamo l'altezza precisa (100% dell'item meno i margini totali)
-  height: calc(100% - 16px);
-
+  margin-top: 6px;
+  margin-bottom: 6px;
+  margin-right: 8px;
+  margin-left: 4px;
+  border-radius: 14px;
+  height: calc(100% - 12px);
   --background: var(--ion-color-danger);
   --color: var(--app-white);
 
   ion-icon {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
   }
 }
 
 // ==========================================
-// BANNER ARCHIVIO STAGIONE PASSATA
+// STATI VUOTI E CARICAMENTO
 // ==========================================
+.loading-state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+
+  p {
+    color: var(--app-text-muted);
+    margin-top: 10px;
+    font-size: 0.85rem;
+  }
+}
+
+.empty-season-box {
+  padding: 40px 16px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 2.8rem;
+    color: var(--app-text-muted);
+    opacity: 0.6;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    margin: 12px 0 6px;
+  }
+
+  p {
+    font-size: 0.82rem;
+    color: var(--app-text-secondary);
+    margin: 0 0 16px;
+  }
+
+  .reset-filter-empty-btn {
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: var(--ion-color-success);
+    color: var(--app-black);
+    border: none;
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .create-hint {
+    margin-top: 14px;
+    color: var(--app-text-muted);
+    font-size: 0.78rem;
+  }
+}
+
 .archive-season-banner {
   display: flex;
   align-items: center;
@@ -635,7 +1233,7 @@ ion-item-option {
   border: 1px dashed var(--app-card-border);
   border-radius: 12px;
   padding: 10px 14px;
-  margin: 6px 14px 12px 14px;
+  margin: 6px 4px 12px 4px;
 
   ion-icon {
     font-size: 1.4rem;
@@ -651,7 +1249,6 @@ ion-item-option {
       font-size: 0.85rem;
       font-weight: 800;
       color: var(--app-text-primary);
-      letter-spacing: 0.2px;
     }
 
     .banner-sub {
@@ -662,101 +1259,7 @@ ion-item-option {
   }
 }
 
-// ==========================================
-// 📱 CONDIVIDI SU WHATSAPP (PILL LISTA)
-// ==========================================
-.share-pill {
-  background: var(--app-primary-subtle) !important;
-  color: var(--app-primary) !important;
-  border: 1px solid var(--app-primary-border) !important;
-  font-weight: 700 !important;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  ion-icon {
-    color: var(--app-primary) !important;
-    font-size: 1.15rem;
-  }
-
-  &:hover {
-    background: rgba(var(--app-primary-rgb), 0.28) !important;
-    border-color: var(--app-primary) !important;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(var(--app-primary-rgb), 0.35);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-// ==========================================
-// 🎯 EVIDENZIAZIONE DEEP LINK (/partite/:id)
-// ==========================================
-.match-card.highlight-active {
-  border-color: var(--app-tier-gold) !important;
-  box-shadow: 0 0 25px rgba(var(--app-accent-gold-rgb), 0.45), 0 0 10px rgba(var(--app-primary-rgb), 0.35) !important;
-  animation: deepLinkPulse 1.8s ease-in-out infinite;
-  transform: scale(1.01);
-}
-
-@keyframes deepLinkPulse {
-  0% {
-    box-shadow: 0 0 15px rgba(var(--app-accent-gold-rgb), 0.35), 0 0 5px rgba(var(--app-primary-rgb), 0.25);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(var(--app-accent-gold-rgb), 0.65), 0 0 16px rgba(var(--app-primary-rgb), 0.55);
-  }
-  100% {
-    box-shadow: 0 0 15px rgba(var(--app-accent-gold-rgb), 0.35), 0 0 5px rgba(var(--app-primary-rgb), 0.25);
-  }
-}
-
-
-
-.cronaca-pill {
-  background: rgba(16, 185, 129, 0.12) !important;
-  color: #10b981 !important;
-  border: 1px solid rgba(16, 185, 129, 0.3) !important;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  ion-icon {
-    color: #10b981 !important;
-  }
-
-  &:hover {
-    background: rgba(16, 185, 129, 0.22) !important;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.pronostico-pill {
-  background: rgba(139, 92, 246, 0.12) !important;
-  color: #a78bfa !important;
-  border: 1px solid rgba(139, 92, 246, 0.3) !important;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  ion-icon {
-    color: #a78bfa !important;
-  }
-
-  &:hover {
-    background: rgba(139, 92, 246, 0.22) !important;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

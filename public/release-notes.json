@@ -1,5 +1,23 @@
 [
   {
+    "version": "NEXT",
+    "date": "30/10/2026",
+    "title": "Nuova Lista Partite: Restyling Completo a Gerarchia Chiara, Filtri Dinamici, Ordinamenti Multipli e Statistiche Live",
+    "userChanges": [
+      "🌟 Nuovo Design e Gerarchia Chiara: la schermata Partite è stata completamente ridisegnata sullo stile moderno della Classifica, con tabellone del punteggio Bianchi vs Neri, marcatori dedicati con doppietta/tripletta e Hero Stat Badge in risalto sulla destra per ogni partita.",
+      "📊 Ordinamenti Dinamici Multipli: puoi ora ordinare la lista delle partite concluse per Data (cronologica o inversa), Gol Totali segnati, Assist Totali, Minuti giocati ⏱️ (con formato ore e minuti esteso), Media Voto delle pagelle, Numero Giocatori scesi in campo e Campetto.",
+      "📍 Filtro Campetto & Ricerca Rapida: cassetto filtri rapido per isolare le partite giocate in un determinato centro sportivo e nuova barra di ricerca per trovare gare istantaneamente cercando per campetto, marcatore, giocatore o data.",
+      "📌 Partite in Evidenza Sempre in Cima: la partita LIVE in corso (con pulsazione ed evidenziazione neon), le gare pronte per il fischio d'inizio e quelle in attesa di pagelle rimangono sempre ancorate e ben visibili in cima a tutto.",
+      "📈 Dashboard Stagionale KPI: una mini-dashboard in alto mostra a colpo d'occhio partite disputate, gol totali e media reti a partita, assist complessivi, tempo effettivo giocato e media voti generale della stagione."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD e Staging DEV.",
+      "Re-architettura completa di PartitePage con Signal, Computed properties e template unificato DRY per azzerare il debito tecnico ed eliminare blocchi duplicati.",
+      "Implementazione del tipo CriterioOrdinamentoPartite con supporto all'inversione di direzione (crescente/decrescente) tramite tocco ripetuto del chip attivo.",
+      "Calcolo reattivo kpiStagione e matching euristico su marcatori, assist e minutaggio effettivo con integrazione time-format.util."
+    ]
+  },
+  {
     "version": "1.0.52",
     "date": "30/10/2026",
     "title": "Formato Orario Completo con Ore e Minuti Parlante (Es. 18h 20' 00\") per Classifica e Schede Giocatore",
