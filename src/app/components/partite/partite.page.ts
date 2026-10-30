@@ -605,18 +605,20 @@ export class PartitePage {
   }
 
   calcolaDurataSecondiPartita(m: any): number {
+    let sec = 0;
     if (typeof m.cronometro === 'number' && m.cronometro > 0) {
-      return m.cronometro;
-    }
-    if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
-      return m.accumulatedTime > 10000
+      sec = m.cronometro;
+    } else if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
+      sec = m.accumulatedTime > 10000
         ? Math.round(m.accumulatedTime / 1000)
         : m.accumulatedTime;
+    } else if (m.status === 'conclusa' || m.matchConcluso) {
+      sec = 3000; // 50 minuti standard
     }
-    if (m.status === 'conclusa' || m.matchConcluso) {
-      return 3000; // 50 minuti standard
+    if (sec > 7200) {
+      sec = 3600; // Capping di sicurezza se timer dimenticato acceso
     }
-    return 0;
+    return sec;
   }
 
   getTempoPartitaDisplay(m: any): string {

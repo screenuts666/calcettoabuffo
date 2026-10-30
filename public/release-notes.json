@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.0.56",
+    "date": "30/10/2026",
+    "title": "Rettifica e Normalizzazione Minutaggio Storico Gare & Protezione Automatica Anti-Anomalie Timer",
+    "userChanges": [
+      "⏱️ Minutaggio Totale Perfetto e Realistico: corretta l'anomalia storica sulla prima partita del campionato (che per via di un timer rimasto inavvertitamente attivo per giorni segnava oltre 62 ore), ora impostata a 60 minuti regolamentari fissi sia su DEV che su PROD.",
+      "🛡️ Protezione Automatica Minutaggi: integrato un controllo di sicurezza per cui nessuna partita può eccedere la durata di una normale sessione di calcetto, garantendo sempre statistiche pulite, coerenti e affidabili.",
+      "📊 Bilancio Ore Preciso: i minuti giocati e le ore complessive nelle schede giocatore e nei filtri rispecchiano ora con esattezza il reale tempo trascorso in campo."
+    ],
+    "superUserChanges": [
+      "Rettifica database Firestore su DEV e PROD: aggiornato il documento p7aPtCv4XGQvWr1a3ydp impostando cronometro e accumulatedTime a 3600s (60 min) e normalizzato il timestamp dell'ultimo gol da 3737:54 a 60:00.",
+      "Implementato guard anti-overflow nei calcoli di StatsEngineService, ClassificaPage e PartitePage con capping automatico a 3600s in caso di durata anomala (> 7200s)."
+    ]
+  },
+  {
     "version": "1.0.54",
     "date": "30/10/2026",
     "title": "Nuova Lista Partite: Restyling Completo a Gerarchia Chiara, Filtri Dinamici, Ordinamenti Multipli e Statistiche Live",

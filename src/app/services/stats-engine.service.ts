@@ -284,6 +284,9 @@ export class StatsEngineService {
         } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
           matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
         }
+        if (matchSec > 7200) {
+          matchSec = 3600;
+        }
         secondiGiocatiTotali += matchSec;
         const scoreA = Number(p.scoreA);
         const scoreB = Number(p.scoreB);
@@ -526,8 +529,9 @@ export class StatsEngineService {
         !!rot && (Array.isArray(rot.teamA) || Array.isArray(rot.teamB));
       const durataTurno = rot?.durataTurnoMinuti || 5;
       const durataTurnoSec = durataTurno * 60;
-      const cronometroTotale =
+      let cronometroTotale =
         p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+      if (cronometroTotale > 7200) cronometroTotale = 3600;
 
       let playerTeam: 'A' | 'B' | null = null;
       let orderList: string[] = [];

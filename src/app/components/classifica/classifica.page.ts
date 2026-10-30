@@ -273,6 +273,9 @@ export class ClassificaPage {
           } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
             matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
           }
+          if (matchSec > 7200) {
+            matchSec = 3600;
+          }
           secondiGiocatiTotali += matchSec;
 
           const scoreA = Number(p.scoreA);
