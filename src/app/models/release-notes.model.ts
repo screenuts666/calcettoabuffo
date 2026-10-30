@@ -11,7 +11,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.63",
+    "version": "1.0.65",
     "date": "30/10/2026",
     "title": "Rinfrescamento Grafico & UX Sezione Chimica: Schede Compatte, Filtri Rapidi e Label Chiare",
     "userChanges": [
