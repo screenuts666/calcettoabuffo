@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.0.42",
+    "date": "30/10/2026",
+    "title": "Restyling Parlante del Bilancio Partite (Vinte, Pareggiate, Perse) e Minuti Giocati",
+    "userChanges": [
+      "👥 Bilancio Partite 100% Parlante: rimosso il vecchio e criptico formato '8/3/4/1', sostituito da una scheda interattiva con tre riquadri dedicati per Partite Vinte (🟢), Pareggiate (🟡) e Perse (🔴), con totale gare giocate e percentuale di Win Rate.",
+      "📊 Barra Visiva di Distribuzione: aggiunta la barra proporzionale stile Sofascore che mostra a colpo d'occhio l'equilibrio e l'andamento dei risultati sportivi del giocatore.",
+      "⏱️ Banner Minuti Giocati Rifinito: visualizzazione chiara e moderna a larghezza piena del minutaggio effettivo accumulato sul terreno di gioco."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Riprogettato il layout di scheda-giocatore con ion-col a larghezza piena per il bilancio gare e per i minuti giocati.",
+      "Aggiunto styling SCSS dedicato (.card-bilancio, .card-minuti-banner, .bilancio-grid-boxes, .bilancio-bar-wrapper).",
+      "Rimossa la legenda testuale legacy 'P / W / D / L' ormai superflua e ambigua."
+    ]
+  },
+  {
     "version": "1.0.40",
     "date": "30/10/2026",
     "title": "Rilascio Ufficiale PROD: Nuova Scheda Portieri, Parate Incredibili con Bonus MMR, Note Libere e Filtro Minuti Giocati",
