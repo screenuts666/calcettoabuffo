@@ -266,7 +266,12 @@ export class ClassificaPage {
 
         if (inTeamA || inTeamB) {
           partiteGiocate++;
-          const matchSec = p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+          let matchSec = 3000;
+          if (typeof p.cronometro === 'number' && p.cronometro > 0) {
+            matchSec = p.cronometro;
+          } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
+            matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
+          }
           secondiGiocatiTotali += matchSec;
 
           const scoreA = Number(p.scoreA);
@@ -827,6 +832,13 @@ export class ClassificaPage {
           subText: g.partiteGiocate > 0 ? `${g.winRate}% WR` : '',
           subType: 'muted',
         };
+      case 'minuti':
+        return {
+          valore: g.minutiGiocatiDisplay || "0' 00\"",
+          etichetta: 'MINUTI',
+          subText: g.partiteGiocate > 0 ? `${g.partiteGiocate} gare` : '',
+          subType: 'muted',
+        };
       case 'portieri':
         return {
           valore: g.portiereStats?.isClassificabile
@@ -933,6 +945,8 @@ export class ClassificaPage {
         msg += `   └ ⭐ *Media ${g.mediaVotoDisplay}* | 👥 ${g.partiteGiocate} gare | 🏆 ${g.puntiDisplay} pt | ⚽ ${g.golTotali} gol\n`;
       } else if (this.criterioOrdinamento() === 'wins') {
         msg += `   └ 🔥 *${g.wins} Vittorie* (${g.winRate}% WR) | 🏆 ${g.puntiDisplay} pt | 👥 ${g.partiteGiocate} gare\n`;
+      } else if (this.criterioOrdinamento() === 'minuti') {
+        msg += `   └ ⏱️ *${g.minutiGiocatiDisplay}* | 👥 ${g.partiteGiocate} gare | 🏆 ${g.puntiDisplay} pt | ⭐ ${g.mediaVotoDisplay}\n`;
       } else if (this.criterioOrdinamento() === 'portieri') {
         const ps = g.portiereStats;
         msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPorta}' (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;

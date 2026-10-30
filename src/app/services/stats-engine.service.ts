@@ -277,7 +277,12 @@ export class StatsEngineService {
 
       if (inTeamA || inTeamB) {
         partiteGiocate++;
-        const matchSec = p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+        let matchSec = 3000;
+        if (typeof p.cronometro === 'number' && p.cronometro > 0) {
+          matchSec = p.cronometro;
+        } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
+          matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
+        }
         secondiGiocatiTotali += matchSec;
         const scoreA = Number(p.scoreA);
         const scoreB = Number(p.scoreB);
