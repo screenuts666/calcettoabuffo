@@ -391,6 +391,7 @@ export class AuthService {
       email.trim(),
       password
     );
+    this.firebaseUser.set(cred.user);
     await this.syncAndListenUserProfile(cred.user);
     return true;
   }
@@ -418,6 +419,7 @@ export class AuthService {
         () => { }
       );
     }
+    this.firebaseUser.set(cred.user);
     await this.syncAndListenUserProfile(cred.user);
     return true;
   }
@@ -434,6 +436,7 @@ export class AuthService {
       prompt: 'select_account',
     });
     const cred = await signInWithPopup(this.auth, provider);
+    this.firebaseUser.set(cred.user);
     await this.syncAndListenUserProfile(cred.user);
     return true;
   }
