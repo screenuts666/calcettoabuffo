@@ -490,7 +490,7 @@ export class MatchStateService {
   async setCambioPortiereAttivo(attivo: boolean): Promise<void> {
     this.cambioAttivo.set(attivo);
     const id = this.matchId();
-    if (!id) return;
+    if (!id || !this.auth.isSuperUser()) return;
     try {
       await updateDoc(doc(this.firestore, `partite/${id}`), {
         cambioAttivo: attivo,

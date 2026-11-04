@@ -6,18 +6,16 @@
       </div>
       <div class="mtb-title-text">
         <span class="mtb-title">
-          {{ authService.isLoggedIn() ? 'Profilo & Ruolo' : 'Accedi a Calcetto Abbuffo' }}
+          {{ authService.isLoggedIn() ? 'Il Mio Account' : 'Accedi a Calcetto Abbuffo' }}
         </span>
-        <span class="mtb-subtitle">
-          @if (authService.isLoggedIn()) {
+        @if (authService.isLoggedIn()) {
+          <span class="mtb-subtitle">
             {{ authService.roleMeta().badgeText }}
             @if (authService.isSuperUser() && linkedPlayer()) {
               · ⚽ Giocatore
             }
-          } @else {
-            Tifoso · Atleta · Mister (v2.0)
-          }
-        </span>
+          </span>
+        }
       </div>
     </div>
 
@@ -58,31 +56,6 @@
           <ion-icon name="person-add-outline"></ion-icon>
           <span>Registrati</span>
         </button>
-      </div>
-
-      <!-- Riepilogo rapido dei 3 ruoli -->
-      <div class="roles-explainer-strip">
-        <div class="re-item">
-          <span class="re-emoji">🧢</span>
-          <div>
-            <strong>Tifoso</strong>
-            <small>Sola lettura</small>
-          </div>
-        </div>
-        <div class="re-item">
-          <span class="re-emoji">⚽</span>
-          <div>
-            <strong>Atleta</strong>
-            <small>Scheda & RSVP</small>
-          </div>
-        </div>
-        <div class="re-item">
-          <span class="re-emoji">👑</span>
-          <div>
-            <strong>Mister</strong>
-            <small>Gestione totale</small>
-          </div>
-        </div>
       </div>
 
       <!-- Bottone Google Sign-In -->

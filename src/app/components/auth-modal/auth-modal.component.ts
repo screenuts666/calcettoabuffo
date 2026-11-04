@@ -411,6 +411,9 @@ export class AuthModalComponent implements OnInit {
 
   private formatFirebaseAuthError(err: any): string {
     const code = err?.code || '';
+    if (code.includes('requests-from-referer')) {
+      return 'Dominio bloccato nelle restrizioni API Key di Google Cloud Console: aggiungi https://calcettoabuffone.web.app/* e https://calcettoabuffone.firebaseapp.com/* ai referrer consentiti.';
+    }
     switch (code) {
       case 'auth/invalid-credential':
       case 'auth/wrong-password':
