@@ -77,6 +77,7 @@ import {
   searchOutline,
   swapVerticalOutline,
   shieldCheckmark,
+  constructOutline,
 } from 'ionicons/icons';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
@@ -393,6 +394,20 @@ export class PartitePage {
       );
   });
 
+  partiteInPreparazione = computed(() => {
+    const list = this.partiteFiltrate();
+    if (!list) return [];
+    const q = this.searchQuery().toLowerCase().trim();
+    const c = this.filtroCampetto();
+    return list
+      .filter((m: any) => m.status === 'da_definire')
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .sort(
+        (a: any, b: any) =>
+          (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
+      );
+  });
+
   partitePronte = computed(() => {
     const list = this.partiteFiltrate();
     if (!list) return [];
@@ -430,6 +445,7 @@ export class PartitePage {
   totalePartiteInEvidenza = computed(() => {
     return (
       this.partiteInCorso().length +
+      this.partiteInPreparazione().length +
       this.partitePronte().length +
       this.partiteDaVotare().length
     );
@@ -572,6 +588,7 @@ export class PartitePage {
       searchOutline,
       swapVerticalOutline,
       shieldCheckmark,
+      constructOutline,
     });
 
     this.route.queryParams.subscribe((params) => {
@@ -878,6 +895,8 @@ export class PartitePage {
         return 'badge-danger blink';
       case 'conclusa':
         return m.pagelleInserite ? 'badge-success' : 'badge-warning';
+      case 'da_definire':
+        return 'badge-warning';
       case 'pronta':
       default:
         return 'badge-primary';
@@ -890,6 +909,8 @@ export class PartitePage {
         return 'radio-outline';
       case 'conclusa':
         return m.pagelleInserite ? 'checkmark-done-circle' : 'star-half';
+      case 'da_definire':
+        return 'construct-outline';
       case 'pronta':
       default:
         return 'play-circle';
@@ -902,6 +923,8 @@ export class PartitePage {
         return 'LIVE';
       case 'conclusa':
         return m.pagelleInserite ? 'ARCHIVIATA' : 'DA VOTARE';
+      case 'da_definire':
+        return 'IN PREPARAZIONE';
       case 'pronta':
       default:
         return "Fischio d'inizio";

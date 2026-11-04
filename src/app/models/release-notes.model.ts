@@ -11,6 +11,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.71",
+    "title": "Auto-Salvataggio Step Creazione Partita & Fix Input Data Mobile",
+    "userChanges": [
+      "Risolto il taglio visivo dell'anno nel campo Data durante la creazione partita su schermi mobile.",
+      "Aggiunta la sezione In Preparazione nella lista Partite per visualizzare i match in fase di organizzazione prima della conferma delle squadre."
+    ],
+    "superUserChanges": [
+      "Auto-salvataggio continuo su Firestore e in locale ad ogni modifica nei 3 step di preparazione (Convocati, Dettagli, Squadre) per riprendere il lavoro anche chiudendo il browser o cambiando dispositivo.",
+      "Persistenza esplicita dello step corrente (step) e dello stato iniziale da_definire: risolto il bug per cui riaprendo una partita non ancora confermata si saltava direttamente al Fischio d'inizio con le squadre sbilanciate.",
+      "Aggiunto banner pre-partita e navigazione indietro sicura per modificare formazioni e convocati anche dopo aver confermato le squadre (finché il cronometro è a 00:00)."
+    ],
+    "date": "04/11/2026"
+  },
+  {
     "version": "1.0.69",
     "date": "30/10/2026",
     "title": "Fix Critico Timer Partita: Eliminato Trigger e Allarme Cambio Portiere all'Avvio (Minuto 00:00)",

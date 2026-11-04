@@ -119,6 +119,74 @@
   }
 }
 
+// ==========================================
+// BANNER PRE-PARTITA (PRONTA PER INIZIARE)
+// ==========================================
+.pre-match-card {
+  margin: 10px auto 0;
+  max-width: 680px;
+
+  .pm-inner {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .pm-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+
+      .pm-tag {
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      .pm-sub {
+        font-size: 0.72rem;
+        color: var(--app-text-muted);
+      }
+    }
+
+    .btn-modify-squadre {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: var(--app-card-bg);
+      border: 1px solid var(--app-border-color);
+      color: var(--app-text-primary);
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+
+      &:hover {
+        background: var(--app-surface-hover);
+        border-color: var(--app-primary);
+        color: var(--app-primary);
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+
+      ion-icon {
+        font-size: 0.95rem;
+      }
+    }
+  }
+}
+
 @keyframes stop-btn-pulse {
   0% {
     transform: scale(1);

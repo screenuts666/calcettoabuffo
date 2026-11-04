@@ -64,6 +64,7 @@ export class StepConvocatiComponent {
         g.id === giocatore.id ? { ...g, selezionato: !g.selezionato } : g,
       ),
     );
+    this.state.triggerAutoSave();
   }
 
   /**
@@ -110,6 +111,7 @@ export class StepConvocatiComponent {
       this.state.tutti.update((lista) =>
         lista.map((g) => ({ ...g, selezionato: false }))
       );
+      this.state.triggerAutoSave();
       const toast = await this.toastCtrl.create({
         message: '⚡ DEV: Convocati deselezionati',
         duration: 1500,
@@ -125,6 +127,7 @@ export class StepConvocatiComponent {
         selezionato: top14Ids.has(g.id),
       }))
     );
+    this.state.triggerAutoSave();
 
     const toast = await this.toastCtrl.create({
       message: `⚡ DEV: Selezionati ${top14Ids.size} giocatori (Top Classifica) per 7 vs 7!`,

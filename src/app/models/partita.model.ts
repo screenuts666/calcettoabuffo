@@ -45,6 +45,7 @@ export interface Partita {
   timerStartAt?: number | null;
   isTimerRunning?: boolean;
   status: TMatchStatus;
+  step?: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni';
   cambioAttivo?: boolean;
   classificaAggiornata?: boolean;
   fotoUrl?: string | null;
