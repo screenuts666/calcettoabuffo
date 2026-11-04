@@ -104,34 +104,44 @@ export class StepDettagliComponent {
 
   aggiornaLuogo(val: string) {
     this.state.luogo.set(val);
-    this.state.salvaSnapshotLocale();
     this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave();
+  }
+
+  aggiornaData(val: string) {
+    this.state.dataPartita.set(val);
+    this.state.triggerAutoSave();
   }
 
   aggiornaOrario(val: string) {
     this.state.orario.set(val);
-    this.state.salvaSnapshotLocale();
     this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave();
+  }
+
+  aggiornaNote(val: string) {
+    this.state.commentoPartita.set(val);
+    this.state.triggerAutoSave();
   }
 
   tornaAConvocati() {
-    this.state.step.set('convocati');
+    this.state.cambiaStep('convocati');
   }
 
   toggleModalitaA(modalita?: 'rotazione' | 'fisso') {
     const next =
       modalita ?? (this.state.modalitaPortieriA() === 'fisso' ? 'rotazione' : 'fisso');
     this.state.impostaModalitaPortiere('A', next);
-    this.state.salvaSnapshotLocale();
     this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave(true);
   }
 
   toggleModalitaB(modalita?: 'rotazione' | 'fisso') {
     const next =
       modalita ?? (this.state.modalitaPortieriB() === 'fisso' ? 'rotazione' : 'fisso');
     this.state.impostaModalitaPortiere('B', next);
-    this.state.salvaSnapshotLocale();
     this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave(true);
   }
 
   vaiASquadre() {
@@ -152,7 +162,6 @@ export class StepDettagliComponent {
       this.state.teamA.update((t) => [...t, ...nuoviArrivati]);
     }
 
-    this.state.salvaInDatabase(false);
-    this.state.step.set('squadre');
+    this.state.cambiaStep('squadre');
   }
 }

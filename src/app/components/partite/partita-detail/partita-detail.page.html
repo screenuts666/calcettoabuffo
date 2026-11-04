@@ -27,7 +27,7 @@
         class="step-node"
         [class.active]="state.step() === 'convocati'"
         [class.completed]="state.totaleConvocati() >= 2 && state.step() !== 'convocati'"
-        (click)="state.step.set('convocati')"
+        (click)="cambiaStep('convocati')"
       >
         <span class="node-circle">
           @if (state.totaleConvocati() >= 2 && state.step() !== 'convocati') {
@@ -47,7 +47,7 @@
         [class.active]="state.step() === 'dettagli'"
         [class.completed]="state.isDettagliValidi() && state.step() === 'squadre'"
         [disabled]="state.totaleConvocati() < 2"
-        (click)="state.totaleConvocati() >= 2 ? state.step.set('dettagli') : null"
+        (click)="state.totaleConvocati() >= 2 ? cambiaStep('dettagli') : null"
       >
         <span class="node-circle">
           @if (state.isDettagliValidi() && state.step() === 'squadre') {
@@ -66,7 +66,7 @@
         class="step-node"
         [class.active]="state.step() === 'squadre'"
         [disabled]="!state.isDettagliValidi() || state.totaleConvocati() < 2"
-        (click)="state.isDettagliValidi() && state.totaleConvocati() >= 2 ? state.step.set('squadre') : null"
+        (click)="state.isDettagliValidi() && state.totaleConvocati() >= 2 ? cambiaStep('squadre') : null"
       >
         <span class="node-circle">3</span>
         <span class="node-label">Squadre</span>
@@ -115,7 +115,7 @@
 
     @if (state.step() === 'convocati' && state.totaleConvocati() >= 2) {
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button color="success" (click)="state.step.set('dettagli')">
+        <ion-fab-button color="success" (click)="cambiaStep('dettagli')">
           <ion-icon name="arrow-forward"></ion-icon>
         </ion-fab-button>
       </ion-fab>

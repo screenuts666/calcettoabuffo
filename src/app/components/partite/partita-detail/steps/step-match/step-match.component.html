@@ -29,6 +29,22 @@
   </div>
 }
 
+<!-- ─── BANNER PRE-PARTITA (MODIFICA SQUADRE/CONVOCATI PRIMA DEL FISCHIO D'INIZIO) ─── -->
+@if (isAdmin && state.status() === 'pronta' && !state.isTimerRunning() && state.cronometro() === 0 && state.eventiGol().length === 0) {
+  <div class="pre-match-card ion-padding-horizontal">
+    <div class="pm-inner">
+      <div class="pm-text">
+        <span class="pm-tag">⚖️ Formazioni Pronte</span>
+        <span class="pm-sub">Puoi ancora modificare i convocati e lo schieramento squadre</span>
+      </div>
+      <button type="button" class="btn-modify-squadre" (click)="state.cambiaStep('squadre')">
+        <ion-icon name="create-outline"></ion-icon>
+        <span>Modifica Squadre</span>
+      </button>
+    </div>
+  </div>
+}
+
 <!-- ─── COCKPIT BORDO CAMPO: TIMER + TABELLONE + GOL RAPIDO CON FOTO ──── -->
 <div class="courtside-cockpit">
   <!-- Barra Superiore: Info Campo + Cronometro + Play/Pausa -->
