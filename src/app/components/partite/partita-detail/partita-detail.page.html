@@ -10,17 +10,19 @@
       state.step() === 'prestazioni'
         ? (state.matchConcluso() ? 'Report Partita' : 'Pagelle')
         : state.matchId()
-          ? 'Gestione Match'
+          ? (isAdmin ? 'Gestione Match' : 'Dettaglio Partita')
           : 'Nuova Partita'
     }}</ion-title>
 
     <ion-buttons slot="end" class="detail-header-end">
-      <app-sync-status-badge [compact]="true"></app-sync-status-badge>
+      @if (isAdmin) {
+        <app-sync-status-badge [compact]="true"></app-sync-status-badge>
+      }
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
 
-  @if (!state.matchConcluso() && (state.step() === 'convocati' || state.step() === 'dettagli' || state.step() === 'squadre')) {
+  @if (isAdmin && !state.matchConcluso() && (state.step() === 'convocati' || state.step() === 'dettagli' || state.step() === 'squadre')) {
     <div class="wizard-stepper-bar">
       <button
         type="button"
@@ -93,6 +95,18 @@
       </p>
     </div>
   } @else {
+    <!-- WIDGET CONVOCAZIONI & RSVP (Per Atleti e Mister-Giocatori) -->
+    @if (hasRsvpOrOpen()) {
+      <div style="padding: 8px 12px 0;">
+        <app-match-rsvp-widget
+          [matchId]="state.matchId()"
+          [rsvpMap]="state.rsvp()"
+          [matchConcluso]="state.matchConcluso()"
+          (rsvpUpdated)="state.rsvp.set($event)"
+        ></app-match-rsvp-widget>
+      </div>
+    }
+
     @if (state.step() === "convocati") {
       <app-step-convocati></app-step-convocati>
     }
@@ -113,7 +127,7 @@
       <app-step-prestazioni></app-step-prestazioni>
     }
 
-    @if (state.step() === 'convocati' && state.totaleConvocati() >= 2) {
+    @if (isAdmin && state.step() === 'convocati' && state.totaleConvocati() >= 2) {
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button color="success" (click)="cambiaStep('dettagli')">
           <ion-icon name="arrow-forward"></ion-icon>

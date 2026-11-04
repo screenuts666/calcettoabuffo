@@ -157,6 +157,96 @@
 </ion-header>
 
 <ion-content class="matches-container">
+  <!-- CESTINO 24 ORE PARTITE (SOLO MISTER) -->
+  @if (isAdmin && trashService.deletedMatches().length > 0) {
+    <div
+      style="
+        margin: 10px 14px 4px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(245, 158, 11, 0.11);
+        border: 1px dashed rgba(245, 158, 11, 0.45);
+      "
+    >
+      <div
+        style="
+          font-size: 0.75rem;
+          font-weight: 800;
+          color: #f59e0b;
+          margin-bottom: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        "
+      >
+        <span>🗑️ Cestino Partite (Ripristino entro 24h)</span>
+        <span>{{ trashService.deletedMatches().length }}</span>
+      </div>
+      @for (item of trashService.deletedMatches(); track item.id) {
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 9px;
+            background: rgba(0, 0, 0, 0.18);
+            margin-top: 4px;
+            font-size: 0.76rem;
+          "
+        >
+          <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <strong>{{ item.label }}</strong>
+            @if (item.subtitle) {
+              <span style="opacity: 0.85; font-size: 0.71rem; margin-left: 4px;">
+                · {{ item.subtitle }}
+              </span>
+            }
+            <span style="opacity: 0.72; font-size: 0.7rem; margin-left: 6px;">
+              ⏳ {{ trashService.formatRemainingTime(item.expiresAt) }}
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+            <button
+              type="button"
+              (click)="trashService.restoreItem(item.id)"
+              style="
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(16, 185, 129, 0.5);
+                background: rgba(16, 185, 129, 0.18);
+                color: #10b981;
+                font-weight: 800;
+                font-size: 0.72rem;
+                cursor: pointer;
+              "
+            >
+              ↩️ Ripristina
+            </button>
+            <button
+              type="button"
+              (click)="trashService.permanentlyDeleteItem(item.id)"
+              title="Elimina definitivamente"
+              style="
+                padding: 4px 8px;
+                border-radius: 8px;
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                background: rgba(239, 68, 68, 0.14);
+                color: #ef4444;
+                font-weight: 800;
+                font-size: 0.72rem;
+                cursor: pointer;
+              "
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
   @if (stagioneSelezionata() === PREVIOUS_SEASON) {
     <div class="archive-season-banner">
       <ion-icon name="time-outline"></ion-icon>
@@ -407,6 +497,13 @@
           <!-- CORPO ESPANDIBILE DELL'ACCORDION (Dettagli, Marcatori, Piantina, Azioni) -->
           @if (isMatchAccordionOpen(m.id, isLive)) {
             <div class="match-accordion-content" (click)="$event.stopPropagation()">
+              @if (!m.matchConcluso || m.rsvp) {
+                <app-match-rsvp-widget
+                  [matchId]="m.id"
+                  [rsvpMap]="m.rsvp"
+                  [matchConcluso]="m.matchConcluso"
+                ></app-match-rsvp-widget>
+              }
               <!-- MARCATORI PER SQUADRA CON EMOJI E DOPPIETTE/TRIPLETTE -->
               @let marcatoriA = getMarcatoriSquadra(m, 'A');
               @let marcatoriB = getMarcatoriSquadra(m, 'B');

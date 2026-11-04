@@ -1,0 +1,156 @@
+.rsvp-card {
+  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rsvp-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  .rsvp-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .rsvp-badge {
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      color: var(--app-text-primary);
+    }
+
+    .rsvp-counters {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+
+      .cnt {
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.12);
+      }
+    }
+  }
+
+  .my-status-pill {
+    font-size: 0.65rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.16);
+    color: var(--app-text-primary);
+
+    &[data-status='confirmed'] {
+      background: rgba(45, 211, 111, 0.18);
+      color: #2dd36f;
+      border: 1px solid rgba(45, 211, 111, 0.4);
+    }
+
+    &[data-status='maybe'] {
+      background: rgba(251, 191, 36, 0.18);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+    }
+
+    &[data-status='declined'] {
+      background: rgba(239, 68, 68, 0.16);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+  }
+}
+
+.rsvp-buttons-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+
+  .rsvp-btn {
+    padding: 8px 6px;
+    border-radius: 9px;
+    border: 1px solid var(--app-card-border);
+    background: var(--app-card-bg);
+    color: var(--app-text-secondary);
+    font-size: 0.74rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &.confirm.active {
+      background: rgba(45, 211, 111, 0.18);
+      border-color: rgba(45, 211, 111, 0.55);
+      color: #2dd36f;
+    }
+
+    &.maybe.active {
+      background: rgba(251, 191, 36, 0.18);
+      border-color: rgba(251, 191, 36, 0.55);
+      color: #fbbf24;
+    }
+
+    &.decline.active {
+      background: rgba(239, 68, 68, 0.16);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #ef4444;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.rsvp-guest-cta {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px dashed rgba(45, 211, 111, 0.45);
+  background: rgba(45, 211, 111, 0.08);
+  color: #2dd36f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+}
+
+.rsvp-names-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding-top: 2px;
+
+  .rsvp-name-chip {
+    font-size: 0.66rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-primary);
+
+    &.confirmed {
+      border-color: rgba(45, 211, 111, 0.35);
+    }
+
+    &.maybe {
+      border-color: rgba(251, 191, 36, 0.35);
+    }
+
+    &.declined {
+      opacity: 0.65;
+    }
+  }
+}
+

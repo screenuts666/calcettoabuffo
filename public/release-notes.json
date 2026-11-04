@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.0-dev",
+    "title": "Calcetto Abbuffo 2.0: Nuovo Sistema Account (Google + Email), Ruoli Tifoso/Atleta/Mister, Scheda Personale & RSVP Partite",
+    "userChanges": [
+      "🔐 Login & Registrazione Rapida (Email o Google): accedi con un tap dalla barra in alto per vivere l'app con il tuo profilo personale.",
+      "⚽ Diventa Atleta (Reclama o Crea la tua Scheda): collega il tuo account al tuo giocatore in Rosa (pulsante 'Sono io!') oppure, se non sei ancora presente, crea subito la tua scheda giocatore e agganciala automaticamente.",
+      "✏️ Personalizza la Tua Scheda: come Atleta puoi aggiornare in autonomia foto/avatar, soprannome ufficiale, numero di maglia, piede, ruolo e biografia.",
+      "🙋‍♂️ RSVP & Convocazioni Partita: conferma la tua presenza ('Ci sono', 'In forse', 'Assente') direttamente dalla lista Partite o dal dettaglio match in tempo reale."
+    ],
+    "superUserChanges": [
+      "👑 Architettura RBAC a 3 Ruoli (guest/Tifoso, user/Atleta, superuser/Mister) con supporto completo 'Mister-Giocatore' (il Mister può associare facoltativamente la propria scheda giocatore mantenendo tutti i privilegi Admin) e auto-aggancio per gli Admin Legacy anche via Google Sign-In.",
+      "🛡️ Hardening Firestore & Storage Rules (Field-Level Security): prevenzione Privilege Escalation su users/{uid}, anti-hijacking su giocatori/{id}, blocco totale modifiche MMR/gol/statistiche per i non-Mister e Zero Data Leak su _config, _secret, _trash e Area Segreta (CanActivateFn + CanMatchFn).",
+      "🗑️ Doppio Livello Undo & Cestino 24 Ore (TrashService): ogni eliminazione di Partite o Giocatori offre un Toast '↩️ ANNULLA' immediato (8 sec) più un Cestino ripristinabile per 24 ore (con conservazione sicura anche delle foto match su Storage)."
+    ],
+    "date": "04/11/2026"
+  },
+  {
     "version": "1.0.71",
     "title": "Auto-Salvataggio Step Creazione Partita & Fix Input Data Mobile",
     "userChanges": [

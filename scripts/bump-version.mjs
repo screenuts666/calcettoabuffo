@@ -27,17 +27,38 @@ const currentVersion = pkg.version || '1.0.0';
 
 let nextVersion = currentVersion;
 if (!noBump) {
-  const parts = currentVersion.split('.').map((n) => parseInt(n, 10) || 0);
-  if (parts[0] === 0 && parts[1] === 0) {
-    parts[0] = 1;
-    parts[1] = 0;
-    parts[2] = (parts[2] || 0) + 1;
-  } else {
-    parts[2] = (parts[2] || 0) + 1;
+  let existingTopVersion = '';
+  if (fs.existsSync(publicReleaseNotesPath)) {
+    try {
+      const rn = JSON.parse(fs.readFileSync(publicReleaseNotesPath, 'utf-8'));
+      existingTopVersion = rn?.[0]?.version || '';
+    } catch {}
   }
-  nextVersion = `${parts[0]}.${parts[1]}.${parts[2]}`;
-  pkg.version = nextVersion;
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+
+  // Se la versione in package.json è già stata impostata manualmente (es. "2.0.0-dev")
+  // mantienila su 2.0.0-dev per il rilascio 2.0.0-dev
+  if (
+    currentVersion === '2.0.0-dev' &&
+    (existingTopVersion !== '2.0.0-dev' || existingTopVersion === '2.0.0-dev')
+  ) {
+    nextVersion = '2.0.0-dev';
+  } else {
+    const [coreVersion, preReleaseSuffix] = currentVersion.split('-');
+    const parts = coreVersion.split('.').map((n) => parseInt(n, 10) || 0);
+    if (parts[0] === 0 && parts[1] === 0) {
+      parts[0] = 1;
+      parts[1] = 0;
+      parts[2] = (parts[2] || 0) + 1;
+    } else {
+      parts[2] = (parts[2] || 0) + 1;
+    }
+    const bumpedCore = `${parts[0]}.${parts[1]}.${parts[2]}`;
+    nextVersion = preReleaseSuffix
+      ? `${bumpedCore}-${preReleaseSuffix}`
+      : bumpedCore;
+    pkg.version = nextVersion;
+    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+  }
 }
 
 const timestamp = Date.now();

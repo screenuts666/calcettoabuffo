@@ -1,12 +1,50 @@
-<ion-button
-  (click)="openThemeMenu()"
-  class="theme-toggle-btn"
-  [title]="'Impostazioni, Suoni Cambio Portiere & Tema (v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ')'"
-  aria-label="Impostazioni, Suoni e Tema"
->
-  @if (isDevEnvironment) {
-    <span class="dev-mode-mini-pill">DEV</span>
+<div class="header-actions-group">
+  <!-- PILL RIASSUNTO UTENTE LOGGATO / BOTTONE ACCEDI -->
+  @if (authService.isLoggedIn()) {
+    <button
+      type="button"
+      class="user-header-pill"
+      [attr.data-role]="authService.role()"
+      (click)="onUserHeaderClick()"
+      [title]="authService.displayName() + ' (' + authService.roleMeta().badgeText + ') - Tocca per menu rapido'"
+    >
+      <div class="uhp-avatar">
+        <app-player-avatar
+          [fotoUrl]="userAvatarUrl()"
+          [alt]="shortUserName()"
+        ></app-player-avatar>
+      </div>
+      <div class="uhp-info">
+        <span class="uhp-name">{{ shortUserName() }}</span>
+        <span class="uhp-role-badge" [attr.data-role]="authService.role()">
+          {{ authService.roleMeta().emoji }} {{ authService.roleLabel() }}
+        </span>
+      </div>
+    </button>
+  } @else {
+    <button
+      type="button"
+      class="user-login-pill"
+      (click)="onUserHeaderClick()"
+      title="Accedi o Registrati (Tifoso / Atleta / Mister)"
+    >
+      <ion-icon name="person-circle-outline"></ion-icon>
+      <span class="ulp-label">Accedi</span>
+      <span class="ulp-role-tag">🧢 Tifoso</span>
+    </button>
   }
-  <span class="version-mini-pill">v{{ appUpdate.version }}</span>
-  <ion-icon name="settings-outline" class="gear-mini-icon"></ion-icon>
-</ion-button>
+
+  <!-- BOTTONE IMPOSTAZIONI AUDIO, TEMA & VERSIONE -->
+  <ion-button
+    (click)="openThemeMenu()"
+    class="theme-toggle-btn"
+    [title]="'Impostazioni, Suoni Cambio Portiere & Tema (v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ')'"
+    aria-label="Impostazioni, Suoni e Tema"
+  >
+    @if (isDevEnvironment) {
+      <span class="dev-mode-mini-pill">DEV</span>
+    }
+    <span class="version-mini-pill">v{{ appUpdate.version }}</span>
+    <ion-icon name="settings-outline" class="gear-mini-icon"></ion-icon>
+  </ion-button>
+</div>

@@ -1,4 +1,12 @@
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnDestroy,
+  OnInit,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import {
   IonHeader,
   IonToolbar,
@@ -11,7 +19,7 @@ import {
   IonFabButton,
   AlertController,
   ActionSheetController,
-  ToastController,
+  ToastController,
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { CommonModule, Location } from '@angular/common';
@@ -25,15 +33,14 @@ import {
   orderBy,
   limit,
 } from 'firebase/firestore';
-import { environment } from 'src/environments/environment';
 import { Firestore } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   arrowBack,
-      arrowBackOutline,
-      listOutline,
-      closeOutline,
+  arrowBackOutline,
+  listOutline,
+  closeOutline,
   close,
   arrowForward,
   checkmark,
@@ -50,6 +57,7 @@ import { StepMatchComponent } from './steps/step-match/step-match.component';
 import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazioni.component';
 import { SyncStatusBadgeComponent } from '../../sync-status-badge/sync-status-badge.component';
 import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
+import { MatchRsvpWidgetComponent } from '../match-rsvp-widget/match-rsvp-widget.component';
 
 @Component({
   selector: 'app-partita-detail',
@@ -75,6 +83,7 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
     StepPrestazioniComponent,
     SyncStatusBadgeComponent,
     ThemeToggleComponent,
+    MatchRsvpWidgetComponent,
   ],
   providers: [MatchStateService],
 })
@@ -87,16 +96,28 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private router = inject(Router);
   private location = inject(Location);
   private firestore = inject(Firestore);
-  private auth = inject(AuthService);
+  public auth = inject(AuthService);
 
   @Input() matchData: any;
-  isAdmin: boolean = false;
   isLoading = signal<boolean>(false);
   private routeSub?: Subscription;
+
+  get isAdmin(): boolean {
+    return this.auth.isAdmin();
+  }
+
+  readonly hasRsvpOrOpen = computed<boolean>(() => {
+    if (!this.state.matchId()) return false;
+    if (!this.state.matchConcluso()) return true;
+    return Object.keys(this.state.rsvp() || {}).length > 0;
+  });
 
   constructor() {
     addIcons({
       arrowBack,
+      arrowBackOutline,
+      listOutline,
+      closeOutline,
       close,
       arrowForward,
       checkmark,
@@ -104,21 +125,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
-    this.isAdmin = this.auth.isAdmin();
-
-    // Quando viene creato un nuovo documento Firestore per una partita nuova,
-    // sincronizza l'URL del browser da '/partite/nuova' a '/partite/:id' senza ricaricare la pagina
     this.state.onMatchCreated = (newId: string) => {
       this.location.replaceState('/partite/' + newId);
     };
 
-    // 1. Se aperto via modale con dati già pronti
     if (this.matchData) {
       this.initMatchData(this.matchData);
       return;
     }
 
-    // 2. Se aperto via Routing (/partite/nuova o /partite/:id)
     this.routeSub = this.route.paramMap.subscribe(async (params) => {
       const routeId = params.get('id');
       if (!routeId || routeId === 'nuova') {
@@ -133,7 +148,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
-    this.state.flushAutoSave();
+    if (this.isAdmin) {
+      this.state.flushAutoSave();
+    }
     this.state.fermaAscolto();
     this.state.soundSettings?.stopAllSounds();
   }
@@ -142,7 +159,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.isLoading.set(true);
     try {
       const snap = await getDocs(
-        query(collection(this.firestore, 'giocatori'), orderBy('nome')),
+        query(collection(this.firestore, 'giocatori'), orderBy('nome'))
       );
       const baseGiocatori = snap.docs.map((d) => ({
         id: d.id,
@@ -154,9 +171,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       let orarioPredefinito = '21:00';
       let modalitaAPredefinita: ModalitaPortiere = 'rotazione';
       let modalitaBPredefinita: ModalitaPortiere = 'rotazione';
-      let durataTurnoMinutiPredefinita = this.state.soundSettings?.config().gkTurnMinutes || 5;
+      let durataTurnoMinutiPredefinita =
+        this.state.soundSettings?.config().gkTurnMinutes || 5;
 
-      // 1. Prova prima dal setup ricordato e salvato in localStorage
       try {
         if (typeof localStorage !== 'undefined') {
           const rawSetup = localStorage.getItem('calcetto_last_match_setup');
@@ -166,12 +183,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
             if (parsed.orario) orarioPredefinito = parsed.orario;
             if (parsed.modalitaA) modalitaAPredefinita = parsed.modalitaA;
             if (parsed.modalitaB) modalitaBPredefinita = parsed.modalitaB;
-            if (parsed.durataTurnoMinuti) durataTurnoMinutiPredefinita = parsed.durataTurnoMinuti;
+            if (parsed.durataTurnoMinuti)
+              durataTurnoMinutiPredefinita = parsed.durataTurnoMinuti;
           }
         }
       } catch {}
 
-      // 2. Se mancanti o su nuovo device, recupera dall'ultima partita memorizzata su Firestore
       try {
         const lastMatchSnap = await getDocs(
           query(
@@ -183,22 +200,38 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         for (const docSnap of lastMatchSnap.docs) {
           const d = docSnap.data();
           if (d) {
-            if (!luogoPredefinito && d['luogo'] && typeof d['luogo'] === 'string' && d['luogo'].trim() !== '') {
+            if (
+              !luogoPredefinito &&
+              d['luogo'] &&
+              typeof d['luogo'] === 'string' &&
+              d['luogo'].trim() !== ''
+            ) {
               luogoPredefinito = d['luogo'].trim();
             }
-            if ((!orarioPredefinito || orarioPredefinito === '21:00') && d['orario'] && typeof d['orario'] === 'string') {
+            if (
+              (!orarioPredefinito || orarioPredefinito === '21:00') &&
+              d['orario'] &&
+              typeof d['orario'] === 'string'
+            ) {
               orarioPredefinito = d['orario'];
             }
             if (d['rotazionePortieri']) {
-              if (d['rotazionePortieri'].modalitaA) modalitaAPredefinita = d['rotazionePortieri'].modalitaA;
-              if (d['rotazionePortieri'].modalitaB) modalitaBPredefinita = d['rotazionePortieri'].modalitaB;
-              if (d['rotazionePortieri'].durataTurnoMinuti) durataTurnoMinutiPredefinita = d['rotazionePortieri'].durataTurnoMinuti;
+              if (d['rotazionePortieri'].modalitaA)
+                modalitaAPredefinita = d['rotazionePortieri'].modalitaA;
+              if (d['rotazionePortieri'].modalitaB)
+                modalitaBPredefinita = d['rotazionePortieri'].modalitaB;
+              if (d['rotazionePortieri'].durataTurnoMinuti)
+                durataTurnoMinutiPredefinita =
+                  d['rotazionePortieri'].durataTurnoMinuti;
             }
             if (luogoPredefinito) break;
           }
         }
       } catch (e) {
-        console.warn('Impossibile recuperare ultimo setup partita da Firestore:', e);
+        console.warn(
+          'Impossibile recuperare ultimo setup partita da Firestore:',
+          e
+        );
       }
 
       const nuovaData: any = {
@@ -210,6 +243,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         teamA: [],
         teamB: [],
         convocati: [],
+        rsvp: {},
         status: 'da_definire',
         step: 'convocati',
         luogo: luogoPredefinito,
@@ -236,7 +270,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     try {
       const [matchSnap, giocatoriSnap] = await Promise.all([
         getDoc(doc(this.firestore, `partite/${matchId}`)),
-        getDocs(query(collection(this.firestore, 'giocatori'), orderBy('nome'))),
+        getDocs(
+          query(collection(this.firestore, 'giocatori'), orderBy('nome'))
+        ),
       ]);
 
       if (!matchSnap.exists()) {
@@ -284,11 +320,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.state.matchConcluso.set(matchData.matchConcluso || false);
     this.state.pagelleInserite.set(matchData.pagelleInserite || false);
     this.state.status.set(matchData.status || 'da_definire');
-    this.isAdmin = matchData.isAdmin ?? this.auth.isAdmin();
+    this.state.rsvp.set(matchData.rsvp || {});
 
-    const baseGiocatori = (matchData.tuttiGiocatori || []).map(
-      (g: any) => ({ ...g, selezionato: false }),
-    );
+    const baseGiocatori = (matchData.tuttiGiocatori || []).map((g: any) => ({
+      ...g,
+      selezionato: false,
+    }));
 
     if (matchData.id) {
       this.state.luogo.set(matchData.luogo || '');
@@ -298,7 +335,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.fotoPath.set(matchData.fotoPath || null);
       this.state.pronosticoAi.set(matchData.pronosticoAi || null);
       this.state.cronacaAi.set(matchData.cronacaAi || null);
-      this.state.commentoPartita.set(matchData.commentoPartita || matchData.commento || '');
+      this.state.commentoPartita.set(
+        matchData.commentoPartita || matchData.commento || ''
+      );
       this.state.notePortieri.set(matchData.notePortieri || null);
       this.state.parateIncredibili.set(matchData.parateIncredibili || {});
 
@@ -313,7 +352,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       const turnSec = (matchData.rotazionePortieri?.durataTurnoMinuti || 5) * 60;
       const isPastFirstTurn = (matchData.cronometro || 0) >= turnSec;
       this.state.cambioAttivo.set(
-        matchData.isTimerRunning && isPastFirstTurn ? (matchData.cambioAttivo || false) : false
+        matchData.isTimerRunning && isPastFirstTurn
+          ? matchData.cambioAttivo || false
+          : false
       );
 
       const idsSalvati = (matchData.convocati || []).map((c: any) => c.id);
@@ -321,7 +362,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         baseGiocatori.map((g: any) => ({
           ...g,
           selezionato: idsSalvati.includes(g.id),
-        })),
+        }))
       );
       const eventi = matchData.eventiGol || [];
       const normalizePlayer = (p: any) => {
@@ -338,7 +379,11 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
           assist:
             p.assist !== undefined
               ? p.assist
-              : eventi.filter((eg: any) => eg.assistId === p.id || (!eg.assistId && eg.assistNome === p.nome)).length,
+              : eventi.filter(
+                  (eg: any) =>
+                    eg.assistId === p.id ||
+                    (!eg.assistId && eg.assistNome === p.nome)
+                ).length,
         };
       };
 
@@ -346,12 +391,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
 
-      // Risoluzione affidabile dello step salvato:
-      // 1. Se conclusa -> prestazioni
-      // 2. Se in corso (timer avviato) -> match
-      // 3. Se step esplicitamente memorizzato -> ripristina esattamente lo step
-      // 4. Fallback prudente per vecchie partite non dotate del campo step
-      if (matchData.matchConcluso) {
+      // Se l'utente non è il Mister, mostra direttamente il Report ('prestazioni') se conclusa
+      // oppure il tabellone in sola lettura ('match') con il widget RSVP in alto!
+      if (!this.isAdmin) {
+        if (matchData.matchConcluso) {
+          this.state.step.set('prestazioni');
+        } else {
+          this.state.step.set('match');
+        }
+      } else if (matchData.matchConcluso) {
         this.state.step.set('prestazioni');
       } else if (matchData.status === 'in_corso') {
         this.state.step.set('match');
@@ -387,14 +435,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.step.set('convocati');
     }
 
-    // Ripristina snapshot locale di sicurezza se presente e più recente / offline
-    this.state.ripristinaSnapshotLocaleSeRecente(matchData.id || null);
+    if (this.isAdmin) {
+      this.state.ripristinaSnapshotLocaleSeRecente(matchData.id || null);
+    }
   }
 
   getProssimoMercoledi(): string {
     const d = new Date();
     d.setDate(
-      d.getDate() + (d.getDay() <= 3 ? 3 - d.getDay() : 10 - d.getDay()),
+      d.getDate() + (d.getDay() <= 3 ? 3 - d.getDay() : 10 - d.getDay())
     );
     const iso = d.toISOString().split('T')[0];
     return iso < MIN_CURRENT_SEASON_DATE ? MIN_CURRENT_SEASON_DATE : iso;
@@ -407,28 +456,29 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   cambiaStep(
     step: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
   ) {
+    if (!this.isAdmin) return;
     this.state.cambiaStep(step);
   }
 
-  /**
-   * Torna alla pagina /partite senza chiudere o concludere la partita.
-   * Il match resta attivo, salvato in locale e nel DB, e riapribile dall'elenco "In Corso".
-   */
-  /**
-   * Gestisce il tap sulla freccia indietro: chiede all'utente se tornare alla lista partite
-   * oppure andare allo step precedente del match.
-   */
   async gestisciIndietro() {
+    if (!this.isAdmin) {
+      this.router.navigate(['/partite']);
+      return;
+    }
+
     const currentStep = this.state.step();
 
-    // Se siamo nel primo step ('convocati') o la partita è già conclusa in 'prestazioni', torna direttamente
-    if (currentStep === 'convocati' || (this.state.matchConcluso() && currentStep === 'prestazioni')) {
+    if (
+      currentStep === 'convocati' ||
+      (this.state.matchConcluso() && currentStep === 'prestazioni')
+    ) {
       this.tornaAPartite();
       return;
     }
 
     let prevStepName = '';
-    let prevStepTarget: 'convocati' | 'dettagli' | 'squadre' | 'match' | null = null;
+    let prevStepTarget: 'convocati' | 'dettagli' | 'squadre' | 'match' | null =
+      null;
 
     switch (currentStep) {
       case 'dettagli':
@@ -501,8 +551,10 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   tornaAPartite() {
-    this.state.flushAutoSave();
-    this.state.salvaSnapshotLocale();
+    if (this.isAdmin) {
+      this.state.flushAutoSave();
+      this.state.salvaSnapshotLocale();
+    }
     this.router.navigate(['/partite']);
   }
 

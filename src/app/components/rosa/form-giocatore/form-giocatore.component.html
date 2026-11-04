@@ -3,17 +3,89 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/rosa" text=""></ion-back-button>
     </ion-buttons>
-    <ion-title>{{ giocatore ? "Modifica" : "Nuovo" }} Giocatore</ion-title>
+    <ion-title>{{
+      giocatore
+        ? 'Modifica Giocatore'
+        : isSelfRegistration
+          ? 'La Mia Scheda in Rosa'
+          : 'Nuovo Giocatore'
+    }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding deep-black-content">
+  @if (giocatore && canEdit && !isAdmin) {
+    <div
+      style="
+        margin-bottom: 14px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: rgba(45, 211, 111, 0.12);
+        border: 1px solid rgba(45, 211, 111, 0.35);
+        font-size: 0.76rem;
+        color: var(--app-text-primary);
+      "
+    >
+      <strong>⚽ Modalità Atleta (La tua scheda):</strong> Puoi personalizzare
+      foto, soprannome, numero maglia, piede, ruolo e biografia. MMR, gol e
+      statistiche storiche sono protetti lato server.
+    </div>
+  }
+
+  @if (!giocatore && !isAdmin && canEdit) {
+    <div
+      style="
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.38);
+        font-size: 0.78rem;
+        color: var(--app-text-primary);
+      "
+    >
+      <strong>⚽ Iscrizione in Rosa + Associazione Automatica:</strong> Compila
+      i tuoi dati per entrare in rosa. Al salvataggio la scheda verrà agganciata
+      automaticamente al tuo account e diventerai <b>Atleta</b>!
+    </div>
+  }
+
+  @if (!giocatore && isAdmin && !auth.hasLinkedPlayer()) {
+    <div
+      (click)="toggleLinkToMyAccount()"
+      style="
+        margin-bottom: 14px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        font-size: 0.78rem;
+        color: var(--app-text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+      "
+    >
+      <span>
+        <strong>👑 Opzione Mister-Giocatore:</strong> Collega subito questo
+        giocatore al mio account Mister
+      </span>
+      <input
+        type="checkbox"
+        [checked]="linkToMyAccount()"
+        style="width: 18px; height: 18px; accent-color: #f59e0b;"
+      />
+    </div>
+  }
+
   <div class="photo-container">
     <div class="avatar-preview-box" (click)="openFilePicker()">
       <ion-avatar class="editable-avatar">
         <app-player-avatar [fotoUrl]="anteprimaFoto()"></app-player-avatar>
       </ion-avatar>
-      @if (isAdmin) {
+      @if (canEdit) {
         <div class="avatar-edit-badge" title="Cambia foto">
           <ion-icon name="camera-outline"></ion-icon>
         </div>
@@ -26,11 +98,17 @@
       hidden
       accept="image/*"
     />
-    @if (isAdmin) {
+    @if (canEdit) {
       <div class="photo-actions">
-        <span class="photo-hint" (click)="openFilePicker()">Tocca l'avatar per cambiare foto</span>
+        <span class="photo-hint" (click)="openFilePicker()">
+          Tocca l'avatar per cambiare foto
+        </span>
         @if (anteprimaFoto()) {
-          <button type="button" class="btn-remove-photo" (click)="rimuoviFoto($event)">
+          <button
+            type="button"
+            class="btn-remove-photo"
+            (click)="rimuoviFoto($event)"
+          >
             <ion-icon name="trash-outline"></ion-icon>
             <span>Rimuovi foto</span>
           </button>
@@ -47,26 +125,41 @@
         placeholder="Es. Francesco Totti"
         [value]="nome()"
         (ionInput)="nome.set($event.detail.value || '')"
-        [readonly]="!isAdmin"
+        [readonly]="!canEdit"
       ></ion-input>
     </ion-item>
 
-    <ion-item lines="none" class="custom-input-item">
-      <ion-input
-        label="Soprannome (Ufficiale)"
-        labelPlacement="stacked"
-        placeholder="Es. Er Pupone"
-        [value]="soprannome()"
-        (ionInput)="soprannome.set($event.detail.value || '')"
-        [readonly]="!isAdmin"
-      ></ion-input>
-      @if (giocatore?.soprannomeAi) {
-        <div class="ai-alias-hint">
-          <span class="ai-badge-chip">✨ Alias Spogliatoio AI</span>
-          <span class="ai-alias-name">"{{ giocatore?.soprannomeAi }}"</span>
-        </div>
-      }
-    </ion-item>
+    <div class="grid-row">
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          label="Soprannome (Ufficiale)"
+          labelPlacement="stacked"
+          placeholder="Es. Er Pupone"
+          [value]="soprannome()"
+          (ionInput)="soprannome.set($event.detail.value || '')"
+          [readonly]="!canEdit"
+        ></ion-input>
+      </ion-item>
+
+      <ion-item lines="none" class="custom-input-item half">
+        <ion-input
+          type="number"
+          label="Numero Maglia #"
+          labelPlacement="stacked"
+          placeholder="Es. 10"
+          [value]="numeroMaglia()"
+          (ionInput)="numeroMaglia.set($event.detail.value || '')"
+          [readonly]="!canEdit"
+        ></ion-input>
+      </ion-item>
+    </div>
+
+    @if (giocatore?.soprannomeAi) {
+      <div class="ai-alias-hint" style="margin: -4px 4px 8px;">
+        <span class="ai-badge-chip">✨ Alias Spogliatoio AI</span>
+        <span class="ai-alias-name">"{{ giocatore?.soprannomeAi }}"</span>
+      </div>
+    }
 
     <div class="grid-row">
       <ion-item lines="none" class="custom-input-item half">
@@ -77,7 +170,7 @@
           placeholder="1990"
           [value]="annoNascita()"
           (ionInput)="annoNascita.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
@@ -87,11 +180,17 @@
           [value]="piedePreferito()"
           (ionChange)="piedePreferito.set($event.detail.value)"
           interface="popover"
-          [disabled]="!isAdmin"
+          [disabled]="!canEdit"
         >
-          <ion-select-option [value]="PiedePreferito.Destro">Destro</ion-select-option>
-          <ion-select-option [value]="PiedePreferito.Sinistro">Sinistro</ion-select-option>
-          <ion-select-option [value]="PiedePreferito.Ambidestro">Ambidestro</ion-select-option>
+          <ion-select-option [value]="PiedePreferito.Destro"
+            >Destro</ion-select-option
+          >
+          <ion-select-option [value]="PiedePreferito.Sinistro"
+            >Sinistro</ion-select-option
+          >
+          <ion-select-option [value]="PiedePreferito.Ambidestro"
+            >Ambidestro</ion-select-option
+          >
         </ion-select>
       </ion-item>
     </div>
@@ -103,13 +202,21 @@
         [value]="ruoloPreferito()"
         (ionChange)="ruoloPreferito.set($event.detail.value)"
         interface="popover"
-        [disabled]="!isAdmin"
+        [disabled]="!canEdit"
         placeholder="Seleziona ruolo"
       >
-        <ion-select-option [value]="RuoloPreferito.Portiere">🧤 Portiere</ion-select-option>
-        <ion-select-option [value]="RuoloPreferito.Difensore">🛡️ Difensore</ion-select-option>
-        <ion-select-option [value]="RuoloPreferito.Fascia">⚙️ Fascia</ion-select-option>
-        <ion-select-option [value]="RuoloPreferito.Attaccante">⚡ Attaccante</ion-select-option>
+        <ion-select-option [value]="RuoloPreferito.Portiere"
+          >🧤 Portiere</ion-select-option
+        >
+        <ion-select-option [value]="RuoloPreferito.Difensore"
+          >🛡️ Difensore</ion-select-option
+        >
+        <ion-select-option [value]="RuoloPreferito.Fascia"
+          >⚙️ Fascia</ion-select-option
+        >
+        <ion-select-option [value]="RuoloPreferito.Attaccante"
+          >⚡ Attaccante</ion-select-option
+        >
       </ion-select>
     </ion-item>
 
@@ -122,7 +229,7 @@
           placeholder="180"
           [value]="altezza()"
           (ionInput)="altezza.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
@@ -133,7 +240,7 @@
           placeholder="75"
           [value]="peso()"
           (ionInput)="peso.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
     </div>
@@ -141,6 +248,18 @@
     <div class="section-divider">
       <span>Dettagli Personali & Bio</span>
     </div>
+
+    <ion-item lines="none" class="custom-input-item">
+      <ion-textarea
+        label="Bio / Motto da Campo"
+        labelPlacement="stacked"
+        placeholder="Es. Mai passare la palla se puoi tirare da centrocampo"
+        [rows]="2"
+        [value]="bio()"
+        (ionInput)="bio.set($event.detail.value || '')"
+        [readonly]="!canEdit"
+      ></ion-textarea>
+    </ion-item>
 
     <div class="grid-row">
       <ion-item lines="none" class="custom-input-item half">
@@ -150,7 +269,7 @@
           placeholder="Es. Geometra, Elettricista"
           [value]="professione()"
           (ionInput)="professione.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
       <ion-item lines="none" class="custom-input-item half">
@@ -160,7 +279,7 @@
           placeholder="Es. Centocelle, Ciociaria"
           [value]="origini()"
           (ionInput)="origini.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
     </div>
@@ -173,14 +292,16 @@
           [value]="statoCivile()"
           (ionChange)="statoCivile.set($event.detail.value)"
           interface="popover"
-          [disabled]="!isAdmin"
+          [disabled]="!canEdit"
           placeholder="Seleziona"
         >
           <ion-select-option value="Single">Single</ion-select-option>
           <ion-select-option value="Fidanzato">Fidanzato</ion-select-option>
           <ion-select-option value="Convivente">Convivente</ion-select-option>
           <ion-select-option value="Sposato">Sposato</ion-select-option>
-          <ion-select-option value="Separato / Divorziato">Separato / Divorziato</ion-select-option>
+          <ion-select-option value="Separato / Divorziato"
+            >Separato / Divorziato</ion-select-option
+          >
           <ion-select-option value="Disperato">Disperato</ion-select-option>
         </ion-select>
       </ion-item>
@@ -191,24 +312,29 @@
           placeholder="Es. Beve come una spugna, fuma"
           [value]="vizi()"
           (ionInput)="vizi.set($event.detail.value || '')"
-          [readonly]="!isAdmin"
+          [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
     </div>
   </div>
 
-  <ion-button
-    *ngIf="isAdmin"
-    expand="block"
-    color="success"
-    class="save-btn"
-    (click)="salvaGiocatore()"
-    [disabled]="!nome().trim()"
-  >
-    {{ giocatore ? "Aggiorna Dati" : "Salva Campione" }}
-  </ion-button>
-
-  @if (!isAdmin) {
+  @if (canEdit) {
+    <ion-button
+      expand="block"
+      color="success"
+      class="save-btn"
+      (click)="salvaGiocatore()"
+      [disabled]="!nome().trim()"
+    >
+      {{
+        giocatore
+          ? 'Aggiorna Dati'
+          : isSelfRegistration
+            ? '⚽ Entra in Rosa & Collega Account'
+            : 'Salva Campione'
+      }}
+    </ion-button>
+  } @else {
     <ion-button expand="block" color="medium" disabled>
       Solo visualizzazione
     </ion-button>

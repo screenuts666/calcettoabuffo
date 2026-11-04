@@ -22,6 +22,7 @@ import {
   Partita,
   RotazionePortieri,
   ModalitaPortiere,
+  MatchRsvpEntry,
 } from '../../../models/partita.model';
 import { Giocatore } from '../../../models/giocatore.model';
 import { RuoloPreferito } from '../../../models/ruolo-preferito.enum';
@@ -34,6 +35,7 @@ import {
 } from '../../../utils/season-utils';
 import { SyncStatusService } from '../../../services/sync-status.service';
 import { SoundSettingsService } from '../../../services/sound-settings.service';
+import { AuthService } from '../../../services/auth.service';
 
 export type ConvocatoState = Giocatore & { selezionato?: boolean };
 export type MatchDetailState = Partita & { isAdmin?: boolean };
@@ -61,6 +63,7 @@ export class MatchStateService {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
   public soundSettings = inject(SoundSettingsService, { optional: true });
+  private auth = inject(AuthService);
   private injector = inject(EnvironmentInjector);
 
   matchId = signal<string | null>(null);
@@ -94,6 +97,7 @@ export class MatchStateService {
   commentoPartita = signal<string>('');
   notePortieri = signal<string | null>(null);
   parateIncredibili = signal<Record<string, number>>({});
+  rsvp = signal<Record<string, MatchRsvpEntry>>({});
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -735,6 +739,9 @@ export class MatchStateService {
           this.commentoPartita.set(
             data.commentoPartita || data.commento || ''
           );
+          if (data.rsvp) {
+            this.rsvp.set(data.rsvp);
+          }
         }
       },
       error: (err) => console.warn('Errore ascolto partita:', err),
@@ -863,6 +870,7 @@ export class MatchStateService {
   }
 
   triggerAutoSave(immediate: boolean = false): void {
+    if (!this.auth.isSuperUser()) return;
     this.salvaSnapshotLocale();
 
     // Se la partita non ha ancora un ID Firestore e non ci sono modifiche significative, non creare record vuoti
@@ -904,6 +912,7 @@ export class MatchStateService {
     pagelleInseriteFlag: boolean,
     matchConclusoFlag: boolean = false
   ) {
+    if (!this.auth.isSuperUser()) return;
     if (
       !this.matchId() &&
       this.dataPartita() &&

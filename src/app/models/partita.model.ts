@@ -15,6 +15,32 @@ export interface EventoGol {
 
 export type ModalitaPortiere = 'rotazione' | 'fisso';
 
+export type RsvpStatus =
+  | 'invited'
+  | 'confirmed'
+  | 'declined'
+  | 'maybe'
+  | 'waitlist';
+export type InviteSource = 'app' | 'whatsapp_link' | 'mister';
+
+export interface MatchRsvpEntry {
+  uid: string;
+  playerId: string;
+  playerName: string;
+  status: RsvpStatus;
+  updatedAt: string;
+  respondedVia?: InviteSource;
+  note?: string | null;
+}
+
+export interface MatchInvitiConfig {
+  isOpen: boolean;
+  maxPlayers?: number;
+  deadlineAt?: string | null;
+  inviteToken?: string | null;
+  whatsappGroupNotifiedAt?: string | null;
+}
+
 export interface RotazionePortieri {
   modalitaA?: ModalitaPortiere; // default: 'rotazione'
   modalitaB?: ModalitaPortiere; // default: 'rotazione'
@@ -56,4 +82,8 @@ export interface Partita {
   commentoPartita?: string | null;
   notePortieri?: string | null;
   parateIncredibili?: Record<string, number>;
+  /** Mappa RSVP indicizzata per `uid` dell'utente (Atleta o Mister-Giocatore) */
+  rsvp?: Record<string, MatchRsvpEntry>;
+  /** Configurazione inviti partita (predisposizione Fase 2 WhatsApp) */
+  inviti?: MatchInvitiConfig | null;
 }

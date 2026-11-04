@@ -1,3 +1,117 @@
+.header-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.user-header-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 4px;
+  border-radius: 999px;
+  border: 1px solid var(--app-card-border);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-primary);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  max-width: 165px;
+
+  &[data-role='superuser'] {
+    border-color: rgba(251, 191, 36, 0.5);
+    background: rgba(251, 191, 36, 0.12);
+  }
+
+  &[data-role='user'] {
+    border-color: rgba(45, 211, 111, 0.45);
+    background: rgba(45, 211, 111, 0.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .uhp-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .uhp-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    line-height: 1.05;
+
+    .uhp-name {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 85px;
+    }
+
+    .uhp-role-badge {
+      font-size: 0.56rem;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: var(--app-text-secondary);
+      white-space: nowrap;
+
+      &[data-role='superuser'] {
+        color: #fbbf24;
+      }
+
+      &[data-role='user'] {
+        color: #2dd36f;
+      }
+    }
+  }
+}
+
+.user-login-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(45, 211, 111, 0.4);
+  background: rgba(45, 211, 111, 0.12);
+  color: #2dd36f;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  ion-icon {
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+
+  .ulp-role-tag {
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--app-text-secondary);
+
+    @media (max-width: 420px) {
+      display: none;
+    }
+  }
+}
+
 .theme-toggle-btn {
   --color: var(--app-text-primary);
   --padding-start: 4px;
@@ -29,6 +143,10 @@
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     white-space: nowrap;
     flex-shrink: 0;
+
+    @media (max-width: 420px) {
+      display: none;
+    }
   }
 
   .version-mini-pill {
@@ -46,9 +164,7 @@
     white-space: nowrap;
     flex-shrink: 0;
 
-    // Su smartphone stretti nascondi il badge versione testuale nell'header per dare spazio al titolo pagina.
-    // La versione resta sempre visibile all'interno del modale Impostazioni (tocco sull'ingranaggio)
-    @media (max-width: 480px) {
+    @media (max-width: 540px) {
       display: none !important;
     }
   }

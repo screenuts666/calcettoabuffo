@@ -5,11 +5,12 @@
     </ion-buttons>
     <ion-title>{{ prof?.nome || 'Scheda Giocatore' }}</ion-title>
     <ion-buttons slot="end">
-      @if (isAdmin && prof?.id) {
-        <ion-button (click)="modificaGiocatore()" title="Modifica Giocatore">
+      @if (canEdit && prof?.id) {
+        <ion-button (click)="modificaGiocatore()" title="Modifica Scheda Giocatore">
           <ion-icon name="create-outline"></ion-icon>
         </ion-button>
       }
+      <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -38,7 +39,60 @@
     }
   </div>
 
-  <h2 class="player-name">{{ prof?.nome }}</h2>
+  <h2 class="player-name">
+    {{ prof?.nome }}
+    @if (prof?.numeroMaglia !== undefined && prof?.numeroMaglia !== null && prof?.numeroMaglia !== '') {
+      <span style="font-size: 0.95rem; font-weight: 900; color: #2dd36f; margin-left: 4px;">#{{ prof.numeroMaglia }}</span>
+    }
+  </h2>
+
+  @if (isMyPlayer) {
+    <div style="margin: 4px 0 8px;">
+      <span
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 3px 10px;
+          border-radius: 999px;
+          background: rgba(45, 211, 111, 0.16);
+          border: 1px solid rgba(45, 211, 111, 0.45);
+          color: #2dd36f;
+          font-size: 0.72rem;
+          font-weight: 800;
+        "
+      >
+        ⚽ La tua scheda giocatore
+      </span>
+    </div>
+  }
+
+  @if (canClaimThisPlayer) {
+    <div style="margin: 6px auto 12px; max-width: 360px;">
+      <button
+        type="button"
+        (click)="reclamaQuestoGiocatore()"
+        [disabled]="isClaiming()"
+        style="
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 14px;
+          border-radius: 12px;
+          border: 1px dashed rgba(45, 211, 111, 0.6);
+          background: rgba(45, 211, 111, 0.12);
+          color: #2dd36f;
+          font-size: 0.8rem;
+          font-weight: 800;
+          cursor: pointer;
+        "
+      >
+        <span>🙋‍♂️ Sono io! Associa questo Giocatore al mio account</span>
+      </button>
+    </div>
+  }
 
   @if (prof?.soprannome && prof?.soprannomeAi && prof.soprannome !== prof.soprannomeAi) {
     <div class="player-nickname-wrapper">
@@ -56,6 +110,20 @@
     </p>
   } @else {
     <div class="spacer-8"></div>
+  }
+
+  @if (prof?.bio) {
+    <p
+      style="
+        max-width: 440px;
+        margin: 4px auto 12px;
+        font-size: 0.8rem;
+        font-style: italic;
+        color: var(--app-text-secondary);
+      "
+    >
+      «{{ prof.bio }}»
+    </p>
   }
 
   <!-- TIER BADGE & FORMA HERO -->
@@ -109,16 +177,18 @@
             label="Ascolta Scouting"
             [shareTitle]="'Scouting Report - ' + prof!.nome"
           ></app-ai-tts-button>
-          <button
-            type="button"
-            class="scouting-refresh-btn"
-            (click)="generaScouting(true)"
-            [disabled]="isGeneratingScouting()"
-            title="Rigenera Scouting Report con Gemini"
-          >
-            <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
-            <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
-          </button>
+          @if (isAdmin) {
+            <button
+              type="button"
+              class="scouting-refresh-btn"
+              (click)="generaScouting(true)"
+              [disabled]="isGeneratingScouting()"
+              title="Rigenera Scouting Report con Gemini"
+            >
+              <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
+              <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
+            </button>
+          }
         </div>
       }
     </div>
@@ -133,20 +203,22 @@
     } @else {
       <div class="scouting-empty">
         <p class="scouting-empty-desc">Nessuna scheda scouting redatta per questo giocatore.</p>
-        <button
-          type="button"
-          class="scouting-generate-btn"
-          (click)="generaScouting(false)"
-          [disabled]="isGeneratingScouting()"
-        >
-          @if (isGeneratingScouting()) {
-            <ion-spinner name="crescent"></ion-spinner>
-            <span>Analisi stile e commenti in corso...</span>
-          } @else {
-            <ion-icon name="sparkles"></ion-icon>
-            <span>📋 Genera Scouting Report AI</span>
-          }
-        </button>
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="scouting-generate-btn"
+            (click)="generaScouting(false)"
+            [disabled]="isGeneratingScouting()"
+          >
+            @if (isGeneratingScouting()) {
+              <ion-spinner name="crescent"></ion-spinner>
+              <span>Analisi stile e commenti in corso...</span>
+            } @else {
+              <ion-icon name="sparkles"></ion-icon>
+              <span>📋 Genera Scouting Report AI</span>
+            }
+          </button>
+        }
       </div>
     }
   </div>

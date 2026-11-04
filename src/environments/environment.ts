@@ -1,5 +1,7 @@
 export const environment = {
   production: false,
+  googleWebClientId:
+    '1048869516820-347c5gsquv8ga88l5hcvgshvc6pn87ls.apps.googleusercontent.com',
   firebase: {
     apiKey: 'AIzaSyCqnjBXeJoJ7ZfUTLMYyAMBNhBZiazA7mA',
     authDomain: 'calcettoabuffone.firebaseapp.com',

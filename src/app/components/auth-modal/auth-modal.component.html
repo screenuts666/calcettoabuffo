@@ -1,0 +1,543 @@
+<ion-header class="ion-no-border auth-header">
+  <div class="modal-top-bar">
+    <div class="mtb-title-group">
+      <div class="role-icon-badge" [attr.data-role]="authService.role()">
+        <span>{{ authService.isLoggedIn() ? authService.roleMeta().emoji : '🔐' }}</span>
+      </div>
+      <div class="mtb-title-text">
+        <span class="mtb-title">
+          {{ authService.isLoggedIn() ? 'Profilo & Ruolo' : 'Accedi a Calcetto Abbuffo' }}
+        </span>
+        <span class="mtb-subtitle">
+          @if (authService.isLoggedIn()) {
+            {{ authService.roleMeta().badgeText }}
+            @if (authService.isSuperUser() && linkedPlayer()) {
+              · ⚽ Giocatore
+            }
+          } @else {
+            Tifoso · Atleta · Mister (v2.0)
+          }
+        </span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="mtb-close-btn"
+      (click)="chiudi()"
+      aria-label="Chiudi"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="auth-content">
+  <div class="auth-container">
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- VISTA 1: UTENTE NON LOGGATO (LOGIN / SIGN UP + GOOGLE)              -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (!authService.isLoggedIn()) {
+      <!-- Selettore Login / Registrati -->
+      <div class="auth-tabs-bar">
+        <button
+          type="button"
+          class="a-tab-btn"
+          [class.active]="authMode() === 'login'"
+          (click)="setAuthMode('login')"
+        >
+          <ion-icon name="log-in-outline"></ion-icon>
+          <span>Accedi</span>
+        </button>
+        <button
+          type="button"
+          class="a-tab-btn"
+          [class.active]="authMode() === 'register'"
+          (click)="setAuthMode('register')"
+        >
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>Registrati</span>
+        </button>
+      </div>
+
+      <!-- Riepilogo rapido dei 3 ruoli -->
+      <div class="roles-explainer-strip">
+        <div class="re-item">
+          <span class="re-emoji">🧢</span>
+          <div>
+            <strong>Tifoso</strong>
+            <small>Sola lettura</small>
+          </div>
+        </div>
+        <div class="re-item">
+          <span class="re-emoji">⚽</span>
+          <div>
+            <strong>Atleta</strong>
+            <small>Scheda & RSVP</small>
+          </div>
+        </div>
+        <div class="re-item">
+          <span class="re-emoji">👑</span>
+          <div>
+            <strong>Mister</strong>
+            <small>Gestione totale</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottone Google Sign-In -->
+      <button
+        type="button"
+        class="google-signin-btn"
+        [disabled]="isSubmitting()"
+        (click)="loginConGoogle()"
+      >
+        <svg class="google-svg" viewBox="0 0 24 24" width="20" height="20">
+          <path
+            fill="#EA4335"
+            d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"
+          />
+          <path
+            fill="#4285F4"
+            d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"
+          />
+          <path
+            fill="#34A853"
+            d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5l-3.7 2.8C3.5 20.9 7.4 24 12 24z"
+          />
+        </svg>
+        <span>Continua con Google</span>
+      </button>
+
+      <div class="auth-divider">
+        <span>oppure con Email</span>
+      </div>
+
+      <!-- Form Email / Password -->
+      <form class="auth-form-card" (ngSubmit)="submitEmailForm()">
+        @if (authMode() === 'register') {
+          <div class="form-field">
+            <label>Nome o Soprannome</label>
+            <div class="input-wrap">
+              <ion-icon name="person-outline"></ion-icon>
+              <input
+                type="text"
+                placeholder="Es. Marco Rossi"
+                [ngModel]="displayName()"
+                (ngModelChange)="displayName.set($event)"
+                name="displayName"
+                autocomplete="name"
+              />
+            </div>
+          </div>
+        }
+
+        <div class="form-field">
+          <label>Indirizzo Email</label>
+          <div class="input-wrap">
+            <ion-icon name="mail-outline"></ion-icon>
+            <input
+              type="email"
+              placeholder="nome@email.com"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              name="email"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label>Password</label>
+          <div class="input-wrap">
+            <ion-icon name="key-outline"></ion-icon>
+            <input
+              type="password"
+              placeholder="••••••••"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              name="password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+        </div>
+
+        @if (errorMessage()) {
+          <div class="auth-error-banner">
+            <span>⚠️ {{ errorMessage() }}</span>
+          </div>
+        }
+
+        <button
+          type="submit"
+          class="submit-auth-btn"
+          [disabled]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon
+              [name]="authMode() === 'login' ? 'log-in-outline' : 'person-add-outline'"
+            ></ion-icon>
+            <span>
+              {{ authMode() === 'login' ? 'Entra in Spogliatoio' : 'Crea Account' }}
+            </span>
+          }
+        </button>
+      </form>
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- VISTA 2: UTENTE LOGGATO (CARD RUOLO, SCHEDA GIOCATORE & AZIONI)     -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (authService.isLoggedIn()) {
+      @let myPlayer = linkedPlayer();
+
+      <!-- HERO CARD PROFILO UTENTE -->
+      <div class="user-hero-card" [attr.data-role]="authService.role()">
+        <div class="uhc-top">
+          <div class="uhc-avatar-wrap">
+            <app-player-avatar
+              [fotoUrl]="myPlayer?.fotoUrl || authService.photoURL()"
+              [alt]="myPlayer?.nome || authService.displayName()"
+            ></app-player-avatar>
+          </div>
+          <div class="uhc-info">
+            <div class="uhc-badges">
+              <span class="role-badge-pill" [attr.data-role]="authService.role()">
+                {{ authService.roleMeta().badgeText }}
+              </span>
+              @if (authService.isSuperUser() && myPlayer) {
+                <span class="role-badge-pill atleta-sub">⚽ Giocatore</span>
+              }
+            </div>
+            <h3>{{ myPlayer?.nome || authService.displayName() }}</h3>
+            <p class="uhc-email">{{ authService.firebaseUser()?.email }}</p>
+          </div>
+        </div>
+        <p class="uhc-desc">{{ authService.roleMeta().description }}</p>
+      </div>
+
+      <!-- SEZIONE GIOCATORE ASSOCIATO (OBBLIGATORIO PER ATLETA, OPZIONALE PER MISTER) -->
+      <div class="section-card">
+        <div class="sc-header">
+          <span class="sc-emoji">⚽</span>
+          <div>
+            <h4>
+              {{ myPlayer ? 'La Tua Scheda Giocatore' : 'Associa il Tuo Giocatore' }}
+            </h4>
+            <p>
+              @if (myPlayer) {
+                Profilo collegato a <strong>{{ myPlayer.nome }}</strong>
+              } @else if (authService.isSuperUser()) {
+                Opzionale per il Mister: se giochi anche in campo, collega la tua scheda!
+              } @else {
+                Reclama il tuo nome dalla rosa per diventare <strong>⚽ Atleta</strong>
+              }
+            </p>
+          </div>
+        </div>
+
+        @if (myPlayer && !showPlayerPicker()) {
+          <div class="linked-player-box">
+            <div class="lpb-main" (click)="vaiAllaMiaScheda()">
+              <div class="lpb-avatar">
+                <app-player-avatar
+                  [fotoUrl]="myPlayer.fotoUrl"
+                  [alt]="myPlayer.nome"
+                ></app-player-avatar>
+              </div>
+              <div class="lpb-text">
+                <strong>{{ myPlayer.nome }}</strong>
+                <small>
+                  @if (myPlayer.soprannome) {
+                    "{{ myPlayer.soprannome }}" ·
+                  }
+                  @if (myPlayer.numeroMaglia) {
+                    #{{ myPlayer.numeroMaglia }} ·
+                  }
+                  👟 {{ myPlayer.piedePreferito || 'N.D.' }}
+                </small>
+              </div>
+            </div>
+
+            <div class="lpb-actions">
+              <button
+                type="button"
+                class="lpb-btn primary"
+                (click)="vaiAllaMiaScheda()"
+              >
+                <ion-icon name="person-outline"></ion-icon>
+                <span>La mia scheda</span>
+              </button>
+              <button
+                type="button"
+                class="lpb-btn secondary"
+                (click)="modificaLaMiaScheda()"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+                <span>Modifica</span>
+              </button>
+            </div>
+
+            @if (authService.isSuperUser()) {
+              <div class="mister-player-switch-row">
+                <button
+                  type="button"
+                  class="mps-link-btn"
+                  (click)="showPlayerPicker.set(true)"
+                >
+                  <ion-icon name="link-outline"></ion-icon>
+                  <span>Cambia giocatore associato</span>
+                </button>
+                <button
+                  type="button"
+                  class="mps-link-btn danger"
+                  (click)="scollegaMioGiocatore()"
+                >
+                  <ion-icon name="unlink-outline"></ion-icon>
+                  <span>Scollega</span>
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          @if (!showPlayerPicker()) {
+            <button
+              type="button"
+              class="open-claim-btn"
+              (click)="showPlayerPicker.set(true)"
+            >
+              <ion-icon name="football-outline"></ion-icon>
+              <span>🙋‍♂️ Sono già in Rosa: Scegli il tuo Giocatore</span>
+            </button>
+            <button
+              type="button"
+              class="open-claim-btn"
+              style="
+                margin-top: 8px;
+                background: rgba(16, 185, 129, 0.14);
+                border: 1px solid rgba(16, 185, 129, 0.45);
+                color: #10b981;
+              "
+              (click)="creaMioGiocatoreInRosa()"
+            >
+              <ion-icon name="person-add-outline"></ion-icon>
+              <span>➕ Non sei ancora in Rosa? Crea la tua Scheda</span>
+            </button>
+          } @else {
+            <div class="claim-picker-box">
+              <div class="cpb-search">
+                <ion-icon name="search-outline"></ion-icon>
+                <input
+                  type="text"
+                  placeholder="Cerca il tuo nome in rosa..."
+                  [ngModel]="playerSearchQuery()"
+                  (ngModelChange)="playerSearchQuery.set($event)"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="open-claim-btn"
+                style="
+                  margin-bottom: 10px;
+                  padding: 9px 12px;
+                  font-size: 0.78rem;
+                  background: rgba(16, 185, 129, 0.14);
+                  border: 1px solid rgba(16, 185, 129, 0.45);
+                  color: #10b981;
+                "
+                (click)="creaMioGiocatoreInRosa()"
+              >
+                <ion-icon name="person-add-outline"></ion-icon>
+                <span>➕ Non trovi il tuo nome? Crea la tua Scheda in Rosa</span>
+              </button>
+
+              <div class="cpb-list">
+                @for (g of filteredPlayers(); track g.id) {
+                  @let isMine = g.linkedUid === authService.firebaseUser()?.uid;
+                  @let isTakenByOther = !!g.linkedUid && !isMine;
+
+                  <div
+                    class="cpb-item"
+                    [class.taken]="isTakenByOther && !authService.isSuperUser()"
+                    [class.mine]="isMine"
+                  >
+                    <div class="cpb-left">
+                      <div class="cpb-avatar">
+                        <app-player-avatar
+                          [fotoUrl]="g.fotoUrl"
+                          [alt]="g.nome"
+                        ></app-player-avatar>
+                      </div>
+                      <div class="cpb-info">
+                        <strong>{{ g.nome }}</strong>
+                        <small>
+                          @if (isMine) {
+                            ✅ Già associato a te
+                          } @else if (isTakenByOther) {
+                            🔒 Già associato ({{ g.linkedEmail || 'altro utente' }})
+                          } @else {
+                            {{ g.soprannome ? '"' + g.soprannome + '"' : 'Disponibile' }}
+                          }
+                        </small>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="cpb-claim-btn"
+                      [disabled]="(isTakenByOther && !authService.isSuperUser()) || isClaimingId() === g.id"
+                      (click)="reclamaGiocatore(g)"
+                    >
+                      @if (isClaimingId() === g.id) {
+                        <ion-spinner name="dots"></ion-spinner>
+                      } @else if (isMine) {
+                        <span>Tuo</span>
+                      } @else if (isTakenByOther && !authService.isSuperUser()) {
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                      } @else {
+                        <span>Sono io!</span>
+                      }
+                    </button>
+                  </div>
+                }
+              </div>
+
+              @if (myPlayer) {
+                <button
+                  type="button"
+                  class="cpb-cancel-btn"
+                  (click)="showPlayerPicker.set(false)"
+                >
+                  Annulla cambio
+                </button>
+              }
+            </div>
+          }
+        }
+      </div>
+
+      <!-- SEZIONE ESCLUSIVA MISTER: AREA SEGRETA & GESTIONE RUOLI UTENTI -->
+      @if (authService.isSuperUser()) {
+        <div class="section-card mister-card">
+          <div class="sc-header">
+            <span class="sc-emoji">👑</span>
+            <div>
+              <h4>Pannello Mister (Superuser)</h4>
+              <p>Accesso esclusivo ad Area Segreta e gestione ruoli utenti</p>
+            </div>
+          </div>
+
+          <div class="quick-actions-list">
+            <button
+              type="button"
+              class="qa-btn gold"
+              (click)="apriAreaSegreta()"
+            >
+              <ion-icon name="shield-checkmark"></ion-icon>
+              <div class="qa-text">
+                <strong>🔬 Apri Area Segreta (Motore MMR & Raggi X)</strong>
+                <small>Parametri stagionali, formule ELO e simulatore</small>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="qa-btn"
+              (click)="toggleUsersManager()"
+            >
+              <ion-icon name="people-outline"></ion-icon>
+              <div class="qa-text">
+                <strong>👥 Gestione Utenti & Ruoli ({{ allUsers().length || '...' }})</strong>
+                <small>Visualizza iscritti, promuovi Mister o verifica giocatori</small>
+              </div>
+            </button>
+          </div>
+
+          @if (showUsersManager()) {
+            <div class="users-manager-box">
+              @if (isLoadingUsers()) {
+                <div class="um-loading">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Caricamento utenti da Firestore...</span>
+                </div>
+              } @else if (allUsers().length === 0) {
+                <p class="um-empty">Nessun utente registrato trovato.</p>
+              } @else {
+                @for (u of allUsers(); track u.uid) {
+                  <div class="um-row">
+                    <div class="um-info">
+                      <div class="um-title">
+                        <strong>{{ u.displayName || u.email }}</strong>
+                        <span class="um-role-tag" [attr.data-role]="u.role">
+                          {{ ROLE_METADATA[u.role].badgeText }}
+                        </span>
+                      </div>
+                      <small class="um-sub">{{ u.email }}</small>
+                      @if (u.playerId) {
+                        <small class="um-player">
+                          ⚽ Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong>
+                        </small>
+                      }
+                    </div>
+
+                    @if (!isLegacySuperUserEmail(u.email)) {
+                      <button
+                        type="button"
+                        class="um-action-btn"
+                        [class.promote]="u.role !== 'superuser'"
+                        (click)="promuoviORevocaMister(u)"
+                      >
+                        {{ u.role === 'superuser' ? 'Revoca Mister' : '👑 Fai Mister' }}
+                      </button>
+                    } @else {
+                      <span class="um-founder-badge">👑 Fondatore</span>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- IMPOSTAZIONI & LOGOUT -->
+      <div class="section-card">
+        <div class="quick-actions-list">
+          <button
+            type="button"
+            class="qa-btn"
+            (click)="apriImpostazioniApp()"
+          >
+            <ion-icon name="settings-outline"></ion-icon>
+            <div class="qa-text">
+              <strong>⚙️ Impostazioni Audio, Portieri & Tema</strong>
+              <small>Personalizza tema chiaro/scuro e suoni partita</small>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="qa-btn danger"
+            (click)="eseguiLogout()"
+          >
+            <ion-icon name="log-out-outline"></ion-icon>
+            <div class="qa-text">
+              <strong>🚪 Esci dall'Account (Logout)</strong>
+              <small>Torna alla modalità ospite (Tifoso)</small>
+            </div>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</ion-content>
+
