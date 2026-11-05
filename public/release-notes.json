@@ -1,5 +1,31 @@
 [
   {
+    "version": "1.0.76",
+    "date": "05/11/2026",
+    "title": "Timer Match Continuo (Solo Fischio d'Inizio e Finale) & Correzione Durata Partita",
+    "userChanges": [
+      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Una volta avviato con 'Fischio d'Inizio', il cronometro scorre continuamente fino al definitivo 'Fischio Finale'.",
+      "📊 Correzione Durata Ultima Partita: ricalcolata e aggiornata la durata dell'ultimo match giocato, riallineando il minutaggio effettivo e le rotazioni dei portieri."
+    ],
+    "superUserChanges": [
+      "Refactor Modello Timer: introdotto tracciamento assoluto con startedAt e endedAt su Firestore, deprecata toggleTimerState() ed eliminati delta parziali di pausa.",
+      "Script Utility Data-Patch: creato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match (con fallback intelligente sulla media storica)."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "05/11/2026",
+    "title": "Timer Match Continuo (Solo Fischio d'Inizio e Finale) & Correzione Durata Partita",
+    "userChanges": [
+      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Una volta avviato con 'Fischio d'Inizio', il cronometro scorre continuamente fino al definitivo 'Fischio Finale'.",
+      "📊 Correzione Durata Ultima Partita: ricalcolata e aggiornata la durata dell'ultimo match giocato, riallineando il minutaggio effettivo e le rotazioni dei portieri."
+    ],
+    "superUserChanges": [
+      "Refactor Modello Timer: introdotto tracciamento assoluto con startedAt e endedAt su Firestore, deprecata toggleTimerState() ed eliminati delta parziali di pausa.",
+      "Script Utility Data-Patch: creato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match (con fallback intelligente sulla media storica)."
+    ]
+  },
+  {
     "version": "1.0.74",
     "date": "05/11/2026",
     "title": "Pulizia Riservatezza Controlli Super User & Fix Icona Portieri",

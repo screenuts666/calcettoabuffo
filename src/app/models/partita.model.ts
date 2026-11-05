@@ -43,6 +43,8 @@ export interface Partita {
   cronometro?: number;
   accumulatedTime?: number;
   timerStartAt?: number | null;
+  startedAt?: number | null; // Timestamp ms effettivo fischio d'inizio (avvio continuo)
+  endedAt?: number | null;   // Timestamp ms effettivo fischio finale definitivo
   isTimerRunning?: boolean;
   status: TMatchStatus;
   step?: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni';

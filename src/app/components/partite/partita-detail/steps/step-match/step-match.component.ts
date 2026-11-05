@@ -171,9 +171,11 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
       if (this.state.isTimerRunning()) {
-        const start = this.state.timerStartAt() || Date.now();
+        const start = this.state.startedAt() || this.state.timerStartAt() || Date.now();
         const diffSec = Math.floor((Date.now() - start) / 1000);
-        const newCronometro = this.state.accumulatedTime() + diffSec;
+        const newCronometro = this.state.accumulatedTime() > 0 && !this.state.startedAt()
+          ? this.state.accumulatedTime() + Math.floor((Date.now() - (this.state.timerStartAt() || Date.now())) / 1000)
+          : diffSec;
         this.state.cronometro.set(newCronometro);
 
         // Salvataggio periodico di sicurezza in locale ogni 5 secondi
@@ -412,19 +414,28 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // TIMER PARTITA
+  // TIMER PARTITA (SOLO FISCHIO D'INIZIO E FISCHIO FINALE - NESSUNA PAUSA)
   // ──────────────────────────────────────────────────────────────────────
 
-  async toggleTimer() {
+  async avviaMatch() {
     this.triggerHaptic(40);
+    if (this.state.isTimerRunning()) return;
+
     // Se avviamo il cronometro dall'inizio (00:00), azzeriamo e silenziamo categoricamente qualsiasi allarme residuo
-    if (this.state.cronometro() === 0 && !this.state.isTimerRunning()) {
+    if (this.state.cronometro() === 0) {
       this.ultimoCambioTurno = 0;
       this.ultimoPreAlertTurno = 0;
       this.soundSettings.stopMatchCambioAlarm();
       await this.state.setCambioPortiereAttivo(false);
     }
-    await this.state.toggleTimerState();
+    await this.state.avviaTimer();
+  }
+
+  /**
+   * @deprecated Pausa disabilitata: il match scorre continuo fino al fischio finale.
+   */
+  async toggleTimer() {
+    await this.avviaMatch();
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -432,9 +443,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────────────
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
-    if (this.state.cronometro() <= 0) {
+    if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
       await this.mostraToastFeedback(
-        '⏱️ Premi prima ▶ AVVIA per far partire la partita!',
+        '⏱️ Fischia prima l\'inizio con ▶ FISCHIO D\'INIZIO per sbloccare i gol!',
         'warning'
       );
       return;
@@ -569,9 +580,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           text: 'Termina Partita',
           role: 'destructive',
           handler: async () => {
-            if (this.state.isTimerRunning()) {
-              await this.toggleTimer();
-            }
+            await this.state.concludiTimer();
             this.soundSettings.playMatchWhistle('final');
             this.state.matchConcluso.set(true);
             this.state.status.set('conclusa');
