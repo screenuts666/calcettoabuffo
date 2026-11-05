@@ -66,6 +66,8 @@ export class MatchStateService {
   matchId = signal<string | null>(null);
   matchDataOriginale: MatchDetailState | null = null;
   private matchSub?: Subscription;
+  public onMatchCreated?: (id: string) => void;
+  private autoSaveTimer?: any;
 
   step = signal<'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'>(
     'convocati'
@@ -126,7 +128,13 @@ export class MatchStateService {
   tuttiInCampo = computed(() => [...this.teamA(), ...this.teamB()]);
 
   isDataStagioneValida = computed(() => {
-    if (this.matchId()) return true;
+    if (
+      this.matchDataOriginale?.id &&
+      this.matchDataOriginale.stagione &&
+      this.matchDataOriginale.stagione !== CURRENT_SEASON
+    ) {
+      return true;
+    }
     const d = this.dataPartita();
     if (!d) return false;
     return isStagioneCorrente({ dataPartita: d });
@@ -829,7 +837,7 @@ export class MatchStateService {
           this.isTimerRunning.set(snap.isTimerRunning);
         if (snap.rotazionePortieri)
           this.rotazionePortieri.set(snap.rotazionePortieri);
-        if (snap.step && snap.step !== 'convocati') this.step.set(snap.step);
+        if (snap.step) this.step.set(snap.step);
         if (snap.status) this.status.set(snap.status);
         if (snap.commentoPartita)
           this.commentoPartita.set(snap.commentoPartita);
@@ -847,12 +855,58 @@ export class MatchStateService {
     return false;
   }
 
+  cambiaStep(
+    nuovoStep: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
+  ) {
+    this.step.set(nuovoStep);
+    this.triggerAutoSave(true);
+  }
+
+  triggerAutoSave(immediate: boolean = false): void {
+    this.salvaSnapshotLocale();
+
+    // Se la partita non ha ancora un ID Firestore e non ci sono modifiche significative, non creare record vuoti
+    if (!this.matchId() && this.totaleConvocati() === 0 && !this.luogo().trim()) {
+      return;
+    }
+
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+    }
+
+    if (immediate) {
+      this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
+        (err) => console.warn('Errore auto-salvataggio immediato:', err)
+      );
+    } else {
+      this.autoSaveTimer = setTimeout(() => {
+        this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
+          (err) => console.warn('Errore auto-salvataggio debounced:', err)
+        );
+      }, 700);
+    }
+  }
+
+  flushAutoSave(): Promise<void> {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+      return this.salvaInDatabase(
+        this.pagelleInserite(),
+        this.matchConcluso()
+      ).catch((err) => console.warn('Errore flush auto-salvataggio:', err));
+    }
+    return Promise.resolve();
+  }
+
   async salvaInDatabase(
     pagelleInseriteFlag: boolean,
     matchConclusoFlag: boolean = false
   ) {
     if (
       !this.matchId() &&
+      this.dataPartita() &&
       !isStagioneCorrente({ dataPartita: this.dataPartita() })
     ) {
       throw new Error(
@@ -867,6 +921,7 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     const payload: any = {
+      step: this.step(),
       dataPartita: this.dataPartita(),
       orario: this.orario(),
       luogo: this.luogo(),
@@ -911,6 +966,7 @@ export class MatchStateService {
         this.matchId.set(docRef.id);
         this.salvaSnapshotLocale();
         this.avviaAscoltoReale();
+        this.onMatchCreated?.(docRef.id);
       }
 
       this.syncStatus.notifySyncSuccess();

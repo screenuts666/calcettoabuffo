@@ -14,7 +14,7 @@ import {
   ToastController,
   IonSpinner,
 } from '@ionic/angular/standalone';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   collection,
@@ -85,6 +85,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private firestore = inject(Firestore);
   private auth = inject(AuthService);
 
@@ -104,6 +105,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.isAdmin = this.auth.isAdmin();
+
+    // Quando viene creato un nuovo documento Firestore per una partita nuova,
+    // sincronizza l'URL del browser da '/partite/nuova' a '/partite/:id' senza ricaricare la pagina
+    this.state.onMatchCreated = (newId: string) => {
+      this.location.replaceState('/partite/' + newId);
+    };
 
     // 1. Se aperto via modale con dati già pronti
     if (this.matchData) {
@@ -126,6 +133,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
     }
+    this.state.flushAutoSave();
     this.state.fermaAscolto();
     this.state.soundSettings?.stopAllSounds();
   }
@@ -202,7 +210,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         teamA: [],
         teamB: [],
         convocati: [],
-        status: 'pronta',
+        status: 'da_definire',
+        step: 'convocati',
         luogo: luogoPredefinito,
         orario: orarioPredefinito,
         rotazionePortieri: {
@@ -337,14 +346,32 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
 
-      if (!this.state.isDettagliValidi()) this.state.step.set('dettagli');
-      else if (
-        this.state.teamA().length === 0 &&
-        this.state.teamB().length === 0
-      )
-        this.state.step.set('squadre');
-      else if (!matchData.matchConcluso) this.state.step.set('match');
-      else this.state.step.set('prestazioni');
+      // Risoluzione affidabile dello step salvato:
+      // 1. Se conclusa -> prestazioni
+      // 2. Se in corso (timer avviato) -> match
+      // 3. Se step esplicitamente memorizzato -> ripristina esattamente lo step
+      // 4. Fallback prudente per vecchie partite non dotate del campo step
+      if (matchData.matchConcluso) {
+        this.state.step.set('prestazioni');
+      } else if (matchData.status === 'in_corso') {
+        this.state.step.set('match');
+      } else if (matchData.step) {
+        this.state.step.set(matchData.step);
+      } else {
+        if (!this.state.isDettagliValidi()) {
+          this.state.step.set('dettagli');
+        } else if (
+          matchData.status === 'pronta' &&
+          this.state.teamA().length > 0 &&
+          this.state.teamB().length > 0
+        ) {
+          this.state.step.set('match');
+        } else if (this.state.totaleConvocati() < 2) {
+          this.state.step.set('convocati');
+        } else {
+          this.state.step.set('squadre');
+        }
+      }
 
       this.state.avviaAscoltoReale();
     } else {
@@ -375,6 +402,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
   chiudi() {
     this.router.navigate(['/partite']);
+  }
+
+  cambiaStep(
+    step: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
+  ) {
+    this.state.cambiaStep(step);
   }
 
   /**
@@ -416,7 +449,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         break;
     }
 
-    const isMatchInProgress = currentStep === 'match' && !this.state.matchConcluso();
+    const isMatchInProgress =
+      currentStep === 'match' &&
+      !this.state.matchConcluso() &&
+      (this.state.isTimerRunning() ||
+        this.state.cronometro() > 0 ||
+        this.state.eventiGol().length > 0);
 
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Dove vuoi tornare?',
@@ -445,8 +483,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
                   if (isMatchInProgress) {
                     this.confermaTornaASquadre();
                   } else {
-                    this.state.salvaSnapshotLocale();
-                    this.state.step.set(prevStepTarget!);
+                    this.state.cambiaStep(prevStepTarget!);
                   }
                 },
               },
@@ -464,6 +501,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   tornaAPartite() {
+    this.state.flushAutoSave();
     this.state.salvaSnapshotLocale();
     this.router.navigate(['/partite']);
   }
@@ -484,7 +522,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
           role: 'destructive',
           handler: () => {
             this.state.resetMatchState();
-            this.state.step.set('squadre');
+            this.state.status.set('da_definire');
+            this.state.cambiaStep('squadre');
           },
         },
       ],

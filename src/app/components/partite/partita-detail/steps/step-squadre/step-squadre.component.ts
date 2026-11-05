@@ -250,8 +250,8 @@ export class StepSquadreComponent {
   async applicaSquadre(proposal: MatchmakingProposal) {
     this.state.teamA.set([...proposal.teamA]);
     this.state.teamB.set([...proposal.teamB]);
+    this.state.triggerAutoSave(true);
     this.isMatchmakingOpen.set(false);
-    this.state.salvaSnapshotLocale();
 
     const toast = await this.toastCtrl.create({
       message: `🎉 ${proposal.title} applicata! Squadre bilanciate con successo.`,
@@ -276,6 +276,7 @@ export class StepSquadreComponent {
       if (!this.state.teamB().find((g) => g.id === giocatore.id))
         this.state.teamB.update((l) => [...l, giocatore]);
     }
+    this.state.triggerAutoSave();
   }
 
   isDiRuolo(giocatore: any): boolean {
@@ -335,7 +336,6 @@ export class StepSquadreComponent {
   confermaSquadre() {
     this.state.inizializzaRotazionePortieri(false);
     this.state.status.set('pronta');
-    this.state.salvaInDatabase(false);
-    this.state.step.set('match');
+    this.state.cambiaStep('match');
   }
 }

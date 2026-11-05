@@ -64,7 +64,7 @@
             labelPlacement="stacked"
             [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
             [value]="state.dataPartita()"
-            (ionInput)="state.dataPartita.set($event.detail.value || '')"
+            (ionInput)="aggiornaData($event.detail.value || '')"
           ></ion-input>
         </ion-item>
 
@@ -203,7 +203,7 @@
           rows="2"
           placeholder="Es. Campo bagnato, lisci clamorosi, clima da derby..."
           [value]="state.commentoPartita()"
-          (ionInput)="state.commentoPartita.set($event.detail.value || '')"
+          (ionInput)="aggiornaNote($event.detail.value || '')"
         ></ion-textarea>
       </ion-item>
     </div>

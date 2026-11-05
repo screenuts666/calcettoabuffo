@@ -44,6 +44,7 @@ import {
   closeOutline,
   arrowBackOutline,
   warningOutline,
+  createOutline,
   arrowUndoOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
@@ -136,6 +137,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       closeOutline,
       arrowBackOutline,
       warningOutline,
+      createOutline,
       arrowUndoOutline,
     });
   }
