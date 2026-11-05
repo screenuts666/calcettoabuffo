@@ -1,34 +1,36 @@
 <div class="dettagli-wrapper ion-padding">
 
-  <!-- 1. CARD RIEPILOGO CONVOCATI (TOP) -->
-  <div class="convocati-summary-card ion-margin-bottom" (click)="tornaAConvocati()" title="Tocca per modificare i convocati">
-    <div class="summary-left">
-      <div class="avatars-overlap-row">
-        @for (g of state.convocati().slice(0, 5); track (g.id || g.nome) + '_' + $index) {
-          <div class="overlap-avatar">
-            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
-          </div>
-        }
-        @if (state.convocati().length > 5) {
-          <div class="overlap-more-badge">
-            +{{ state.convocati().length - 5 }}
-          </div>
-        }
-      </div>
-      <div class="summary-text">
-        <div class="summary-title-line">
-          <strong class="summary-count">{{ state.totaleConvocati() }} Convocati</strong>
-          <span class="summary-format-badge">{{ formatFormatoPartita() }}</span>
+  <!-- 1. CARD RIEPILOGO CONVOCATI (VISIBILE SOLO SE GIA' PRESENTI CONVOCATI) -->
+  @if (state.totaleConvocati() > 0) {
+    <div class="convocati-summary-card ion-margin-bottom" (click)="vaiAConvocati()" title="Tocca per gestire i convocati">
+      <div class="summary-left">
+        <div class="avatars-overlap-row">
+          @for (g of state.convocati().slice(0, 5); track (g.id || g.nome) + '_' + $index) {
+            <div class="overlap-avatar">
+              <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+            </div>
+          }
+          @if (state.convocati().length > 5) {
+            <div class="overlap-more-badge">
+              +{{ state.convocati().length - 5 }}
+            </div>
+          }
         </div>
-        <span class="summary-sub">Tocca per modificare i convocati</span>
+        <div class="summary-text">
+          <div class="summary-title-line">
+            <strong class="summary-count">{{ state.totaleConvocati() }} Convocati</strong>
+            <span class="summary-format-badge">{{ formatFormatoPartita() }}</span>
+          </div>
+          <span class="summary-sub">Tocca per visualizzare o modificare i convocati</span>
+        </div>
       </div>
-    </div>
 
-    <button type="button" class="btn-edit-convocati" (click)="$event.stopPropagation(); tornaAConvocati()">
-      <ion-icon name="create-outline"></ion-icon>
-      <span>Modifica</span>
-    </button>
-  </div>
+      <button type="button" class="btn-edit-convocati" (click)="$event.stopPropagation(); vaiAConvocati()">
+        <ion-icon name="create-outline"></ion-icon>
+        <span>Modifica</span>
+      </button>
+    </div>
+  }
 
   <!-- 2. SEZIONE COORDINATE MATCH (LUOGO, DATA, ORARIO) -->
   <div class="details-section-card ion-margin-bottom">
@@ -222,9 +224,9 @@
       type="button"
       class="btn-continue-squadre"
       [disabled]="!state.isDettagliValidi()"
-      (click)="vaiASquadre()"
+      (click)="vaiAConvocati()"
     >
-      <span>Continua alle Squadre</span>
+      <span>Continua ai Convocati</span>
       <ion-icon name="arrow-forward"></ion-icon>
     </button>
   </div>

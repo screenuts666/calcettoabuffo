@@ -11,7 +11,35 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.6-dev",
+    "date": "05/11/2026",
+    "title": "Riorganizzazione Flusso Partita: Coordinate Match, Convocati e Squadre",
+    "userChanges": [
+      "📍 Nuovo Ordine Naturale del Match: la preparazione della partita inizia ora dalla definizione di luogo, data e orario, garantendo che i dettagli del campo siano già pronti e chiari a tutti fin dal primo istante.",
+      "📲 Convocazioni & Link Rapido WhatsApp: accesso istantaneo e fluido allo step Convocati subito dopo le coordinate, con supporto completo all'auto-inserimento (RSVP Partecipo/Forse/Non partecipo) direttamente tramite il link condiviso.",
+      "⚖️ Formazioni e Squadre: la suddivisione tra Bianchi e Neri e il bilanciamento MMR/AI diventano l'ultimo step di preparazione prima del fischio d'inizio."
+    ],
+    "superUserChanges": [
+      "Nuovo Wizard Stepper a 3 Step: barra di avanzamento reattiva (1. Coordinate -> 2. Convocati -> 3. Squadre) con sincronizzazione automatica delle rose al passaggio in Squadre.",
+      "Hardening Navigazione & State Machine: transizioni fluide con gestione avanzata del tasto indietro, salvataggio continuo Firestore e supporto deep-link invito con apertura diretta su Convocati."
+    ]
+  },
+  {
     "version": "2.0.5-dev",
+    "date": "05/11/2026",
+    "title": "Fix Layout Header Toolbar: Zero Sovrapposizioni e Troncamento Intelligente",
+    "userChanges": [
+      "📱 Header Anti-Collisione su Mobile: risolto definitivamente il bug per cui i titoli delle schermate (come Area Segreta, Dettaglio Partita o Classifica) si sovrapponevano al badge del profilo utente su schermi compatti o dispositivi iOS.",
+      "✨ Spaziatura Ottimizzata & Troncamento: il titolo delle pagine ora si adatta fluidamente allo spazio tra il tasto indietro e i bottoni di destra, senza mai coprire o farsi coprire dagli elementi adiacenti.",
+      "🔍 Header Pill Compatta: su smartphone la pill profilo e i badge di stato riducono l'ingombro orizzontale lasciando massimo respiro al titolo della schermata."
+    ],
+    "superUserChanges": [
+      "Override Globale Layout ion-toolbar: neutralizzato il posizionamento absolute fisso iOS di ion-title con layout flexbox vincolato a toolbar-content e overflow: ellipsis.",
+      "Media Query Responsive: ottimizati i breakpoint in theme-toggle.component.scss e garantita la flessibilità di .secret-title-wrap in Area Segreta."
+    ]
+  },
+  {
+    "version": "NEXT",
     "date": "05/11/2026",
     "title": "Fix Layout Header Toolbar: Zero Sovrapposizioni e Troncamento Intelligente",
     "userChanges": [

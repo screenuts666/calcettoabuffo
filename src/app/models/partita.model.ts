@@ -91,7 +91,7 @@ export interface Partita {
   orarioFineReale?: string | null;   // Stringa HH:mm fine effettiva (es. "20:03")
   isTimerRunning?: boolean;
   status: TMatchStatus;
-  step?: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni';
+  step?: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni';
   cambioAttivo?: boolean;
   classificaAggiornata?: boolean;
   fotoUrl?: string | null;

@@ -149,7 +149,11 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
     this.querySub = this.route.queryParamMap.subscribe((qp) => {
       const inv = qp.get('invite');
-      this.isInviteLink.set(inv === 'true' || inv === '1');
+      const isInv = inv === 'true' || inv === '1';
+      this.isInviteLink.set(isInv);
+      if (isInv && !this.state.matchConcluso() && this.state.status() !== 'in_corso') {
+        this.state.step.set('convocati');
+      }
     });
 
     if (this.matchData) {
@@ -271,7 +275,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         convocati: [],
         rsvp: {},
         status: 'da_definire',
-        step: 'convocati',
+        step: 'dettagli',
         luogo: luogoPredefinito,
         orario: orarioPredefinito,
         rotazionePortieri: {
@@ -434,22 +438,25 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         !matchData.matchConcluso &&
         matchData.status !== 'in_corso' &&
         (matchData.step === 'convocati' ||
+          matchData.step === 'dettagli' ||
           (!matchData.step &&
             (!matchData.teamA || matchData.teamA.length === 0) &&
             (!matchData.teamB || matchData.teamB.length === 0)));
 
       // Se l'utente non è il Mister:
-      // - Se la partita è nello step 'convocati', mostra lo step 'convocati' (con Auto-RSVP attivo)
+      // - Se la partita è nello step 'convocati' o 'dettagli' o se entra da link invito, mostra lo step 'convocati' (con Auto-RSVP attivo)
       // - Se è conclusa, mostra il Report ('prestazioni')
       // - Altrimenti mostra il tabellone ('match') con convocazioni chiuse
       if (!this.isAdmin) {
         if (matchData.matchConcluso) {
           this.state.step.set('prestazioni');
-        } else if (isConvocatiPhase) {
+        } else if (isConvocatiPhase || this.isInviteLink()) {
           this.state.step.set('convocati');
         } else {
           this.state.step.set('match');
         }
+      } else if (this.isInviteLink() && !matchData.matchConcluso && matchData.status !== 'in_corso') {
+        this.state.step.set('convocati');
       } else if (matchData.matchConcluso) {
         this.state.step.set('prestazioni');
       } else if (matchData.status === 'in_corso') {
@@ -483,7 +490,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.commentoPartita.set('');
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
       this.state.resetMatchState();
-      this.state.step.set('convocati');
+      this.state.step.set('dettagli');
     }
 
     if (this.isAdmin) {
@@ -540,7 +547,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   cambiaStep(
-    step: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
+    step: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'
   ) {
     if (!this.isAdmin) return;
     this.state.cambiaStep(step);
@@ -555,7 +562,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     const currentStep = this.state.step();
 
     if (
-      currentStep === 'convocati' ||
+      currentStep === 'dettagli' ||
       (this.state.matchConcluso() && currentStep === 'prestazioni')
     ) {
       this.tornaAPartite();
@@ -563,17 +570,17 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     }
 
     let prevStepName = '';
-    let prevStepTarget: 'convocati' | 'dettagli' | 'squadre' | 'match' | null =
+    let prevStepTarget: 'dettagli' | 'convocati' | 'squadre' | 'match' | null =
       null;
 
     switch (currentStep) {
-      case 'dettagli':
-        prevStepName = 'Convocati';
-        prevStepTarget = 'convocati';
+      case 'convocati':
+        prevStepName = 'Coordinate Match';
+        prevStepTarget = 'dettagli';
         break;
       case 'squadre':
-        prevStepName = 'Dettagli';
-        prevStepTarget = 'dettagli';
+        prevStepName = 'Giocatori Convocati';
+        prevStepTarget = 'convocati';
         break;
       case 'match':
         prevStepName = 'Formazioni & Squadre';
