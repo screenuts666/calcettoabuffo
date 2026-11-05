@@ -1,13 +1,31 @@
 import { Routes } from '@angular/router';
-import { superUserGuard } from './services/auth.service';
+import {
+  superUserGuard,
+  superUserMatchGuard,
+  canEditPlayerGuard,
+  canCreatePlayerGuard,
+} from './services/auth.service';
 
 export const routes: Routes = [
   {
+    path: 'login',
+    loadComponent: () =>
+      import('./components/auth-modal/auth-modal.component').then(
+        (m) => m.AuthModalComponent
+      ),
+  },
+  {
+    path: 'match/:id',
+    redirectTo: 'partite/:id',
+    pathMatch: 'full',
+  },
+  {
     path: 'area-segreta',
+    canMatch: [superUserMatchGuard],
     canActivate: [superUserGuard],
     loadComponent: () =>
       import('./components/area-segreta/area-segreta.page').then(
-        (m) => m.AreaSegretaPage,
+        (m) => m.AreaSegretaPage
       ),
   },
   {
@@ -15,30 +33,30 @@ export const routes: Routes = [
     canActivate: [superUserGuard],
     loadComponent: () =>
       import('./components/partite/partita-detail/partita-detail.page').then(
-        (m) => m.PartitaDetailPage,
+        (m) => m.PartitaDetailPage
       ),
   },
   {
     path: 'partite/:id',
     loadComponent: () =>
       import('./components/partite/partita-detail/partita-detail.page').then(
-        (m) => m.PartitaDetailPage,
+        (m) => m.PartitaDetailPage
       ),
   },
   {
     path: 'giocatori/nuovo',
-    canActivate: [superUserGuard],
+    canActivate: [canCreatePlayerGuard],
     loadComponent: () =>
       import('./components/rosa/form-giocatore/form-giocatore.component').then(
-        (m) => m.FormGiocatoreComponent,
+        (m) => m.FormGiocatoreComponent
       ),
   },
   {
     path: 'giocatori/:id/modifica',
-    canActivate: [superUserGuard],
+    canActivate: [canEditPlayerGuard],
     loadComponent: () =>
       import('./components/rosa/form-giocatore/form-giocatore.component').then(
-        (m) => m.FormGiocatoreComponent,
+        (m) => m.FormGiocatoreComponent
       ),
   },
   {

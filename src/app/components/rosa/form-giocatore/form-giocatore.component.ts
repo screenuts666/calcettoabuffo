@@ -1,8 +1,6 @@
 import {
   Component,
   Input,
-  Output,
-  EventEmitter,
   inject,
   OnInit,
   OnDestroy,
@@ -22,6 +20,7 @@ import {
   IonButton,
   IonItem,
   IonInput,
+  IonTextarea,
   IonSelect,
   IonSelectOption,
   IonAvatar,
@@ -31,7 +30,6 @@ import {
   ToastController,
 } from '@ionic/angular/standalone';
 import {
-  // Firestore token imported from @angular/fire/firestore
   collection,
   addDoc,
   doc,
@@ -39,16 +37,20 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { Firestore } from '@angular/fire/firestore';
-import {
-  // Storage token imported from @angular/fire/storage
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Storage } from '@angular/fire/storage';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
-import { createOutline, arrowBack, cameraOutline, trashOutline } from 'ionicons/icons';
+import {
+  createOutline,
+  arrowBack,
+  cameraOutline,
+  trashOutline,
+  shieldCheckmarkOutline,
+  personAddOutline,
+  callOutline,
+  lockClosedOutline,
+} from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
 import { RuoloPreferito } from 'src/app/models/ruolo-preferito.enum';
@@ -59,7 +61,6 @@ import {
   handleAvatarError,
 } from 'src/app/utils/avatar-utils';
 import { compressAvatar } from 'src/app/utils/image-utils';
-
 import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
 
 @Component({
@@ -82,6 +83,7 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonBackButton,
     IonItem,
     IonInput,
+    IonTextarea,
     IonSelect,
     IonSelectOption,
     IonAvatar,
@@ -94,7 +96,7 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   private storage = inject(Storage);
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
-  private auth = inject(AuthService);
+  public auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -102,12 +104,13 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
 
   private routeSub?: Subscription;
 
-  // Esponiamo gli enum al template
   readonly PiedePreferito = PiedePreferito;
   readonly RuoloPreferito = RuoloPreferito;
 
   nome = signal('');
   soprannome = signal('');
+  numeroMaglia = signal<string>('');
+  bio = signal<string>('');
   annoNascita = signal('');
   piedePreferito = signal<PiedePreferito>(PiedePreferito.Destro);
   ruoloPreferito = signal<RuoloPreferito | null>(null);
@@ -117,6 +120,13 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   origini = signal('');
   statoCivile = signal('');
   vizi = signal('');
+  phoneNumber = signal('');
+
+  /**
+   * Se `true`, in fase di creazione nuovo giocatore (`!giocatore?.id`),
+   * aggancia automaticamente il nuovo giocatore all'utenza corrente (`users/{uid}`).
+   */
+  linkToMyAccount = signal<boolean>(false);
 
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
@@ -124,11 +134,50 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   @ViewChild('f') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor() {
-    addIcons({ createOutline, arrowBack, cameraOutline, trashOutline });
+    addIcons({
+      createOutline,
+      arrowBack,
+      cameraOutline,
+      trashOutline,
+      shieldCheckmarkOutline,
+      personAddOutline,
+      callOutline,
+      lockClosedOutline,
+    });
   }
 
   get isAdmin(): boolean {
-    return this.auth.isAdmin();
+    return this.auth.isSuperUser();
+  }
+
+  /**
+   * True se l'utente può salvare il form:
+   * - Il Mister (`superuser`) può sempre creare o modificare.
+   * - In modifica (`giocatore?.id`), l'Atleta proprietario può modificare la propria scheda.
+   * - In creazione (`!giocatore?.id`), un utente autenticato senza giocatore associato (`!hasLinkedPlayer()`)
+   *   può creare la propria scheda in rosa e agganciarla subito.
+   */
+  get canEdit(): boolean {
+    if (this.auth.isSuperUser()) return true;
+    if (this.giocatore?.id) {
+      return this.auth.canEditPlayer(this.giocatore.id);
+    }
+    return this.auth.isAuthenticated() && !this.auth.hasLinkedPlayer();
+  }
+
+  /**
+   * True se l'utente sta creando la PROPRIA scheda giocatore (non è Mister, oppure ha attivato il flag).
+   */
+  get isSelfRegistration(): boolean {
+    if (this.giocatore?.id) return false;
+    if (!this.auth.isSuperUser()) return true;
+    return this.linkToMyAccount();
+  }
+
+  toggleLinkToMyAccount() {
+    if (this.auth.isSuperUser()) {
+      this.linkToMyAccount.update((v) => !v);
+    }
   }
 
   ngOnInit() {
@@ -137,11 +186,16 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const selfClaimQuery =
+      this.route.snapshot.queryParamMap.get('selfClaim') === '1';
+
     this.routeSub = this.route.paramMap.subscribe(async (params) => {
       const routeId = params.get('id');
       if (routeId && routeId !== 'nuovo') {
         try {
-          const snap = await getDoc(doc(this.firestore, `giocatori/${routeId}`));
+          const snap = await getDoc(
+            doc(this.firestore, `giocatori/${routeId}`)
+          );
           if (snap.exists()) {
             this.giocatore = { id: snap.id, ...snap.data() } as Giocatore;
             this.popolaCampi(this.giocatore);
@@ -151,6 +205,18 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
         }
       } else {
         this.giocatore = null;
+        // Se non è Mister (o se ha aperto con ?selfClaim=1), precompila con i dati dell'account e attiva auto-link
+        if (!this.auth.isSuperUser() || selfClaimQuery) {
+          this.linkToMyAccount.set(true);
+          const displayName = this.auth.displayName();
+          if (displayName && displayName !== 'Tifoso' && !this.nome()) {
+            this.nome.set(displayName);
+          }
+          const photo = this.auth.photoURL();
+          if (photo && !this.anteprimaFoto()) {
+            this.anteprimaFoto.set(photo);
+          }
+        }
       }
     });
   }
@@ -162,6 +228,12 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   private popolaCampi(g: Giocatore) {
     this.nome.set(g.nome || '');
     this.soprannome.set(g.soprannome || '');
+    this.numeroMaglia.set(
+      g.numeroMaglia !== undefined && g.numeroMaglia !== null
+        ? String(g.numeroMaglia)
+        : ''
+    );
+    this.bio.set(g.bio || '');
     this.annoNascita.set(g.annoNascita || '');
     this.piedePreferito.set(g.piedePreferito ?? PiedePreferito.Destro);
     this.ruoloPreferito.set(g.ruoloPreferito ?? null);
@@ -172,6 +244,14 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
     this.statoCivile.set(g.statoCivile || '');
     this.vizi.set(g.vizi || '');
     this.anteprimaFoto.set(g.fotoUrl || null);
+
+    if (g.id && this.auth.canViewPlayerPhone(g)) {
+      this.auth.getPlayerPhoneNumber(g.id).then((phone) => {
+        if (phone !== null) {
+          this.phoneNumber.set(phone);
+        }
+      });
+    }
   }
 
   annulla() {
@@ -182,11 +262,11 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
     }
   }
 
-  
   rimuoviFoto(event?: Event) {
     if (event) {
       event.stopPropagation();
     }
+    if (!this.canEdit) return;
     this.fileSelezionato = null;
     this.anteprimaFoto.set(null);
     if (this.fileInput?.nativeElement) {
@@ -195,7 +275,7 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   }
 
   openFilePicker() {
-    if (!this.isAdmin) return;
+    if (!this.canEdit) return;
     const el = this.fileInput?.nativeElement;
     if (!el) return;
     el.value = '';
@@ -221,7 +301,7 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   }
 
   async salvaGiocatore() {
-    if (!this.nome().trim()) return;
+    if (!this.canEdit || !this.nome().trim()) return;
 
     const loading = await this.loadingController.create({
       message: 'Salvataggio...',
@@ -240,56 +320,100 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       }
 
       if (this.fileSelezionato) {
-        // Ottimizza e ridimensiona l'avatar prima dell'upload (max 384x384px, ~30-50KB)
-        const compressedBlob = await compressAvatar(this.fileSelezionato, 384, 0.82);
+        const compressedBlob = await compressAvatar(
+          this.fileSelezionato,
+          384,
+          0.82
+        );
         const path = `avatars/${Date.now()}_avatar.jpg`;
         const storageRef = ref(this.storage, path);
-        await uploadBytes(storageRef, compressedBlob, { contentType: 'image/jpeg' });
+        await uploadBytes(storageRef, compressedBlob, {
+          contentType: 'image/jpeg',
+        });
         fotoUrl = await getDownloadURL(storageRef);
       }
 
-      const payload: Omit<
-        Giocatore,
-        'id' | 'gol' | 'punti' | 'mediaVoto' | 'partiteGiocate'
-      > = {
-        nome: this.nome(),
-        soprannome: this.soprannome(),
-        annoNascita: this.annoNascita(),
+      const rawMaglia = this.numeroMaglia().toString().trim();
+      const parsedMaglia = rawMaglia !== '' ? Number(rawMaglia) : null;
+
+      // Payload rigorosamente allineato alle Field-Level Security Rules di `firestore.rules`
+      const payload: Record<string, any> = {
+        nome: this.nome().trim(),
+        soprannome: this.soprannome().trim(),
+        numeroMaglia:
+          parsedMaglia !== null && !Number.isNaN(parsedMaglia)
+            ? parsedMaglia
+            : rawMaglia || null,
+        bio: this.bio().trim(),
+        annoNascita: this.annoNascita().toString().trim(),
         piedePreferito: this.piedePreferito(),
-        ruoloPreferito: this.ruoloPreferito() ?? undefined,
-        altezza: this.altezza(),
-        peso: this.peso(),
+        ruoloPreferito: this.ruoloPreferito() ?? null,
+        altezza: this.altezza().toString().trim(),
+        peso: this.peso().toString().trim(),
         professione: this.professione().trim(),
         origini: this.origini().trim(),
         statoCivile: this.statoCivile().trim(),
         vizi: this.vizi().trim(),
         fotoUrl: fotoUrl,
+        updatedAt: new Date().toISOString(),
       };
 
       if (this.giocatore?.id) {
         await updateDoc(
           doc(this.firestore, `giocatori/${this.giocatore.id}`),
-          payload,
+          payload
         );
+        await this.auth.savePlayerPhoneNumber(
+          this.giocatore.id,
+          this.phoneNumber()
+        );
+        await this.router.navigate(['/giocatori', this.giocatore.id]);
+      } else if (this.isSelfRegistration) {
+        // Utente che crea la propria scheda giocatore e aggancia subito l'utenza
+        const newPlayerId = await this.auth.createAndClaimPlayer(
+          payload,
+          this.phoneNumber()
+        );
+        const toast = await this.toastController.create({
+          message: `🎉 Benvenuto in Rosa, ${payload['nome']}! La tua scheda è ora collegata al tuo account.`,
+          duration: 3000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+
+        const queryReturn = this.route.snapshot.queryParamMap.get('returnUrl');
+        const pendingReturn = this.auth.consumeReturnUrl();
+        const targetReturn = queryReturn || pendingReturn;
+        if (targetReturn && targetReturn.startsWith('/')) {
+          await this.router.navigateByUrl(targetReturn);
+        } else {
+          await this.router.navigate(['/giocatori', newPlayerId]);
+        }
       } else {
-        await addDoc(collection(this.firestore, 'giocatori'), {
+        // Mister che aggiunge un giocatore qualsiasi in rosa
+        const newDocRef = await addDoc(collection(this.firestore, 'giocatori'), {
           ...payload,
           gol: 0,
           punti: 0,
           mediaVoto: 0,
           partiteGiocate: 0,
+          linkedUid: null,
         });
-      }
-
-      if (this.giocatore?.id) {
-        await this.router.navigate(['/giocatori', this.giocatore.id]);
-      } else {
+        if (this.phoneNumber().trim()) {
+          await this.auth.savePlayerPhoneNumber(
+            newDocRef.id,
+            this.phoneNumber()
+          );
+        }
         await this.router.navigate(['/rosa']);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Errore nel salvataggio del giocatore:', e);
       const toast = await this.toastController.create({
-        message: 'Errore durante il salvataggio. Riprova.',
+        message:
+          e?.message ||
+          'Errore durante il salvataggio. Verifica i permessi e riprova.',
         duration: 3000,
         color: 'danger',
         position: 'top',

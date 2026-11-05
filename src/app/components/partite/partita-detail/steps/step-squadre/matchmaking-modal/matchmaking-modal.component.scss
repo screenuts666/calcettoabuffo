@@ -341,16 +341,17 @@
 
 .rosters-container {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   margin-bottom: 14px;
 
-  @media (min-width: 600px) {
-    grid-template-columns: 1fr 1fr;
+  @media (min-width: 480px) {
+    gap: 12px;
   }
 }
 
 .roster-column {
+  min-width: 0;
   background: var(--app-card-bg);
   border-radius: 14px;
   overflow: hidden;
@@ -368,34 +369,52 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    gap: 4px;
+    padding: 7px 8px;
     background: var(--app-surface-subtle);
     border-bottom: 1px solid var(--app-border-color);
+    min-width: 0;
+
+    @media (min-width: 420px) {
+      padding: 8px 12px;
+    }
 
     .title-with-count {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
+      min-width: 0;
 
       .team-name {
-        font-size: 0.85rem;
+        font-size: 0.78rem;
         font-weight: 800;
         color: var(--app-text-primary);
+
+        @media (min-width: 420px) {
+          font-size: 0.85rem;
+        }
       }
 
       .count-tag {
-        font-size: 0.65rem;
+        font-size: 0.62rem;
         color: var(--app-text-muted);
         background: var(--app-card-border);
         padding: 1px 5px;
         border-radius: 4px;
+        white-space: nowrap;
       }
     }
 
     .header-mmr-badge {
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       font-weight: 700;
       color: var(--app-accent-blue);
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      @media (min-width: 420px) {
+        font-size: 0.75rem;
+      }
     }
   }
 
@@ -407,19 +426,30 @@
 .player-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: 6px;
+  padding: 5px 6px;
   border-radius: 8px;
+  min-width: 0;
+
+  @media (min-width: 420px) {
+    gap: 8px;
+    padding: 6px 8px;
+  }
 
   .player-avatar-box {
     position: relative;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     flex-shrink: 0;
 
-    .avatar-img {
+    @media (min-width: 420px) {
       width: 36px;
       height: 36px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
       object-fit: cover;
       border: 1.5px solid var(--app-card-border);
@@ -430,11 +460,11 @@
       position: absolute;
       bottom: -3px;
       right: -3px;
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       background: var(--app-surface-subtle);
       border-radius: 50%;
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -445,26 +475,33 @@
   .player-info {
     flex: 1;
     min-width: 0;
+    overflow: hidden;
 
     .player-name-line {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
+      min-width: 0;
 
       .player-name {
-        font-size: 0.82rem;
+        font-size: 0.76rem;
         font-weight: 700;
         color: var(--app-text-primary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        @media (min-width: 420px) {
+          font-size: 0.82rem;
+        }
       }
 
       .streak-badge {
-        font-size: 0.62rem;
+        font-size: 0.58rem;
         font-weight: 800;
         padding: 1px 4px;
         border-radius: 8px;
+        flex-shrink: 0;
 
         &.on-fire {
           background: var(--app-accent-orange-subtle);
@@ -483,17 +520,28 @@
     .player-meta-line {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 4px;
       margin-top: 1px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
 
       .mmr-tier-pill {
-        font-size: 0.68rem;
+        font-size: 0.64rem;
         font-weight: 700;
+        flex-shrink: 0;
+
+        @media (min-width: 420px) {
+          font-size: 0.68rem;
+        }
       }
 
       .ruolo-text {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         color: var(--app-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }

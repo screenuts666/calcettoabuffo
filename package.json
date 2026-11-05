@@ -1,6 +1,6 @@
 {
   "name": "calcettoabbuffo",
-  "version": "1.0.79",
+  "version": "2.0.7-dev",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -13,7 +13,6 @@
     "build:prod": "node scripts/bump-version.mjs --no-bump && nx build --configuration production",
     "deploy:prod": "node scripts/bump-version.mjs && nx build --configuration production && firebase deploy --only hosting,storage,firestore:rules --project prod",
     "watch": "node scripts/bump-version.mjs --no-bump && nx build --watch --configuration development",
-    "patch:last-match": "node scripts/patch-last-match-duration.mjs",
     "test": "nx test",
     "lint": "nx lint"
   },

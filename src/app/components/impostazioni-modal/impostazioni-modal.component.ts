@@ -50,6 +50,7 @@ import { ThemeService, AppThemeMode } from '../../services/theme.service';
 import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
+import { AuthModalComponent } from '../auth-modal/auth-modal.component';
 
 export type SettingsTab = 'portiere' | 'match' | 'sistema';
 
@@ -113,7 +114,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (!this.authService.isAdmin()) {
+    if (!this.authService.isSuperUser()) {
       this.activeTab.set('sistema');
     } else {
       this.activeTab.set(this.initialTab);
@@ -126,6 +127,10 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   setTab(tab: SettingsTab) {
+    if (!this.authService.isSuperUser() && tab !== 'sistema') {
+      this.activeTab.set('sistema');
+      return;
+    }
     this.soundSettings.stopPreview();
     this.activeTab.set(tab);
   }
@@ -268,30 +273,15 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   async promptLoginSuperUser() {
-    const alert = await this.alertCtrl.create({
-      header: '👑 Accesso Super User',
-      subHeader: 'Inserisci le credenziali Admin per gestire suoni, partite e motore MMR',
-      inputs: [
-        { name: 'email', type: 'email', placeholder: 'Email Admin' },
-        { name: 'password', type: 'password', placeholder: 'Password' },
-      ],
-      buttons: [
-        { text: 'Annulla', role: 'cancel' },
-        {
-          text: 'Entra',
-          handler: async (res) => {
-            try {
-              await this.authService.loginAdmin(res.email, res.password);
-              this.activeTab.set('portiere');
-              await this.mostraToast('Benvenuto Boss! 🕶️ Controlli Super User sbloccati', 'success');
-            } catch {
-              await this.mostraToast('❌ Credenziali errate', 'danger');
-            }
-          },
-        },
-      ],
-    });
-    await alert.present();
+    this.chiudi();
+    setTimeout(async () => {
+      const modal = await this.modalCtrl.create({
+        component: AuthModalComponent,
+        componentProps: { initialMode: 'login' },
+        mode: 'ios',
+      });
+      await modal.present();
+    }, 150);
   }
 
   async logoutSuperUser() {

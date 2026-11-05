@@ -84,6 +84,7 @@ import { MatchShareModalComponent } from './match-share-modal/match-share-modal.
 import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
 import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
+import { TrashService } from 'src/app/services/trash.service';
 import {
   CURRENT_SEASON,
   PREVIOUS_SEASON,
@@ -160,6 +161,7 @@ export class PartitePage {
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
   private auth = inject(AuthService);
+  readonly trashService = inject(TrashService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
@@ -1062,9 +1064,10 @@ export class PartitePage {
   }
 
   async confermaEliminazione(match: any, slidingItem: IonItemSliding) {
+    if (!this.isAdmin) return;
     const alert = await this.alertController.create({
       header: 'Elimina Partita',
-      message: `Sei sicuro di voler eliminare definitivamente il match a ${match.luogo}?`,
+      message: `Vuoi spostare il match a ${match.luogo || 'Campo'} nel Cestino? Potrai annullare subito o ripristinarlo (inclusa la foto) entro 24 ore.`,
       buttons: [
         {
           text: 'Annulla',
@@ -1072,19 +1075,11 @@ export class PartitePage {
           handler: () => slidingItem.close(),
         },
         {
-          text: 'Elimina',
+          text: 'Sposta nel Cestino (24h)',
           role: 'destructive',
           handler: async () => {
-            if (match.fotoPath) {
-              try {
-                const storageRef = ref(this.storage, match.fotoPath);
-                await deleteObject(storageRef);
-              } catch (e) {
-                console.warn('Errore eliminazione foto da storage:', e);
-              }
-            }
-            await deleteDoc(doc(this.firestore, `partite/${match.id}`));
             slidingItem.close();
+            await this.trashService.softDeleteMatch(match);
           },
         },
       ],

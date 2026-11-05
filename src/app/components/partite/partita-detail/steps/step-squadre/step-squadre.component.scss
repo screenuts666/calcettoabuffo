@@ -4,7 +4,7 @@
 // CONTENITORE PULSANTE MATCHMAKING
 // ==========================================
 .matchmaking-container {
-  padding: 12px 14px 6px;
+  padding: 12px 10px 6px;
   background: transparent;
 
   .matchmaking-cta-btn {
@@ -13,7 +13,7 @@
     background: linear-gradient(135deg, var(--app-neutral-dark) 0%, var(--app-black) 100%);
     border: 1.5px solid var(--app-accent-blue-border);
     border-radius: 16px;
-    padding: 12px 14px;
+    padding: 11px 12px;
     cursor: pointer;
     overflow: hidden;
     box-shadow: 0 4px 18px var(--app-accent-blue-subtle), inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -38,24 +38,28 @@
     .cta-inner {
       position: relative;
       @include flex-between;
-      gap: 10px;
+      gap: 8px;
 
       .cta-left {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         text-align: left;
+        min-width: 0;
 
         .cta-emoji {
-          font-size: 1.8rem;
+          font-size: 1.65rem;
           line-height: 1;
+          flex-shrink: 0;
           filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         .cta-text {
+          min-width: 0;
+
           .cta-title {
             display: block;
-            font-size: 0.96rem;
+            font-size: 0.92rem;
             font-weight: 800;
             color: var(--app-white);
             letter-spacing: 0.2px;
@@ -64,7 +68,7 @@
 
           .cta-sub {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--app-text-muted);
             margin-top: 2px;
             font-weight: 500;
@@ -73,8 +77,10 @@
       }
 
       .cta-right {
+        flex-shrink: 0;
+
         .sparkle-icon {
-          font-size: 1.4rem;
+          font-size: 1.35rem;
           color: var(--app-accent-blue);
           filter: drop-shadow(0 0 6px var(--app-accent-blue-border));
           animation: pulse-sparkle 2.5s infinite ease-in-out;
@@ -86,10 +92,12 @@
   // LIVE BALANCE CHIP
   .live-balance-chip {
     margin-top: 8px;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 10px;
     @include flex-between;
-    font-size: 0.72rem;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.08);
 
@@ -97,11 +105,13 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
 
       .chip-dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
+        flex-shrink: 0;
       }
 
       .chip-label {
@@ -115,7 +125,8 @@
 
     .chip-details {
       color: var(--app-text-muted);
-      font-size: 0.68rem;
+      font-size: 0.66rem;
+      white-space: nowrap;
     }
 
     &.balanced {
@@ -154,183 +165,171 @@
 }
 
 // ==========================================
-// BARRE SQUADRE CUSTOM
+// SUGGERIMENTO INTERATTIVO SPOSTAMENTO
 // ==========================================
-.team-header {
-  @include flex-between;
-  padding: 8px 14px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  border-top: 1px solid var(--app-border-color);
-  border-bottom: 1px solid var(--app-border-color);
-  margin-top: 6px;
+.swap-touch-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 2px 10px 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--app-text-muted);
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    .count-tag {
-      font-size: 0.72rem;
-      padding: 1px 7px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-  }
-
-  .team-mmr-sub {
-    font-size: 0.74rem;
-    font-weight: 700;
-    opacity: 0.9;
-  }
-}
-
-.team-bianchi {
-  background-color: var(--app-white);
-  color: var(--app-neutral-dark);
-
-  .count-tag {
-    background: var(--app-neutral-dark);
-    color: var(--app-white);
-  }
-
-  .team-mmr-sub {
-    color: var(--app-neutral-dark);
-  }
-}
-
-.team-neri {
-  background-color: var(--app-neutral-dark);
-  color: var(--app-white);
-  border-top: 1px solid var(--app-card-border);
-  border-bottom: 1px solid var(--app-card-border);
-
-  .count-tag {
-    background: var(--app-surface-subtle);
-    color: var(--app-text-primary);
-  }
-
-  .team-mmr-sub {
-    color: var(--app-accent-gold);
+  ion-icon {
+    font-size: 0.85rem;
+    color: var(--app-accent-blue);
   }
 }
 
 // ==========================================
-// GRIGLIA AVATAR (con effetto click)
+// LAYOUT A 2 COLONNE AFFIANCATE (MOBILE-FIRST 360px+)
+// Stile identico e compatto della modale Matchmaking Intelligente
 // ==========================================
-.selected-avatars-grid {
+.rosters-container {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px 6px;
-  padding: 14px 6px;
-  justify-items: center;
-  position: relative;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 8px;
+  margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
 
-  .avatar-item {
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    width: 100%;
+  @media (min-width: 480px) {
+    gap: 12px;
+    padding: 0 12px;
+  }
+}
 
-    &:active {
-      transform: scale(0.88);
+.roster-column {
+  min-width: 0;
+  background: var(--app-card-bg);
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--app-card-border);
+  display: flex;
+  flex-direction: column;
+
+  &.roster-bianchi {
+    border-top: 3px solid var(--app-white);
+  }
+
+  &.roster-neri {
+    border-top: 3px solid var(--app-accent-gold);
+  }
+
+  .roster-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 8px;
+    background: var(--app-surface-subtle);
+    border-bottom: 1px solid var(--app-border-color);
+    min-width: 0;
+
+    @media (min-width: 420px) {
+      padding: 8px 11px;
     }
 
-    .avatar-wrapper {
-      position: relative;
-      display: inline-block;
+    .title-with-count {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
 
-      ion-avatar {
-        width: 48px;
-        height: 48px;
-        margin: 0 auto;
-        border: 2px solid var(--ion-color-success);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+      .team-name {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        letter-spacing: 0.3px;
 
-        app-player-avatar,
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
+        @media (min-width: 420px) {
+          font-size: 0.85rem;
         }
       }
 
-      .swap-hint {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        background: var(--app-neutral-dark);
-        color: var(--app-accent-blue);
-        font-size: 10px;
-        @include flex-center;
-        border: 1px solid var(--app-border-color);
+      .count-tag {
+        font-size: 0.62rem;
+        font-weight: 700;
+        color: var(--app-text-muted);
+        background: var(--app-card-border);
+        padding: 1px 5px;
+        border-radius: 5px;
+        flex-shrink: 0;
       }
     }
 
-    small {
-      font-size: 10px;
+    .header-mmr-badge {
+      font-size: 0.68rem;
       font-weight: 700;
-      color: var(--app-text-secondary);
-      display: block;
-      margin-top: 5px;
-      @include text-ellipsis;
-      max-width: 58px;
-      margin-left: auto;
-      margin-right: auto;
+      color: var(--app-accent-blue);
+      white-space: nowrap;
+      flex-shrink: 0;
+
+      @media (min-width: 420px) {
+        font-size: 0.75rem;
+      }
     }
   }
 
-  .empty-team-placeholder {
-    grid-column: 1 / -1;
-    padding: 24px 10px;
-    color: var(--app-text-muted);
-    font-size: 0.82rem;
-    font-style: italic;
-    text-align: center;
+  .players-list {
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
   }
 }
 
 // ==========================================
-// BARRE SELEZIONE PORTIERE NELLA FORMAZIONE
+// BARRE COMPATTE SELEZIONE PORTIERE IN COLONNA
 // ==========================================
 .gk-fixed-selector-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 8px 12px 4px;
-  padding: 8px 12px;
-  background: rgba(251, 191, 36, 0.08);
+  gap: 4px;
+  margin: 5px 5px 1px;
+  padding: 5px 7px;
+  background: rgba(251, 191, 36, 0.09);
   border: 1px solid rgba(251, 191, 36, 0.35);
-  border-radius: 10px;
+  border-radius: 9px;
   cursor: pointer;
+  min-width: 0;
   transition: all 0.2s ease;
 
   &:hover {
-    background: rgba(251, 191, 36, 0.15);
+    background: rgba(251, 191, 36, 0.16);
     border-color: rgba(251, 191, 36, 0.6);
   }
 
   .fixed-bar-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
 
     .fixed-icon {
-      font-size: 1.4rem;
-      filter: drop-shadow(0 2px 4px rgba(251, 191, 36, 0.4));
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.4));
     }
 
     .fixed-info {
       display: flex;
       flex-direction: column;
+      min-width: 0;
+      flex: 1;
 
       .fixed-title {
-        font-size: 0.82rem;
+        font-size: 0.7rem;
         color: var(--app-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
 
         strong {
           color: #fbbf24;
@@ -339,127 +338,242 @@
       }
 
       .fixed-sub {
-        font-size: 0.68rem;
+        font-size: 0.58rem;
         color: var(--app-text-muted);
-        margin-top: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }
 
   .fixed-change-btn {
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-size: 0.65rem;
+    font-weight: 800;
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.15);
-    padding: 3px 8px;
-    border-radius: 8px;
+    padding: 1px 5px;
+    border-radius: 6px;
     border: 1px solid rgba(251, 191, 36, 0.3);
+    flex-shrink: 0;
   }
 }
 
 .gk-rotation-hint-bar {
-  margin: 6px 12px 2px;
-  padding: 4px 10px;
-  font-size: 0.7rem;
+  margin: 5px 5px 1px;
+  padding: 4px 7px;
+  font-size: 0.62rem;
   font-weight: 600;
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.08);
   border-radius: 8px;
   border: 1px solid rgba(56, 189, 248, 0.2);
-  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // ==========================================
-// BADGE E AURA PORTIERE NEI GIOCATORI
+// RIGA GIOCATORE COMPATTA (MOBILE-FIRST)
 // ==========================================
-.avatar-wrapper.is-fixed-gk {
-  ion-avatar {
-    border-color: #fbbf24 !important;
-    box-shadow: 0 0 12px rgba(251, 191, 36, 0.6), inset 0 0 4px rgba(251, 191, 36, 0.5) !important;
-    transform: scale(1.05);
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 8px;
+  min-width: 0;
+  transition: background 0.15s ease, transform 0.12s ease;
+
+  @media (min-width: 420px) {
+    gap: 8px;
+    padding: 6px 8px;
+  }
+
+  &.interactive-row {
+    cursor: pointer;
+    user-select: none;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    &:active {
+      transform: scale(0.97);
+      background: rgba(56, 189, 248, 0.1);
+    }
+  }
+
+  .player-avatar-box {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+
+    @media (min-width: 420px) {
+      width: 34px;
+      height: 34px;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      overflow: hidden;
+      border: 1.5px solid var(--app-card-border);
+      background: var(--app-surface-subtle);
+    }
+
+    &.is-fixed-gk .avatar-img {
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.55);
+    }
+
+    &.is-pure-gk:not(.is-fixed-gk) .avatar-img {
+      border-color: #10b981 !important;
+      box-shadow: 0 0 7px rgba(16, 185, 129, 0.45);
+    }
+
+    .role-mini-badge {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      font-size: 0.58rem;
+      background: var(--app-surface-subtle);
+      border-radius: 50%;
+      width: 14px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--app-border-color);
+      z-index: 2;
+
+      &.fixed-gk {
+        background: #fbbf24;
+        color: #000;
+        border-color: rgba(0, 0, 0, 0.3);
+      }
+
+      &.pure-gk {
+        background: #10b981;
+        color: #fff;
+        border-color: rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+
+  .player-info {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+
+    .player-name-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+
+      .player-name {
+        display: block;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: var(--app-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+
+        @media (min-width: 420px) {
+          font-size: 0.82rem;
+        }
+      }
+    }
+
+    .player-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 1px;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+
+      .mmr-tier-pill {
+        font-size: 0.63rem;
+        font-weight: 700;
+        flex-shrink: 0;
+
+        @media (min-width: 420px) {
+          font-size: 0.68rem;
+        }
+      }
+
+      .ruolo-text {
+        font-size: 0.6rem;
+        color: var(--app-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .gk-role-tag {
+        font-size: 0.56rem;
+        font-weight: 800;
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.15);
+        padding: 0 4px;
+        border-radius: 4px;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &.pure {
+          color: #10b981;
+          background: rgba(16, 185, 129, 0.15);
+          border-color: rgba(16, 185, 129, 0.3);
+        }
+      }
+    }
+  }
+
+  .swap-hint-pill {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--app-surface-subtle);
+    color: var(--app-accent-blue);
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--app-border-color);
+    opacity: 0.8;
   }
 }
 
-.avatar-wrapper.is-pure-gk:not(.is-fixed-gk) {
-  ion-avatar {
-    border-color: #10b981 !important;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
-  }
-}
-
-.fixed-gk-badge {
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  font-size: 14px;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #fbbf24;
-  color: #000;
-  @include flex-center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  z-index: 10;
-  animation: pulse-aura 2.5s infinite ease-in-out;
-}
-
-.pure-gk-badge {
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  font-size: 12px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #10b981;
-  color: #fff;
-  @include flex-center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-  z-index: 10;
-}
-
-.gk-role-tag {
-  display: block;
-  font-size: 8px;
-  font-weight: 800;
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.15);
-  padding: 1px 4px;
-  border-radius: 6px;
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  margin-top: 2px;
-  max-width: 65px;
-  margin-left: auto;
-  margin-right: auto;
-  @include text-ellipsis;
-
-  &.pure {
-    color: #10b981;
-    background: rgba(16, 185, 129, 0.15);
-    border-color: rgba(16, 185, 129, 0.3);
-  }
-}
-
-@keyframes pulse-aura {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 6px rgba(251, 191, 36, 0.5);
-  }
-  50% {
-    transform: scale(1.12);
-    box-shadow: 0 0 14px rgba(251, 191, 36, 0.9);
-  }
+.empty-team-placeholder {
+  padding: 20px 6px;
+  color: var(--app-text-muted);
+  font-size: 0.74rem;
+  font-style: italic;
+  text-align: center;
 }
 
 // ==========================================
 // SEZIONE QUOTE & PRONOSTICO PRE-MATCH
 // ==========================================
 .odds-and-pronostico-card {
-  margin: 16px 12px 24px;
+  margin: 14px 10px 24px;
   background: var(--app-surface, #1e293b);
   border: 1px solid var(--app-border, rgba(255, 255, 255, 0.08));
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 
   .card-header-row {

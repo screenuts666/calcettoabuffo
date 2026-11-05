@@ -23,7 +23,6 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 import { provideFirestore } from '@angular/fire/firestore';
-// 1. IMPORTA LO STORAGE QUI
 import { provideStorage, getStorage } from '@angular/fire/storage';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { environment } from './environments/environment';
@@ -36,7 +35,7 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    
+
     // --- CONFIGURAZIONE FIREBASE ---
     provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideFirestore(() => {
@@ -51,12 +50,12 @@ bootstrapApplication(AppComponent, {
         return getFirestore(app);
       }
     }),
-    // 2. AGGIUNGI IL PROVIDER DELLO STORAGE QUI
     provideStorage(() => getStorage()),
-    ...(environment.production ? [provideAuth(() => getAuth())] : []),
-    provideZonelessChangeDetection(), provideServiceWorker('ngsw-worker.js', {
-            enabled: !isDevMode(),
-            registrationStrategy: 'registerImmediately'
-          }),
+    provideAuth(() => getAuth()),
+    provideZonelessChangeDetection(),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerImmediately',
+    }),
   ],
 });

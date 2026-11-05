@@ -10,11 +10,20 @@
       state.step() === 'prestazioni'
         ? (state.matchConcluso() ? 'Report Partita' : 'Pagelle')
         : state.matchId()
-          ? 'Gestione Match'
+          ? (isAdmin ? 'Gestione Match' : 'Dettaglio Partita')
           : 'Nuova Partita'
     }}</ion-title>
 
     <ion-buttons slot="end" class="detail-header-end">
+      @if (state.matchId() || isAdmin) {
+        <ion-button
+          (click)="apriCondivisionePartita()"
+          title="Condividi Partita su WhatsApp"
+          aria-label="Condividi Partita"
+        >
+          <ion-icon name="logo-whatsapp" color="success"></ion-icon>
+        </ion-button>
+      }
       @if (isAdmin) {
         <app-sync-status-badge [compact]="true"></app-sync-status-badge>
       }
@@ -22,7 +31,7 @@
     </ion-buttons>
   </ion-toolbar>
 
-  @if (!state.matchConcluso() && (state.step() === 'dettagli' || state.step() === 'convocati' || state.step() === 'squadre')) {
+  @if (isAdmin && !state.matchConcluso() && (state.step() === 'dettagli' || state.step() === 'convocati' || state.step() === 'squadre')) {
     <div class="wizard-stepper-bar">
       <!-- STEP 1: COORDINATE MATCH -->
       <button
@@ -118,7 +127,7 @@
       <app-step-prestazioni></app-step-prestazioni>
     }
 
-    @if (state.step() === 'convocati' && state.totaleConvocati() >= 2) {
+    @if (isAdmin && state.step() === 'convocati' && state.totaleConvocati() >= 2) {
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button color="success" (click)="cambiaStep('squadre')">
           <ion-icon name="arrow-forward"></ion-icon>

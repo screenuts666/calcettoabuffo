@@ -14,6 +14,8 @@ export interface Giocatore {
   annoNascita?: string;
   piedePreferito?: PiedePreferito;
   ruoloPreferito?: RuoloPreferito;
+  numeroMaglia?: number | string | null;
+  bio?: string;
   altezza?: string;
   peso?: string;
   fotoUrl?: string;
@@ -33,6 +35,21 @@ export interface Giocatore {
   origini?: string;
   statoCivile?: string;
   vizi?: string;
+
+  // Ownership RBAC v2.0 (Associazione Utente -> Giocatore, per Atleta o Mister-Giocatore)
+  linkedUid?: string | null;
+  linkedEmail?: string | null;
+  claimedAt?: string | null;
+  updatedAt?: string;
+
+  // Dato privato (letto/scritto esclusivamente in `giocatori/{playerId}/private/contact`)
+  phoneNumber?: string | null;
+}
+
+export interface PlayerPrivateContact {
+  phoneNumber: string;
+  updatedAt: string;
+  updatedBy?: string | null;
 }
 
 export interface GiocatoreConPunti extends Giocatore {

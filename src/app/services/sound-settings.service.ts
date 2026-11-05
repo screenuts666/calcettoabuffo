@@ -515,7 +515,11 @@ export class SoundSettingsService {
       ) {
         window.speechSynthesis.cancel();
       }
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      if (
+        typeof navigator !== 'undefined' &&
+        'vibrate' in navigator &&
+        (navigator as any).userActivation?.hasBeenActive
+      ) {
         navigator.vibrate(0);
       }
     } catch {}
@@ -523,7 +527,11 @@ export class SoundSettingsService {
 
   private triggerVibrationPattern(pattern: number | number[]) {
     try {
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      if (
+        typeof navigator !== 'undefined' &&
+        'vibrate' in navigator &&
+        (navigator as any).userActivation?.hasBeenActive
+      ) {
         navigator.vibrate(pattern);
       }
     } catch {}

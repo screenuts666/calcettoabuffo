@@ -1,39 +1,294 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Configurazione e chiavi di runtime: leggibile dall'app, scrittura solo ad admin autenticati
-    match /_config/{document=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+
+    // =========================================================================
+    // HELPER FUNCTIONS DI AUTENTICAZIONE E RUOLI (RBAC v2.0)
+    // =========================================================================
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // Parametri motore storicizzati per stagione (Super-Lock Admin)
+    // Protezione Account Admin Legacy (anti-lockout per i 2 Mister ufficiali)
+    function isLegacySuperUser() {
+      return isAuthenticated() &&
+        request.auth.token.email != null &&
+        request.auth.token.email.lower() in [
+          'giradischi666@gmail.com',
+          'lucais1991@gmail.com'
+        ];
+    }
+
+    function userDocExists() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Verifica "Mister" (Superuser): da documento users/{uid} oppure fallback Legacy
+    // Nota: un Mister può anche avere un `playerId` associato (Mister-Giocatore)
+    function isSuperUser() {
+      return isAuthenticated() && (
+        isLegacySuperUser() ||
+        (userDocExists() && getUserData().role == 'superuser')
+      );
+    }
+
+    // Verifica "Atleta" (User standard associato a un playerId valido)
+    function isAtleta() {
+      return isAuthenticated() &&
+        userDocExists() &&
+        getUserData().role == 'user' &&
+        getUserData().get('playerId', null) != null;
+    }
+
+    // Verifica se l'utente (Atleta o Mister-Giocatore) ha un profilo giocatore associato
+    function hasLinkedPlayer() {
+      return isAuthenticated() &&
+        userDocExists() &&
+        (getUserData().role == 'user' || getUserData().role == 'superuser') &&
+        getUserData().get('playerId', null) != null;
+    }
+
+    // =========================================================================
+    // 1. COLLEZIONE USERS: Prevenzione Privilege Escalation
+    // =========================================================================
+    match /users/{uid} {
+      // Ogni utente autenticato può leggere il proprio profilo;
+      // il Mister può leggere tutti gli utenti per gestire ruoli e associazioni.
+      allow read: if isAuthenticated() && (request.auth.uid == uid || isSuperUser());
+
+      // Creazione al Sign-Up / Primo Login:
+      // - L'utente può creare SOLO il proprio documento (request.auth.uid == uid)
+      // - Il ruolo iniziale DEVE essere 'guest' con playerId == null
+      //   (salvo il Mister / Legacy Admin che nasce già 'superuser')
+      allow create: if isAuthenticated() && request.auth.uid == uid && (
+        isSuperUser() ||
+        (
+          request.resource.data.uid == uid &&
+          request.resource.data.role == 'guest' &&
+          request.resource.data.get('playerId', null) == null
+        )
+      );
+
+      // Aggiornamento profilo utente:
+      // - Il Mister (`isSuperUser()`) può aggiornare qualsiasi utente (incluso promuovere un altro Mister,
+      //   assegnare/scollegare il proprio `playerId` senza perdere il ruolo `superuser`, o associare giocatori).
+      // - L'utente non-Mister può aggiornare solo il proprio doc e SOLO in due casi:
+      //   Caso A: modifica anagrafica account senza toccare `role` né `playerId`
+      //   Caso B: transizione controllata `guest` -> `user` reclamando un giocatore libero (`linkedUid == request.auth.uid` su getAfter)
+      allow update: if isSuperUser() || (
+        isAuthenticated() && request.auth.uid == uid && (
+          // Caso A: aggiornamento dati base profilo (nessuna modifica a role o playerId)
+          (
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.get('playerId', null) == resource.data.get('playerId', null) &&
+            request.resource.data.uid == resource.data.uid &&
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt', 'authProvider'])
+          )
+          ||
+          // Caso B: reclamo iniziale di un giocatore libero (Tifoso -> Atleta)
+          (
+            resource.data.role == 'guest' &&
+            resource.data.get('playerId', null) == null &&
+            request.resource.data.role == 'user' &&
+            request.resource.data.playerId is string &&
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['role', 'playerId', 'updatedAt', 'lastLoginAt']) &&
+            getAfter(/databases/$(database)/documents/giocatori/$(request.resource.data.playerId)).data.linkedUid == request.auth.uid
+          )
+        )
+      );
+
+      allow delete: if isSuperUser();
+    }
+
+    // =========================================================================
+    // 2. COLLEZIONE GIOCATORI: Prevenzione Account Hijacking & Field-Level Security
+    // =========================================================================
+    match /giocatori/{playerId} {
+      // Sola lettura pubblica per Tifosi, Atleti e Mister
+      allow read: if true;
+
+      // Eliminazione scheda giocatore: ESCLUSIVAMENTE Mister
+      allow delete: if isSuperUser();
+
+      // Creazione scheda giocatore:
+      // 1. Mister: può creare qualsiasi giocatore
+      // 2. Utente autenticato SENZA giocatore ancora associato (!hasLinkedPlayer()):
+      //    può creare la PROPRIA scheda giocatore in rosa e agganciarla subito (linkedUid == request.auth.uid),
+      //    solo con i campi anagrafici/estetici consentiti (zero MMR/statistiche manipolate)
+      allow create: if isSuperUser() || (
+        isAuthenticated() &&
+        !hasLinkedPlayer() &&
+        request.resource.data.linkedUid == request.auth.uid &&
+        request.resource.data.keys().hasOnly([
+          'nome',
+          'soprannome',
+          'fotoUrl',
+          'numeroMaglia',
+          'piedePreferito',
+          'ruoloPreferito',
+          'annoNascita',
+          'altezza',
+          'peso',
+          'bio',
+          'professione',
+          'origini',
+          'statoCivile',
+          'vizi',
+          'linkedUid',
+          'linkedEmail',
+          'claimedAt',
+          'updatedAt'
+        ])
+      );
+
+      // Update scheda giocatore:
+      // 1. Mister: Full CRUD (MMR, gol, statistiche, AI scouting, assegnazione/rimozione linkedUid)
+      // 2. Claiming (Associazione Giocatore): un utente autenticato reclama un giocatore libero (linkedUid == null)
+      // 3. Proprietario (Atleta o Mister-Giocatore con resource.data.linkedUid == request.auth.uid):
+      //    può modificare SOLO i campi estetici/anagrafici consentiti, MAI statistiche/MMR/gol/voti/AI
+      allow update: if isSuperUser() || (
+        isAuthenticated() && (
+          // Caso Claiming: solo se il giocatore non è già reclamato da un altro UID
+          (
+            resource.data.get('linkedUid', null) == null &&
+            request.resource.data.linkedUid == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['linkedUid', 'linkedEmail', 'claimedAt', 'updatedAt'])
+          )
+          ||
+          // Caso Modifica Scheda Proprietario (Field-Level Security):
+          (
+            resource.data.get('linkedUid', null) == request.auth.uid &&
+            request.resource.data.get('linkedUid', null) == resource.data.get('linkedUid', null) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'nome',
+              'soprannome',
+              'fotoUrl',
+              'numeroMaglia',
+              'piedePreferito',
+              'ruoloPreferito',
+              'annoNascita',
+              'altezza',
+              'peso',
+              'bio',
+              'professione',
+              'origini',
+              'statoCivile',
+              'vizi',
+              'updatedAt'
+            ])
+          )
+        )
+      );
+
+      // Sottocollezione Privata Contatti (`giocatori/{playerId}/private/contact`):
+      // Isola il `phoneNumber` garantendo Zero Data Leak verso Tifosi (guest) e altri Atleti.
+      // Lettura e scrittura consentite ESCLUSIVAMENTE al Mister (`superuser`) o al giocatore proprietario (`linkedUid == request.auth.uid`).
+      match /private/{docId} {
+        allow read: if isSuperUser() || (
+          isAuthenticated() &&
+          get(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+        );
+
+        allow write: if isSuperUser() || (
+          isAuthenticated() &&
+          docId == 'contact' &&
+          (
+            (
+              exists(/databases/$(database)/documents/giocatori/$(playerId)) &&
+              get(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+            )
+            ||
+            getAfter(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+          ) &&
+          request.resource.data.keys().hasOnly(['phoneNumber', 'updatedAt', 'updatedBy'])
+        );
+      }
+    }
+
+    // =========================================================================
+    // 3. COLLEZIONE PARTITE: Field-Level Security su RSVP (Solo Step Convocati)
+    // =========================================================================
+    match /partite/{matchId} {
+      // Lettura pubblica del calendario, formazioni e risultati
+      allow read: if true;
+
+      // Creazione ed eliminazione partite: ESCLUSIVAMENTE Mister
+      allow create, delete: if isSuperUser();
+
+      // Update partita:
+      // 1. Mister: Full CRUD
+      // 2. Atleta (o giocatore associato): può aggiornare ESCLUSIVAMENTE la propria voce `rsvp[request.auth.uid]`
+      //    (e la sincronizzazione della lista `convocati`) SOLO ed esclusivamente quando la partita si trova
+      //    nello step `'convocati'` e non è conclusa.
+      allow update: if isSuperUser() || (
+        hasLinkedPlayer() &&
+        resource.data.get('matchConcluso', false) == false &&
+        resource.data.get('step', 'convocati') == 'convocati' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp', 'convocati']) &&
+        request.resource.data.rsvp.diff(resource.data.get('rsvp', {})).affectedKeys().hasOnly([request.auth.uid]) &&
+        request.resource.data.rsvp[request.auth.uid].uid == request.auth.uid &&
+        request.resource.data.rsvp[request.auth.uid].playerId == getUserData().playerId &&
+        request.resource.data.rsvp[request.auth.uid].status in ['yes', 'maybe', 'no', 'confirmed', 'declined']
+      );
+    }
+
+    // =========================================================================
+    // 4. AREA SEGRETA & CONFIGURAZIONI CRITICHE (Zero Data Leak)
+    // =========================================================================
+    // Chiavi API (_config/ai) e documenti segreti:
+    // NESSUN accesso in lettura o scrittura per Tifosi e Atleti! Solo il Mister.
+    match /_config/{document=**} {
+      allow read, write: if isSuperUser();
+    }
+
+    match /_secret/{document=**} {
+      allow read, write: if isSuperUser();
+    }
+
+    // Cestino Temporaneo 24h (Undo Delete per Partite & Giocatori): ESCLUSIVAMENTE Mister
+    match /_trash/{document=**} {
+      allow read, write: if isSuperUser();
+    }
+
+    // Parametri stagionali motore MMR (`stagioni`) e suoni (`config_stagioni`):
+    // Lettura pubblica per calcolo classifica/audio, scrittura ESCLUSIVAMENTE Mister
+    match /stagioni/{document=**} {
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+
     match /config_stagioni/{document=**} {
       allow read: if true;
-      allow write: if true;
+      allow write: if isSuperUser();
     }
 
-    // Collezioni dell'applicazione calcetto
-    match /giocatori/{document=**} {
-      allow read, write: if true;
-    }
-    match /partite/{document=**} {
-      allow read, write: if true;
-    }
-    match /stagioni/{document=**} {
-      allow read, write: if true;
-    }
-    match /voti/{document=**} {
-      allow read, write: if true;
-    }
-    match /skill/{document=**} {
-      allow read, write: if true;
-    }
+    // Collezioni accessorie e cache AI/TTS: lettura pubblica, scrittura solo Mister
     match /confronti/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSuperUser();
     }
+
     match /tts_cache/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+
+    match /voti/{document=**} {
+      allow read: if true;
+      allow write: if isSuperUser();
+    }
+
+    match /skill/{document=**} {
+      allow read: if true;
+      allow write: if isSuperUser();
     }
   }
 }

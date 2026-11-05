@@ -6,16 +6,10 @@
       </div>
       <div class="mtb-title-text">
         <span class="mtb-title">Impostazioni</span>
-        <span class="mtb-subtitle">
-          @if (authService.isAdmin()) {
-            Suoni, Partite & App
-          } @else {
-            Preferenze & Info App
-          }
-        </span>
+        <span class="mtb-subtitle">{{ authService.isSuperUser() ? 'Suoni, Partite & App' : 'Tema & Informazioni App' }}</span>
       </div>
-      @if (authService.isAdmin()) {
-        <span class="su-pill">👑 Admin</span>
+      @if (authService.isSuperUser()) {
+        <span class="su-pill">👑 Mister</span>
       }
     </div>
 
@@ -43,8 +37,8 @@
     </div>
   </div>
 
-  @if (authService.isAdmin()) {
-    <!-- BANNER STATO SINCRONIZZAZIONE CLOUD -->
+  @if (authService.isSuperUser()) {
+    <!-- BANNER STATO SINCRONIZZAZIONE CLOUD (SOLO SUPER USER) -->
     <div class="cloud-sync-banner" [class.saving]="soundSettings.isSavingCloud()">
       <div class="csb-content">
         <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
@@ -54,13 +48,13 @@
           } @else if (soundSettings.lastSavedAt()) {
             Sincronizzato sul cloud alle {{ soundSettings.lastSavedAt() }}
           } @else {
-            Impostazioni sincronizzate online
+            Sincronizzazione cloud attiva (Firebase)
           }
         </span>
       </div>
     </div>
 
-    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
+    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE (SOLO SUPER USER) -->
     <div class="settings-tabs-bar">
       <button
         type="button"
@@ -99,23 +93,9 @@
     @let activePreset = soundSettings.selectedGkPreset();
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 1: SUONO CAMBIO PORTIERE                                        -->
+    <!-- TAB 1: SUONO CAMBIO PORTIERE (ESCLUSIVO SUPER USER)                 -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'portiere') {
-      @if (!authService.isAdmin()) {
-        <div class="readonly-su-notice">
-          <div class="rsn-left">
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <div>
-              <strong>Gestione Super User</strong>
-              <p>Puoi ascoltare tutte le anteprime. Accedi come Super User per cambiare il segnale ufficiale.</p>
-            </div>
-          </div>
-          <button type="button" class="rsn-login-btn" (click)="promptLoginSuperUser()">
-            Accedi
-          </button>
-        </div>
-      }
+    @if (authService.isSuperUser() && activeTab() === 'portiere') {
 
       <!-- HERO CARD: SEGNALE ATTUALMENTE SELEZIONATO -->
       <div
@@ -301,24 +281,9 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO                          -->
+    <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO (ESCLUSIVO SUPER USER)   -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'match') {
-      @if (!authService.isAdmin()) {
-        <div class="readonly-su-notice">
-          <div class="rsn-left">
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <div>
-              <strong>Gestione Super User</strong>
-              <p>Puoi testare tutti gli effetti da bordocampo. Accedi come Super User per attivare/disattivare gli switch.</p>
-            </div>
-          </div>
-          <button type="button" class="rsn-login-btn" (click)="promptLoginSuperUser()">
-            Accedi
-          </button>
-        </div>
-      }
-
+    @if (authService.isSuperUser() && activeTab() === 'match') {
       <!-- INTRO HERO EFFETTI PARTITA -->
       <div class="match-hero-card">
         <div class="mhc-icon-ring">⚽</div>
@@ -454,7 +419,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- TAB 3: TEMA, VERSIONE APP & CONTROLLI SUPER USER                    -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'sistema') {
+    @if (!authService.isSuperUser() || activeTab() === 'sistema') {
       <!-- SEZIONE TEMA VISUALE -->
       <div class="settings-section-card">
         <div class="ssc-header">
@@ -501,14 +466,14 @@
         </div>
       </div>
 
-      <!-- SEZIONE PANNELLO SUPER USER (Visibile solo se loggati come Super User) -->
-      @if (authService.isAdmin()) {
+      <!-- SEZIONE PANNELLO SUPER USER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
+      @if (authService.isSuperUser()) {
         <div class="settings-section-card su-card">
           <div class="ssc-header">
             <span class="ssc-icon">👑</span>
             <div>
               <h4>Pannello di Controllo Super User</h4>
-              <p>Sessione Admin attiva · Accesso completo a suoni, match e Area Segreta</p>
+              <p>Sessione Mister attiva · Accesso completo a suoni, match e Area Segreta</p>
             </div>
           </div>
 
@@ -521,7 +486,7 @@
               <ion-icon name="shield-checkmark"></ion-icon>
               <div class="sab-text">
                 <strong>🔬 Apri Area Segreta (Motore MMR & Raggi X)</strong>
-                <small>Formule ELO, parametri stagionali e simulatore</small>
+                <small>Formule ELO, parametri stagionali Firebase e simulatore</small>
               </div>
             </button>
 

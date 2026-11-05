@@ -11,64 +11,123 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.79",
+    "version": "2.0.7-dev",
     "date": "05/11/2026",
-    "title": "Nuova Sequenza Wizard Partita: Coordinate Match, Convocati e Squadre",
+    "title": "Integrazione Convocazioni Gmail, Security Hardening & Flusso Match v2.0",
     "userChanges": [
-      "📍 Coordinate Match come Primo Step: la creazione della partita parte subito dall'inserimento di luogo, data, orario e impostazione portieri, così che tutti i dettagli logistici siano definiti fin dal principio.",
-      "👥 Gestione Convocati Fluida: posizionato subito dopo le coordinate, lo step Convocati consente la selezione rapida dei giocatori per la gara con contatori in tempo reale.",
-      "⚽ Squadre e Formazioni: il bilanciamento e la composizione delle squadre (Bianchi vs Neri) diventano l'ultimo passaggio di preparazione prima dell'inizio del match."
+      "✉️ Convocazioni & Notifiche Gmail: invio e composizione rapida degli inviti partita via email con tutti i dettagli logistici di campo e orario, corredati dal link di auto-risposta.",
+      "📲 Sequenza Step Partita v2.0: flusso naturale e guidato da 1. Coordinate (luogo/orario) -> 2. Convocati (con link RSVP immediato) -> 3. Formazioni Squadre.",
+      "🛡️ Navigazione Sicura & Privacy: sanitizzazione avanzata degli ingressi su tutti i dispositivi con totale protezione dei dati."
     ],
     "superUserChanges": [
-      "Nuovo Wizard Stepper (1. Coordinate -> 2. Convocati -> 3. Squadre): avanzamento logico guidato con sincronizzazione automatica delle rose al passaggio alle formazioni.",
-      "Navigazione e Indietro Ottimizzati: transizioni sicure tra i vari step della partita e ritorno protetto alla lista gare."
+      "Feature Flag & UI Condizionale Gmail: toggle di attivazione presente in DEV (default attivo) e rimosso completamente dal DOM in ambiente di produzione, con logica e servizi compilati.",
+      "Security Audit & Least Privilege: credenziali hardcoded azzerate, scope Gmail ristretti a send/compose, protezione da Header Injection CRLF e validazione rigorosa dei parametri di input.",
+      "Unificazione Architetturale v2.0: codebase v2.0 estesa a tutti gli ambienti e deprecazione definitiva della vecchia v1.0."
     ]
   },
   {
-    "version": "1.0.78",
+    "version": "2.0.6-dev",
     "date": "05/11/2026",
-    "title": "Orario Reale di Gara (Inizio - Fine), Timestamp Match e Pulizia Diciture Tecniche",
+    "title": "Riorganizzazione Flusso Partita: Coordinate Match, Convocati e Squadre",
     "userChanges": [
-      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel report di gioco ora sono ben visibili l'orario effettivo del calcio d'inizio e del fischio finale (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
-      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue (come 'Memorizzato nel profilo', 'Salvata nel database', badge di sincronizzazione non necessari e terminologie informatiche) per offrire un'esperienza fluida, focalizzata sul calcio giocato.",
-      "🤝 Chimica di Coppia & Rivalità: grafica e diciture della sezione classifica rese più amichevoli e immediate per tutti i compagni di squadra."
+      "📍 Nuovo Ordine Naturale del Match: la preparazione della partita inizia ora dalla definizione di luogo, data e orario, garantendo che i dettagli del campo siano già pronti e chiari a tutti fin dal primo istante.",
+      "📲 Convocazioni & Link Rapido WhatsApp: accesso istantaneo e fluido allo step Convocati subito dopo le coordinate, con supporto completo all'auto-inserimento (RSVP Partecipo/Forse/Non partecipo) direttamente tramite il link condiviso.",
+      "⚖️ Formazioni e Squadre: la suddivisione tra Bianchi e Neri e il bilanciamento MMR/AI diventano l'ultimo step di preparazione prima del fischio d'inizio."
     ],
     "superUserChanges": [
-      "Persistenza Timestamp Assoluti: salvataggio su Firestore di inizioPartita e finePartita (Timestamp nativi) insieme alle stringhe orarioInizioReale e orarioFineReale nel documento del match.",
+      "Nuovo Wizard Stepper a 3 Step: barra di avanzamento reattiva (1. Coordinate -> 2. Convocati -> 3. Squadre) con sincronizzazione automatica delle rose al passaggio in Squadre.",
+      "Hardening Navigazione & State Machine: transizioni fluide con gestione avanzata del tasto indietro, salvataggio continuo Firestore e supporto deep-link invito con apertura diretta su Convocati."
+    ]
+  },
+  {
+    "version": "2.0.5-dev",
+    "date": "05/11/2026",
+    "title": "Fix Layout Header Toolbar: Zero Sovrapposizioni e Troncamento Intelligente",
+    "userChanges": [
+      "📱 Header Anti-Collisione su Mobile: risolto definitivamente il bug per cui i titoli delle schermate (come Area Segreta, Dettaglio Partita o Classifica) si sovrapponevano al badge del profilo utente su schermi compatti o dispositivi iOS.",
+      "✨ Spaziatura Ottimizzata & Troncamento: il titolo delle pagine ora si adatta fluidamente allo spazio tra il tasto indietro e i bottoni di destra, senza mai coprire o farsi coprire dagli elementi adiacenti.",
+      "🔍 Header Pill Compatta: su smartphone la pill profilo e i badge di stato riducono l'ingombro orizzontale lasciando massimo respiro al titolo della schermata."
+    ],
+    "superUserChanges": [
+      "Override Globale Layout ion-toolbar: neutralizzato il posizionamento absolute fisso iOS di ion-title con layout flexbox vincolato a toolbar-content e overflow: ellipsis.",
+      "Media Query Responsive: ottimizati i breakpoint in theme-toggle.component.scss e garantita la flessibilità di .secret-title-wrap in Area Segreta."
+    ]
+  },
+  {
+    "version": "2.0.4-dev",
+    "date": "05/11/2026",
+    "title": "Nuovo Menu Profilo Utente & Bottom Sheet Ridisegnato",
+    "userChanges": [
+      "✨ Nuovo Menu Profilo Elegante: sostituito il vecchio elenco grigio con una moderna scheda a scorrimento dal basso (Bottom Sheet iOS-style) che include foto profilo, badge di ruolo (👑 Mister, ⚽ Atleta, 📣 Tifoso) ed email.",
+      "👤 Accesso Diretto e Chiaro: icone colorate e descrizioni intuitive per visualizzare la propria scheda atleta, aggiornare le informazioni personali o associare il proprio calciatore.",
+      "🚪 Azioni Rapide e Pulite: accesso immediato a impostazioni audio/tema, gestione account e logout rapido senza duplicazioni di icone o testi disordinati."
+    ],
+    "superUserChanges": [
+      "Amministrazione & Motore MMR: scorciatoie dirette per l'Area Segreta e per il Pannello Gestione Utenti e Ruoli visibili esclusivamente agli utenti con ruolo Super User / Mister.",
+      "Refactoring Architetturale: introdotto il componente standalone UserMenuModalComponent con gestione reattiva delle azioni e transizioni fluide su Ionic ModalController."
+    ]
+  },
+  {
+    "version": "2.0.3-dev",
+    "date": "05/11/2026",
+    "title": "Aggiornamento Rapivo & Ottimizzazioni",
+    "userChanges": [
+      "Miglioramenti di stabilità, velocità e interfaccia grafica."
+    ],
+    "superUserChanges": [
+      "Ultimo commit: chore: bump version to v2.0.2-dev after DEV deploy"
+    ]
+  },
+  {
+    "version": "2.0.2-dev",
+    "title": "Timer Match Continuo, Orari Reali Gara (Inizio - Fine) e Pulizia Diciture Tecniche",
+    "userChanges": [
+      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Il cronometro parte solo con 'Fischio d'Inizio' e si chiude al definitivo 'Fischio Finale'.",
+      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel cockpit bordocampo sono ora ben visibili gli orari effettivi di gioco (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
+      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue ('Memorizzato nel profilo', 'Salvata nel database', 'Salvata nel DB') e aggiornato il titolo in 'Chimica di Coppia & Rivalità'."
+    ],
+    "superUserChanges": [
+      "Persistenza Timestamp Assoluti: salvataggio su Firestore dei timestamp nativi inizioPartita e finePartita insieme alle stringhe orarioInizioReale e orarioFineReale.",
       "Calcolo Durata Intelligente: calcolo automatico della durata reale della gara basato sul delta temporale esatto tra fischio iniziale e fischio finale.",
-      "Badge Sincronizzazione Cloud: visibilità del componente SyncStatusBadge riservata ai soli utenti Super User / Admin."
-    ]
+      "Script Data-Patch: integrato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match storici."
+    ],
+    "date": "05/11/2026"
   },
   {
-    "version": "1.0.75",
-    "date": "05/11/2026",
-    "title": "Timer Match Continuo (Solo Fischio d'Inizio e Finale) & Correzione Durata Partita",
+    "version": "2.0.2-dev",
+    "title": "Calcetto Abbuffo 2.0 (Fase 2): Link Invito & RSVP, Privacy Telefono, Squadre a 2 Colonne e Hardening Super User",
     "userChanges": [
-      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Una volta avviato con 'Fischio d'Inizio', il cronometro scorre continuamente fino al definitivo 'Fischio Finale'.",
-      "📊 Correzione Durata Ultima Partita: ricalcolata e aggiornata la durata dell'ultimo match giocato, riallineando il minutaggio effettivo e le rotazioni dei portieri."
+      "🔗 Link Invito Partita & Auto-RSVP (3 Stati): nello step Convocati puoi rispondere o modificare la tua presenza (Partecipo, Forse, Non partecipo) con badge di conferma e deep-link condivisibile.",
+      "📞 Privacy Numero di Telefono: visibile e modificabile solo da te sulla tua scheda personale o dal Mister, con pulsanti rapidi Chiama e WhatsApp.",
+      "⚖️ Squadre a 2 Colonne Mobile-First: visualizzazione affiancata compatta su schermi piccoli (360px+) nello step Squadre.",
+      "🛡️ Interfaccia Più Pulita per i Giocatori: rimossi tutti i pannelli, sezioni di controllo e bottoni di generazione AI riservati al Super User."
     ],
     "superUserChanges": [
-      "Refactor Modello Timer: introdotto tracciamento assoluto con startedAt e endedAt su Firestore, deprecata toggleTimerState() ed eliminati delta parziali di pausa.",
-      "Script Utility Data-Patch: creato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match (con fallback intelligente sulla media storica)."
-    ]
+      "👑 Isolamento Totale Controlli Super User: il Pannello di Controllo Super User e i controlli audio/turni in Impostazioni sono visibili solo al Mister autenticato.",
+      "🔒 Blindatura Generazione AI & Prestazioni: protetti i pulsanti di generazione/rigenerazione AI (Telecronaca, Pronostico e Scouting) con guardie reattive su auth.isSuperUser().",
+      "🔒 Isolamento Firestore Zero-Data-Leak per il Telefono: sottocollezione giocatori/{playerId}/private/contact accessibile solo dal proprietario e dal Mister.",
+      "🚀 Versionamento Progressivo: bump versione e aggiornamento automatico release-notes ad ogni deploy."
+    ],
+    "date": "05/11/2026"
   },
   {
-    "version": "1.0.74",
-    "date": "05/11/2026",
-    "title": "Pulizia Riservatezza Controlli Super User & Fix Icona Portieri",
+    "version": "2.0.0-dev",
+    "title": "Calcetto Abbuffo 2.0: Nuovo Sistema Account (Google + Email), Ruoli Tifoso/Atleta/Mister, Scheda Personale & RSVP Partite",
     "userChanges": [
-      "🧹 Riservatezza & Pulizia Impostazioni: l'interfaccia Impostazioni per i giocatori è ora pulita ed essenziale, focalizzata su Tema, Note di Rilascio e Info App. Nascosti completamente il pannello di controllo Super User, i banner di invito login e le schede audio riservate.",
-      "🧤 Icona Portieri nel Report: ripristinata l'icona dello scudo nel pulsante della tab 'Portieri' del report partita, allineata a tutte le altre sezioni."
+      "🔐 Login & Registrazione Rapida (Email o Google): accedi con un tap dalla barra in alto per vivere l'app con il tuo profilo personale.",
+      "⚽ Diventa Atleta (Reclama o Crea la tua Scheda): collega il tuo account al tuo giocatore in Rosa (pulsante 'Sono io!') oppure, se non sei ancora presente, crea subito la tua scheda giocatore e agganciala automaticamente.",
+      "✏️ Personalizza la Tua Scheda: come Atleta puoi aggiornare in autonomia foto/avatar, soprannome ufficiale, numero di maglia, piede, ruolo e biografia.",
+      "🙋‍♂️ RSVP & Convocazioni Partita: conferma la tua presenza ('Ci sono', 'In forse', 'Assente') direttamente dalla lista Partite o dal dettaglio match in tempo reale."
     ],
     "superUserChanges": [
-      "Blindatura Rotte Admin con superUserGuard: aggiunta protezione canActivate sugli URL diretti /partite/nuova, /giocatori/nuovo e /giocatori/:id/modifica per reindirizzare chi non ha la sessione Super User attiva.",
-      "Accesso Super User Silenzioso: rimosso il pulsante pubblico di login nelle impostazioni; l'autenticazione Admin resta accessibile esclusivamente tramite la consueta gesture segreta dei 5 tocchi sul titolo della Classifica.",
-      "Registrazione icona shieldOutline completata in StepPrestazioniComponent."
-    ]
+      "👑 Architettura RBAC a 3 Ruoli (guest/Tifoso, user/Atleta, superuser/Mister) con supporto completo 'Mister-Giocatore' (il Mister può associare facoltativamente la propria scheda giocatore mantenendo tutti i privilegi Admin) e auto-aggancio per gli Admin Legacy anche via Google Sign-In.",
+      "🛡️ Hardening Firestore & Storage Rules (Field-Level Security): prevenzione Privilege Escalation su users/{uid}, anti-hijacking su giocatori/{id}, blocco totale modifiche MMR/gol/statistiche per i non-Mister e Zero Data Leak su _config, _secret, _trash e Area Segreta (CanActivateFn + CanMatchFn).",
+      "🗑️ Doppio Livello Undo & Cestino 24 Ore (TrashService): ogni eliminazione di Partite o Giocatori offre un Toast '↩️ ANNULLA' immediato (8 sec) più un Cestino ripristinabile per 24 ore (con conservazione sicura anche delle foto match su Storage)."
+    ],
+    "date": "04/11/2026"
   },
   {
     "version": "1.0.71",
-    "date": "04/11/2026",
     "title": "Auto-Salvataggio Step Creazione Partita & Fix Input Data Mobile",
     "userChanges": [
       "Risolto il taglio visivo dell'anno nel campo Data durante la creazione partita su schermi mobile.",
@@ -78,7 +137,8 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
       "Auto-salvataggio continuo su Firestore e in locale ad ogni modifica nei 3 step di preparazione (Convocati, Dettagli, Squadre) per riprendere il lavoro anche chiudendo il browser o cambiando dispositivo.",
       "Persistenza esplicita dello step corrente (step) e dello stato iniziale da_definire: risolto il bug per cui riaprendo una partita non ancora confermata si saltava direttamente al Fischio d'inizio con le squadre sbilanciate.",
       "Aggiunto banner pre-partita e navigazione indietro sicura per modificare formazioni e convocati anche dopo aver confermato le squadre (finché il cronometro è a 00:00)."
-    ]
+    ],
+    "date": "04/11/2026"
   },
   {
     "version": "1.0.69",
@@ -125,15 +185,577 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
       "Esposizione assistedGoals da statsEngine e normalizzazione dello stato di dominanza con gestione esplicita dei pareggi (Derby in Equilibrio).",
       "Nuova architettura SCSS .chem-row-card e .chem-compact-list con supporto responsive mobile e desktop."
     ]
+  },
+  {
+    "version": "1.0.60",
+    "date": "30/10/2026",
+    "title": "Soglia di Sicurezza Timer Partite Estesa a 6 Ore (21600s)",
+    "userChanges": [
+      "⏱️ Tolleranza Timer Più Flessibile: la protezione automatica contro i timer lasciati inavvertitamente accesi interviene ora solo oltre le 6 ore consecutive (21.600 secondi), permettendo di gestire senza problemi anche maratone di calcetto, tornei lunghi o sessioni prolungate."
+    ],
+    "superUserChanges": [
+      "Aggiornata la costante di sicurezza anti-overflow da 7200s (2h) a 21600s (6h) in StatsEngineService (calcolo presenze, portieri e profilo), ClassificaPage e PartitePage con capping a 3600s solo in caso di effettivo sforamento anomalo."
+    ]
+  },
+  {
+    "version": "1.0.58",
+    "date": "30/10/2026",
+    "title": "Partite ad Accordion: Schede Compatte, Consultazione Veloce ed Espansione Intelligente",
+    "userChanges": [
+      "🪗 Schede Partita ad Accordion: le partite storiche si presentano ora in un layout compatto ed elegante (~70px di altezza), ideale da mobile per scorrere rapidamente decine di partite senza scroll infiniti.",
+      "👆 Tocca per Espandere: con un tocco sulla testata della gara si apre fluidamente la scheda dettagliata con marcatori divisi per squadra (⚽), giocatori, durata effettiva, pagelle, piantina tattica, foto di gruppo e azioni rapide.",
+      "⚡ Espandi / Comprimi Tutte: comodo pulsante in alto nello 'Storico Gare' per espandere o richiudere tutte le partite con un solo gesto.",
+      "🔴 Partite LIVE sempre aperte: le gare in corso restano automaticamente espanse per seguire il risultato in tempo reale senza dover toccare alcunché.",
+      "🎯 Tasto Diretto Dettagli: aggiunto un tasto 'Dettagli ➔' per aprire all'istante la schermata completa della partita selezionata."
+    ],
+    "superUserChanges": [
+      "Implementata architettura Accordion reattiva con Signals (openedMatches, areAllExpanded) e rotazione fluida delle icone chevron.",
+      "Separazione ed isolamento eventi click ($event.stopPropagation()) su piantina, foto, bottoni AI e condivisione per prevenire chiusure accidentali.",
+      "Ottimizzazione stile SCSS per layout compatto con micro-meta, tabellone unificato Bianchi vs Neri e Hero Stat contestuale."
+    ]
+  },
+  {
+    "version": "1.0.56",
+    "date": "30/10/2026",
+    "title": "Rettifica e Normalizzazione Minutaggio Storico Gare & Protezione Automatica Anti-Anomalie Timer",
+    "userChanges": [
+      "⏱️ Minutaggio Totale Perfetto e Realistico: corretta l'anomalia storica sulla prima partita del campionato (che per via di un timer rimasto inavvertitamente attivo per giorni segnava oltre 62 ore), ora impostata a 60 minuti regolamentari fissi sia su DEV che su PROD.",
+      "🛡️ Protezione Automatica Minutaggi: integrato un controllo di sicurezza per cui nessuna partita può eccedere la durata di una normale sessione di calcetto, garantendo sempre statistiche pulite, coerenti e affidabili.",
+      "📊 Bilancio Ore Preciso: i minuti giocati e le ore complessive nelle schede giocatore e nei filtri rispecchiano ora con esattezza il reale tempo trascorso in campo."
+    ],
+    "superUserChanges": [
+      "Rettifica database Firestore su DEV e PROD: aggiornato il documento p7aPtCv4XGQvWr1a3ydp impostando cronometro e accumulatedTime a 3600s (60 min) e normalizzato il timestamp dell'ultimo gol da 3737:54 a 60:00.",
+      "Implementato guard anti-overflow nei calcoli di StatsEngineService, ClassificaPage e PartitePage con capping automatico a 3600s in caso di durata anomala (> 7200s)."
+    ]
+  },
+  {
+    "version": "1.0.54",
+    "date": "30/10/2026",
+    "title": "Nuova Lista Partite: Restyling Completo a Gerarchia Chiara, Filtri Dinamici, Ordinamenti Multipli e Statistiche Live",
+    "userChanges": [
+      "🌟 Nuovo Design e Gerarchia Chiara: la schermata Partite è stata completamente ridisegnata sullo stile moderno della Classifica, con tabellone del punteggio Bianchi vs Neri, marcatori dedicati con doppietta/tripletta e Hero Stat Badge in risalto sulla destra per ogni partita.",
+      "📊 Ordinamenti Dinamici Multipli: puoi ora ordinare la lista delle partite concluse per Data (cronologica o inversa), Gol Totali segnati, Assist Totali, Minuti giocati ⏱️ (con formato ore e minuti esteso), Media Voto delle pagelle, Numero Giocatori scesi in campo e Campetto.",
+      "📍 Filtro Campetto & Ricerca Rapida: cassetto filtri rapido per isolare le partite giocate in un determinato centro sportivo e nuova barra di ricerca per trovare gare istantaneamente cercando per campetto, marcatore, giocatore o data.",
+      "📌 Partite in Evidenza Sempre in Cima: la partita LIVE in corso (con pulsazione ed evidenziazione neon), le gare pronte per il fischio d'inizio e quelle in attesa di pagelle rimangono sempre ancorate e ben visibili in cima a tutto.",
+      "📈 Dashboard Stagionale KPI: una mini-dashboard in alto mostra a colpo d'occhio partite disputate, gol totali e media reti a partita, assist complessivi, tempo effettivo giocato e media voti generale della stagione."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD e Staging DEV.",
+      "Re-architettura completa di PartitePage con Signal, Computed properties e template unificato DRY per azzerare il debito tecnico ed eliminare blocchi duplicati.",
+      "Implementazione del tipo CriterioOrdinamentoPartite con supporto all'inversione di direzione (crescente/decrescente) tramite tocco ripetuto del chip attivo.",
+      "Calcolo reattivo kpiStagione e matching euristico su marcatori, assist e minutaggio effettivo con integrazione time-format.util."
+    ]
+  },
+  {
+    "version": "1.0.52",
+    "date": "30/10/2026",
+    "title": "Formato Orario Completo con Ore e Minuti Parlante (Es. 18h 20' 00\") per Classifica e Schede Giocatore",
+    "userChanges": [
+      "⏱️ Ore e Minuti Parlanti: quando il minutaggio complessivo supera i 60 minuti, il tempo giocato viene ora espresso chiaramente con ore, minuti e secondi (es. \"18h 20' 00\\\"\" anziché \"1100' 00\\\"\"), garantendo una lettura istantanea.",
+      "🧤 Tempo in Porta con Ore: anche il minutaggio dei portieri (in classifica portieri, scheda profilo e report gara) adotta il formato con le ore quando supera i 60 minuti (es. \"1h 30'\" anziché \"90'\").",
+      "📲 Report WhatsApp & Badge Hero: la classifica con filtro \"Minuti ⏱️\" e i resoconti WhatsApp condividono ora la label \"TEMPO\" e il formato orario esteso per tutte le gare disputate."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Creata utility centralizzata time-format.util.ts con le funzioni formatTempoTotale (per secondi precisi) e formatMinuti (per minuti interi).",
+      "Aggiornato StatsEngineService (getGiocatoreProfile, calculateGoalkeeperStatsForPlayer, calculateGoalkeeperStatsForMatch, generateGoalkeeperMatchSummary).",
+      "Aggiornati ClassificaPage, SchedaGiocatoreComponent, PrestazioniTabPortieriComponent e AreaSegretaPage per integrare minutiInPortaDisplay e la nuova etichetta TEMPO."
+    ]
+  },
+  {
+    "version": "1.0.50",
+    "date": "30/10/2026",
+    "title": "Salvataggio Cloud Real-Time Impostazioni App & Suoni, Feedback Immediato e Allineamento Durata Turni",
+    "userChanges": [
+      "⚙️ Salvataggio Impostazioni Cloud & Multipiattaforma: tutte le preferenze su segnale cambio portiere, speaker vocale, vibrazione, durata turnover ed effetti stadio vengono ora salvate all'istante su Firestore e sincronizzate in tempo reale su ogni dispositivo.",
+      "⏱️ Durata Turni Portieri Reale: le partite rispettano ora fedelmente il minutaggio impostato (es. 3, 4, 5, 6, 7, 8 o 10 minuti) sia in DEV che in PROD, senza forzature o ripristini imprevisti.",
+      "📢 Feedback Immediato & Cloud Banner: aggiunta la barra di stato cloud nelle impostazioni che conferma il salvataggio avvenuto su Firebase e toast specifici per ogni opzione attivata o disattivata."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Persistenza automatica Firestore: implementato setDoc con merge su config_stagioni/superuser_sound_settings in SoundSettingsService.updateConfig e resetToDefaults.",
+      "Sincronizzazione real-time onSnapshot per riflettere istantaneamente le impostazioni decise dal Super User su tutti i client connessi.",
+      "Rimosso l'override hardcoded a 30s da MatchStateService.durataTurnoSecondi e TacticalPitchComponent, allineando DEV e PROD alla reale durata configurata.",
+      "Inizializzazione delle nuove partite con durata turnover prelevata dinamicamente dalle impostazioni superuser."
+    ]
+  },
+  {
+    "version": "1.0.48",
+    "date": "30/10/2026",
+    "title": "Tab Dedicata Portieri nel Report Partita, Sincronizzazione Foto Piantina Tattica e Fix Calcolo Gol Subiti",
+    "userChanges": [
+      "🧤 Nuova Tab Portieri nel Report Partita: aggiunta la scheda dedicata [🧤 Portieri] nella barra principale del resoconto gara, tra Pagelle e Spogliatoio, con resoconto dettagliato per squadra, minuti in porta, clean sheet e miracoli.",
+      "⚽ Conteggio Gol Subiti Preciso: corretto il conteggio dei gol incassati dai portieri a rotazione; eliminata la duplicazione delle reti prive di timestamp e garantita la coerenza perfetta con il risultato effettivo del match.",
+      "📸 Foto in Tempo Reale sulla Piantina Tattica: la lavagna tattica sincronizza ora dinamicamente le foto profilo dei giocatori caricate su Firestore (tramite ID, nome o soprannome), anche se aggiunte successivamente alla creazione della partita."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Integrazione quinto segmento [🧤 Portieri] nella report-segments-bar con ottimizzazioni CSS responsive per schermi mobile stretti.",
+      "Spostamento completo delle note portieri: rimosso il pulsante legacy dallo Spogliatoio e aggiunto il tasto ⚡ Importa Resoconto nel pannello note dedicato ai portieri.",
+      "Risolto bug di duplicazione gol subiti in StatsEngineService (assegnazione al primo turno per reti untimed e cap sui gol avversari).",
+      "Aggiunta liveByNameMap in TacticalPitchComponent con fallback su nome completo, nome proprio e soprannome per il caricamento dinamico degli avatar."
+    ]
+  },
+  {
+    "version": "1.0.46",
+    "date": "30/10/2026",
+    "title": "Fix Layout Scheda Giocatore: spaziatura inferiore e card Minuti senza tagli",
+    "userChanges": [
+      "📱 Scheda Giocatore Perfettamente Scrollabile: aggiunto spazio di sicurezza inferiore (padding e spacer dedicato) per evitare che la card dei 'Minuti Giocati' venga tagliata dal bordo inferiore dello schermo o del modal.",
+      "⏱️ Layout Compatto Minuti: ottimizzata la disposizione di testo e badge per garantire leggibilità immediata su tutti i dispositivi mobile."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Aggiunto spacer dedicato .profile-scroll-bottom-spacer (50px) e definita la variabile --padding-bottom su .player-profile-content.",
+      "Rifiniti i margini e la tipografia di .card-minuti-banner."
+    ]
+  },
+  {
+    "version": "1.0.44",
+    "date": "30/10/2026",
+    "title": "Fix Visualizzazione Minuti in Classifica: tempo effettivo al posto dei punti",
+    "userChanges": [
+      "⏱️ Minuti in Classifica Risolti: selezionando il filtro 'Minuti ⏱️' la colonna di destra mostra ora correttamente il tempo effettivo giocato (es. 1100' 00\") con label 'MINUTI' e numero di gare giocate, anziché ricadere sui punti classici.",
+      "📲 Condivisione WhatsApp: il report WhatsApp formattato include ora il minutaggio effettivo quando si ordina la classifica per Minuti."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Aggiunto case 'minuti' in ClassificaPage.getValorePrincipale (in precedenza ricadeva su default restituendo puntiDisplay).",
+      "Raffinato il calcolo della durata gara con supporto dinamico a cronometro e accumulatedTime (millisecondi vs secondi)."
+    ]
+  },
+  {
+    "version": "1.0.42",
+    "date": "30/10/2026",
+    "title": "Restyling Parlante del Bilancio Partite (Vinte, Pareggiate, Perse) e Minuti Giocati",
+    "userChanges": [
+      "👥 Bilancio Partite 100% Parlante: rimosso il vecchio e criptico formato '8/3/4/1', sostituito da una scheda interattiva con tre riquadri dedicati per Partite Vinte (🟢), Pareggiate (🟡) e Perse (🔴), con totale gare giocate e percentuale di Win Rate.",
+      "📊 Barra Visiva di Distribuzione: aggiunta la barra proporzionale stile Sofascore che mostra a colpo d'occhio l'equilibrio e l'andamento dei risultati sportivi del giocatore.",
+      "⏱️ Banner Minuti Giocati Rifinito: visualizzazione chiara e moderna a larghezza piena del minutaggio effettivo accumulato sul terreno di gioco."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Riprogettato il layout di scheda-giocatore con ion-col a larghezza piena per il bilancio gare e per i minuti giocati.",
+      "Aggiunto styling SCSS dedicato (.card-bilancio, .card-minuti-banner, .bilancio-grid-boxes, .bilancio-bar-wrapper).",
+      "Rimossa la legenda testuale legacy 'P / W / D / L' ormai superflua e ambigua."
+    ]
+  },
+  {
+    "version": "1.0.40",
+    "date": "30/10/2026",
+    "title": "Rilascio Ufficiale PROD: Nuova Scheda Portieri, Parate Incredibili con Bonus MMR, Note Libere e Filtro Minuti Giocati",
+    "userChanges": [
+      "🧤 Scheda Dedicata Portieri: ogni partita ha ora una scheda 'Portieri' riservata dove consultare i turni tra i pali, i gol subiti, i Clean Sheet e il resoconto completo per i Bianchi e per i Neri.",
+      "✨ Parate Incredibili & Miracoli: aggiunto il parametro opzionale per registrare le parate decisive e gli interventi spettacolari di ciascun portiere, che attribuiscono punti bonus al rendimento MMR.",
+      "📝 Note Portieri Libere: introdotta la sezione note specifica (opzionale) per appuntare commenti, salvataggi miracolosi e note tattiche sui portieri visibili a tutti nel resoconto.",
+      "⏱️ Minuti Giocati & Filtro Classifica: conteggio dettagliato di minuti e secondi effettivi trascorsi in campo per ogni giocatore, visibile nella scheda giocatore e utilizzabile come nuovo filtro di ordinamento in Classifica."
+    ],
+    "superUserChanges": [
+      "Rilascio e sincronizzazione ufficiale in ambiente di Produzione PROD.",
+      "Nuovo componente standalone PrestazioniTabPortieriComponent integrato nello step prestazioni con navigazione a 5 tab.",
+      "Aggiunta del contatore parateIncredibili per giocatore nella partita con persistenza Firestore e reattività su MatchStateService.",
+      "Aggiunta del parametro bonusParataIncredibile a SeasonEngineConfig con visualizzazione e configurazione dinamica in Area Segreta.",
+      "Implementazione del calcolo secondiGiocatiTotali e minutiGiocatiDisplay (formato MM' SS\") in StatsEngineService e ClassificaPage con nuovo CriterioOrdinamento 'minuti'."
+    ]
+  },
+  {
+    "version": "1.0.38",
+    "date": "30/10/2026",
+    "title": "Rilascio in Produzione: Risoluzione Gol Subiti Portieri a Rotazione e Foto Giocatori Dinamiche sulla Piantina Tattica",
+    "userChanges": [
+      "🧤 Statistiche Gol Subiti Portieri Corrette: risolto il problema di duplicazione dei gol subiti nelle rotazioni dei portieri (i gol vengono ora attribuiti con precisione assoluta al solo turno di porta in cui sono stati incassati).",
+      "🗺️ Piantina Tattica con Foto in Tempo Reale: le foto profilo dei giocatori caricate o modificate dopo la creazione della partita compaiono ora istantaneamente sulla piantina tattica e nella schermata match."
+    ],
+    "superUserChanges": [
+      "Rilascio ufficiale e sincronizzazione in ambiente di Produzione PROD.",
+      "Corretto il loop di filtraggio in calculateGoalkeeperStatsForPlayer e calculateGoalkeeperStatsForMatch che moltiplicava i gol subiti per il numero di turni giocati dal portiere.",
+      "Integrazione reattiva di StatsEngineService.giocatoriRaw in TacticalPitchComponent con mapping dinamico livePlayersMap.",
+      "Riconciliazione live dei dati anagrafici e foto profilo in PartitaDetailPage (normalizePlayer)."
+    ]
+  },
+  {
+    "version": "1.0.36",
+    "date": "30/10/2026",
+    "title": "Rilascio in Produzione: Fix Anteprima e Caricamento Foto Giocatore con Badge Fotocamera e Rimozione",
+    "userChanges": [
+      "📸 Anteprima e Foto Giocatore Immediate: risolto il problema per cui in modifica giocatore l'avatar non caricava la foto del giocatore né la nuova foto selezionata dal dispositivo.",
+      "📷 Badge Fotocamera Intuitivo: aggiunto il badge fotocamera sull'avatar per rendere immediata la modifica della foto profilo.",
+      "🗑️ Rimozione Foto: aggiunto il pulsante rapido per rimuovere o resettare la foto del giocatore impostando l'avatar predefinito."
+    ],
+    "superUserChanges": [
+      "Rilascio ufficiale e sincronizzazione in ambiente di Produzione PROD.",
+      "Risolto il difetto di reattività in PlayerAvatarComponent: collegato @Input() fotoUrl a un Signal Angular reattivo con supporto completo a URL Storage, base64 e blob.",
+      "Rimosso opacity: 0 bloccante sul rendering iniziale delle immagini dell'avatar.",
+      "Gestione upload asincrono e compressione JPEG automatica (max 384x384px) verificati."
+    ]
+  },
+  {
+    "version": "1.0.34",
+    "date": "29/10/2026",
+    "title": "Rilascio Ufficiale in Produzione: Effetti Stadio Live, Redesign Impostazioni e Ottimizzazioni Mobile",
+    "userChanges": [
+      "⚽ Effetti Audio Partita Live: fischio d'inizio e triplice fischio finale dell'arbitro, esultanza con fanfara da curva per ogni gol e trombone comico per gli autogol.",
+      "🎨 Menu Impostazioni Rinnovato: interfaccia moderna a 3 schede con switch dedicati per gestire ciascun effetto audio e pulsanti di anteprima istantanea.",
+      "🧤 Controlli Turni Portieri Ottimizzati: pulsante [Turni] / [Chiudi] e controlli di cambio sempre visibili e perfettamente proporzionati su tutti i dispositivi mobili.",
+      "📲 Condivisione Audio WhatsApp Mobile: note vocali AI condivisibili istantaneamente senza blocchi di sistema del browser."
+    ],
+    "superUserChanges": [
+      "Rilascio ufficiale e sincronizzazione in ambiente di Produzione PROD.",
+      "Gestione suoni con sintesi armonica Web Audio PCM Float32 WAV, eliminando ogni distorsione acustica.",
+      "Setup match e parametri configurazione salvati con persistenza locale e sincronizzati."
+    ]
+  },
+  {
+    "version": "1.0.33",
+    "date": "29/10/2026",
+    "title": "Impostazione Turno Portieri Rapido a 30 Secondi per Ambiente DEV",
+    "userChanges": [
+      "⚡ Rotazione Portieri Accelerata per Test DEV: impostato il turno automatico dei portieri a 30 secondi (anziché 15s) in modalità DEV per consentire prove più fluide e comode della rotazione e degli allarmi audio.",
+      "⏳ Preavviso a 10 Secondi in DEV: avviso a video con countdown a -10 secondi dal cambio per prepararsi al turnover."
+    ],
+    "superUserChanges": [
+      "Aggiornato durataTurnoSecondi() a 30s per ambiente !environment.production in MatchStateService e TacticalPitchComponent.",
+      "Allineato il preavviso toast a -10s quando il turno è impostato a 30s."
+    ]
+  },
+  {
+    "version": "1.0.32",
+    "date": "29/10/2026",
+    "title": "Restauro Effetti Match (Fischi e Gol), Redesign Impostazioni e Fix Responsive Turni Portieri",
+    "userChanges": [
+      "⚽ Effetti Stadio e Fischietto Arbitro Live: tornano i fischi d'inizio e di fine partita, l'esultanza con tromba da stadio per ogni gol e il trombone comico per gli autogol.",
+      "🎨 Nuova Scheda \"Match & Gol\" in Impostazioni: menu completamente riprogettato con switch toggle dedicati e pulsanti di ascolto anteprima per ogni suono.",
+      "🧤 Tasto Turni e Controlli Portieri Perfetti su Mobile: layout a 4 colonne perfettamente proporzionato che elimina qualsiasi overflow o troncamento del pulsante [Turni] / [Chiudi] su smartphone."
+    ],
+    "superUserChanges": [
+      "Creazione e gestione del branch dedicato git feat/sound-effects-and-settings-turn-controls.",
+      "Integrazione SoundSettingsService con sintesi PCM WAV Float32 per fischi e celebrazioni gol, senza distorsioni.",
+      "Refactoring responsive per .gk-header-actions e styling globale di .pill-switch."
+    ]
+  },
+  {
+    "version": "1.0.31",
+    "date": "29/10/2026",
+    "title": "Fix Stile e Visualizzazione Scheda Match e Gol nel Menu Impostazioni",
+    "userChanges": [
+      "🎨 Menu Impostazioni & Match Graficamente Impeccabile: ripristinati tutti gli stili e le card con design moderno e rifinito nella scheda \"Match & Gol\".",
+      "🔘 Switch e Pulsanti Anteprima Riconfigurati: i toggle di attivazione stile iOS e i pulsanti di prova rapida per i fischi dell'arbitro e i gol ora sono perfettamente visibili, posizionati e cliccabili.",
+      "✨ Header Pulito: risolta la sovrapposizione del testo tra titolo e sottotitolo nella barra superiore."
+    ],
+    "superUserChanges": [
+      "Aggiunte le classi CSS complete per .match-hero-card, .effect-card, .ec-header, .ec-info, .ec-buttons-grid e .ec-btn in impostazioni-modal.component.scss.",
+      "Rilasciato lo stile di .pill-switch a livello globale del componente per renderizzare i selettori ON/OFF in tutte le schede della modale.",
+      "Strutturato il gruppo titolo con .gear-badge e .mtb-title-text a layout verticale per impedire il collasso testuale."
+    ]
+  },
+  {
+    "version": "1.0.30",
+    "date": "29/10/2026",
+    "title": "Fix Layout e Allineamento Pulsante Turni Portieri su Mobile",
+    "userChanges": [
+      "🧤 Pulsante Turni Portieri Sempre Visibile: risolto il problema di overflow nella schermata di match dove il tasto [Turni] / [Chiudi] veniva tagliato fuori dal bordo destro dello schermo.",
+      "📱 Layout Pulsanti Perfettamente Proporzionato: i controlli rapidi dei portieri (Suono, Chiama, Rimescola, Turni) ora si distribuiscono armoniosamente su tutta la larghezza della card senza mai sbordare o venire tagliati su smartphone."
+    ],
+    "superUserChanges": [
+      "Refactoring responsive di .gk-panel-header e .gk-header-actions in StepMatchComponent.",
+      "Impostato width: 100% su .gk-header-actions con flex: 1 1 0, min-width: 0 e text-overflow: ellipsis su .gk-ctrl-btn per garantire una distribuzione uniforme a 4 colonne ed eliminare ogni overflow.",
+      "Snellita l'etichetta dell'allarme cambio a \"Chiama\" / \"Ferma\" per ottimizzare lo spazio orizzontale."
+    ]
+  },
+  {
+    "version": "1.0.29",
+    "date": "29/10/2026",
+    "title": "Restauro Effetti Stadio (Fischi Arbitro, Tromba Gol, Trombone Autogol) e Redesign Menu Impostazioni",
+    "userChanges": [
+      "⚽ Effetti Audio Match Ripristinati: torna la magia dello stadio con i suoni dedicati agli eventi del match! Fischio d'inizio e triplice fischio finale dell'arbitro, fanfara d'ottoni a tutto volume per festeggiare ogni gol segnato e trombone comico \"Wah-Wah-Waaah\" per gli autogol.",
+      "🎨 Menu Impostazioni Rinnovato e Più Elegante: schermata impostazioni completamente ridisegnata con grafica moderna, nuova scheda dedicata \"Match e Gol\" e tasti di anteprima istantanea per ascoltare ciascun effetto prima della partita."
+    ],
+    "superUserChanges": [
+      "Aggiunti switch dedicati in Impostazioni per Super User: matchWhistleEffects, goalSoundEffects, autogoalSoundEffects con salvataggio persistente in LocalStorage.",
+      "Integrazione nativa in StepMatchComponent: trigger del fischio iniziale all'avvio del timer da 0, fanfara su registraGol (con routing differenziato per autogol) e triplice fischio alla chiusura del match.",
+      "Sintesi audio pulita ad alta fedeltà tramite Web Audio PCM Float32 WAV, con inviluppi armonici privi di distorsioni stridenti."
+    ]
+  },
+  {
+    "version": "1.0.28",
+    "date": "29/10/2026",
+    "title": "Fix Condivisione Audio WhatsApp su Safari iOS e Chrome Android",
+    "userChanges": [
+      "📲 Condivisione Audio WhatsApp Garantita su Mobile: risolto l'errore di sistema del browser (\"Must be handling a user gesture\") che impediva l'invio delle note vocali su smartphone a causa del tempo di elaborazione dell'AI.",
+      "🎙️ Dialogo Diretto \"Audio Pronto\": appena la registrazione vocale MP3 è generata, compare una modale pulita per confermare ed effettuare l'invio immediato su WhatsApp in 1 tap senza blocchi."
+    ],
+    "superUserChanges": [
+      "Risolto il blocco di transient user activation su iOS Safari e Android in TtsService.shareAudioToWhatsApp.",
+      "Implementato promptShareWithFreshUserGesture con AlertController: aggancia la chiamata a navigator.share() direttamente al click handler dell'utente con il file MP3 già pronto in memoria.",
+      "Mantenuto il fallback trasparente su download file MP3 + apertura WhatsApp con link online diretto in caso di mancato supporto della Web Share API."
+    ]
+  },
+  {
+    "version": "1.0.27",
+    "date": "29/10/2026",
+    "title": "Fix Layout Responsive Confronto 1v1 su Schermi Mobile",
+    "userChanges": [
+      "⚔️ Confronto 1v1 Perfettamente Allineato: risolto il problema di visualizzazione nella schermata di confronto che tagliava il secondo giocatore fuori dallo schermo sui dispositivi mobili.",
+      "✨ Gestione Soprannomi AI Lunghi: gli alias generati dall'AI ora si adattano armoniosamente allo spazio disponibile con troncamento automatico a puntini sospensivi (...) senza deformare la card."
+    ],
+    "superUserChanges": [
+      "Refactoring layout CSS Grid in ConfrontoPage: sostituito grid-template-columns: 1fr auto 1fr con minmax(0, 1fr) auto minmax(0, 1fr).",
+      "Aggiunto min-width: 0, box-sizing: border-box e overflow: hidden su .player-card, .player-info e .tier-pill per prevenire l'allargamento anomalo della colonna H2H."
+    ]
+  },
+  {
+    "version": "1.0.26",
+    "date": "29/10/2026",
+    "title": "Voce Naturale Umana con Motore AI TtsService & Rimozione Sintetizzatore Robotico",
+    "userChanges": [
+      "🎙️ Voce Naturale & Umana: risolto definitivamente l'effetto robotico! La chiamata del cambio portiere ora sfrutta il motore vocale AI di Calcetto Abbuffo (ElevenLabs & Gemini TTS) per pronunciare i nomi dei portieri con voce calda e naturale da telecronista.",
+      "🚫 Addio Voci Metalliche: eliminate e penalizzate tutte le vecchie voci sintetiche desktop di Windows (escluso Microsoft Cosimo/Elsa robotici) a favore di voci neurali fluide e realistiche."
+    ],
+    "superUserChanges": [
+      "Collegato SoundSettingsService direttamente a TtsService: il richiamo vocale dei portieri sfrutta la pipeline AI con caching MP3 in memoria e su Firebase Storage.",
+      "Algoritmo di scoring per la sintesi vocale: prioritizzazione rigida per voci Microsoft Online Natural (100pt), Google Neural (85pt) e Apple Siri/Enhanced (75pt), declassando a 10pt le voci SAPI desktop."
+    ]
+  },
+  {
+    "version": "1.0.25",
+    "date": "29/10/2026",
+    "title": "Salvataggio & Persistenza Automatica dei Setup Match e Sincronizzazione Impostazioni",
+    "userChanges": [
+      "💾 Setup Match Sempre Memorizzato: il campetto (luogo), l'orario abituale e le impostazioni dei portieri vengono ora ricordati e salvati automaticamente per ogni nuova partita.",
+      "🔄 Ripristino Completo Convocati e Dati: se torni indietro o ricarichi la schermata, la lista dei convocati selezionati e le coordinate del campo rimangono perfettamente intatte e salvate in locale."
+    ],
+    "superUserChanges": [
+      "☁️ Sincronizzazione Cloud Setup Audio Super User: le impostazioni suoni (preset audio, voce annunciatore, vibrazione e minuti di turno) vengono ora sincronizzate anche su Firestore in config_stagioni per essere ricordate su qualsiasi dispositivo.",
+      "⚙️ Persistenza Continua MatchStateService: salvaSetupPredefinito e ripristinaSnapshotLocale memorizzano e ripristinano integralmente luogo, orario, dataPartita, tutti i giocatori convocati e la rotazione portieri.",
+      "⏱️ Risolto l'override cablato a 5 minuti nella rotazione: ora viene sempre rispettata la durata personalizzata configurata dall'admin."
+    ]
+  },
+  {
+    "version": "1.0.24",
+    "date": "29/10/2026",
+    "title": "Conferma Anti-Reset Indietro, Auto-selezione Top 14 (7v7) e Campetto Predefinito in DEV",
+    "userChanges": [
+      "🛡️ Protezione Anti-Reset Match: tornando indietro dal menu di navigazione durante una partita in corso, una modale di conferma impedisce l'azzeramento accidentale di punteggio, cronometro ed eventi.",
+      "📋 Uscita Sicura alla Lista: l'opzione \"Torna alla Lista Partite\" chiarisce esplicitamente che il match rimane attivo e salvato nella scheda In Corso."
+    ],
+    "superUserChanges": [
+      "⚡ Auto-selezione Rapida 7 vs 7 (solo DEV): pulsante rapido nei Convocati che seleziona automaticamente i primi 14 giocatori in classifica per testare istantaneamente partite a 14.",
+      "📍 Pre-selezione Campetto (solo DEV): all'avvio di un nuovo match, il campo viene pre-compilato automaticamente con l'ultimo luogo registrato nelle partite recenti.",
+      "⚠️ Modale di conferma ad alto contrasto per l'opzione distruttiva di ritorno a Formazioni & Squadre con reset controllato dello stato."
+    ]
+  },
+  {
+    "version": "1.0.23",
+    "date": "29/10/2026",
+    "title": "Fix Scatto Automatico Cambio Portiere & Chiarezza Scheda Rotazione",
+    "userChanges": [
+      "⚡ Cambio Portiere Automatico Garantito: risolto il problema per cui a fine countdown il cambio non scattava. Ora al raggiungimento dello 00:00 scattano puntualmente sia il segnale acustico che l'annuncio vocale.",
+      "🎯 Chiarezza Cockpit Rotazione: corretto il titolo con la dicitura pulita \"Rotazione Portieri · Ogni 15s (DEV ⚡)\" o \"Ogni 5 min\" senza doppie parentesi.",
+      "🚨 Tasto Azione Immediato \"Chiama Cambio\": pulsante chiaro che ti permette in ogni momento di chiamare subito il cambio, oppure premere \"Ferma Allarme\"."
+    ],
+    "superUserChanges": [
+      "Sincronizzato il trigger periodico su turnoAttualeIndex() derivato direttamente da durataTurnoSecondi() anziché un calcolo statico a minuti.",
+      "Risolto il blocco che impediva lo scatto della rotazione a 15 secondi in ambiente di sviluppo/staging."
+    ]
+  },
+  {
+    "version": "1.0.22",
+    "date": "29/10/2026",
+    "title": "Pulizia Completa Codice & Rimozione Funzioni e Tipi Deprecati",
+    "userChanges": [
+      "🧹 App più leggera e reattiva: rimosse tutte le opzioni, allarmi e suoni inutilizzati e obsoleti.",
+      "Esperienza audio pulita: solo i controlli necessari per la gestione dei portieri (suono, voce nomi, durata e vibrazione)."
+    ],
+    "superUserChanges": [
+      "Rimozione completa di turboVolumeBoost, preAlert30Sec, goalSoundId, autogoalSoundEffect e matchWhistleEffects dalla configurazione SuperUserSoundConfig.",
+      "Eliminazione metodi stub e deprecati: playGoalSound, playGoalPresetById, playSadTrombone, playMatchWhistle, playQuickSoundboard e playPreAlert30SecBeep.",
+      "Ripulito ImpostazioniModalComponent da tutti i metodi e handler dismessi (toggleTurboBoost, selezionaGoalSound, suonaSoundboard, ecc.).",
+      "Rimozione di tutti i vecchi ID sonori deprecati da GkSoundId (ridotto ai soli 6 preset attivi e supportati)."
+    ]
+  },
+  {
+    "version": "1.0.21",
+    "date": "29/10/2026",
+    "title": "Loop Allarme, Nuovi Livelli Suoni Puliti, Nomi su Tasto Chiama & Voce Naturale",
+    "userChanges": [
+      "🔁 Loop Allarme Ripristinato: il segnale e la voce si ripetono ogni 7.5 secondi fino a quando l'admin non preme il pulsantone STOP.",
+      "🗣️ Tasto \"Chiama\" con Nomi Portieri: premendo Chiama nella tab rotazione viene ora sempre annunciato chi deve entrare in porta per Bianchi e Neri.",
+      "🎙️ Sintesi Vocale Naturale Italiana: integrata la selezione automatica delle migliori voci neurali/naturali (Google, Apple, Microsoft) senza effetto metallico o robotico.",
+      "🔊 5 Livelli di Intensità Sonori Puliti: Originale CAMBIO.wav, Fischietto Arbitro, Campanella Stadio, Tromba da Curva, Buzzer Palazzetto e Solo Voce, tutti a volume pieno e bilanciato."
+    ],
+    "superUserChanges": [
+      "startMatchCambioAlarm gestito con loop continuo e speechText reattivo ai portieri in campo.",
+      "Attivazione manuale suonaCambioManuale svincolata dal timer: l'allarme parte e chiama i nomi anche se il timer della partita è in pausa.",
+      "Refactoring audio con forme d'onda armoniche pure senza saturazione, distorsione o picchi fastidiosi."
+    ]
+  },
+  {
+    "version": "1.0.20",
+    "date": "29/10/2026",
+    "title": "Eliminazione Completa Suoni Sintetizzati & Audio Originale CAMBIO.wav",
+    "userChanges": [
+      "🎺 Audio Naturale al 100%: cancellati tutti i suoni artificiali, le frotte di allarmi e i fastidiosi fischi sintetizzati. Ora esiste solo il file audio storico originale CAMBIO.wav e la sola voce naturale.",
+      "Nessun disturbo o allarme finto: niente più sirene, tromboni o oscillatori fastidiosi in nessun punto dell'app.",
+      "Pannello Suoni pulito e immediato: puoi scegliere tra CAMBIO.wav originale, solo voce o silenzioso."
+    ],
+    "superUserChanges": [
+      "Cancellazione totale di WebAudio synthetic oscillators, PCM wave synthesis e compressore overdrive.",
+      "Eliminata la tab soundboard superflua e rimossi tutti i preset acustici fake (hyper_siren, nuclear_klaxon, referee_whistle synth, ecc.).",
+      "Ripristinata l'architettura nativa leggera basata unicamente su HTMLAudioElement (/assets/sound/CAMBIO.wav) e SpeechSynthesis."
+    ]
+  },
+  {
+    "version": "1.0.19",
+    "date": "29/10/2026",
+    "title": "Eliminazione Definitiva Suoni Fastidiosi & Audio CAMBIO.wav Pulito",
+    "userChanges": [
+      "🎺 Audio Cambio Pulito al 100%: rimosso definitivamente ogni suono fastidioso o fischio sintetizzato sovrapposto. Ora parte solo l'audio naturale senza distorsioni.",
+      "Riproduzione discreta: l'avviso acustico suona una volta senza ripetersi all'infinito durante la partita.",
+      "Sintesi vocale morbida e chiara per chiamare chi entra in porta senza disturbare il gioco."
+    ],
+    "superUserChanges": [
+      "Rimozione completa di generatori di oscillatori ad alta frequenza e sintetizzatori sovrapposti (playWebAudioBoosterOverlay e playWebAudioSynthCycle).",
+      "selectedGkSoundId impostato stabilmente su cambio_wav con sanitizzazione automatica delle preferenze salvate in locale.",
+      "Preset sonori sportivi ripuliti (fischietto naturale, gong morbido, campana stadio, solo voce)."
+    ]
+  },
+  {
+    "version": "1.0.13",
+    "date": "28/10/2026",
+    "title": "Navigazione Libera & Fix Suoni Fantasma",
+    "userChanges": [
+      "Risolto il problema del suono o allarme che partiva da solo all'apertura della schermata del match: ora nessun audio viene riprodotto senza un'azione esplicita o a partita ferma.",
+      "Navigazione libera durante la partita: tocca la freccia Indietro (←) in qualsiasi momento per consultare la Rosa, le altre partite o la Classifica senza rischiare di chiudere o resettare la gara.",
+      "La partita in corso rimane attiva e visibile in cima alle partite ('In Corso'), pronta per essere riaperta con un tocco."
+    ],
+    "superUserChanges": [
+      "Eliminato il pre-warming rumoroso dell'HTMLAudioElement in unlockAudioOnUserGesture che causava la riproduzione indesiderata di CAMBIO.wav all'ingresso nel match.",
+      "Aggiunto vincolo isTimerRunning() alla riproduzione automatica dell'allarme cambio portiere: nessun suono può partire a timer fermo o azzerato.",
+      "Reset automatico dello stato cambioAttivo all'apertura del match o al reset stato se la partita non è in esecuzione.",
+      "Stop istantaneo di ogni audio/allarme in background se il componente viene distrutto o se la navigazione esce dal match."
+    ]
+  },
+  {
+    "version": "1.0.11",
+    "date": "28/10/2026",
+    "title": "Centrale Suoni Portiere & Ottimizzazioni Mobile",
+    "userChanges": [
+      "Nuovo pannello 'Impostazioni & Suoni' con selettore tema rapido (Chiaro / Scuro / Auto) e centrale audio di gara.",
+      "12 Nuovi Segnali di Cambio Portiere ad alto impatto con anteprima live per sentirli anche all'aperto durante la partita.",
+      "Header e interfaccia match ottimizzati: titolo e controlli non vengono mai tagliati o sovrapposti su mobile.",
+      "Nuovo box di stato sincronizzazione cloud: tocca il badge per vedere subito orario dell'ultimo salvataggio e stato rete."
+    ],
+    "superUserChanges": [
+      "Turbo Boost Bordo Campo: compressore dinamico brickwall + filtro risonanza smartphone (1000-3200 Hz) per la massima pressione acustica.",
+      "Sintesi vocale automatica 'Cambio Portiere' con annuncio dei nomi dei giocatori entranti e preavviso a -30s.",
+      "Soundboard istantanea da bordocampo con 6 effetti audio rapidi (fischio arbitro, triplice fischio finale, VAR, esultanza, curva, trombone).",
+      "Toolbar Partita Detail con layout Flexbox anti-clipping e badge sincronizzazione compatto (nuvoletta + LED luminoso).",
+      "Popup di sincronizzazione convertito in AlertController nativo con supporto offline protetto."
+    ]
+  },
+  {
+    "version": "1.0.10",
+    "date": "28/10/2026",
+    "title": "Fix Header Match & Finestra Stato Sincronizzazione",
+    "userChanges": [
+      "Il titolo 'Gestione Match' nella barra superiore non viene più tagliato o schiacciato su smartphone.",
+      "Badge di stato sincronizzazione database compatto con nuvola e indicatore LED luminoso (verde/arancione/rosso).",
+      "Nuova finestra informativa pulita al tocco dello stato sync: addio codice HTML grezzo o banner invasivi, ora mostra chiaramente l'orario dell'ultimo salvataggio e lo stato della connessione cloud."
+    ],
+    "superUserChanges": [
+      "Risolto il flexbox layout della toolbar in Partita Detail: titolo impostato su flex-grow con allineamento a sinistra e badges compattati.",
+      "La pillola del numero di versione (es. v1.0.x) si nasconde automaticamente su schermi stretti (<480px) lasciando il controllo impostazioni sempre accessibile.",
+      "Sostituito il Toast grezzo di sincronizzazione con un AlertController nativo professionale con supporto pre-line e descrizioni dettagliate per online, offline, in sync e salvataggio locale."
+    ]
+  },
+  {
+    "version": "1.0.9",
+    "date": "28/10/2026",
+    "title": "Fix Layout Header & Navigazione Pannello Impostazioni",
+    "userChanges": [
+      "Interfaccia del pannello 'Impostazioni & Suoni' ripulita per evitare troncamenti o sovrapposizioni su qualsiasi smartphone.",
+      "Pulsante cambio rapido Tema compatto (☀️/🌙/⚙️) integrato direttamente nella barra superiore.",
+      "Schede di navigazione snelle 'Portieri (12)', 'Suoni Match' e 'Tema & App' perfettamente visibili e comode al tocco."
+    ],
+    "superUserChanges": [
+      "Risolto il problema di overflow in cui il badge '👑 Admin' e il titolo venivano coperti dal pulsante di chiusura (X).",
+      "Rimosso il banner intermedio del tema guadagnando prezioso spazio verticale per la lista suoni e controlli bordo campo.",
+      "Header e tab bar ingegnerizzati con layout Flexbox/Grid responsive e pulsanti circolari ad azione rapida."
+    ]
+  },
+  {
+    "version": "1.0.8",
+    "date": "28/10/2026",
+    "title": "Nuova Centrale Suoni Cambio Portiere & Pannello Impostazioni",
+    "userChanges": [
+      "Nuovo pannello 'Impostazioni & Suoni' accessibile direttamente toccando il pulsante delle impostazioni in alto a destra su ogni schermata.",
+      "Selettore rapido del Tema (☀️ Chiaro / 🌙 Scuro / ⚙️ Automatico) con un tocco immediato da qualsiasi pagina dell'applicazione."
+    ],
+    "superUserChanges": [
+      "12 Nuovi Segnali di Cambio Portiere Iper-Avvisanti: sirena antiaerea da stadio, bomboletta da curva, fischietto arbitrale Fox-40, klaxon nucleare, buzzer NBA, sirena bitonale, gong da boxe, allarme laser UFO, corno da nave e bomba a tempo.",
+      "Anteprima audio live con tasto '▶ PROVA' per ascoltare e testare ogni segnale a volume massimo prima di sceglierlo.",
+      "Turbo Boost Bordo Campo (0 dBFS Overdrive + Compressore Brickwall): massimizza la resa fisica dello speaker del telefono sulle frequenze 1000–3200 Hz.",
+      "Annuncio Vocale Nomi Portieri: lo speaker vocale urla 'Cambio portiere!' annunciando chi deve entrare in porta per Bianchi e Neri.",
+      "Preavviso sonoro a -30 secondi dal cambio e durata turni portiere configurabile (3, 4, 5, 6, 7, 8, 10 min).",
+      "Soundboard istantanea da bordo campo con 6 effetti sonori rapidi (fischio arbitro, triplice fischio finale, tromba curva, VAR, esultanza gol e trombone per papere).",
+      "Pannello Super User dedicato con accesso diretto all'Area Segreta e reset impostazioni audio."
+    ]
+  },
+  {
+    "version": "1.0.7",
+    "date": "28/10/2026",
+    "title": "Gestione Match Bordo Campo & Release Notes Automatiche",
+    "userChanges": [
+      "Banner 'Novità di Versione' automatico: ad ogni aggiornamento puoi leggere cosa è cambiato rispetto alla versione che avevi installata sul telefono.",
+      "Storico completo delle versioni sempre consultabile dal menu in alto a destra (accanto al badge versione).",
+      "Sincronizzazione in tempo reale migliorata per gol e assist dei singoli giocatori durante le partite live."
+    ],
+    "superUserChanges": [
+      "Nuovo Cockpit 'Bordo Campo' in Gestione Match: cronometro compatto e tabellone punteggio gigante subito in primo piano senza dover scrollare.",
+      "Gol Lampo 1-Tap con Foto: tocca direttamente la faccia del giocatore in campo per assegnare il gol e passare subito alla scelta dell'assist.",
+      "Nuovo Selettore Visuale Gol & Assist con foto grandi a prova di pollice e maxi-bottone '⚡ Nessun Assist · Azione Personale'.",
+      "Corretto il layout mobile della sezione Rotazione Portieri (Sequenza Bianchi/Neri impilata senza tagli laterali) e rimosso il doppio badge di sincronizzazione.",
+      "Pipeline Release Notes JSON automatica sincronizzata ad ogni deploy."
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "date": "28/10/2026",
+    "title": "Aggiornamento Automatico Anti-Cache & Strumenti DEV",
+    "userChanges": [
+      "Addio modalità Incognito: l'app controlla automaticamente ad ogni avvio il rilascio di nuove versioni, pulendo cache, cookie e vecchi file salvati da Chrome/PWA.",
+      "Badge versione (v1.0.x) sempre visibile in alto a destra e pulsante manuale 'Forza Aggiornamento & Svuota Cache' nel menu rapido."
+    ],
+    "superUserChanges": [
+      "Etichetta 'DEV MODE' visibile nella barra superiore quando si lavora sull'ambiente di sviluppo.",
+      "Nuovo pulsante in Area Segreta ('Copia DB PROD → DEV') protetto da Super-Lock PIN per clonare in sola lettura i dati reali di produzione nell'ambiente di test ripulendo i record di prova."
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "28/10/2026",
+    "title": "Calcetto a Buffo 2.0 - Motore MMR & Nuova Architettura",
+    "userChanges": [
+      "Nuovo algoritmo Matchmaking con bilanciamento ruoli e posizioni difensive.",
+      "Classifica generale con punteggi MMR dinamici calcolati su vittorie, gol e rendimento.",
+      "Scheda profilo giocatore con cronologia match, trend prestazioni e statistiche dettagliate."
+    ],
+    "superUserChanges": [
+      "Pannello Area Segreta con gestione avanzata parametri MMR (K-factor, bonus portiere, handicap).",
+      "Gestione ruoli giocatori con override manuale per ogni singolo match.",
+      "Regole di congelamento stagione conclusa per preservare immutabile l'albo d'oro storico."
+    ]
   }
 ];
 
 /**
- * Confronta due stringhe semver "x.y.z" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
+ * Confronta due stringhe semver "x.y.z" o "x.y.z-dev" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
  */
 export function compareSemver(a: string, b: string): number {
-  const pa = (a || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
-  const pb = (b || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
+  const cleanA = (a || '0.0.0').split('-')[0];
+  const cleanB = (b || '0.0.0').split('-')[0];
+  const pa = cleanA.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = cleanB.split('.').map((n) => parseInt(n, 10) || 0);
   for (let i = 0; i < 3; i++) {
     const diff = (pa[i] || 0) - (pb[i] || 0);
     if (diff !== 0) return diff;

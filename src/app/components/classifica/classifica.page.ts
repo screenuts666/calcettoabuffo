@@ -17,6 +17,7 @@ import {
   IonLabel,
   ToastController,
   AlertController,
+  ModalController,
   IonIcon,
   IonButtons,
   IonButton,
@@ -30,6 +31,7 @@ import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
+import { AuthModalComponent } from '../auth-modal/auth-modal.component';
 import { addIcons } from 'ionicons';
 import {
   flame,
@@ -149,6 +151,7 @@ export class ClassificaPage {
   private authService = inject(AuthService);
   private statsEngine = inject(StatsEngineService);
   private alertController = inject(AlertController);
+  private modalController = inject(ModalController);
   private toastController = inject(ToastController);
   private router = inject(Router);
 
@@ -1044,52 +1047,20 @@ export class ClassificaPage {
   private clickCount = 0;
 
   async secretTitleClick() {
+    if (!this.isAdmin()) return;
     this.clickCount++;
     if (this.clickCount >= 5) {
       this.clickCount = 0;
-      if (this.isAdmin()) {
-        await this.logoutAdmin();
-      } else {
-        await this.loginAdmin();
-      }
+      await this.logoutAdmin();
     }
   }
 
   async loginAdmin() {
-    const alert = await this.alertController.create({
-      header: 'Admin Access',
-      inputs: [
-        { name: 'email', type: 'email', placeholder: 'Email' },
-        { name: 'password', type: 'password', placeholder: 'Password' },
-      ],
-      buttons: [
-        { text: 'Annulla', role: 'cancel' },
-        {
-          text: 'Entra',
-          handler: async (res) => {
-            try {
-              await this.authService.loginAdmin(res.email, res.password);
-              (
-                await this.toastController.create({
-                  message: 'Benvenuto Boss! 🕶️',
-                  duration: 2000,
-                  color: 'success',
-                })
-              ).present();
-            } catch {
-              (
-                await this.toastController.create({
-                  message: 'Credenziali errate',
-                  duration: 2000,
-                  color: 'danger',
-                })
-              ).present();
-            }
-          },
-        },
-      ],
+    const modal = await this.modalController.create({
+      component: AuthModalComponent,
+      componentProps: { initialMode: 'login' },
     });
-    await alert.present();
+    await modal.present();
   }
 
   apriAreaSegreta() {

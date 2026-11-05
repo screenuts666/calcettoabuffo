@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
-  IonAvatar,
   IonFab,
   IonFabButton,
   IonIcon,
@@ -26,6 +25,7 @@ import {
   MatchmakingProposal,
 } from 'src/app/services/matchmaking.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import { getMmrTier } from 'src/app/models/mmr.model';
 import { MatchmakingModalComponent } from './matchmaking-modal/matchmaking-modal.component';
 import {
   getAvatarUrl,
@@ -36,7 +36,6 @@ import { GeminiService } from 'src/app/services/gemini.service';
 import { TtsService } from 'src/app/services/tts.service';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../../../ai-tts-button/ai-tts-button.component';
-
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 
 @Component({
@@ -46,7 +45,6 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
   standalone: true,
   imports: [
     CommonModule,
-    IonAvatar,
     IonFab,
     IonFabButton,
     IonIcon,
@@ -80,6 +78,48 @@ export class StepSquadreComponent {
   proposals = signal<MatchmakingProposal[]>([]);
 
   /**
+   * Restituisce l'MMR corrente del singolo giocatore per la visualizzazione compatta nelle 2 colonne
+   */
+  getPlayerMmr(p: any): number {
+    if (!p?.id) return p?.mmr || 1000;
+    const statsRes = this.statsEngine.statsResult();
+    const activeSeasonId = this.state.stagione() || CURRENT_SEASON;
+    const seasonMap =
+      activeSeasonId && activeSeasonId !== 'Tutte'
+        ? statsRes.bySeason.get(activeSeasonId)
+        : null;
+
+    const s = seasonMap?.get(p.id);
+    if (s) {
+      return s.partiteGiocate > 0 ? s.currentMmr : (s.seasonStartMmr ?? 1000);
+    }
+    const a = statsRes.allTime.get(p.id);
+    if (a) {
+      return a.partiteGiocate > 0 ? a.currentMmr : (a.seasonStartMmr ?? 1000);
+    }
+    return p?.mmr || 1000;
+  }
+
+  getTierColor(mmr?: number | null): string {
+    return getMmrTier(mmr ?? 1000).color;
+  }
+
+  getRuoloIcon(ruolo?: string): string {
+    switch ((ruolo || '').toLowerCase()) {
+      case 'portiere':
+        return '🧤';
+      case 'difensore':
+        return '🛡️';
+      case 'fascia':
+        return '⚡';
+      case 'attaccante':
+        return '🎯';
+      default:
+        return '⚽';
+    }
+  }
+
+  /**
    * Monitoraggio in tempo reale del bilanciamento tra Bianchi e Neri attualmente sul campo
    */
   currentBalanceInfo = computed(() => {
@@ -88,30 +128,11 @@ export class StepSquadreComponent {
 
     if (teamA.length === 0 || teamB.length === 0) return null;
 
-    const statsRes = this.statsEngine.statsResult();
-    const activeSeasonId = this.state.stagione() || CURRENT_SEASON;
-    const seasonMap =
-      activeSeasonId && activeSeasonId !== 'Tutte'
-        ? statsRes.bySeason.get(activeSeasonId)
-        : null;
-
-    const getMmr = (p: any) => {
-      const s = seasonMap?.get(p.id);
-      if (s) {
-        return s.partiteGiocate > 0 ? s.currentMmr : (s.seasonStartMmr ?? 1000);
-      }
-      const a = statsRes.allTime.get(p.id);
-      if (a) {
-        return a.partiteGiocate > 0 ? a.currentMmr : (a.seasonStartMmr ?? 1000);
-      }
-      return 1000;
-    };
-
     const avgA = Math.round(
-      teamA.reduce((s, p) => s + getMmr(p), 0) / teamA.length,
+      teamA.reduce((s, p) => s + this.getPlayerMmr(p), 0) / teamA.length,
     );
     const avgB = Math.round(
-      teamB.reduce((s, p) => s + getMmr(p), 0) / teamB.length,
+      teamB.reduce((s, p) => s + this.getPlayerMmr(p), 0) / teamB.length,
     );
 
     const odds = StatsEngineService.calculateOdds(avgA, avgB);
@@ -200,8 +221,9 @@ export class StepSquadreComponent {
       swapHorizontal,
       flash,
       alertCircleOutline,
-  refreshOutline,
-  trendingUpOutline,
+      refreshOutline,
+      trendingUpOutline,
+      cloudDoneOutline,
     });
   }
 

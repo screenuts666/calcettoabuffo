@@ -72,29 +72,22 @@
     </div>
 
     <div class="tb-right">
-      @if (!state.isTimerRunning() && state.cronometro() <= 0) {
-        <button
-          type="button"
-          class="timer-action-btn kickoff"
-          (click)="avviaMatch()"
-        >
-          <ion-icon name="play"></ion-icon>
-          <span>FISCHIO D'INIZIO</span>
-        </button>
-      } @else if (state.isTimerRunning()) {
-        <div class="timer-live-badge">
-          <span class="live-dot-pulse"></span>
-          <span>IN CORSO</span>
-        </div>
-      } @else if (!state.matchConcluso()) {
-        <button
-          type="button"
-          class="timer-action-btn kickoff"
-          (click)="avviaMatch()"
-        >
-          <ion-icon name="play"></ion-icon>
-          <span>RIPRENDI</span>
-        </button>
+      @if (isAdmin) {
+        @if (!state.isTimerRunning() && state.cronometro() <= 0) {
+          <button
+            type="button"
+            class="timer-action-btn kickoff"
+            (click)="avviaMatch()"
+          >
+            <ion-icon name="play"></ion-icon>
+            <span>FISCHIO D'INIZIO</span>
+          </button>
+        } @else if (state.isTimerRunning()) {
+          <div class="timer-live-badge">
+            <span class="live-dot-pulse"></span>
+            <span>IN CORSO</span>
+          </div>
+        }
       }
       @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
         <div class="next-gk-mini-pill">
@@ -104,10 +97,10 @@
     </div>
   </div>
 
-  @if (state.cronometro() <= 0 && !state.isTimerRunning()) {
+  @if (isAdmin && state.cronometro() <= 0) {
     <div class="kickoff-hint-banner" (click)="avviaMatch()">
       <ion-icon name="play"></ion-icon>
-      <span>Tocca <strong>FISCHIO D'INIZIO</strong> per far partire il cronometro e sbloccare i gol</span>
+      <span>Tocca <strong>FISCHIO D'INIZIO</strong> per far partire la partita e sbloccare i gol</span>
     </div>
   }
 
@@ -124,29 +117,31 @@
         }
       </div>
 
-      <div class="stc-score-number" (click)="chiediChiHaSegnato('A')">
+      <div class="stc-score-number" (click)="isAdmin ? chiediChiHaSegnato('A') : null">
         {{ state.scoreA() }}
       </div>
 
-      <button
-        type="button"
-        class="giant-goal-btn team-a-btn"
-        [class.locked]="state.cronometro() <= 0"
-        (click)="chiediChiHaSegnato('A')"
-      >
-        <ion-icon name="football"></ion-icon>
-        <span>+ GOL BIANCHI</span>
-      </button>
-
-      @if (state.scoreA() > 0) {
+      @if (isAdmin) {
         <button
           type="button"
-          class="quick-undo-btn"
-          (click)="rimuoviUltimoGol('A')"
+          class="giant-goal-btn team-a-btn"
+          [class.locked]="state.cronometro() <= 0"
+          (click)="chiediChiHaSegnato('A')"
         >
-          <ion-icon name="arrow-undo-outline"></ion-icon>
-          <span>Annulla ultimo</span>
+          <ion-icon name="football"></ion-icon>
+          <span>+ GOL BIANCHI</span>
         </button>
+
+        @if (state.scoreA() > 0) {
+          <button
+            type="button"
+            class="quick-undo-btn"
+            (click)="rimuoviUltimoGol('A')"
+          >
+            <ion-icon name="arrow-undo-outline"></ion-icon>
+            <span>Annulla ultimo</span>
+          </button>
+        }
       }
     </div>
 
@@ -161,37 +156,41 @@
         }
       </div>
 
-      <div class="stc-score-number" (click)="chiediChiHaSegnato('B')">
+      <div class="stc-score-number" (click)="isAdmin ? chiediChiHaSegnato('B') : null">
         {{ state.scoreB() }}
       </div>
 
-      <button
-        type="button"
-        class="giant-goal-btn team-b-btn"
-        [class.locked]="state.cronometro() <= 0"
-        (click)="chiediChiHaSegnato('B')"
-      >
-        <ion-icon name="football"></ion-icon>
-        <span>+ GOL NERI</span>
-      </button>
-
-      @if (state.scoreB() > 0) {
+      @if (isAdmin) {
         <button
           type="button"
-          class="quick-undo-btn"
-          (click)="rimuoviUltimoGol('B')"
+          class="giant-goal-btn team-b-btn"
+          [class.locked]="state.cronometro() <= 0"
+          (click)="chiediChiHaSegnato('B')"
         >
-          <ion-icon name="arrow-undo-outline"></ion-icon>
-          <span>Annulla ultimo</span>
+          <ion-icon name="football"></ion-icon>
+          <span>+ GOL NERI</span>
         </button>
+
+        @if (state.scoreB() > 0) {
+          <button
+            type="button"
+            class="quick-undo-btn"
+            (click)="rimuoviUltimoGol('B')"
+          >
+            <ion-icon name="arrow-undo-outline"></ion-icon>
+            <span>Annulla ultimo</span>
+          </button>
+        }
       }
     </div>
   </div>
 
   <!-- ─── GRIGLIA 1-TAP CON FOTO: TOCCA LA FACCIA DI CHI HA SEGNATO! ─── -->
-  <div class="quick-photo-scorers-box" [class.is-locked]="state.cronometro() <= 0">
+  <div class="quick-photo-scorers-box" [class.is-locked]="isAdmin && state.cronometro() <= 0">
     <div class="qps-header">
-      <span class="qps-title">⚡ GOL LAMPO: TOCCA LA FOTO DI CHI HA SEGNATO</span>
+      <span class="qps-title">
+        {{ isAdmin ? '⚡ GOL LAMPO: TOCCA LA FOTO DI CHI HA SEGNATO' : '⚽ FORMAZIONI IN CAMPO (BIANCHI vs NERI)' }}
+      </span>
     </div>
 
     <div class="qps-teams-columns">
@@ -202,7 +201,7 @@
             type="button"
             class="qps-player-btn"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'A')"
-            (click)="toccaGiocatorePerGolRapido(p, 'A')"
+            (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'A') : null"
           >
             <div class="qps-avatar-wrap">
               <ion-avatar class="qps-avatar">
@@ -225,7 +224,9 @@
                 </div>
               }
             </div>
-            <span class="qps-plus">+1</span>
+            @if (isAdmin) {
+              <span class="qps-plus">+1</span>
+            }
           </button>
         }
       </div>
@@ -237,7 +238,7 @@
             type="button"
             class="qps-player-btn is-dark-team"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'B')"
-            (click)="toccaGiocatorePerGolRapido(p, 'B')"
+            (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'B') : null"
           >
             <div class="qps-avatar-wrap">
               <ion-avatar class="qps-avatar">
@@ -260,7 +261,9 @@
                 </div>
               }
             </div>
-            <span class="qps-plus">+1</span>
+            @if (isAdmin) {
+              <span class="qps-plus">+1</span>
+            }
           </button>
         }
       </div>
@@ -594,16 +597,18 @@
     }
   </div>
 
-<div class="ion-padding">
-  <ion-button
-    expand="block"
-    color="danger"
-    (click)="finisciMatch()"
-    class="main-end-btn"
-  >
-    <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
-  </ion-button>
-</div>
+@if (isAdmin) {
+  <div class="ion-padding">
+    <ion-button
+      expand="block"
+      color="danger"
+      (click)="finisciMatch()"
+      class="main-end-btn"
+    >
+      <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
+    </ion-button>
+  </div>
+}
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 <!-- OVERLAY VISUALE A FOTO GRANDI PER GOL & ASSIST (BORDO CAMPO)            -->

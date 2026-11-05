@@ -5,3 +5,5 @@ export { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle
 export { MatchPhotoComponent } from '../../components/partite/match-photo/match-photo.component';
 export { MatchShareModalComponent } from '../../components/partite/match-share-modal/match-share-modal.component';
 export { FotoViewerModalComponent } from '../../components/partite/foto-viewer-modal/foto-viewer-modal.component';
+export { UserMenuModalComponent } from '../../components/user-menu-modal/user-menu-modal.component';
+

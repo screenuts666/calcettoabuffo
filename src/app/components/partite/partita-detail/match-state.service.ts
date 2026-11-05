@@ -23,6 +23,8 @@ import {
   Partita,
   RotazionePortieri,
   ModalitaPortiere,
+  MatchRsvpEntry,
+  normalizeRsvpStatus,
 } from '../../../models/partita.model';
 import { Giocatore } from '../../../models/giocatore.model';
 import { RuoloPreferito } from '../../../models/ruolo-preferito.enum';
@@ -35,8 +37,14 @@ import {
 } from '../../../utils/season-utils';
 import { SyncStatusService } from '../../../services/sync-status.service';
 import { SoundSettingsService } from '../../../services/sound-settings.service';
+import { AuthService } from '../../../services/auth.service';
 
-export type ConvocatoState = Giocatore & { selezionato?: boolean };
+export type ConvocatoState = Giocatore & {
+  selezionato?: boolean;
+  selfRegistered?: boolean;
+  source?: 'self' | 'mister';
+  rsvpStatus?: 'yes' | 'maybe' | 'no' | null;
+};
 export type MatchDetailState = Partita & { isAdmin?: boolean };
 export const LOCAL_STORAGE_MATCH_KEY = 'calcettoabbuffo_active_match';
 
@@ -62,6 +70,7 @@ export class MatchStateService {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
   public soundSettings = inject(SoundSettingsService, { optional: true });
+  private auth = inject(AuthService);
   private injector = inject(EnvironmentInjector);
 
   matchId = signal<string | null>(null);
@@ -95,6 +104,7 @@ export class MatchStateService {
   commentoPartita = signal<string>('');
   notePortieri = signal<string | null>(null);
   parateIncredibili = signal<Record<string, number>>({});
+  rsvp = signal<Record<string, MatchRsvpEntry>>({});
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
@@ -491,7 +501,7 @@ export class MatchStateService {
   async setCambioPortiereAttivo(attivo: boolean): Promise<void> {
     this.cambioAttivo.set(attivo);
     const id = this.matchId();
-    if (!id) return;
+    if (!id || !this.auth.isSuperUser()) return;
     try {
       await updateDoc(doc(this.firestore, `partite/${id}`), {
         cambioAttivo: attivo,
@@ -616,15 +626,10 @@ export class MatchStateService {
     return durataFinale;
   }
 
-  /**
-   * @deprecated Pausa disabilitata. Utilizzare `avviaTimer()` o `concludiTimer()`.
-   */
   async toggleTimerState(): Promise<void> {
-    if (this.isTimerRunning()) {
-      console.warn('[Timer] Il timer scorre continuo fino al fischio finale: pausa disabilitata.');
-      return;
+    if (!this.isTimerRunning()) {
+      await this.avviaTimer();
     }
-    await this.avviaTimer();
   }
 
   async aggiungiGolPartita(
@@ -823,9 +828,160 @@ export class MatchStateService {
           this.commentoPartita.set(
             data.commentoPartita || data.commento || ''
           );
+          if (data.rsvp) {
+            this.rsvp.set(data.rsvp);
+          }
+
+          if (Array.isArray(data.convocati) || data.rsvp) {
+            this.reconcileConvocatiWithRsvp(
+              data.convocati || [],
+              data.rsvp || this.rsvp() || {}
+            );
+          }
+
+          if (!this.auth.isSuperUser()) {
+            const isConvocatiPhase =
+              !data.matchConcluso &&
+              data.status !== 'in_corso' &&
+              (data.step === 'convocati' ||
+                data.step === 'dettagli' ||
+                (!data.step &&
+                  (!data.teamA || data.teamA.length === 0) &&
+                  (!data.teamB || data.teamB.length === 0)));
+            if (data.matchConcluso) {
+              this.step.set('prestazioni');
+            } else if (isConvocatiPhase) {
+              this.step.set('convocati');
+            } else {
+              this.step.set('match');
+            }
+          }
         }
       },
       error: (err) => console.warn('Errore ascolto partita:', err),
+    });
+  }
+
+  /**
+   * Riallinea la lista `tutti` combinando i giocatori convocati salvati e le risposte RSVP (`yes`/`maybe`/`no`).
+   */
+  reconcileConvocatiWithRsvp(
+    savedConvocati: any[],
+    rsvpMap: Record<string, MatchRsvpEntry>
+  ) {
+    const entries = Object.values(rsvpMap || {}).filter(Boolean);
+    const savedMap = new Map<string, any>();
+    for (const c of savedConvocati || []) {
+      if (c?.id) savedMap.set(c.id, c);
+    }
+
+    this.tutti.update((list) =>
+      list.map((g) => {
+        const rsvpEntry = entries.find(
+          (e) =>
+            e.playerId === g.id ||
+            (!!g.linkedUid && e.uid === g.linkedUid)
+        );
+        const normStatus = normalizeRsvpStatus(rsvpEntry?.status);
+        const saved = savedMap.get(g.id);
+
+        const isSelected = Boolean(saved) || normStatus === 'yes';
+        const isSelf = Boolean(
+          (normStatus === 'yes' &&
+            (rsvpEntry?.selfRegistered ||
+              rsvpEntry?.source === 'self' ||
+              !!rsvpEntry?.respondedVia)) ||
+            saved?.selfRegistered ||
+            saved?.source === 'self'
+        );
+
+        return {
+          ...g,
+          selezionato: isSelected,
+          selfRegistered: isSelf,
+          source: isSelf ? 'self' : isSelected ? 'mister' : undefined,
+          rsvpStatus: normStatus,
+        };
+      })
+    );
+  }
+
+  /**
+   * Se il Mister avvia la condivisione del link invito su una partita appena aperta (`matchId === null`),
+   * salva subito il documento su Firestore nello step `'convocati'` così da ottenere un `matchId` valido.
+   */
+  async ensureMatchCreatedForInvite(): Promise<string | null> {
+    if (this.matchId()) return this.matchId();
+    if (!this.auth.isSuperUser()) return null;
+    await this.salvaInDatabase(false, false);
+    return this.matchId();
+  }
+
+  /**
+   * Registra o modifica la risposta Auto-RSVP del giocatore loggato (`yes` | `maybe` | `no`)
+   * aggiornando immediatamente `rsvp.<uid>` e `convocati` su Firestore.
+   * Consentito SOLO quando la partita è nello step `'convocati'`.
+   */
+  async submitSelfRsvp(status: 'yes' | 'maybe' | 'no'): Promise<void> {
+    if (!['yes', 'maybe', 'no'].includes(status)) {
+      throw new Error('Parametro stato RSVP non valido.');
+    }
+    const mId = this.matchId() ? this.matchId()!.replace(/[^a-zA-Z0-9_-]/g, '').trim() : null;
+    const user = this.auth.firebaseUser();
+    const playerId = this.auth.linkedPlayerId();
+
+    if (
+      !mId ||
+      !user ||
+      !playerId ||
+      (this.step() !== 'convocati' && this.step() !== 'dettagli') ||
+      this.matchConcluso()
+    ) {
+      throw new Error(
+        'Le convocazioni per questa partita sono chiuse o non hai un giocatore associato.'
+      );
+    }
+
+    const playerObj = this.tutti().find((g) => g.id === playerId);
+    const playerName =
+      playerObj?.nome || this.auth.displayName() || 'Giocatore';
+
+    const entry: MatchRsvpEntry = {
+      uid: user.uid,
+      playerId,
+      playerName,
+      status,
+      selfRegistered: true,
+      source: 'self',
+      updatedAt: new Date().toISOString(),
+      respondedVia: 'whatsapp_link',
+    };
+
+    const nextRsvpMap = {
+      ...(this.rsvp() || {}),
+      [user.uid]: entry,
+    };
+    this.rsvp.set(nextRsvpMap);
+
+    this.tutti.update((list) =>
+      list.map((g) =>
+        g.id === playerId
+          ? {
+              ...g,
+              selezionato: status === 'yes',
+              selfRegistered: status === 'yes',
+              source: 'self',
+              rsvpStatus: status,
+            }
+          : g
+      )
+    );
+
+    const updatedConvocati = this.convocati();
+
+    await updateDoc(doc(this.firestore, `partite/${mId}`), {
+      [`rsvp.${user.uid}`]: entry,
+      convocati: updatedConvocati,
     });
   }
 
@@ -985,6 +1141,7 @@ export class MatchStateService {
   }
 
   triggerAutoSave(immediate: boolean = false): void {
+    if (!this.auth.isSuperUser()) return;
     this.salvaSnapshotLocale();
 
     // Se la partita non ha ancora un ID Firestore e non ci sono modifiche significative, non creare record vuoti
@@ -1026,6 +1183,7 @@ export class MatchStateService {
     pagelleInseriteFlag: boolean,
     matchConclusoFlag: boolean = false
   ) {
+    if (!this.auth.isSuperUser()) return;
     if (
       !this.matchId() &&
       this.dataPartita() &&
@@ -1084,6 +1242,7 @@ export class MatchStateService {
       commentoPartita: this.commentoPartita()?.trim() || null,
       notePortieri: this.notePortieri()?.trim() || null,
       parateIncredibili: this.parateIncredibili() || {},
+      rsvp: this.rsvp() || {},
     };
 
     try {
