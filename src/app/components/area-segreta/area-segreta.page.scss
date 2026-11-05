@@ -11,10 +11,21 @@
   gap: 6px;
   font-size: 0.92rem;
   font-weight: 800;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 
   .shield-icon {
     color: var(--ion-color-warning);
     font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

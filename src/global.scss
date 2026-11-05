@@ -46,10 +46,68 @@ ion-toolbar {
   --color: var(--app-text-primary);
   --border-color: var(--app-toolbar-border);
 
+  /* Layout anti-collisione per tutti i titoli su tutte le piattaforme e device */
   ion-title {
-    font-weight: 800;
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    inset-inline-start: auto !important;
+    width: auto !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding-inline: 4px !important;
+    padding-inline-start: 4px !important;
+    padding-inline-end: 4px !important;
+    text-align: start !important;
+    pointer-events: auto !important;
+    font-size: min(1.05rem, 18px) !important;
+    font-weight: 800 !important;
     letter-spacing: -0.3px;
     color: var(--app-text-primary);
+
+    .toolbar-title {
+      display: flex !important;
+      align-items: center !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      text-align: start !important;
+    }
+
+    > * {
+      display: inline-flex !important;
+      align-items: center !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+
+      > span {
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+    }
+  }
+
+  ion-buttons[slot="start"] {
+    flex-shrink: 0 !important;
+    margin-inline-end: 2px !important;
+  }
+
+  ion-buttons[slot="end"] {
+    flex-shrink: 0 !important;
+    margin-inline-start: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
   }
 }
 

@@ -11,6 +11,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.5-dev",
+    "date": "05/11/2026",
+    "title": "Fix Layout Header Toolbar: Zero Sovrapposizioni e Troncamento Intelligente",
+    "userChanges": [
+      "📱 Header Anti-Collisione su Mobile: risolto definitivamente il bug per cui i titoli delle schermate (come Area Segreta, Dettaglio Partita o Classifica) si sovrapponevano al badge del profilo utente su schermi compatti o dispositivi iOS.",
+      "✨ Spaziatura Ottimizzata & Troncamento: il titolo delle pagine ora si adatta fluidamente allo spazio tra il tasto indietro e i bottoni di destra, senza mai coprire o farsi coprire dagli elementi adiacenti.",
+      "🔍 Header Pill Compatta: su smartphone la pill profilo e i badge di stato riducono l'ingombro orizzontale lasciando massimo respiro al titolo della schermata."
+    ],
+    "superUserChanges": [
+      "Override Globale Layout ion-toolbar: neutralizzato il posizionamento absolute fisso iOS di ion-title con layout flexbox vincolato a toolbar-content e overflow: ellipsis.",
+      "Media Query Responsive: ottimizati i breakpoint in theme-toggle.component.scss e garantita la flessibilità di .secret-title-wrap in Area Segreta."
+    ]
+  },
+  {
     "version": "2.0.4-dev",
     "date": "05/11/2026",
     "title": "Nuovo Menu Profilo Utente & Bottom Sheet Ridisegnato",
