@@ -11,6 +11,17 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "1.0.71",
+    "date": "05/11/2026",
+    "title": "Fix Icona Tab Portieri nel Report Partita",
+    "userChanges": [
+      "🧤 Ripristinata l'icona dello scudo nella tab 'Portieri' del report partita, ora allineata alle altre tab (Sintesi, Pagelle, Spogliatoio, Stats)."
+    ],
+    "superUserChanges": [
+      "Registrata l'icona shieldOutline in addIcons di StepPrestazioniComponent (era importata ma non registrata)."
+    ]
+  },
+  {
     "version": "1.0.69",
     "date": "30/10/2026",
     "title": "Fix Critico Timer Partita: Eliminato Trigger e Allarme Cambio Portiere all'Avvio (Minuto 00:00)",

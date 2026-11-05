@@ -76,6 +76,7 @@ export class StepPrestazioniComponent {
       clipboardOutline,
       micOutline,
       trendingUpOutline,
+      shieldOutline,
     });
   }
 
