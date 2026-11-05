@@ -1,5 +1,46 @@
 [
   {
+    "version": "2.0.3-dev",
+    "date": "05/11/2026",
+    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "userChanges": [
+      "Miglioramenti di stabilità, velocità e interfaccia grafica."
+    ],
+    "superUserChanges": [
+      "Ultimo commit: chore: bump version to v2.0.2-dev after DEV deploy"
+    ]
+  },
+  {
+    "version": "NEXT",
+    "title": "Timer Match Continuo, Orari Reali Gara (Inizio - Fine) e Pulizia Diciture Tecniche",
+    "userChanges": [
+      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Il cronometro parte solo con 'Fischio d'Inizio' e si chiude al definitivo 'Fischio Finale'.",
+      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel cockpit bordocampo sono ora ben visibili gli orari effettivi di gioco (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
+      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue ('Memorizzato nel profilo', 'Salvata nel database', 'Salvata nel DB') e aggiornato il titolo in 'Chimica di Coppia & Rivalità'."
+    ],
+    "superUserChanges": [
+      "Persistenza Timestamp Assoluti: salvataggio su Firestore dei timestamp nativi inizioPartita e finePartita insieme alle stringhe orarioInizioReale e orarioFineReale.",
+      "Calcolo Durata Intelligente: calcolo automatico della durata reale della gara basato sul delta temporale esatto tra fischio iniziale e fischio finale.",
+      "Script Data-Patch: integrato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match storici."
+    ],
+    "date": "05/11/2026"
+  },
+  {
+    "version": "2.0.2-dev",
+    "title": "Timer Match Continuo, Orari Reali Gara (Inizio - Fine) e Pulizia Diciture Tecniche",
+    "userChanges": [
+      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Il cronometro parte solo con 'Fischio d'Inizio' e si chiude al definitivo 'Fischio Finale'.",
+      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel cockpit bordocampo sono ora ben visibili gli orari effettivi di gioco (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
+      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue ('Memorizzato nel profilo', 'Salvata nel database', 'Salvata nel DB') e aggiornato il titolo in 'Chimica di Coppia & Rivalità'."
+    ],
+    "superUserChanges": [
+      "Persistenza Timestamp Assoluti: salvataggio su Firestore dei timestamp nativi inizioPartita e finePartita insieme alle stringhe orarioInizioReale e orarioFineReale.",
+      "Calcolo Durata Intelligente: calcolo automatico della durata reale della gara basato sul delta temporale esatto tra fischio iniziale e fischio finale.",
+      "Script Data-Patch: integrato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match storici."
+    ],
+    "date": "05/11/2026"
+  },
+  {
     "version": "2.0.2-dev",
     "title": "Calcetto Abbuffo 2.0 (Fase 2): Link Invito & RSVP, Privacy Telefono, Squadre a 2 Colonne e Hardening Super User",
     "userChanges": [

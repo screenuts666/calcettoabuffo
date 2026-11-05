@@ -276,6 +276,15 @@
       .meta-dot {
         opacity: 0.5;
       }
+
+      .real-kickoff-meta {
+        color: #38bdf8;
+        font-weight: 700;
+
+        ion-icon {
+          color: #38bdf8;
+        }
+      }
     }
 
     .tb-clock-wrap {
@@ -333,6 +342,12 @@
       cursor: pointer;
       @include btn-press(0.95);
 
+      &.kickoff {
+        background: linear-gradient(135deg, #2dd36f 0%, #20a053 100%);
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
       &.running {
         background: #ffc409;
         color: #1f1600;
@@ -341,6 +356,30 @@
 
       ion-icon {
         font-size: 1.15rem;
+      }
+    }
+
+    .timer-live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 44px;
+      padding: 0 16px;
+      border-radius: 14px;
+      background: rgba(45, 211, 111, 0.16);
+      border: 1.5px solid rgba(45, 211, 111, 0.45);
+      color: #2dd36f;
+      font-size: 0.85rem;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+
+      .live-dot-pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #2dd36f;
+        box-shadow: 0 0 10px #2dd36f;
+        animation: liveBlink 1.2s infinite;
       }
     }
 

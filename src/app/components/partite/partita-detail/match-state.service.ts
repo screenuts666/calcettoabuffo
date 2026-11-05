@@ -14,6 +14,7 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
+  Timestamp,
 } from 'firebase/firestore';
 import { Subscription } from 'rxjs';
 import { TMatchStatus } from '../../../models/match-status.type';
@@ -108,6 +109,10 @@ export class MatchStateService {
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
   timerStartAt = signal<number | null>(null);
+  startedAt = signal<number | null>(null);
+  endedAt = signal<number | null>(null);
+  orarioInizioReale = signal<string | null>(null);
+  orarioFineReale = signal<string | null>(null);
   isTimerRunning = signal<boolean>(false);
   rotazionePortieri = signal<RotazionePortieri | null>(null);
 
@@ -506,67 +511,124 @@ export class MatchStateService {
     }
   }
 
-  async toggleTimerState(): Promise<void> {
+  /**
+   * Avvia il timer della partita (Fischio d'Inizio).
+   * Una volta avviato, il match scorre ininterrotto fino al fischio finale definitivo:
+   * non è possibile mettere in pausa per evitare corruzioni del conteggio.
+   */
+  async avviaTimer(): Promise<void> {
     const id = this.matchId();
     if (!id) return;
+    if (this.isTimerRunning()) return;
 
-    if (this.isTimerRunning()) {
-      const start = this.timerStartAt() || Date.now();
-      const diffSec = Math.floor((Date.now() - start) / 1000);
-      const nuovoAccumulo = this.accumulatedTime() + diffSec;
+    const startAt = this.startedAt() || this.timerStartAt() || Date.now();
+    this.startedAt.set(startAt);
+    this.timerStartAt.set(startAt);
+    this.isTimerRunning.set(true);
 
-      this.isTimerRunning.set(false);
-      this.accumulatedTime.set(nuovoAccumulo);
-      this.timerStartAt.set(null);
-      this.cronometro.set(nuovoAccumulo);
+    const orarioInizioStr = new Intl.DateTimeFormat('it-IT', {
+      timeZone: 'Europe/Rome',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(startAt));
+    this.orarioInizioReale.set(orarioInizioStr);
 
-      this.salvaSnapshotLocale();
-    this.salvaSetupPredefinito();
+    const payload: Record<string, unknown> = {
+      isTimerRunning: true,
+      startedAt: startAt,
+      timerStartAt: startAt,
+      inizioPartita: Timestamp.fromMillis(startAt),
+      orarioInizioReale: orarioInizioStr,
+    };
 
+    // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
+    if (this.cronometro() < this.durataTurnoSecondi()) {
+      this.cambioAttivo.set(false);
+      payload['cambioAttivo'] = false;
+    }
+    const currentStatus = this.status();
+    if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
+      payload['status'] = 'in_corso';
+      this.status.set('in_corso');
+    }
+
+    this.salvaSnapshotLocale();
+
+    try {
+      this.syncStatus.notifySyncPending();
+      await updateDoc(doc(this.firestore, `partite/${id}`), payload);
+      this.syncStatus.notifySyncSuccess();
+    } catch (err) {
+      console.warn('Errore sync avvio timer online (salvato in locale):', err);
+      this.syncStatus.notifySyncError();
+    }
+  }
+
+  /**
+   * Chiusura definitiva del cronometro al Fischio Finale.
+   * Calcola la durata effettiva reale come (endedAt - startedAt) e persiste il risultato.
+   */
+  async concludiTimer(): Promise<number> {
+    const id = this.matchId();
+    const now = Date.now();
+    this.endedAt.set(now);
+    this.isTimerRunning.set(false);
+
+    const start = this.startedAt() || this.timerStartAt() || (now - (this.cronometro() * 1000));
+    const durataSec = Math.max(0, Math.floor((now - start) / 1000));
+    const durataFinale = this.accumulatedTime() > 0 && !this.startedAt()
+      ? this.accumulatedTime() + Math.max(0, Math.floor((now - (this.timerStartAt() || now)) / 1000))
+      : durataSec;
+
+    this.cronometro.set(durataFinale);
+    this.accumulatedTime.set(durataFinale);
+    this.timerStartAt.set(null);
+
+    const orarioInizioStr = new Intl.DateTimeFormat('it-IT', {
+      timeZone: 'Europe/Rome',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(start));
+
+    const orarioFineStr = new Intl.DateTimeFormat('it-IT', {
+      timeZone: 'Europe/Rome',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(now));
+
+    this.orarioInizioReale.set(orarioInizioStr);
+    this.orarioFineReale.set(orarioFineStr);
+
+    this.salvaSnapshotLocale();
+
+    if (id) {
       try {
         this.syncStatus.notifySyncPending();
         await updateDoc(doc(this.firestore, `partite/${id}`), {
           isTimerRunning: false,
-          accumulatedTime: nuovoAccumulo,
           timerStartAt: null,
-          cronometro: nuovoAccumulo,
+          startedAt: start,
+          endedAt: now,
+          inizioPartita: Timestamp.fromMillis(start),
+          finePartita: Timestamp.fromMillis(now),
+          orarioInizioReale: orarioInizioStr,
+          orarioFineReale: orarioFineStr,
+          cronometro: durataFinale,
+          accumulatedTime: durataFinale,
         });
         this.syncStatus.notifySyncSuccess();
       } catch (err) {
-        console.warn('Errore sync timer online (salvato in locale):', err);
+        console.warn('Errore sync chiusura definitiva timer online:', err);
         this.syncStatus.notifySyncError();
       }
-    } else {
-      const startAt = Date.now();
-      this.isTimerRunning.set(true);
-      this.timerStartAt.set(startAt);
+    }
 
-      const payload: Record<string, unknown> = {
-        isTimerRunning: true,
-        timerStartAt: startAt,
-      };
+    return durataFinale;
+  }
 
-      // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
-      if (this.cronometro() < this.durataTurnoSecondi()) {
-        this.cambioAttivo.set(false);
-        payload['cambioAttivo'] = false;
-      }
-      const currentStatus = this.status();
-      if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
-        payload['status'] = 'in_corso';
-        this.status.set('in_corso');
-      }
-
-      this.salvaSnapshotLocale();
-
-      try {
-        this.syncStatus.notifySyncPending();
-        await updateDoc(doc(this.firestore, `partite/${id}`), payload);
-        this.syncStatus.notifySyncSuccess();
-      } catch (err) {
-        console.warn('Errore sync timer online (salvato in locale):', err);
-        this.syncStatus.notifySyncError();
-      }
+  async toggleTimerState(): Promise<void> {
+    if (!this.isTimerRunning()) {
+      await this.avviaTimer();
     }
   }
 
@@ -730,6 +792,27 @@ export class MatchStateService {
           this.isTimerRunning.set(data.isTimerRunning || false);
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
+          const startMs = data.startedAt
+            ?? (data.inizioPartita?.toMillis ? data.inizioPartita.toMillis() : data.inizioPartita?.seconds ? data.inizioPartita.seconds * 1000 : null)
+            ?? data.timerStartAt
+            ?? null;
+          const endMs = data.endedAt
+            ?? (data.finePartita?.toMillis ? data.finePartita.toMillis() : data.finePartita?.seconds ? data.finePartita.seconds * 1000 : null)
+            ?? data.finishedAt
+            ?? null;
+
+          this.startedAt.set(startMs);
+          this.endedAt.set(endMs);
+          if (data.orarioInizioReale) {
+            this.orarioInizioReale.set(data.orarioInizioReale);
+          } else if (startMs) {
+            this.orarioInizioReale.set(new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(startMs)));
+          }
+          if (data.orarioFineReale) {
+            this.orarioFineReale.set(data.orarioFineReale);
+          } else if (endMs) {
+            this.orarioFineReale.set(new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs)));
+          }
           this.status.set(data.status || 'da_definire');
           // Allarme cambio consentito solo se il timer è attivo e la partita ha superato la durata del primo turno
           const turnSec = this.durataTurnoSecondi();
@@ -936,6 +1019,10 @@ export class MatchStateService {
         cronometro: this.cronometro(),
         accumulatedTime: this.accumulatedTime(),
         timerStartAt: this.timerStartAt(),
+        startedAt: this.startedAt(),
+        endedAt: this.endedAt(),
+        orarioInizioReale: this.orarioInizioReale(),
+        orarioFineReale: this.orarioFineReale(),
         isTimerRunning: this.isTimerRunning(),
         rotazionePortieri: this.rotazionePortieri(),
         matchConcluso: this.matchConcluso(),
@@ -990,6 +1077,14 @@ export class MatchStateService {
           this.accumulatedTime.set(snap.accumulatedTime);
         if (typeof snap.timerStartAt !== 'undefined')
           this.timerStartAt.set(snap.timerStartAt);
+        if (typeof snap.startedAt !== 'undefined')
+          this.startedAt.set(snap.startedAt);
+        if (typeof snap.endedAt !== 'undefined')
+          this.endedAt.set(snap.endedAt);
+        if (typeof snap.orarioInizioReale === 'string')
+          this.orarioInizioReale.set(snap.orarioInizioReale);
+        if (typeof snap.orarioFineReale === 'string')
+          this.orarioFineReale.set(snap.orarioFineReale);
         if (typeof snap.isTimerRunning === 'boolean')
           this.isTimerRunning.set(snap.isTimerRunning);
         if (snap.rotazionePortieri)
@@ -1079,6 +1174,15 @@ export class MatchStateService {
 
     this.salvaSnapshotLocale();
 
+    const startMs = this.startedAt();
+    const endMs = this.endedAt();
+    const orarioInizioStr = startMs
+      ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(startMs))
+      : null;
+    const orarioFineStr = endMs
+      ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs))
+      : null;
+
     const payload: any = {
       step: this.step(),
       dataPartita: this.dataPartita(),
@@ -1096,6 +1200,12 @@ export class MatchStateService {
       cronometro: this.cronometro(),
       accumulatedTime: this.accumulatedTime(),
       timerStartAt: this.timerStartAt(),
+      startedAt: startMs,
+      endedAt: endMs,
+      inizioPartita: startMs ? Timestamp.fromMillis(startMs) : null,
+      finePartita: endMs ? Timestamp.fromMillis(endMs) : null,
+      orarioInizioReale: orarioInizioStr,
+      orarioFineReale: orarioFineStr,
       isTimerRunning: this.isTimerRunning(),
       status: this.status(),
       fotoUrl: this.fotoUrl() || null,
@@ -1173,6 +1283,10 @@ export class MatchStateService {
     this.cronometro.set(0);
     this.accumulatedTime.set(0);
     this.timerStartAt.set(null);
+    this.startedAt.set(null);
+    this.endedAt.set(null);
+    this.orarioInizioReale.set(null);
+    this.orarioFineReale.set(null);
     this.isTimerRunning.set(false);
     this.cambioAttivo.set(false);
     this.rimuoviSnapshotLocale();

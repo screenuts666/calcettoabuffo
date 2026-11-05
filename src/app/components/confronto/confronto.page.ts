@@ -248,7 +248,7 @@ export class ConfrontoPage implements OnInit {
       );
       this.verdettoAi.set(text);
       const toast = await this.toastController.create({
-        message: '🎙️ Verdetto AI generato e salvato nel database!',
+        message: '🎙️ Verdetto AI generato con successo!',
         duration: 2500,
         color: 'success',
         position: 'bottom',

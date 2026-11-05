@@ -374,6 +374,21 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.cronometro.set(matchData.cronometro || 0);
       this.state.accumulatedTime.set(matchData.accumulatedTime || 0);
       this.state.timerStartAt.set(matchData.timerStartAt || null);
+      const startMs = matchData.startedAt
+        ?? (matchData.inizioPartita?.toMillis ? matchData.inizioPartita.toMillis() : matchData.inizioPartita?.seconds ? matchData.inizioPartita.seconds * 1000 : null)
+        ?? matchData.timerStartAt
+        ?? null;
+      const endMs = matchData.endedAt
+        ?? (matchData.finePartita?.toMillis ? matchData.finePartita.toMillis() : matchData.finePartita?.seconds ? matchData.finePartita.seconds * 1000 : null)
+        ?? matchData.finishedAt
+        ?? null;
+
+      this.state.startedAt.set(startMs);
+      this.state.endedAt.set(endMs);
+      const orarioInizioStr = matchData.orarioInizioReale || (startMs ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(startMs)) : null);
+      const orarioFineStr = matchData.orarioFineReale || (endMs ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs)) : null);
+      this.state.orarioInizioReale.set(orarioInizioStr);
+      this.state.orarioFineReale.set(orarioFineStr);
       this.state.isTimerRunning.set(matchData.isTimerRunning || false);
       const turnSec = (matchData.rotazionePortieri?.durataTurnoMinuti || 5) * 60;
       const isPastFirstTurn = (matchData.cronometro || 0) >= turnSec;

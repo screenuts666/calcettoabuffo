@@ -194,7 +194,7 @@ export class StepSquadreComponent {
         this.ttsService.invalidateCache('pronostico-squadre-' + (this.state.matchId() || 'temp'));
       }
       const toast = await this.toastCtrl.create({
-        message: force ? '🔄 Pronostico rigenerato e salvato nel database!' : '🔮 Pronostico del Mister generato e salvato nel database!',
+        message: force ? '🔄 Pronostico rigenerato con successo!' : '🔮 Pronostico del Mister generato!',
         duration: 2500,
         color: 'success',
         position: 'top',

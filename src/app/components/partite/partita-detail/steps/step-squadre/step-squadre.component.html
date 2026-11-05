@@ -327,12 +327,6 @@
       @if (state.pronosticoAi(); as pronostico) {
         <div class="ai-box-body">
           <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(pronostico)"></div>
-          <div class="ai-box-footer">
-            <span class="ai-saved-hint">
-              <ion-icon name="cloud-done-outline"></ion-icon>
-              Salvato nel database · Ascolta l'audio o rigenera se vuoi una nuova versione
-            </span>
-          </div>
         </div>
       } @else {
         <div class="ai-empty-prompt">

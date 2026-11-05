@@ -622,6 +622,19 @@
   .match-time-val {
     color: var(--app-text-primary);
     font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    &.is-real-time {
+      color: #38bdf8;
+      font-weight: 800;
+
+      ion-icon {
+        color: #38bdf8;
+        font-size: 0.82rem;
+      }
+    }
   }
 }
 
@@ -1029,6 +1042,13 @@
 
     ion-icon {
       font-size: 0.82rem;
+    }
+
+    .real-time-sub {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-left: 2px;
     }
 
     &.rating {

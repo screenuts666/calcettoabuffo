@@ -658,17 +658,129 @@ export class PartitePage {
     let sec = 0;
     if (typeof m.cronometro === 'number' && m.cronometro > 0) {
       sec = m.cronometro;
-    } else if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
-      sec = m.accumulatedTime > 10000
-        ? Math.round(m.accumulatedTime / 1000)
-        : m.accumulatedTime;
-    } else if (m.status === 'conclusa' || m.matchConcluso) {
-      sec = 3000; // 50 minuti standard
+    } else {
+      const startMs =
+        m.startedAt ??
+        (m.inizioPartita?.toMillis
+          ? m.inizioPartita.toMillis()
+          : m.inizioPartita?.seconds
+            ? m.inizioPartita.seconds * 1000
+            : null);
+      const endMs =
+        m.endedAt ??
+        (m.finePartita?.toMillis
+          ? m.finePartita.toMillis()
+          : m.finePartita?.seconds
+            ? m.finePartita.seconds * 1000
+            : null) ??
+        m.finishedAt;
+
+      if (startMs && endMs && endMs > startMs) {
+        sec = Math.round((endMs - startMs) / 1000);
+      } else if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
+        sec =
+          m.accumulatedTime > 10000
+            ? Math.round(m.accumulatedTime / 1000)
+            : m.accumulatedTime;
+      } else if (m.status === 'conclusa' || m.matchConcluso) {
+        sec = 3000; // 50 minuti standard
+      }
     }
     if (sec > 21600) {
       sec = 3600; // Capping di sicurezza se timer dimenticato acceso (> 6 ore)
     }
     return sec;
+  }
+
+  getOrariGaraDisplay(m: any): {
+    startStr: string;
+    endStr: string | null;
+    fullRangeStr: string;
+    isReal: boolean;
+  } {
+    if (!m) {
+      return { startStr: '', endStr: null, fullRangeStr: '', isReal: false };
+    }
+
+    // 1. Orario Inizio
+    let startStr: string | null = m.orarioInizioReale || null;
+    let isReal = false;
+
+    if (!startStr) {
+      const startMs =
+        m.startedAt ??
+        (m.inizioPartita?.toMillis
+          ? m.inizioPartita.toMillis()
+          : m.inizioPartita?.seconds
+            ? m.inizioPartita.seconds * 1000
+            : null) ??
+        (m.timerStartAt && m.isTimerRunning ? m.timerStartAt : null);
+      if (typeof startMs === 'number' && startMs > 0) {
+        startStr = new Intl.DateTimeFormat('it-IT', {
+          timeZone: 'Europe/Rome',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(startMs));
+        isReal = true;
+      }
+    } else {
+      isReal = true;
+    }
+
+    // Fallback orario programmato se non reale
+    if (!startStr) {
+      startStr = m.orario || m.ora || '';
+      isReal = false;
+    }
+
+    // 2. Orario Fine
+    let endStr: string | null = m.orarioFineReale || null;
+    if (!endStr) {
+      const endMs =
+        m.endedAt ??
+        (m.finePartita?.toMillis
+          ? m.finePartita.toMillis()
+          : m.finePartita?.seconds
+            ? m.finePartita.seconds * 1000
+            : null) ??
+        m.finishedAt;
+      if (typeof endMs === 'number' && endMs > 0) {
+        endStr = new Intl.DateTimeFormat('it-IT', {
+          timeZone: 'Europe/Rome',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(endMs));
+      } else if (isReal && (m.status === 'conclusa' || m.matchConcluso)) {
+        const startMs =
+          m.startedAt ??
+          (m.inizioPartita?.toMillis
+            ? m.inizioPartita.toMillis()
+            : m.inizioPartita?.seconds
+              ? m.inizioPartita.seconds * 1000
+              : null);
+        const durSec = this.calcolaDurataSecondiPartita(m);
+        if (startMs && durSec > 0) {
+          endStr = new Intl.DateTimeFormat('it-IT', {
+            timeZone: 'Europe/Rome',
+            hour: '2-digit',
+            minute: '2-digit',
+          }).format(new Date(startMs + durSec * 1000));
+        }
+      }
+    }
+
+    const finalStartStr = startStr || '';
+    let fullRangeStr = finalStartStr;
+    if (endStr && endStr !== finalStartStr) {
+      fullRangeStr = finalStartStr ? `${finalStartStr} - ${endStr}` : endStr;
+    }
+
+    return {
+      startStr: finalStartStr,
+      endStr,
+      fullRangeStr,
+      isReal,
+    };
   }
 
   getTempoPartitaDisplay(m: any): string {

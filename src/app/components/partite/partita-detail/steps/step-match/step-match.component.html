@@ -53,7 +53,17 @@
       <div class="tb-meta-line">
         <span><ion-icon name="location-outline"></ion-icon> {{ state.luogo() || 'Campo' }}</span>
         <span class="meta-dot">•</span>
-        <span><ion-icon name="time-outline"></ion-icon> {{ state.orario() }}</span>
+        @if (state.orarioInizioReale()) {
+          <span class="real-kickoff-meta">
+            <ion-icon name="time"></ion-icon>
+            Inizio: {{ state.orarioInizioReale() }}
+            @if (state.orarioFineReale()) {
+              - {{ state.orarioFineReale() }}
+            }
+          </span>
+        } @else {
+          <span><ion-icon name="time-outline"></ion-icon> {{ state.orario() }}</span>
+        }
       </div>
       <div class="tb-clock-wrap">
         <span class="live-dot" [class.active]="state.isTimerRunning()"></span>
@@ -63,15 +73,21 @@
 
     <div class="tb-right">
       @if (isAdmin) {
-        <button
-          type="button"
-          class="timer-action-btn"
-          [class.running]="state.isTimerRunning()"
-          (click)="toggleTimer()"
-        >
-          <ion-icon [name]="state.isTimerRunning() ? 'pause' : 'play'"></ion-icon>
-          <span>{{ state.isTimerRunning() ? 'PAUSA' : 'AVVIA' }}</span>
-        </button>
+        @if (!state.isTimerRunning() && state.cronometro() <= 0) {
+          <button
+            type="button"
+            class="timer-action-btn kickoff"
+            (click)="avviaMatch()"
+          >
+            <ion-icon name="play"></ion-icon>
+            <span>FISCHIO D'INIZIO</span>
+          </button>
+        } @else if (state.isTimerRunning()) {
+          <div class="timer-live-badge">
+            <span class="live-dot-pulse"></span>
+            <span>IN CORSO</span>
+          </div>
+        }
       }
       @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
         <div class="next-gk-mini-pill">
@@ -82,9 +98,9 @@
   </div>
 
   @if (isAdmin && state.cronometro() <= 0) {
-    <div class="kickoff-hint-banner" (click)="toggleTimer()">
+    <div class="kickoff-hint-banner" (click)="avviaMatch()">
       <ion-icon name="play"></ion-icon>
-      <span>Tocca <strong>AVVIA</strong> per far partire il cronometro e sbloccare i gol</span>
+      <span>Tocca <strong>FISCHIO D'INIZIO</strong> per far partire la partita e sbloccare i gol</span>
     </div>
   }
 
