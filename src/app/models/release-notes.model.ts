@@ -11,14 +11,17 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.72",
+    "version": "1.0.74",
     "date": "05/11/2026",
-    "title": "Fix Icona Tab Portieri nel Report Partita",
+    "title": "Pulizia Riservatezza Controlli Super User & Fix Icona Portieri",
     "userChanges": [
-      "🧤 Ripristinata l'icona dello scudo nella tab 'Portieri' del report partita, ora allineata alle altre tab (Sintesi, Pagelle, Spogliatoio, Stats)."
+      "🧹 Riservatezza & Pulizia Impostazioni: l'interfaccia Impostazioni per i giocatori è ora pulita ed essenziale, focalizzata su Tema, Note di Rilascio e Info App. Nascosti completamente il pannello di controllo Super User, i banner di invito login e le schede audio riservate.",
+      "🧤 Icona Portieri nel Report: ripristinata l'icona dello scudo nel pulsante della tab 'Portieri' del report partita, allineata a tutte le altre sezioni."
     ],
     "superUserChanges": [
-      "Registrata l'icona shieldOutline in addIcons di StepPrestazioniComponent (era importata ma non registrata)."
+      "Blindatura Rotte Admin con superUserGuard: aggiunta protezione canActivate sugli URL diretti /partite/nuova, /giocatori/nuovo e /giocatori/:id/modifica per reindirizzare chi non ha la sessione Super User attiva.",
+      "Accesso Super User Silenzioso: rimosso il pulsante pubblico di login nelle impostazioni; l'autenticazione Admin resta accessibile esclusivamente tramite la consueta gesture segreta dei 5 tocchi sul titolo della Classifica.",
+      "Registrazione icona shieldOutline completata in StepPrestazioniComponent."
     ]
   },
   {

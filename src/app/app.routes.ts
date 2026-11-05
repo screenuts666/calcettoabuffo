@@ -12,6 +12,7 @@ export const routes: Routes = [
   },
   {
     path: 'partite/nuova',
+    canActivate: [superUserGuard],
     loadComponent: () =>
       import('./components/partite/partita-detail/partita-detail.page').then(
         (m) => m.PartitaDetailPage,
@@ -26,6 +27,7 @@ export const routes: Routes = [
   },
   {
     path: 'giocatori/nuovo',
+    canActivate: [superUserGuard],
     loadComponent: () =>
       import('./components/rosa/form-giocatore/form-giocatore.component').then(
         (m) => m.FormGiocatoreComponent,
@@ -33,6 +35,7 @@ export const routes: Routes = [
   },
   {
     path: 'giocatori/:id/modifica',
+    canActivate: [superUserGuard],
     loadComponent: () =>
       import('./components/rosa/form-giocatore/form-giocatore.component').then(
         (m) => m.FormGiocatoreComponent,

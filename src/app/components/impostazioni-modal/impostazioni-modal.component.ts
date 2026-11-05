@@ -113,7 +113,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (!this.authService.isAdmin() && this.initialTab === 'portiere') {
+    if (!this.authService.isAdmin()) {
       this.activeTab.set('sistema');
     } else {
       this.activeTab.set(this.initialTab);
