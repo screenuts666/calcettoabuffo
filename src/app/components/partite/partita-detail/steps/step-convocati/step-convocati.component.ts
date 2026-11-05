@@ -443,21 +443,6 @@ export class StepConvocatiComponent {
 
   // ─── GESTIONE INTEGRATA GMAIL (FEATURE FLAG) ──────────────────────────────
 
-  toggleGmailFeature() {
-    const next = this.gmail.toggleFeature();
-    this.toastCtrl
-      .create({
-        message: next
-          ? '📧 Notifiche Gmail: ATTIVATO (DEV)'
-          : '📧 Notifiche Gmail: DISATTIVATO',
-        duration: 2000,
-        color: next ? 'success' : 'medium',
-        position: 'top',
-        mode: 'ios',
-      })
-      .then((t) => t.present());
-  }
-
   async inviaInvitoGmail() {
     const data = await this.preparaDatiInvito();
     if (!data) return;

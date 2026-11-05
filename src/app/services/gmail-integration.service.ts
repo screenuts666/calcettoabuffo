@@ -56,6 +56,10 @@ export class GmailIntegrationService {
   );
 
   private initEnabledState(defaultVal: boolean): boolean {
+    // In produzione showUiToggle è false: la feature e la UI sono disabilitate e nascoste SEMPRE.
+    if (!this.config.showUiToggle) {
+      return false;
+    }
     if (typeof localStorage !== 'undefined') {
       try {
         const stored = localStorage.getItem('calcetto_gmail_integration_enabled');

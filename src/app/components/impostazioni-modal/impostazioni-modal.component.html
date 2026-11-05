@@ -517,6 +517,44 @@
         </div>
       }
 
+      <!-- SEZIONE DEV: FUNZIONI SPERIMENTALI & GMAIL (SOLO IN DEV, NASCOSTA SEMPRE IN PROD) -->
+      @if (isDevEnvironment && gmail.showUiToggle()) {
+        <div class="settings-section-card">
+          <div class="ssc-header">
+            <span class="ssc-icon">🛠️</span>
+            <div>
+              <h4>Funzioni DEV & Integrazione Gmail</h4>
+              <p>Switch di controllo per la funzione Gmail (Default: ON in DEV)</p>
+            </div>
+          </div>
+
+          <div class="toggles-list">
+            <div
+              class="toggle-row"
+              [class.active]="gmail.isFeatureEnabled()"
+              (click)="toggleGmailSetting()"
+            >
+              <div class="tr-left">
+                <span class="tr-emoji">✉️</span>
+                <div class="tr-text">
+                  <strong>Integrazione Convocazioni Gmail</strong>
+                  <small>
+                    Mostra il pulsante di invio/composizione email nello step Convocati
+                  </small>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="pill-switch"
+                [class.on]="gmail.isFeatureEnabled()"
+              >
+                <span class="knob"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- SEZIONE VERSIONE, NOTE DI RILASCIO & CACHE -->
       <div class="settings-section-card">
         <div class="ssc-header">

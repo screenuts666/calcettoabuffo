@@ -44,12 +44,14 @@ import {
   notificationsOutline,
   cloudDoneOutline,
   syncOutline,
+  mailOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
 import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
+import { GmailIntegrationService } from '../../services/gmail-integration.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
 
 export type SettingsTab = 'portiere' | 'match' | 'sistema';
@@ -72,6 +74,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   public appUpdate = inject(AppUpdateService);
   public authService = inject(AuthService);
   public soundSettings = inject(SoundSettingsService);
+  public gmail = inject(GmailIntegrationService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -110,6 +113,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       notificationsOutline,
       cloudDoneOutline,
       syncOutline,
+      mailOutline,
     });
   }
 
@@ -287,6 +291,14 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   async logoutSuperUser() {
     await this.authService.logoutAdmin();
     await this.mostraToast('Logout Super User effettuato', 'medium');
+  }
+
+  toggleGmailSetting() {
+    const next = this.gmail.toggleFeature();
+    this.mostraToast(
+      next ? '📧 Integrazione Gmail: ATTIVATA (DEV)' : '📧 Integrazione Gmail: DISATTIVATA',
+      next ? 'success' : 'medium'
+    );
   }
 
   private async mostraToast(
