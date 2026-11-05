@@ -209,3 +209,4 @@ export class GmailIntegrationService {
     window.location.href = mailtoUrl;
   }
 }
+

@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.0.7-dev",
+    "date": "05/11/2026",
+    "title": "Integrazione Convocazioni Gmail, Security Hardening & Flusso Match v2.0",
+    "userChanges": [
+      "✉️ Convocazioni & Notifiche Gmail: invio e composizione rapida degli inviti partita via email con tutti i dettagli logistici di campo e orario, corredati dal link di auto-risposta.",
+      "📲 Sequenza Step Partita v2.0: flusso naturale e guidato da 1. Coordinate (luogo/orario) -> 2. Convocati (con link RSVP immediato) -> 3. Formazioni Squadre.",
+      "🛡️ Navigazione Sicura & Privacy: sanitizzazione avanzata degli ingressi su tutti i dispositivi con totale protezione dei dati."
+    ],
+    "superUserChanges": [
+      "Feature Flag & UI Condizionale Gmail: toggle di attivazione presente in DEV (default attivo) e rimosso completamente dal DOM in ambiente di produzione, con logica e servizi compilati.",
+      "Security Audit & Least Privilege: credenziali hardcoded azzerate, scope Gmail ristretti a send/compose, protezione da Header Injection CRLF e validazione rigorosa dei parametri di input.",
+      "Unificazione Architetturale v2.0: codebase v2.0 estesa a tutti gli ambienti e deprecazione definitiva della vecchia v1.0."
+    ]
+  },
+  {
     "version": "NEXT",
     "date": "05/11/2026",
     "title": "Integrazione Convocazioni Gmail, Security Hardening & Flusso Match v2.0",
