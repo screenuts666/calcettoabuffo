@@ -3,6 +3,12 @@ export const environment = {
   appUrl: 'https://calcettoabuffone.web.app',
   googleWebClientId:
     '1048869516820-347c5gsquv8ga88l5hcvgshvc6pn87ls.apps.googleusercontent.com',
+  features: {
+    gmailIntegration: {
+      enabled: true,
+      showUiToggle: true,
+    },
+  },
   firebase: {
     apiKey: 'AIzaSyCqnjBXeJoJ7ZfUTLMYyAMBNhBZiazA7mA',
     authDomain: 'calcettoabuffone.firebaseapp.com',

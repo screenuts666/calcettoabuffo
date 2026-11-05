@@ -11,7 +11,7 @@
     "build:dev": "node scripts/bump-version.mjs --no-bump && nx build --configuration staging",
     "deploy:dev": "node scripts/bump-version.mjs && nx build --configuration staging && firebase deploy --only hosting,storage,firestore:rules --project default",
     "build:prod": "node scripts/bump-version.mjs --no-bump && nx build --configuration production",
-    "deploy:prod": "node -e \"console.error('❌ BLOCCO SICUREZZA v2.0-dev: Deploy su PROD disabilitato sul branch feature/v2.0-auth-roles per proteggere la v1.0 online!'); process.exit(1);\"",
+    "deploy:prod": "node scripts/bump-version.mjs && nx build --configuration production && firebase deploy --only hosting,storage,firestore:rules --project prod",
     "watch": "node scripts/bump-version.mjs --no-bump && nx build --watch --configuration development",
     "test": "nx test",
     "lint": "nx lint"

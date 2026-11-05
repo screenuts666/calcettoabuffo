@@ -162,7 +162,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     }
 
     this.routeSub = this.route.paramMap.subscribe(async (params) => {
-      const routeId = params.get('id');
+      const rawId = params.get('id');
+      const routeId = rawId ? rawId.replace(/[^a-zA-Z0-9_-]/g, '').trim() : '';
       if (!routeId || routeId === 'nuova') {
         await this.initNuovaPartita();
       } else {

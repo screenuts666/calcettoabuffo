@@ -923,7 +923,10 @@ export class MatchStateService {
    * Consentito SOLO quando la partita è nello step `'convocati'`.
    */
   async submitSelfRsvp(status: 'yes' | 'maybe' | 'no'): Promise<void> {
-    const mId = this.matchId();
+    if (!['yes', 'maybe', 'no'].includes(status)) {
+      throw new Error('Parametro stato RSVP non valido.');
+    }
+    const mId = this.matchId() ? this.matchId()!.replace(/[^a-zA-Z0-9_-]/g, '').trim() : null;
     const user = this.auth.firebaseUser();
     const playerId = this.auth.linkedPlayerId();
 

@@ -27,6 +27,9 @@ import {
   shieldCheckmarkOutline,
   personAddOutline,
   linkOutline,
+  mailOutline,
+  mail,
+  paperPlaneOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -37,6 +40,7 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 import { environment } from 'src/environments/environment';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { GmailIntegrationService } from 'src/app/services/gmail-integration.service';
 import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 import { getMatchInviteDeepLink } from 'src/app/utils/whatsapp-formatter';
 import { normalizeRsvpStatus } from 'src/app/models/partita.model';
@@ -63,6 +67,7 @@ import { AuthModalComponent } from '../../../../auth-modal/auth-modal.component'
 export class StepConvocatiComponent {
   public state = inject(MatchStateService);
   public auth = inject(AuthService);
+  public gmail = inject(GmailIntegrationService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
@@ -130,6 +135,9 @@ export class StepConvocatiComponent {
       shieldCheckmarkOutline,
       personAddOutline,
       linkOutline,
+      mailOutline,
+      mail,
+      paperPlaneOutline,
     });
   }
 
@@ -431,5 +439,60 @@ export class StepConvocatiComponent {
       position: 'top',
     });
     await toast.present();
+  }
+
+  // ─── GESTIONE INTEGRATA GMAIL (FEATURE FLAG) ──────────────────────────────
+
+  toggleGmailFeature() {
+    const next = this.gmail.toggleFeature();
+    this.toastCtrl
+      .create({
+        message: next
+          ? '📧 Notifiche Gmail: ATTIVATO (DEV)'
+          : '📧 Notifiche Gmail: DISATTIVATO',
+        duration: 2000,
+        color: next ? 'success' : 'medium',
+        position: 'top',
+        mode: 'ios',
+      })
+      .then((t) => t.present());
+  }
+
+  async inviaInvitoGmail() {
+    const data = await this.preparaDatiInvito();
+    if (!data) return;
+
+    const dataPartita = this.state.dataPartita()
+      ? new Date(this.state.dataPartita() + 'T00:00:00').toLocaleDateString(
+          'it-IT',
+          { weekday: 'long', day: 'numeric', month: 'long' }
+        )
+      : '';
+
+    const recipientEmails = this.state
+      .tutti()
+      .map((g) => (g as any).linkedEmail)
+      .filter((e): e is string => Boolean(e && e.includes('@')));
+
+    const opened = this.gmail.openGmailComposer({
+      matchId: this.state.matchId() || '',
+      dataStr: dataPartita,
+      luogo: this.state.luogo() || '',
+      orario: this.state.orario() || '',
+      deepLink: data.url,
+      recipientEmails,
+      totalConvocati: this.state.totaleConvocati(),
+    });
+
+    if (opened) {
+      const toast = await this.toastCtrl.create({
+        message: '📧 Apertura schermata Gmail per convocazione completata!',
+        duration: 2400,
+        color: 'success',
+        position: 'top',
+        mode: 'ios',
+      });
+      await toast.present();
+    }
   }
 }

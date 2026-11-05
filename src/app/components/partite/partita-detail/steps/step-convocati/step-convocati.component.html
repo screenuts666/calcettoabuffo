@@ -53,6 +53,41 @@
         </div>
       </div>
 
+      <!-- INTEGRAZIONE GMAIL (FEATURE-FLAGGED: VISIBILE SOLO IN DEV, COMPLETAMENTE ESCLUSA DAL DOM IN PROD) -->
+      @if (gmail.showUiToggle()) {
+        <div class="gmail-feature-bar">
+          <div class="gmail-feature-left">
+            <span class="gmail-brand-badge">
+              <ion-icon name="mail-outline"></ion-icon>
+              <span>Gmail Convocazioni</span>
+            </span>
+            <button
+              type="button"
+              class="gmail-toggle-pill"
+              [class.active]="gmail.isFeatureEnabled()"
+              (click)="toggleGmailFeature()"
+              title="Attiva o disattiva l'integrazione Gmail (DEV)"
+            >
+              <span class="toggle-indicator"></span>
+              <span>{{ gmail.isFeatureEnabled() ? 'GMAIL ON' : 'GMAIL OFF' }}</span>
+            </button>
+          </div>
+
+          @if (gmail.isFeatureEnabled()) {
+            <button
+              type="button"
+              class="btn-gmail-compose"
+              [disabled]="isPreparingInvite()"
+              (click)="inviaInvitoGmail()"
+              title="Componi e invia l'email di convocazione tramite Gmail"
+            >
+              <ion-icon name="paper-plane-outline"></ion-icon>
+              <span>Invia Email Convocati</span>
+            </button>
+          }
+        </div>
+      }
+
       <!-- SCELTA RSVP MODIFICABILE (3 STATI: Partecipo / Forse / Non partecipo) -->
       @if (auth.hasLinkedPlayer()) {
         <div class="irp-rsvp-box">
