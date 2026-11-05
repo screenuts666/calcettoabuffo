@@ -16,21 +16,35 @@ export interface EventoGol {
 export type ModalitaPortiere = 'rotazione' | 'fisso';
 
 export type RsvpStatus =
+  | 'yes'
+  | 'maybe'
+  | 'no'
   | 'invited'
   | 'confirmed'
   | 'declined'
-  | 'maybe'
   | 'waitlist';
-export type InviteSource = 'app' | 'whatsapp_link' | 'mister';
+export type InviteSource = 'self' | 'mister' | 'app' | 'whatsapp_link';
 
 export interface MatchRsvpEntry {
   uid: string;
   playerId: string;
   playerName: string;
   status: RsvpStatus;
+  selfRegistered?: boolean;
+  source?: InviteSource;
   updatedAt: string;
   respondedVia?: InviteSource;
   note?: string | null;
+}
+
+export function normalizeRsvpStatus(
+  status?: RsvpStatus | string | null
+): 'yes' | 'maybe' | 'no' | null {
+  if (!status) return null;
+  if (status === 'yes' || status === 'confirmed') return 'yes';
+  if (status === 'maybe') return 'maybe';
+  if (status === 'no' || status === 'declined') return 'no';
+  return null;
 }
 
 export interface MatchInvitiConfig {

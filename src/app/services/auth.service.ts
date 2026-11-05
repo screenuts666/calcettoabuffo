@@ -130,6 +130,19 @@ export class AuthService {
   readonly vaultExpiresAt = signal<number | null>(null);
   private vaultTimerId: ReturnType<typeof setTimeout> | null = null;
 
+  // Deep-Link Return URL (es. da invito partita `/partite/:id?invite=true`)
+  readonly pendingReturnUrl = signal<string | null>(null);
+
+  setReturnUrl(url: string | null) {
+    this.pendingReturnUrl.set(url ? url.trim() : null);
+  }
+
+  consumeReturnUrl(): string | null {
+    const val = this.pendingReturnUrl();
+    this.pendingReturnUrl.set(null);
+    return val;
+  }
+
   constructor() {
     this.cleanupLegacyLocalStorage();
 
@@ -476,6 +489,65 @@ export class AuthService {
   }
 
   /**
+   * Privacy Strict Numero di Telefono:
+   * Visibile ESCLUSIVAMENTE al `Mister` (`superuser`) e al giocatore proprietario della scheda
+   * (`currentUser.uid === player.linkedUid` oppure `linkedPlayerId() === player.id`).
+   * Tifosi (`guest`) e altri Atleti NON possono mai vederlo.
+   */
+  canViewPlayerPhone(
+    player?: { id?: string | null; linkedUid?: string | null } | null
+  ): boolean {
+    if (!player) return false;
+    if (this.isSuperUser()) return true;
+    const uid = this.firebaseUser()?.uid;
+    if (!uid) return false;
+    if (player.linkedUid && player.linkedUid === uid) return true;
+    if (player.id && this.linkedPlayerId() === player.id) return true;
+    return false;
+  }
+
+  /**
+   * Legge il numero di telefono dalla sottocollezione privata `giocatori/{playerId}/private/contact`.
+   * Restituisce `null` se l'utente non è autorizzato o se non è stato impostato.
+   */
+  async getPlayerPhoneNumber(playerId?: string | null): Promise<string | null> {
+    if (!playerId || !this.firestore || !this.isAuthenticated()) return null;
+    if (!this.isSuperUser() && this.linkedPlayerId() !== playerId) return null;
+
+    try {
+      const contactSnap = await getDoc(
+        doc(this.firestore, `giocatori/${playerId}/private/contact`)
+      );
+      if (!contactSnap.exists()) return null;
+      const phone = (contactSnap.data()?.['phoneNumber'] || '').toString().trim();
+      return phone || null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Salva il numero di telefono nella sottocollezione privata `giocatori/{playerId}/private/contact`.
+   * Consentito solo al `Mister` (`superuser`) o all'`Atleta` proprietario della scheda.
+   */
+  async savePlayerPhoneNumber(
+    playerId: string,
+    phoneNumber: string
+  ): Promise<void> {
+    const user = this.firebaseUser();
+    if (!playerId || !user || !this.firestore) return;
+    if (!this.canEditPlayer(playerId)) return;
+
+    const cleanPhone = (phoneNumber || '').toString().trim();
+    const now = new Date().toISOString();
+    await setDoc(doc(this.firestore, `giocatori/${playerId}/private/contact`), {
+      phoneNumber: cleanPhone,
+      updatedAt: now,
+      updatedBy: user.uid,
+    });
+  }
+
+  /**
    * Reclama un profilo giocatore (`giocatori/{playerId}`) associandolo all'utente loggato.
    * - Previene l'Account Hijacking: consente il reclamo solo se `linkedUid` sul giocatore è `null`/`undefined`
    *   (oppure se è il `Mister` a eseguire l'operazione).
@@ -561,7 +633,8 @@ export class AuthService {
    * - Se l'utente è `superuser` ("Mister"), mantiene `superuser` ("Mister") agganciando il `playerId`.
    */
   async createAndClaimPlayer(
-    playerPayload: Record<string, any>
+    playerPayload: Record<string, any>,
+    phoneNumber?: string | null
   ): Promise<string> {
     const user = this.firebaseUser();
     if (!user || !this.firestore) {
@@ -597,6 +670,18 @@ export class AuthService {
       claimedAt: now,
       updatedAt: now,
     });
+
+    const cleanPhone = (phoneNumber || '').toString().trim();
+    if (cleanPhone) {
+      batch.set(
+        doc(this.firestore, `giocatori/${newPlayerRef.id}/private/contact`),
+        {
+          phoneNumber: cleanPhone,
+          updatedAt: now,
+          updatedBy: user.uid,
+        }
+      );
+    }
 
     const nextRole: UserRole =
       currentRole === 'superuser' ? 'superuser' : 'user';

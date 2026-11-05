@@ -3,6 +3,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import {
@@ -47,10 +48,16 @@ import {
   people,
   refreshOutline,
   personAddOutline,
+  callOutline,
+  logoWhatsapp,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
+import {
+  formatPhoneForTel,
+  formatPhoneForWhatsAppUrl,
+} from 'src/app/utils/whatsapp-formatter';
 import {
   DEFAULT_AVATAR,
   getAvatarUrl,
@@ -105,6 +112,7 @@ export class RosaPage {
   }
 
   filtro = signal('');
+  privatePhonesMap = signal<Record<string, string>>({});
 
   tuttiIGiocatori = toSignal<Giocatore[], Giocatore[]>(
     (
@@ -154,6 +162,46 @@ export class RosaPage {
       people,
       refreshOutline,
       personAddOutline,
+      callOutline,
+      logoWhatsapp,
+    });
+
+    effect(() => {
+      const lista = this.tuttiIGiocatori() || [];
+      const isMister = this.auth.isSuperUser();
+      const myPlayerId = this.auth.linkedPlayerId();
+      const isAuth = this.auth.isAuthenticated();
+
+      if (!isAuth || lista.length === 0) {
+        this.privatePhonesMap.set({});
+        return;
+      }
+
+      const targets = isMister
+        ? lista.map((g) => g.id).filter(Boolean)
+        : myPlayerId
+          ? [myPlayerId]
+          : [];
+
+      if (targets.length === 0) {
+        this.privatePhonesMap.set({});
+        return;
+      }
+
+      Promise.all(
+        targets.map(async (pid) => {
+          const phone = await this.auth.getPlayerPhoneNumber(pid);
+          return { pid, phone };
+        })
+      ).then((results) => {
+        const nextMap: Record<string, string> = {};
+        for (const r of results) {
+          if (r.phone) {
+            nextMap[r.pid] = r.phone;
+          }
+        }
+        this.privatePhonesMap.set(nextMap);
+      });
     });
   }
 
@@ -163,6 +211,23 @@ export class RosaPage {
 
   canEditPlayer(playerId: string): boolean {
     return this.auth.canEditPlayer(playerId);
+  }
+
+  canViewPhone(g: Giocatore): boolean {
+    return this.auth.canViewPlayerPhone(g);
+  }
+
+  getPhoneForPlayer(playerId?: string | null): string | null {
+    if (!playerId) return null;
+    return this.privatePhonesMap()[playerId] || null;
+  }
+
+  getTelUrl(phone?: string | null): string {
+    return formatPhoneForTel(phone);
+  }
+
+  getWhatsAppUrl(phone?: string | null): string {
+    return formatPhoneForWhatsAppUrl(phone);
   }
 
   isMyPlayer(playerId: string): boolean {

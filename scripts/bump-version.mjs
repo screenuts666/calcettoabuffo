@@ -23,42 +23,25 @@ const args = process.argv.slice(2);
 const noBump = args.includes('--no-bump');
 
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-const currentVersion = pkg.version || '1.0.0';
+const currentVersion = pkg.version || '2.0.0-dev';
 
 let nextVersion = currentVersion;
 if (!noBump) {
-  let existingTopVersion = '';
-  if (fs.existsSync(publicReleaseNotesPath)) {
-    try {
-      const rn = JSON.parse(fs.readFileSync(publicReleaseNotesPath, 'utf-8'));
-      existingTopVersion = rn?.[0]?.version || '';
-    } catch {}
-  }
-
-  // Se la versione in package.json è già stata impostata manualmente (es. "2.0.0-dev")
-  // mantienila su 2.0.0-dev per il rilascio 2.0.0-dev
-  if (
-    currentVersion === '2.0.0-dev' &&
-    (existingTopVersion !== '2.0.0-dev' || existingTopVersion === '2.0.0-dev')
-  ) {
-    nextVersion = '2.0.0-dev';
+  const [coreVersion, preReleaseSuffix] = currentVersion.split('-');
+  const parts = coreVersion.split('.').map((n) => parseInt(n, 10) || 0);
+  if (parts[0] === 0 && parts[1] === 0) {
+    parts[0] = 2;
+    parts[1] = 0;
+    parts[2] = (parts[2] || 0) + 1;
   } else {
-    const [coreVersion, preReleaseSuffix] = currentVersion.split('-');
-    const parts = coreVersion.split('.').map((n) => parseInt(n, 10) || 0);
-    if (parts[0] === 0 && parts[1] === 0) {
-      parts[0] = 1;
-      parts[1] = 0;
-      parts[2] = (parts[2] || 0) + 1;
-    } else {
-      parts[2] = (parts[2] || 0) + 1;
-    }
-    const bumpedCore = `${parts[0]}.${parts[1]}.${parts[2]}`;
-    nextVersion = preReleaseSuffix
-      ? `${bumpedCore}-${preReleaseSuffix}`
-      : bumpedCore;
-    pkg.version = nextVersion;
-    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+    parts[2] = (parts[2] || 0) + 1;
   }
+  const bumpedCore = `${parts[0]}.${parts[1]}.${parts[2]}`;
+  nextVersion = preReleaseSuffix
+    ? `${bumpedCore}-${preReleaseSuffix}`
+    : bumpedCore;
+  pkg.version = nextVersion;
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
 }
 
 const timestamp = Date.now();
@@ -121,13 +104,9 @@ if (fs.existsSync(publicReleaseNotesPath)) {
 if (Array.isArray(releaseNotes) && releaseNotes.length > 0) {
   const top = releaseNotes[0];
 
-  // Se la prima voce è marcata come "NEXT" o "DRAFT", oppure se siamo nella stessa giornata,
+  // Se la prima voce è marcata come "NEXT" o "DRAFT",
   // allinea automaticamente la versione a `nextVersion` e la data a `shortDate`.
-  if (
-    top.version === 'NEXT' ||
-    top.version === 'DRAFT' ||
-    top.version === currentVersion
-  ) {
+  if (top.version === 'NEXT' || top.version === 'DRAFT') {
     top.version = nextVersion;
     top.date = shortDate;
   } else if (!noBump && top.version !== nextVersion) {
@@ -178,11 +157,13 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = ${JSON.stringify(
   )};
 
 /**
- * Confronta due stringhe semver "x.y.z" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
+ * Confronta due stringhe semver "x.y.z" o "x.y.z-dev" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
  */
 export function compareSemver(a: string, b: string): number {
-  const pa = (a || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
-  const pb = (b || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
+  const cleanA = (a || '0.0.0').split('-')[0];
+  const cleanB = (b || '0.0.0').split('-')[0];
+  const pa = cleanA.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = cleanB.split('.').map((n) => parseInt(n, 10) || 0);
   for (let i = 0; i < 3; i++) {
     const diff = (pa[i] || 0) - (pb[i] || 0);
     if (diff !== 0) return diff;

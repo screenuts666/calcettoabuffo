@@ -30,6 +30,7 @@ import { AiTtsButtonComponent } from '../../../../../../../shared/components';
 export class PrestazioniTabStatisticheComponent {
   @Input() matchId?: string | null = null;
   @Input({ required: true }) report!: MatchReportData;
+  @Input() isAdmin: boolean = false;
   @Input() pronosticoAi?: string | null = null;
   @Input() isGeneratingPronostico: boolean = false;
 

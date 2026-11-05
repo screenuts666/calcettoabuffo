@@ -114,7 +114,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (!this.authService.isAdmin() && this.initialTab === 'portiere') {
+    if (!this.authService.isSuperUser()) {
       this.activeTab.set('sistema');
     } else {
       this.activeTab.set(this.initialTab);
@@ -127,6 +127,10 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   setTab(tab: SettingsTab) {
+    if (!this.authService.isSuperUser() && tab !== 'sistema') {
+      this.activeTab.set('sistema');
+      return;
+    }
     this.soundSettings.stopPreview();
     this.activeTab.set(tab);
   }

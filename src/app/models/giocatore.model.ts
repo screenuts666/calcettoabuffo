@@ -41,6 +41,15 @@ export interface Giocatore {
   linkedEmail?: string | null;
   claimedAt?: string | null;
   updatedAt?: string;
+
+  // Dato privato (letto/scritto esclusivamente in `giocatori/{playerId}/private/contact`)
+  phoneNumber?: string | null;
+}
+
+export interface PlayerPrivateContact {
+  phoneNumber: string;
+  updatedAt: string;
+  updatedBy?: string | null;
 }
 
 export interface GiocatoreConPunti extends Giocatore {

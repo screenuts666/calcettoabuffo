@@ -15,6 +15,15 @@
     }}</ion-title>
 
     <ion-buttons slot="end" class="detail-header-end">
+      @if (state.matchId() || isAdmin) {
+        <ion-button
+          (click)="apriCondivisionePartita()"
+          title="Condividi Partita su WhatsApp"
+          aria-label="Condividi Partita"
+        >
+          <ion-icon name="logo-whatsapp" color="success"></ion-icon>
+        </ion-button>
+      }
       @if (isAdmin) {
         <app-sync-status-badge [compact]="true"></app-sync-status-badge>
       }
@@ -95,18 +104,6 @@
       </p>
     </div>
   } @else {
-    <!-- WIDGET CONVOCAZIONI & RSVP (Per Atleti e Mister-Giocatori) -->
-    @if (hasRsvpOrOpen()) {
-      <div style="padding: 8px 12px 0;">
-        <app-match-rsvp-widget
-          [matchId]="state.matchId()"
-          [rsvpMap]="state.rsvp()"
-          [matchConcluso]="state.matchConcluso()"
-          (rsvpUpdated)="state.rsvp.set($event)"
-        ></app-match-rsvp-widget>
-      </div>
-    }
-
     @if (state.step() === "convocati") {
       <app-step-convocati></app-step-convocati>
     }

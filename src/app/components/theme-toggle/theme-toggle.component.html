@@ -37,8 +37,8 @@
   <ion-button
     (click)="openThemeMenu()"
     class="theme-toggle-btn"
-    [title]="'Impostazioni, Suoni Cambio Portiere & Tema (v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ')'"
-    aria-label="Impostazioni, Suoni e Tema"
+    [title]="(authService.isSuperUser() ? 'Impostazioni, Suoni Cambio Portiere & Tema' : 'Impostazioni & Tema') + ' (v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ')'"
+    aria-label="Impostazioni e Tema"
   >
     @if (isDevEnvironment) {
       <span class="dev-mode-mini-pill">DEV</span>

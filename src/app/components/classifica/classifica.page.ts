@@ -1047,14 +1047,11 @@ export class ClassificaPage {
   private clickCount = 0;
 
   async secretTitleClick() {
+    if (!this.isAdmin()) return;
     this.clickCount++;
     if (this.clickCount >= 5) {
       this.clickCount = 0;
-      if (this.isAdmin()) {
-        await this.logoutAdmin();
-      } else {
-        await this.loginAdmin();
-      }
+      await this.logoutAdmin();
     }
   }
 

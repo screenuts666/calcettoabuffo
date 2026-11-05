@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border share-modal-header">
   <ion-toolbar>
-    <ion-title>Condividi Partita</ion-title>
+    <ion-title>{{ modalTitle() }}</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="chiudi()" class="modal-close-btn" aria-label="Chiudi">
         <ion-icon name="close-outline" slot="icon-only"></ion-icon>
@@ -26,41 +26,65 @@
       <div class="summary-info">
         <div class="summary-meta">
           <ion-icon name="calendar-outline"></ion-icon>
-          <span>{{ partita.dataPartita | date:'dd/MM/yyyy' }} &bull; {{ partita.luogo }}</span>
+          <span>{{ partita.dataPartita | date:'dd/MM/yyyy' }} &bull; {{ partita.luogo || 'Campetto' }}</span>
         </div>
         <div class="summary-score-row">
-          @if (partita.status === 'conclusa') {
-          <span class="score-pill">
-            Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
-          </span>
-          } @else {
-          <span class="status-pill">{{ partita.status === 'in_corso' ? '⚡ IN CORSO' : '⚽ PROGRAMMATA' }}</span>
+          @switch (sharePhase()) {
+            @case ('convocazioni') {
+              <span class="status-pill">📢 CONVOCAZIONI APERTE ({{ partita.convocati.length }} presenti)</span>
+            }
+            @case ('pre_match') {
+              <span class="status-pill">⚔️ FORMAZIONI PRONTE ({{ partita.teamA.length }} vs {{ partita.teamB.length }})</span>
+            }
+            @case ('in_corso') {
+              <span class="score-pill">
+                🔴 LIVE: Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
+              </span>
+            }
+            @case ('conclusa_senza_pagelle') {
+              <span class="score-pill">
+                🏁 Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
+              </span>
+            }
+            @default {
+              <span class="score-pill">
+                🏆 Bianchi <strong>{{ partita.scoreA }}</strong> - <strong>{{ partita.scoreB }}</strong> Neri
+              </span>
+            }
           }
         </div>
       </div>
     </div>
 
-    <!-- Barra Opzioni Orizzontale a Scorrimento Fluido -->
+    <!-- Barra Opzioni Orizzontale a Scorrimento Fluido Contestuale allo Stato -->
     <div class="options-bar">
       <div class="options-hint">Personalizza contenuto:</div>
       <div class="chips-scroll-track">
+        <!-- Opzione 1: Convocati / Formazioni / Parziale / Risultato -->
         <ion-chip [class.chip-active]="includeRisultato()" (click)="toggleOption('risultato')">
-          <ion-icon [name]="includeRisultato() ? 'checkmark-circle' : 'trophy-outline'"
+          <ion-icon
+            [name]="includeRisultato() ? 'checkmark-circle' : (sharePhase() === 'convocazioni' ? 'people-outline' : 'trophy-outline')"
             [color]="includeRisultato() ? 'success' : 'medium'"></ion-icon>
-          <ion-label>Risultato</ion-label>
+          <ion-label>{{ primaryOptionLabel() }}</ion-label>
         </ion-chip>
 
+        <!-- Marcatori: solo se partita in corso o conclusa -->
+        @if (sharePhase() === 'in_corso' || sharePhase() === 'conclusa_senza_pagelle' || sharePhase() === 'conclusa_con_pagelle') {
         <ion-chip [class.chip-active]="includeMarcatori()" (click)="toggleOption('marcatori')">
           <ion-icon [name]="includeMarcatori() ? 'checkmark-circle' : 'football-outline'"
             [color]="includeMarcatori() ? 'success' : 'medium'"></ion-icon>
-          <ion-label>Marcatori</ion-label>
+          <ion-label>Marcatori & Assist</ion-label>
         </ion-chip>
+        }
 
+        <!-- Pagelle: solo se la partita è conclusa e ha voti inseriti -->
+        @if (sharePhase() === 'conclusa_con_pagelle' && hasVotiDisponibili()) {
         <ion-chip [class.chip-active]="includePagelle()" (click)="toggleOption('pagelle')">
           <ion-icon [name]="includePagelle() ? 'checkmark-circle' : 'document-text-outline'"
             [color]="includePagelle() ? 'success' : 'medium'"></ion-icon>
-          <ion-label>Pagelle</ion-label>
+          <ion-label>Pagelle & MVP</ion-label>
         </ion-chip>
+        }
 
         @if (partita.fotoUrl) {
         <ion-chip [class.chip-active]="includeFoto()" (click)="toggleOption('foto')">
@@ -73,7 +97,7 @@
         <ion-chip [class.chip-active]="includeLink()" (click)="toggleOption('link')">
           <ion-icon [name]="includeLink() ? 'checkmark-circle' : 'link-outline'"
             [color]="includeLink() ? 'success' : 'medium'"></ion-icon>
-          <ion-label>Link App</ion-label>
+          <ion-label>{{ sharePhase() === 'convocazioni' ? 'Link Invito RSVP' : 'Link App' }}</ion-label>
         </ion-chip>
 
         @if (hasCommentoDisponibile()) {
@@ -85,31 +109,40 @@
         </ion-chip>
         }
 
+        <!-- Pronostico AI: se disponibile o generabile nel Pre-Match -->
         @if (hasPronosticoDisponibile()) {
         <ion-chip [class.chip-active]="includePronosticoAi()" (click)="toggleOption('pronostico')" class="ai-chip">
           <ion-icon [name]="includePronosticoAi() ? 'checkmark-circle' : 'sparkles'"
             [color]="includePronosticoAi() ? 'success' : 'medium'"></ion-icon>
           <ion-label>🔮 Pronostico AI</ion-label>
         </ion-chip>
+        } @else if (isSuperUser && sharePhase() === 'pre_match' && reportData().odds) {
+        <ion-chip (click)="generaPronostico()" class="ai-chip generate-chip">
+          <ion-icon name="sparkles" color="warning"></ion-icon>
+          <ion-label>{{ isGeneratingPronostico() ? 'Generazione...' : '🔮 + Pronostico AI' }}</ion-label>
+        </ion-chip>
         }
 
-        @if (hasCronacaDisponibile()) {
-        <ion-chip [class.chip-active]="includeCronacaAi()" (click)="toggleOption('cronaca')" class="ai-chip">
-          <ion-icon [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"
-            [color]="includeCronacaAi() ? 'success' : 'medium'"></ion-icon>
-          <ion-label>🎙️ Cronaca AI</ion-label>
-        </ion-chip>
+        <!-- Cronaca AI: solo quando la partita è conclusa -->
+        @if (sharePhase() === 'conclusa_senza_pagelle' || sharePhase() === 'conclusa_con_pagelle') {
+          @if (hasCronacaDisponibile()) {
+          <ion-chip [class.chip-active]="includeCronacaAi()" (click)="toggleOption('cronaca')" class="ai-chip">
+            <ion-icon [name]="includeCronacaAi() ? 'checkmark-circle' : 'mic-outline'"
+              [color]="includeCronacaAi() ? 'success' : 'medium'"></ion-icon>
+            <ion-label>🎙️ Cronaca AI</ion-label>
+          </ion-chip>
 
-        <ion-chip (click)="inviaAudioCronacaWhatsApp()" class="ai-chip audio-direct-chip" [disabled]="isSharingAudio()"
-          title="Invia direttamente l'audio della telecronaca su WhatsApp">
-          <ion-icon name="logo-whatsapp" color="success"></ion-icon>
-          <ion-label>{{ isSharingAudio() ? 'Preparazione...' : '🎧 Audio WhatsApp' }}</ion-label>
-        </ion-chip>
-        } @else {
-        <ion-chip (click)="generaCronaca()" class="ai-chip generate-chip">
-          <ion-icon name="sparkles" color="warning"></ion-icon>
-          <ion-label>{{ isGeneratingCronaca() ? 'Generazione...' : '🎙️ + Cronaca AI' }}</ion-label>
-        </ion-chip>
+          <ion-chip (click)="inviaAudioCronacaWhatsApp()" class="ai-chip audio-direct-chip" [disabled]="isSharingAudio()"
+            title="Invia direttamente l'audio della telecronaca su WhatsApp">
+            <ion-icon name="logo-whatsapp" color="success"></ion-icon>
+            <ion-label>{{ isSharingAudio() ? 'Preparazione...' : '🎧 Audio WhatsApp' }}</ion-label>
+          </ion-chip>
+          } @else if (isSuperUser) {
+          <ion-chip (click)="generaCronaca()" class="ai-chip generate-chip">
+            <ion-icon name="sparkles" color="warning"></ion-icon>
+            <ion-label>{{ isGeneratingCronaca() ? 'Generazione...' : '🎙️ + Cronaca AI' }}</ion-label>
+          </ion-chip>
+          }
         }
       </div>
     </div>
@@ -143,10 +176,10 @@
     <ion-button expand="block" color="success" class="whatsapp-primary-btn"
       [disabled]="isSharingNative() || isSharingAudio()" (click)="inviaWhatsApp()">
       <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
-      <span>{{ includeFoto() && partita.fotoUrl ? 'Invia Foto + Report su WhatsApp' : 'Invia su WhatsApp' }}</span>
+      <span>{{ primaryCtaLabel() }}</span>
     </ion-button>
 
-    @if (hasCronacaDisponibile()) {
+    @if ((sharePhase() === 'conclusa_senza_pagelle' || sharePhase() === 'conclusa_con_pagelle') && hasCronacaDisponibile()) {
     <ion-button expand="block" class="whatsapp-audio-action-btn" [disabled]="isSharingAudio() || isSharingNative()"
       (click)="inviaAudioCronacaWhatsApp()">
       @if (isSharingAudio()) {

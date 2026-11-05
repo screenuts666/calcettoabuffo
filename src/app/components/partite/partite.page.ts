@@ -83,7 +83,6 @@ import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
 import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
 import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
-import { MatchRsvpWidgetComponent } from './match-rsvp-widget/match-rsvp-widget.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
 import {
@@ -153,7 +152,6 @@ export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
     IonButtons,
     ThemeToggleComponent,
     TacticalPitchComponent,
-    MatchRsvpWidgetComponent,
   ],
 })
 export class PartitePage {

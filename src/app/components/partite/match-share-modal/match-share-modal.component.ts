@@ -48,16 +48,21 @@ import {
   micOutline,
   volumeHighOutline,
   chatboxEllipsesOutline,
+  peopleOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../models/partita.model';
 import {
   formatMatchForWhatsApp,
   getMatchDeepLink,
+  getMatchInviteDeepLink,
+  getMatchSharePhase,
+  MatchSharePhase,
   WhatsAppShareOptions,
 } from '../../../utils/whatsapp-formatter';
 import { StatsEngineService } from '../../../services/stats-engine.service';
 import { GeminiService } from '../../../services/gemini.service';
 import { TtsService } from '../../../services/tts.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-match-share-modal',
@@ -88,11 +93,20 @@ export class MatchShareModalComponent implements OnInit {
   private statsEngine = inject(StatsEngineService);
   private geminiService = inject(GeminiService);
   public ttsService = inject(TtsService);
+  public auth = inject(AuthService);
+
+  get isSuperUser(): boolean {
+    return this.auth.isSuperUser();
+  }
 
   @Input({ required: true }) partita!: Partita;
 
   reportData = computed(() => {
     return this.statsEngine.getMatchReport(this.partita);
+  });
+
+  sharePhase = computed<MatchSharePhase>(() => {
+    return getMatchSharePhase(this.partita);
   });
 
   // Opzioni selezionabili
@@ -108,6 +122,7 @@ export class MatchShareModalComponent implements OnInit {
   isSharingNative = signal<boolean>(false);
   isSharingAudio = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);
+  isGeneratingPronostico = signal<boolean>(false);
 
   constructor() {
     addIcons({
@@ -131,25 +146,29 @@ export class MatchShareModalComponent implements OnInit {
       micOutline,
       volumeHighOutline,
       chatboxEllipsesOutline,
+      peopleOutline,
     });
   }
 
   ngOnInit() {
-    // Se la partita non ha pagelle inserite, disattiviamo di default l'opzione pagelle
-    const hasVoti = [
-      ...(this.partita.teamA || []),
-      ...(this.partita.teamB || []),
-    ].some(
-      (g) => g.voto !== undefined && g.voto !== null && Number(g.voto) > 0,
-    );
+    const phase = getMatchSharePhase(this.partita);
 
-    if (!this.partita.pagelleInserite && !hasVoti) {
+    if (phase !== 'conclusa_con_pagelle') {
       this.includePagelle.set(false);
     }
 
-    const hasPronostico = Boolean(this.partita.pronosticoAi || this.reportData()?.pronosticoAi);
+    if (phase === 'convocazioni' || phase === 'pre_match') {
+      this.includeMarcatori.set(false);
+    }
+
+    const hasPronostico = Boolean(
+      this.partita.pronosticoAi || this.reportData()?.pronosticoAi,
+    );
     this.includePronosticoAi.set(hasPronostico);
-    const hasCronaca = Boolean(this.partita.cronacaAi || this.reportData()?.cronacaAi);
+
+    const hasCronaca =
+      (phase === 'conclusa_con_pagelle' || phase === 'conclusa_senza_pagelle') &&
+      Boolean(this.partita.cronacaAi || this.reportData()?.cronacaAi);
     this.includeCronacaAi.set(hasCronaca);
 
     this.includeCommentoPartita.set(this.hasCommentoDisponibile());
@@ -158,6 +177,58 @@ export class MatchShareModalComponent implements OnInit {
       this.includeFoto.set(false);
     }
   }
+
+  modalTitle = computed(() => {
+    switch (this.sharePhase()) {
+      case 'convocazioni':
+        return 'Condividi Invito & Convocati';
+      case 'pre_match':
+        return 'Condividi Pre-Match & Squadre';
+      case 'in_corso':
+        return 'Condividi Aggiornamento Live';
+      case 'conclusa_senza_pagelle':
+        return 'Condividi Risultato Finale';
+      case 'conclusa_con_pagelle':
+      default:
+        return 'Condividi Report & Pagelle';
+    }
+  });
+
+  primaryOptionLabel = computed(() => {
+    switch (this.sharePhase()) {
+      case 'convocazioni':
+        return 'Lista Convocati';
+      case 'pre_match':
+        return 'Formazioni & Quote';
+      case 'in_corso':
+        return 'Parziale & Squadre';
+      default:
+        return 'Risultato & Squadre';
+    }
+  });
+
+  primaryCtaLabel = computed(() => {
+    const withPhoto = this.includeFoto() && Boolean(this.partita?.fotoUrl);
+    switch (this.sharePhase()) {
+      case 'convocazioni':
+        return 'Invia Invito & Convocati su WhatsApp';
+      case 'pre_match':
+        return withPhoto
+          ? 'Invia Foto + Pre-Match su WhatsApp'
+          : 'Invia Formazioni Pre-Match su WhatsApp';
+      case 'in_corso':
+        return 'Invia Aggiornamento Live su WhatsApp';
+      case 'conclusa_senza_pagelle':
+        return withPhoto
+          ? 'Invia Foto + Risultato su WhatsApp'
+          : 'Invia Risultato Finale su WhatsApp';
+      case 'conclusa_con_pagelle':
+      default:
+        return withPhoto
+          ? 'Invia Foto + Report su WhatsApp'
+          : 'Invia Report Completo su WhatsApp';
+    }
+  });
 
   hasPronosticoDisponibile = computed(() => {
     return Boolean(this.partita?.pronosticoAi || this.reportData()?.pronosticoAi);
@@ -169,7 +240,11 @@ export class MatchShareModalComponent implements OnInit {
 
   hasCommentoDisponibile = computed(() => {
     return Boolean(
-      (this.partita?.commentoPartita || (this.partita as any)?.commento || this.reportData()?.commentoPartita)?.trim()
+      (
+        this.partita?.commentoPartita ||
+        (this.partita as any)?.commento ||
+        this.reportData()?.commentoPartita
+      )?.trim(),
     );
   });
 
@@ -183,6 +258,9 @@ export class MatchShareModalComponent implements OnInit {
   });
 
   deepLink = computed(() => {
+    if (this.sharePhase() === 'convocazioni') {
+      return getMatchInviteDeepLink(this.partita?.id);
+    }
     return getMatchDeepLink(this.partita?.id);
   });
 
@@ -201,7 +279,17 @@ export class MatchShareModalComponent implements OnInit {
     return formatMatchForWhatsApp(this.partita, options, this.reportData());
   });
 
-  toggleOption(key: 'risultato' | 'marcatori' | 'pagelle' | 'link' | 'foto' | 'cronaca' | 'pronostico' | 'commento') {
+  toggleOption(
+    key:
+      | 'risultato'
+      | 'marcatori'
+      | 'pagelle'
+      | 'link'
+      | 'foto'
+      | 'cronaca'
+      | 'pronostico'
+      | 'commento',
+  ) {
     switch (key) {
       case 'risultato':
         this.includeRisultato.update((v) => !v);
@@ -221,9 +309,47 @@ export class MatchShareModalComponent implements OnInit {
       case 'cronaca':
         this.includeCronacaAi.update((v) => !v);
         break;
+      case 'pronostico':
+        this.includePronosticoAi.update((v) => !v);
+        break;
       case 'commento':
         this.includeCommentoPartita.update((v) => !v);
         break;
+    }
+  }
+
+  async generaPronostico() {
+    if (this.isGeneratingPronostico()) return;
+    const odds = this.reportData()?.odds;
+    if (!odds) return;
+
+    this.isGeneratingPronostico.set(true);
+    try {
+      const text = await this.geminiService.getOrGeneratePronostico(
+        this.partita,
+        odds,
+        true,
+      );
+      this.partita.pronosticoAi = text;
+      this.includePronosticoAi.set(true);
+      const toast = await this.toastCtrl.create({
+        message: '🔮 Pronostico Pre-Match AI generato e salvato!',
+        duration: 2500,
+        color: 'success',
+        position: 'bottom',
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.error(err);
+      const toast = await this.toastCtrl.create({
+        message: 'Errore generazione pronostico AI: ' + (err.message || err),
+        duration: 3000,
+        color: 'danger',
+        position: 'bottom',
+      });
+      await toast.present();
+    } finally {
+      this.isGeneratingPronostico.set(false);
     }
   }
 
@@ -355,7 +481,7 @@ export class MatchShareModalComponent implements OnInit {
   async condividiNativo() {
     this.isSharingNative.set(true);
     const loading = await this.loadingCtrl.create({
-      message: 'Preparazione foto e report...',
+      message: 'Preparazione condivisione...',
       mode: 'ios',
       duration: 6000,
     });
@@ -373,8 +499,6 @@ export class MatchShareModalComponent implements OnInit {
       }
 
       if (typeof navigator !== 'undefined' && 'share' in navigator) {
-        // Se c'è il file foto ed è supportato da canShare, condividiamo con file e testo
-        // IMPORTANTE: non passare 'url' contemporaneamente a 'files' su iOS Safari, altrimenti viene rifiutato
         if (
           fileFoto &&
           'canShare' in navigator &&
@@ -382,23 +506,21 @@ export class MatchShareModalComponent implements OnInit {
         ) {
           await loading.dismiss();
           await navigator.share({
-            title: 'Report Match',
+            title: this.modalTitle(),
             text: testo,
             files: [fileFoto],
           });
           return;
         } else {
-          // Solo testo e url
           await loading.dismiss();
           await navigator.share({
-            title: 'Report Match',
+            title: this.modalTitle(),
             text: testo,
             url: this.deepLink(),
           });
           return;
         }
       } else {
-        // Se Web Share non è supportato (es. desktop), apriamo WhatsApp via URL wa.me
         await loading.dismiss();
         this.inviaWhatsAppWeb();
       }
@@ -444,7 +566,7 @@ export class MatchShareModalComponent implements OnInit {
       const res = await this.ttsService.shareAudioToWhatsApp(
         cronaca,
         `cronaca-${this.partita.id || 'temp'}`,
-        title
+        title,
       );
       await loading.dismiss();
 

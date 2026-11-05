@@ -142,9 +142,10 @@ export class TrashService {
     const now = Date.now();
     const trashId = `giocatori_${player.id}`;
 
-    // Rimuovi il campo `id` virtuale dal payload salvato
+    // Rimuovi il campo `id` virtuale e `phoneNumber` (protetto in sottocollezione) dal payload pubblico
     const cleanPayload: Record<string, any> = { ...player };
     delete cleanPayload['id'];
+    delete cleanPayload['phoneNumber'];
 
     const trashItem: TrashItem = {
       id: trashId,

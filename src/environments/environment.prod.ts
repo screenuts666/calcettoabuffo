@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  appUrl: 'https://calcettoabuffone-prod.web.app',
   googleWebClientId:
     '188767969527-jscjmees8bqfjhuqu5v6nlq80222dchm.apps.googleusercontent.com',
   firebase: {

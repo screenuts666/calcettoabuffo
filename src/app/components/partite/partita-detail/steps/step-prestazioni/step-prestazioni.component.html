@@ -8,7 +8,7 @@
     [scoreA]="state.scoreA()"
     [scoreB]="state.scoreB()"
     [pagelleInserite]="state.pagelleInserite()"
-    [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+    [isAdmin]="isAdmin"
     [scorersA]="scorersA()"
     [scorersB]="scorersB()"
     [isUpset]="report().isUpset"
@@ -82,7 +82,7 @@
         [mvp]="report().mvp"
         [worst]="report().worst"
         [eventiGol]="state.eventiGol()"
-        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [isAdmin]="isAdmin"
         [gkSummary]="gkSummary()"
         (shareClick)="apriCondivisione()"
         (editAssistClick)="modificaAssistEvento($event)"
@@ -105,7 +105,7 @@
         [teamAvgMmrDeltaA]="report().teamAvgMmrDeltaA"
         [teamAvgMmrDeltaB]="report().teamAvgMmrDeltaB"
         [pagelleInserite]="state.pagelleInserite()"
-        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [isAdmin]="isAdmin"
         [mvpId]="report().mvp?.id"
         (voteChange)="aggiornaVoto($event.player, $event.event)"
         (noteChange)="aggiornaNote($event.player, $event.note)"
@@ -116,7 +116,7 @@
     @if (activeTab() === 'portieri') {
       <app-prestazioni-tab-portieri
         [match]="match()"
-        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [isAdmin]="isAdmin"
         [gkSummary]="gkSummary()"
         [parateIncredibili]="state.parateIncredibili()"
         [notePortieri]="state.notePortieri()"
@@ -132,7 +132,7 @@
         [commentoPartita]="state.commentoPartita()"
         [cronacaAi]="state.cronacaAi()"
         [chemistryNotes]="report().chemistryNotes"
-        [isAdmin]="state.matchDataOriginale?.isAdmin ?? false"
+        [isAdmin]="isAdmin"
         [isSavingCommento]="isSavingCommento()"
         [isGeneratingCronaca]="isGeneratingCronaca()"
         (commentoChange)="onCommentoPartitaChange($event)"
@@ -146,6 +146,7 @@
       <app-prestazioni-tab-statistiche
         [matchId]="state.matchId()"
         [report]="report()"
+        [isAdmin]="isAdmin"
         [pronosticoAi]="state.pronosticoAi()"
         [isGeneratingPronostico]="isGeneratingPronostico()"
         (generatePronosticoClick)="generaPronostico($event)"
@@ -154,7 +155,7 @@
   </div>
 
   <!-- 4. PULSANTE FLOTTANTE ADMIN PER SALVATAGGIO -->
-  @if (state.matchDataOriginale?.isAdmin) {
+  @if (isAdmin) {
     <div class="fab-fixed-container">
       <button
         class="fab-round"

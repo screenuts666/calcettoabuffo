@@ -604,8 +604,45 @@
   <!-- ============================================== -->
   <!-- DETTAGLI PERSONALI & BIO GOLIARDICA            -->
   <!-- ============================================== -->
-  @if (prof?.professione || prof?.origini || prof?.statoCivile || prof?.vizi) {
+  @if (prof?.professione || prof?.origini || prof?.statoCivile || prof?.vizi || (canViewPhone && privatePhoneNumber())) {
     <div class="personal-bio-grid">
+      @if (canViewPhone && privatePhoneNumber()) {
+        <div
+          class="bio-pill"
+          style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08);"
+          title="Dato privato visibile esclusivamente al Mister e al giocatore proprietario"
+        >
+          <span class="bio-pill-icon">📞</span>
+          <div class="bio-pill-text" style="flex: 1;">
+            <span class="bio-pill-label" style="color: #38bdf8;">
+              Telefono (🔒 Privato)
+            </span>
+            <span class="bio-pill-val" style="font-weight: 800;">
+              {{ privatePhoneNumber() }}
+            </span>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+              <a
+                [href]="getTelUrl(privatePhoneNumber())"
+                (click)="$event.stopPropagation()"
+                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
+              >
+                <ion-icon name="call-outline"></ion-icon>
+                <span>Chiama</span>
+              </a>
+              <a
+                [href]="getWhatsAppUrl(privatePhoneNumber())"
+                target="_blank"
+                rel="noopener noreferrer"
+                (click)="$event.stopPropagation()"
+                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(37, 211, 102, 0.18); border: 1px solid rgba(37, 211, 102, 0.45); color: #25d366; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+                <span>WhatsApp</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      }
       @if (prof?.professione) {
         <div class="bio-pill">
           <span class="bio-pill-icon">💼</span>

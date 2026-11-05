@@ -6,10 +6,10 @@
       </div>
       <div class="mtb-title-text">
         <span class="mtb-title">Impostazioni</span>
-        <span class="mtb-subtitle">Suoni, Partite & App</span>
+        <span class="mtb-subtitle">{{ authService.isSuperUser() ? 'Suoni, Partite & App' : 'Tema & Informazioni App' }}</span>
       </div>
-      @if (authService.isAdmin()) {
-        <span class="su-pill">👑 Admin</span>
+      @if (authService.isSuperUser()) {
+        <span class="su-pill">👑 Mister</span>
       }
     </div>
 
@@ -37,52 +37,54 @@
     </div>
   </div>
 
-  <!-- BANNER STATO SINCRONIZZAZIONE CLOUD -->
-  <div class="cloud-sync-banner" [class.saving]="soundSettings.isSavingCloud()">
-    <div class="csb-content">
-      <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
-      <span>
-        @if (soundSettings.isSavingCloud()) {
-          Salvataggio impostazioni sul cloud in corso...
-        } @else if (soundSettings.lastSavedAt()) {
-          Sincronizzato sul cloud alle {{ soundSettings.lastSavedAt() }}
-        } @else {
-          Sincronizzazione cloud attiva (Firebase)
-        }
-      </span>
+  @if (authService.isSuperUser()) {
+    <!-- BANNER STATO SINCRONIZZAZIONE CLOUD (SOLO SUPER USER) -->
+    <div class="cloud-sync-banner" [class.saving]="soundSettings.isSavingCloud()">
+      <div class="csb-content">
+        <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
+        <span>
+          @if (soundSettings.isSavingCloud()) {
+            Salvataggio impostazioni sul cloud in corso...
+          } @else if (soundSettings.lastSavedAt()) {
+            Sincronizzato sul cloud alle {{ soundSettings.lastSavedAt() }}
+          } @else {
+            Sincronizzazione cloud attiva (Firebase)
+          }
+        </span>
+      </div>
     </div>
-  </div>
 
-  <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
-  <div class="settings-tabs-bar">
-    <button
-      type="button"
-      class="s-tab-btn"
-      [class.active]="activeTab() === 'portiere'"
-      (click)="setTab('portiere')"
-    >
-      <ion-icon name="volume-high"></ion-icon>
-      <span>Portieri</span>
-    </button>
-    <button
-      type="button"
-      class="s-tab-btn"
-      [class.active]="activeTab() === 'match'"
-      (click)="setTab('match')"
-    >
-      <ion-icon name="football-outline"></ion-icon>
-      <span>Match & Gol</span>
-    </button>
-    <button
-      type="button"
-      class="s-tab-btn"
-      [class.active]="activeTab() === 'sistema'"
-      (click)="setTab('sistema')"
-    >
-      <ion-icon name="sparkles-outline"></ion-icon>
-      <span>Tema & App</span>
-    </button>
-  </div>
+    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE (SOLO SUPER USER) -->
+    <div class="settings-tabs-bar">
+      <button
+        type="button"
+        class="s-tab-btn"
+        [class.active]="activeTab() === 'portiere'"
+        (click)="setTab('portiere')"
+      >
+        <ion-icon name="volume-high"></ion-icon>
+        <span>Portieri</span>
+      </button>
+      <button
+        type="button"
+        class="s-tab-btn"
+        [class.active]="activeTab() === 'match'"
+        (click)="setTab('match')"
+      >
+        <ion-icon name="football-outline"></ion-icon>
+        <span>Match & Gol</span>
+      </button>
+      <button
+        type="button"
+        class="s-tab-btn"
+        [class.active]="activeTab() === 'sistema'"
+        (click)="setTab('sistema')"
+      >
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <span>Tema & App</span>
+      </button>
+    </div>
+  }
 </ion-header>
 
 <ion-content class="settings-content">
@@ -91,23 +93,9 @@
     @let activePreset = soundSettings.selectedGkPreset();
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 1: SUONO CAMBIO PORTIERE                                        -->
+    <!-- TAB 1: SUONO CAMBIO PORTIERE (ESCLUSIVO SUPER USER)                 -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'portiere') {
-      @if (!authService.isAdmin()) {
-        <div class="readonly-su-notice">
-          <div class="rsn-left">
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <div>
-              <strong>Gestione Super User</strong>
-              <p>Puoi ascoltare tutte le anteprime. Accedi come Super User per cambiare il segnale ufficiale.</p>
-            </div>
-          </div>
-          <button type="button" class="rsn-login-btn" (click)="promptLoginSuperUser()">
-            Accedi
-          </button>
-        </div>
-      }
+    @if (authService.isSuperUser() && activeTab() === 'portiere') {
 
       <!-- HERO CARD: SEGNALE ATTUALMENTE SELEZIONATO -->
       <div
@@ -293,24 +281,9 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO                          -->
+    <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO (ESCLUSIVO SUPER USER)   -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'match') {
-      @if (!authService.isAdmin()) {
-        <div class="readonly-su-notice">
-          <div class="rsn-left">
-            <ion-icon name="lock-closed-outline"></ion-icon>
-            <div>
-              <strong>Gestione Super User</strong>
-              <p>Puoi testare tutti gli effetti da bordocampo. Accedi come Super User per attivare/disattivare gli switch.</p>
-            </div>
-          </div>
-          <button type="button" class="rsn-login-btn" (click)="promptLoginSuperUser()">
-            Accedi
-          </button>
-        </div>
-      }
-
+    @if (authService.isSuperUser() && activeTab() === 'match') {
       <!-- INTRO HERO EFFETTI PARTITA -->
       <div class="match-hero-card">
         <div class="mhc-icon-ring">⚽</div>
@@ -446,7 +419,7 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- TAB 3: TEMA, VERSIONE APP & CONTROLLI SUPER USER                    -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (activeTab() === 'sistema') {
+    @if (!authService.isSuperUser() || activeTab() === 'sistema') {
       <!-- SEZIONE TEMA VISUALE -->
       <div class="settings-section-card">
         <div class="ssc-header">
@@ -493,24 +466,18 @@
         </div>
       </div>
 
-      <!-- SEZIONE PANNELLO SUPER USER -->
-      <div class="settings-section-card su-card">
-        <div class="ssc-header">
-          <span class="ssc-icon">👑</span>
-          <div>
-            <h4>Pannello di Controllo Super User</h4>
-            <p>
-              @if (authService.isAdmin()) {
-                Sessione Admin attiva · Accesso completo a suoni, match e Area Segreta
-              } @else {
-                Accedi come Admin per gestire partite, formazioni, suoni e motore MMR
-              }
-            </p>
+      <!-- SEZIONE PANNELLO SUPER USER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
+      @if (authService.isSuperUser()) {
+        <div class="settings-section-card su-card">
+          <div class="ssc-header">
+            <span class="ssc-icon">👑</span>
+            <div>
+              <h4>Pannello di Controllo Super User</h4>
+              <p>Sessione Mister attiva · Accesso completo a suoni, match e Area Segreta</p>
+            </div>
           </div>
-        </div>
 
-        <div class="system-actions-list">
-          @if (authService.isAdmin()) {
+          <div class="system-actions-list">
             <button
               type="button"
               class="sys-action-btn gold"
@@ -546,21 +513,9 @@
                 <small>Torna alla visualizzazione standard giocatore</small>
               </div>
             </button>
-          } @else {
-            <button
-              type="button"
-              class="sys-action-btn gold"
-              (click)="promptLoginSuperUser()"
-            >
-              <ion-icon name="lock-closed-outline"></ion-icon>
-              <div class="sab-text">
-                <strong>🔐 Accedi come Super User (Admin)</strong>
-                <small>Sblocca gestione match, suoni cambio portiere e Area Segreta</small>
-              </div>
-            </button>
-          }
+          </div>
         </div>
-      </div>
+      }
 
       <!-- SEZIONE VERSIONE, NOTE DI RILASCIO & CACHE -->
       <div class="settings-section-card">

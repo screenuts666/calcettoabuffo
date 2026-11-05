@@ -7,6 +7,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy,
 } from '@angular/core';
@@ -60,9 +61,15 @@ import {
   cloudDoneOutline,
   timeOutline,
   checkmarkCircle,
+  callOutline,
+  logoWhatsapp,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
+import {
+  formatPhoneForTel,
+  formatPhoneForWhatsAppUrl,
+} from 'src/app/utils/whatsapp-formatter';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { TtsService } from 'src/app/services/tts.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
@@ -113,6 +120,7 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
   private _inputProf = signal<GiocatoreConPunti | null>(null);
 
   isClaiming = signal<boolean>(false);
+  privatePhoneNumber = signal<string | null>(null);
 
   @Input() set prof(val: GiocatoreConPunti | any) {
     this._inputProf.set(val || null);
@@ -128,7 +136,24 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
   }
 
   get isMyPlayer(): boolean {
-    return !!this.prof?.id && this.auth.linkedPlayerId() === this.prof.id;
+    return (
+      !!this.prof?.id &&
+      (this.auth.linkedPlayerId() === this.prof.id ||
+        (!!this.prof.linkedUid &&
+          this.prof.linkedUid === this.auth.firebaseUser()?.uid))
+    );
+  }
+
+  get canViewPhone(): boolean {
+    return this.auth.canViewPlayerPhone(this.prof);
+  }
+
+  getTelUrl(phone?: string | null): string {
+    return formatPhoneForTel(phone);
+  }
+
+  getWhatsAppUrl(phone?: string | null): string {
+    return formatPhoneForWhatsAppUrl(phone);
   }
 
   get canClaimThisPlayer(): boolean {
@@ -197,6 +222,22 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
       cloudDoneOutline,
       timeOutline,
       checkmarkCircle,
+      callOutline,
+      logoWhatsapp,
+    });
+
+    effect(() => {
+      const p = this.profileData();
+      const canSee = this.auth.canViewPlayerPhone(p);
+      if (p?.id && canSee) {
+        this.auth.getPlayerPhoneNumber(p.id).then((phone) => {
+          if (this.profileData()?.id === p.id && this.auth.canViewPlayerPhone(p)) {
+            this.privatePhoneNumber.set(phone);
+          }
+        });
+      } else {
+        this.privatePhoneNumber.set(null);
+      }
     });
   }
 

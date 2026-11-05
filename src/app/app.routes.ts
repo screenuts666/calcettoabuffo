@@ -8,6 +8,18 @@ import {
 
 export const routes: Routes = [
   {
+    path: 'login',
+    loadComponent: () =>
+      import('./components/auth-modal/auth-modal.component').then(
+        (m) => m.AuthModalComponent
+      ),
+  },
+  {
+    path: 'match/:id',
+    redirectTo: 'partite/:id',
+    pathMatch: 'full',
+  },
+  {
     path: 'area-segreta',
     canMatch: [superUserMatchGuard],
     canActivate: [superUserGuard],

@@ -249,6 +249,20 @@
       <span>Dettagli Personali & Bio</span>
     </div>
 
+    @if (canEdit) {
+      <ion-item lines="none" class="custom-input-item">
+        <ion-input
+          type="tel"
+          label="📞 Numero di Telefono (🔒 Privato: visibile solo a te e al Mister)"
+          labelPlacement="stacked"
+          placeholder="Es. +39 333 1234567"
+          [value]="phoneNumber()"
+          (ionInput)="phoneNumber.set($event.detail.value || '')"
+          [readonly]="!canEdit"
+        ></ion-input>
+      </ion-item>
+    }
+
     <ion-item lines="none" class="custom-input-item">
       <ion-textarea
         label="Bio / Motto da Campo"

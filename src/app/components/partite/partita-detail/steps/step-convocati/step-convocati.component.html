@@ -1,11 +1,139 @@
 <div class="convocati-container">
   <div class="search-header ion-padding">
     <div class="title-row">
-      <h2>Seleziona Giocatori</h2>
-      <div class="count-badge">{{ state.totaleConvocati() }} Selezionati</div>
+      <h2>{{ isAdmin ? 'Seleziona Giocatori' : 'Giocatori Convocati' }}</h2>
+      <div class="count-badge">{{ state.totaleConvocati() }} Convocati</div>
     </div>
 
-    @if (isDev) {
+    <!-- PANNELLO INVITO PARTITA & AUTO-RSVP (Visibile SOLO nello step Giocatori Convocati) -->
+    <div class="invite-rsvp-panel">
+      <div class="irp-header">
+        <div class="irp-title-box">
+          <span class="irp-pill">📲 AUTO-CONVOCAZIONE & LINK INVITO</span>
+          <div class="irp-counters">
+            <span class="irp-cnt yes" title="Presenti / Confermati">
+              ✅ {{ state.totaleConvocati() }}
+              @if (selfRegisteredCount() > 0) {
+                <small>({{ selfRegisteredCount() }} auto)</small>
+              }
+            </span>
+            <span class="irp-cnt maybe" title="In forse">
+              🤔 {{ maybePlayers().length }}
+            </span>
+            <span class="irp-cnt no" title="Non partecipano">
+              ❌ {{ declinedPlayers().length }}
+            </span>
+          </div>
+        </div>
+
+        <div class="irp-share-actions">
+          <button
+            type="button"
+            class="btn-share-invite"
+            [disabled]="isPreparingInvite()"
+            (click)="condividiLinkInvito()"
+            title="Condividi link invito partita su WhatsApp"
+          >
+            @if (isPreparingInvite()) {
+              <ion-spinner name="dots"></ion-spinner>
+            } @else {
+              <ion-icon name="share-social-outline"></ion-icon>
+              <span>Condividi Link Invito</span>
+            }
+          </button>
+          <button
+            type="button"
+            class="btn-copy-invite"
+            [disabled]="isPreparingInvite()"
+            (click)="copiaLinkInvito()"
+            title="Copia link invito negli appunti"
+          >
+            <ion-icon name="copy-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCELTA RSVP MODIFICABILE (3 STATI: Partecipo / Forse / Non partecipo) -->
+      @if (auth.hasLinkedPlayer()) {
+        <div class="irp-rsvp-box">
+          <div class="irp-rsvp-prompt">
+            <span>La tua risposta (modificabile finché le convocazioni sono aperte):</span>
+            @if (myRsvpStatus(); as mySt) {
+              <span class="my-current-status" [attr.data-status]="mySt">
+                @if (mySt === 'yes') {
+                  ✓ Confermato
+                } @else if (mySt === 'maybe') {
+                  🤔 In forse
+                } @else {
+                  ❌ Assente
+                }
+              </span>
+            }
+          </div>
+
+          <div class="rsvp-3-buttons">
+            <button
+              type="button"
+              class="rsvp-choice-btn yes"
+              [class.active]="myRsvpStatus() === 'yes'"
+              [disabled]="isSavingRsvp()"
+              (click)="impostaMioRsvp('yes')"
+            >
+              <span>✅ Partecipo</span>
+              <small>Presente</small>
+            </button>
+
+            <button
+              type="button"
+              class="rsvp-choice-btn maybe"
+              [class.active]="myRsvpStatus() === 'maybe'"
+              [disabled]="isSavingRsvp()"
+              (click)="impostaMioRsvp('maybe')"
+            >
+              <span>🤔 Forse</span>
+              <small>In dubbio</small>
+            </button>
+
+            <button
+              type="button"
+              class="rsvp-choice-btn no"
+              [class.active]="myRsvpStatus() === 'no'"
+              [disabled]="isSavingRsvp()"
+              (click)="impostaMioRsvp('no')"
+            >
+              <span>❌ Non partecipo</span>
+              <small>Assente</small>
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button
+          type="button"
+          class="irp-login-cta"
+          (click)="apriLoginOAssociazionePerRsvp()"
+        >
+          <span>
+            {{
+              auth.isLoggedIn()
+                ? '🙋‍♂️ Associa o Crea la tua Scheda Giocatore per rispondere all\'invito'
+                : '🔐 Accedi o Registrati per rispondere all\'invito (Partecipo / Forse / Non partecipo)'
+            }}
+          </span>
+        </button>
+      }
+
+      <!-- STRIP RAPIDA GIOCATORI "IN FORSE" -->
+      @if (maybePlayers().length > 0) {
+        <div class="maybe-players-strip">
+          <span class="maybe-strip-title">🤔 In dubbio ({{ maybePlayers().length }}):</span>
+          @for (mp of maybePlayers(); track mp.id) {
+            <span class="maybe-chip">{{ mp.nome }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    @if (isDev && isAdmin) {
       <div class="dev-bulk-container">
         <button type="button" class="dev-bulk-btn" (click)="selezionaPrimi14Classifica()">
           <ion-icon name="flash-outline"></ion-icon>
@@ -27,12 +155,22 @@
   @if (state.convocati().length > 0) {
     <div class="selected-players-scroll">
       @for (g of state.convocati(); track (g.id || g.nome) + '_' + $index) {
-        <div class="selected-chip">
+        <div class="selected-chip" [class.is-self-registered]="g.selfRegistered">
           <div class="avatar-wrapper">
             <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
-            <button class="remove-btn" (click)="toggleSelezione(g)">
-              <ion-icon name="close-circle"></ion-icon>
-            </button>
+            @if (g.selfRegistered) {
+              <span
+                class="self-verified-dot"
+                title="Confermato dal giocatore tramite link invito"
+              >
+                <ion-icon name="checkmark-done-circle"></ion-icon>
+              </span>
+            }
+            @if (isAdmin) {
+              <button class="remove-btn" (click)="toggleSelezione(g)">
+                <ion-icon name="close-circle"></ion-icon>
+              </button>
+            }
           </div>
           <span class="chip-name">{{ g.nome.split(" ")[0] }}</span>
         </div>
@@ -42,24 +180,64 @@
 
   <ion-list mode="ios" class="giocatori-list">
     @for (g of state.giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
-      <ion-item (click)="toggleSelezione(g)" lines="full" class="player-item">
+      <ion-item
+        (click)="isAdmin ? toggleSelezione(g) : null"
+        lines="full"
+        class="player-item"
+        [class.is-maybe-row]="g.rsvpStatus === 'maybe'"
+        [class.is-declined-row]="g.rsvpStatus === 'no'"
+      >
         <ion-avatar slot="start">
           <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
         </ion-avatar>
         <ion-label>
-          <h3>{{ g.nome }}</h3>
+          <div class="player-name-with-badges">
+            <h3>{{ g.nome }}</h3>
+            @if (g.selfRegistered) {
+              <span
+                class="rsvp-inline-badge self-confirmed"
+                title="Confermato dal giocatore (Auto-inserito tramite link invito)"
+              >
+                <ion-icon name="checkmark-done-circle"></ion-icon>
+                <span>Confermato dal giocatore</span>
+              </span>
+            } @else if (g.rsvpStatus === 'maybe') {
+              <span
+                class="rsvp-inline-badge maybe-badge"
+                title="Il giocatore ha risposto Forse (In dubbio)"
+              >
+                <span>🤔 Forse</span>
+              </span>
+            } @else if (g.rsvpStatus === 'no') {
+              <span
+                class="rsvp-inline-badge no-badge"
+                title="Il giocatore ha risposto Non partecipo"
+              >
+                <span>❌ Non partecipo</span>
+              </span>
+            }
+          </div>
           <p>
             {{ g.soprannome ? '"' + g.soprannome + '"' : (g.soprannomeAi ? '"' + g.soprannomeAi + '"' : g.piedePreferito) }}
           </p>
         </ion-label>
 
-        <ion-checkbox
-          slot="end"
-          [checked]="g.selezionato"
-          mode="ios"
-          class="green-check"
-        >
-        </ion-checkbox>
+        @if (isAdmin) {
+          <ion-checkbox
+            slot="end"
+            [checked]="g.selezionato"
+            mode="ios"
+            class="green-check"
+          >
+          </ion-checkbox>
+        } @else if (g.selezionato) {
+          <ion-icon
+            slot="end"
+            name="checkmark-circle"
+            color="success"
+            style="font-size: 1.4rem;"
+          ></ion-icon>
+        }
       </ion-item>
     }
   </ion-list>

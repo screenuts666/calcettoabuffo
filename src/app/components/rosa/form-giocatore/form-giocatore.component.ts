@@ -48,6 +48,8 @@ import {
   trashOutline,
   shieldCheckmarkOutline,
   personAddOutline,
+  callOutline,
+  lockClosedOutline,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
@@ -118,6 +120,7 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   origini = signal('');
   statoCivile = signal('');
   vizi = signal('');
+  phoneNumber = signal('');
 
   /**
    * Se `true`, in fase di creazione nuovo giocatore (`!giocatore?.id`),
@@ -138,6 +141,8 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       trashOutline,
       shieldCheckmarkOutline,
       personAddOutline,
+      callOutline,
+      lockClosedOutline,
     });
   }
 
@@ -239,6 +244,14 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
     this.statoCivile.set(g.statoCivile || '');
     this.vizi.set(g.vizi || '');
     this.anteprimaFoto.set(g.fotoUrl || null);
+
+    if (g.id && this.auth.canViewPlayerPhone(g)) {
+      this.auth.getPlayerPhoneNumber(g.id).then((phone) => {
+        if (phone !== null) {
+          this.phoneNumber.set(phone);
+        }
+      });
+    }
   }
 
   annulla() {
@@ -350,10 +363,17 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
           doc(this.firestore, `giocatori/${this.giocatore.id}`),
           payload
         );
+        await this.auth.savePlayerPhoneNumber(
+          this.giocatore.id,
+          this.phoneNumber()
+        );
         await this.router.navigate(['/giocatori', this.giocatore.id]);
       } else if (this.isSelfRegistration) {
         // Utente che crea la propria scheda giocatore e aggancia subito l'utenza
-        const newPlayerId = await this.auth.createAndClaimPlayer(payload);
+        const newPlayerId = await this.auth.createAndClaimPlayer(
+          payload,
+          this.phoneNumber()
+        );
         const toast = await this.toastController.create({
           message: `🎉 Benvenuto in Rosa, ${payload['nome']}! La tua scheda è ora collegata al tuo account.`,
           duration: 3000,
@@ -361,10 +381,18 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
           position: 'top',
         });
         await toast.present();
-        await this.router.navigate(['/giocatori', newPlayerId]);
+
+        const queryReturn = this.route.snapshot.queryParamMap.get('returnUrl');
+        const pendingReturn = this.auth.consumeReturnUrl();
+        const targetReturn = queryReturn || pendingReturn;
+        if (targetReturn && targetReturn.startsWith('/')) {
+          await this.router.navigateByUrl(targetReturn);
+        } else {
+          await this.router.navigate(['/giocatori', newPlayerId]);
+        }
       } else {
         // Mister che aggiunge un giocatore qualsiasi in rosa
-        await addDoc(collection(this.firestore, 'giocatori'), {
+        const newDocRef = await addDoc(collection(this.firestore, 'giocatori'), {
           ...payload,
           gol: 0,
           punti: 0,
@@ -372,6 +400,12 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
           partiteGiocate: 0,
           linkedUid: null,
         });
+        if (this.phoneNumber().trim()) {
+          await this.auth.savePlayerPhoneNumber(
+            newDocRef.id,
+            this.phoneNumber()
+          );
+        }
         await this.router.navigate(['/rosa']);
       }
     } catch (e: any) {

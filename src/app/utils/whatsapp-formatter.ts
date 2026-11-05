@@ -1,6 +1,14 @@
-import { Partita } from '../models/partita.model';
+import { Partita, normalizeRsvpStatus } from '../models/partita.model';
 import { PlayerPerformance } from '../models/player-performance.model';
 import { MatchReportData } from '../models/mmr.model';
+import { environment } from 'src/environments/environment';
+
+export type MatchSharePhase =
+  | 'convocazioni'
+  | 'pre_match'
+  | 'in_corso'
+  | 'conclusa_senza_pagelle'
+  | 'conclusa_con_pagelle';
 
 export interface WhatsAppShareOptions {
   includeRisultato: boolean;
@@ -14,16 +22,98 @@ export interface WhatsAppShareOptions {
 }
 
 /**
- * Restituisce l'URL deep link della partita basandosi dinamicamente su window.location.origin
- * con fallback di sicurezza sull'ambiente di produzione.
+ * Restituisce l'URL base dell'ambiente corrente:
+ * - DEV / Staging: https://calcettoabuffone.web.app
+ * - PROD: https://calcettoabuffone-prod.web.app
+ */
+export function getAppBaseUrl(): string {
+  return (
+    environment.appUrl ||
+    (environment.production
+      ? 'https://calcettoabuffone-prod.web.app'
+      : 'https://calcettoabuffone.web.app')
+  );
+}
+
+/**
+ * Restituisce l'URL deep link della partita per l'ambiente attivo (DEV o PROD).
  */
 export function getMatchDeepLink(matchId?: string): string {
   if (!matchId) return '';
-  const origin =
-    typeof window !== 'undefined' && window.location?.origin
-      ? window.location.origin
-      : 'https://calcettoabuffone-prod.web.app';
-  return `${origin}/partite/${matchId}`;
+  return `${getAppBaseUrl()}/partite/${matchId}`;
+}
+
+/**
+ * Restituisce l'URL deep link di invito alla partita (con query param ?invite=true)
+ * per l'auto-RSVP nello step Giocatori Convocati (usa il dominio DEV in dev e PROD in prod).
+ */
+export function getMatchInviteDeepLink(matchId?: string): string {
+  if (!matchId) return '';
+  return `${getMatchDeepLink(matchId)}?invite=true`;
+}
+
+/**
+ * Determina la fase/stato corrente della partita per adattare la condivisione WhatsApp
+ */
+export function getMatchSharePhase(partita?: Partita | null): MatchSharePhase {
+  if (!partita) return 'convocazioni';
+
+  const isConclusa = partita.status === 'conclusa' || Boolean(partita.matchConcluso);
+  if (isConclusa) {
+    const hasVoti =
+      Boolean(partita.pagelleInserite) ||
+      [...(partita.teamA || []), ...(partita.teamB || [])].some(
+        (g) =>
+          g.voto !== undefined &&
+          g.voto !== null &&
+          !isNaN(Number(g.voto)) &&
+          Number(g.voto) > 0,
+      );
+    return hasVoti ? 'conclusa_con_pagelle' : 'conclusa_senza_pagelle';
+  }
+
+  if (partita.status === 'in_corso') {
+    return 'in_corso';
+  }
+
+  const hasTeams =
+    (partita.teamA?.length || 0) > 0 && (partita.teamB?.length || 0) > 0;
+
+  if (partita.step === 'convocati' || partita.step === 'dettagli') {
+    return 'convocazioni';
+  }
+
+  if (partita.status === 'pronta' || hasTeams) {
+    return 'pre_match';
+  }
+
+  return 'convocazioni';
+}
+
+/**
+ * Formatta un numero di telefono per il protocollo tel: (chiamata telefonica diretta)
+ */
+export function formatPhoneForTel(phone?: string | null): string {
+  if (!phone) return '';
+  const cleaned = phone.trim().replace(/[^\d+]/g, '');
+  return cleaned ? `tel:${cleaned}` : '';
+}
+
+/**
+ * Formatta un numero di telefono per l'apertura diretta della chat WhatsApp (https://wa.me/...)
+ * Aggiunge automaticamente il prefisso internazionale italiano (39) se il numero è un cellulare italiano a 9-10 cifre senza prefisso.
+ */
+export function formatPhoneForWhatsAppUrl(phone?: string | null): string {
+  if (!phone) return '';
+  let digits = phone.trim().replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('00')) {
+    digits = digits.slice(2);
+  }
+  if (digits.length === 10 && digits.startsWith('3')) {
+    digits = `39${digits}`;
+  }
+  return `https://wa.me/${digits}`;
 }
 
 /**
@@ -56,7 +146,7 @@ function formatTeamRoster(
   eventiGol: any[] = [],
 ): string {
   if (!giocatori || giocatori.length === 0)
-    return '_Nessun convocato registrato_';
+    return '_Nessun giocatore schierato_';
 
   return giocatori
     .map((g) => {
@@ -94,7 +184,70 @@ function formatTeamRoster(
 }
 
 /**
- * Genera il testo WhatsApp completo e formattato secondo le opzioni selezionate
+ * Genera l'elenco formattato dei convocati confermati e in dubbio per la fase 'convocazioni'
+ */
+function formatConvocatiSection(partita: Partita): string[] {
+  const lines: string[] = [];
+  const rsvpMap = partita.rsvp || {};
+  const rsvpEntries = Object.values(rsvpMap);
+
+  const confirmedMap = new Map<string, { nome: string; self: boolean }>();
+  for (const c of partita.convocati || []) {
+    if (c && (c.id || c.nome)) {
+      const key = c.id || c.nome;
+      confirmedMap.set(key, {
+        nome: (c.nome || 'Giocatore').trim(),
+        self: Boolean(c.selfRegistered || c.source === 'self'),
+      });
+    }
+  }
+
+  const maybeNames: string[] = [];
+  for (const entry of rsvpEntries) {
+    if (!entry?.playerId && !entry?.playerName) continue;
+    const key = entry.playerId || entry.playerName;
+    const norm = normalizeRsvpStatus(entry.status);
+    if (norm === 'yes') {
+      if (!confirmedMap.has(key)) {
+        confirmedMap.set(key, {
+          nome: (entry.playerName || 'Giocatore').trim(),
+          self: entry.selfRegistered !== false,
+        });
+      } else {
+        const curr = confirmedMap.get(key)!;
+        curr.self = curr.self || entry.selfRegistered !== false;
+      }
+    } else if (norm === 'maybe') {
+      confirmedMap.delete(key);
+      if (entry.playerName) {
+        maybeNames.push(entry.playerName.trim());
+      }
+    } else if (norm === 'no') {
+      confirmedMap.delete(key);
+    }
+  }
+
+  const confirmedList = Array.from(confirmedMap.values());
+  lines.push(`👥 *CONVOCATI CONFERMATI (${confirmedList.length}):*`);
+  if (confirmedList.length === 0) {
+    lines.push('_Ancora nessun confermato, rompi il ghiaccio!_');
+  } else {
+    confirmedList.forEach((p, idx) => {
+      lines.push(`${idx + 1}. ${p.nome}${p.self ? ' ✅' : ''}`);
+    });
+  }
+
+  if (maybeNames.length > 0) {
+    lines.push('');
+    lines.push(`🤔 *IN DUBBIO (${maybeNames.length}):* ${maybeNames.join(', ')}`);
+  }
+
+  return lines;
+}
+
+/**
+ * Genera il testo WhatsApp completo e formattato dinamicamente in base allo stato della partita
+ * ('convocazioni' | 'pre_match' | 'in_corso' | 'conclusa_senza_pagelle' | 'conclusa_con_pagelle')
  */
 export function formatMatchForWhatsApp(
   partita: Partita,
@@ -107,10 +260,27 @@ export function formatMatchForWhatsApp(
   },
   reportData?: MatchReportData,
 ): string {
+  const phase = getMatchSharePhase(partita);
   const parts: string[] = [];
 
-  // Intestazione
-  parts.push('⚽ *REPORT MATCH* ⚽');
+  // 1. INTESTAZIONE CONTESTUALE ALLO STATO
+  switch (phase) {
+    case 'convocazioni':
+      parts.push('📢 *CONVOCAZIONI APERTE - CALCETTO* ⚽');
+      break;
+    case 'pre_match':
+      parts.push('⚔️ *FORMAZIONI UFFICIALI - PRE-MATCH* ⚽');
+      break;
+    case 'in_corso':
+      parts.push('🔴 *MATCH LIVE IN CORSO* ⚡');
+      break;
+    case 'conclusa_senza_pagelle':
+      parts.push('🏁 *RISULTATO FINALE - CALCETTO* ⚽');
+      break;
+    case 'conclusa_con_pagelle':
+      parts.push('⚽ *REPORT MATCH & PAGELLE* 🏆');
+      break;
+  }
 
   const dataFmt = formatDataItaliana(partita.dataPartita);
   if (dataFmt) {
@@ -125,35 +295,134 @@ export function formatMatchForWhatsApp(
     parts.push(dettagli.join(' | '));
   }
 
-  // Upset & Odds se presenti
-  if (reportData?.isUpset) {
+  // =========================================================
+  // FASE 1: CONVOCAZIONI APERTE (STEP CONVOCATI / DA DEFINIRE)
+  // =========================================================
+  if (phase === 'convocazioni') {
+    if (options.includeRisultato) {
+      parts.push('');
+      parts.push(...formatConvocatiSection(partita));
+    }
+
+    const commentoConv = (
+      partita.commentoPartita ||
+      (partita as any)?.commento ||
+      reportData?.commentoPartita
+    )?.trim();
+    if (options.includeCommentoPartita !== false && commentoConv) {
+      parts.push('');
+      parts.push('📝 *NOTE DEL MISTER:*');
+      parts.push(`"${commentoConv}"`);
+    }
+
+    if (options.includeLink && partita.id) {
+      const inviteLink = getMatchInviteDeepLink(partita.id);
+      parts.push('');
+      parts.push(
+        '👉 *Tocca il link per rispondere (Partecipo / Forse / Non partecipo) e auto-inserirti nei convocati:*',
+      );
+      parts.push(inviteLink);
+    }
+
+    return parts.join('\n');
+  }
+
+  // =========================================================
+  // FASE 2: PRE-MATCH (SQUADRE PRONTE PRIMA DEL FISCHIO D'INIZIO)
+  // =========================================================
+  if (phase === 'pre_match') {
+    if (
+      reportData?.odds &&
+      (reportData.odds.probAPercent > 0 || reportData.odds.probBPercent > 0)
+    ) {
+      parts.push(
+        `⚖️ *Quote Pre-Match:* Bianchi ${reportData.odds.probAPercent}% vs ${reportData.odds.probBPercent}% Neri`,
+      );
+    }
+
+    if (options.includeRisultato) {
+      parts.push('');
+      parts.push('👥 *FORMAZIONI IN CAMPO*');
+      parts.push(
+        `⚪ *Bianchi (${partita.teamA?.length || 0}):* ${formatTeamRoster(partita.teamA, false)}`,
+      );
+      parts.push(
+        `⚫ *Neri (${partita.teamB?.length || 0}):* ${formatTeamRoster(partita.teamB, false)}`,
+      );
+    }
+
+    const commentoPre = (
+      partita.commentoPartita ||
+      (partita as any)?.commento ||
+      reportData?.commentoPartita
+    )?.trim();
+    if (options.includeCommentoPartita !== false && commentoPre) {
+      parts.push('');
+      parts.push('📝 *NOTE A BORDOCAMPO:*');
+      parts.push(`"${commentoPre}"`);
+    }
+
+    if (
+      options.includePronosticoAi &&
+      (partita.pronosticoAi || reportData?.pronosticoAi)
+    ) {
+      const pronostico = (
+        partita.pronosticoAi || reportData?.pronosticoAi
+      )!.trim();
+      parts.push('');
+      parts.push('🔮 *IL PRONOSTICO DEL MISTER (by Gemini AI)*');
+      parts.push(`"${pronostico}"`);
+    }
+
+    if (options.includeLink && partita.id) {
+      const link = getMatchDeepLink(partita.id);
+      parts.push('');
+      parts.push("🔗 *Vedi schieramento tattico, quote e chimica sull'app:*");
+      parts.push(link);
+    }
+
+    return parts.join('\n');
+  }
+
+  // =========================================================
+  // FASE 3, 4, 5: IN CORSO O CONCLUSA (CON O SENZA PAGELLE)
+  // =========================================================
+  if (reportData?.isUpset && phase !== 'in_corso') {
     parts.push('');
     parts.push(`🔥 *UPSET!* ${reportData.upsetDescription}`);
-  } else if (reportData?.odds && (reportData.odds.probAPercent > 0 || reportData.odds.probBPercent > 0)) {
-    parts.push(`⚖️ *Quote Pre-Match:* Bianchi ${reportData.odds.probAPercent}% vs ${reportData.odds.probBPercent}% Neri`);
+  } else if (
+    reportData?.odds &&
+    (reportData.odds.probAPercent > 0 || reportData.odds.probBPercent > 0)
+  ) {
+    parts.push(
+      `⚖️ *Quote Pre-Match:* Bianchi ${reportData.odds.probAPercent}% vs ${reportData.odds.probBPercent}% Neri`,
+    );
   }
 
   // Risultato e Presenze
   if (options.includeRisultato) {
     parts.push('');
-    if (partita.status === 'conclusa' || partita.matchConcluso) {
-      parts.push('🔥 *RISULTATO FINALE*');
-      parts.push(
-        `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
-      );
-      if (reportData && (reportData.teamAvgMmrDeltaA !== 0 || reportData.teamAvgMmrDeltaB !== 0)) {
-        const signA = reportData.teamAvgMmrDeltaA >= 0 ? '+' : '';
-        const signB = reportData.teamAvgMmrDeltaB >= 0 ? '+' : '';
-        parts.push(`📈 *Spostamento MMR:* Bianchi ${signA}${reportData.teamAvgMmrDeltaA} | Neri ${signB}${reportData.teamAvgMmrDeltaB}`);
-      }
-    } else if (partita.status === 'in_corso') {
+    if (phase === 'in_corso') {
       parts.push('⚡ *PARZIALE LIVE*');
       parts.push(
         `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
       );
     } else {
-      parts.push('📋 *IN PROGRAMMA*');
-      parts.push('🔵 *Bianchi* vs *Neri* 🔴');
+      parts.push('🔥 *RISULTATO FINALE*');
+      parts.push(
+        `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
+      );
+      if (
+        reportData &&
+        (reportData.teamAvgMmrDeltaA !== 0 ||
+          reportData.teamAvgMmrDeltaB !== 0)
+      ) {
+        const signA = reportData.teamAvgMmrDeltaA >= 0 ? '+' : '';
+        const signB = reportData.teamAvgMmrDeltaB >= 0 ? '+' : '';
+        parts.push(
+          `📈 *Spostamento MMR:* Bianchi ${signA}${reportData.teamAvgMmrDeltaA} | Neri ${signB}${reportData.teamAvgMmrDeltaB}`,
+        );
+      }
     }
 
     parts.push('');
@@ -165,7 +434,6 @@ export function formatMatchForWhatsApp(
       `*Neri:* ${formatTeamRoster(partita.teamB, options.includeMarcatori, partita.eventiGol)}`,
     );
 
-    // Se ci sono gol con assist registrati nel tabellino
     const eventiConAssist = (partita.eventiGol || []).filter(
       (e) => !e.isAutogoal && e.assistNome,
     );
@@ -179,7 +447,11 @@ export function formatMatchForWhatsApp(
   }
 
   // Note a bordocampo dell'organizzatore
-  const commentoPartita = (partita.commentoPartita || (partita as any)?.commento || reportData?.commentoPartita)?.trim();
+  const commentoPartita = (
+    partita.commentoPartita ||
+    (partita as any)?.commento ||
+    reportData?.commentoPartita
+  )?.trim();
   if (options.includeCommentoPartita !== false && commentoPartita) {
     parts.push('');
     parts.push('📝 *NOTE A BORDOCAMPO:*');
@@ -187,23 +459,32 @@ export function formatMatchForWhatsApp(
   }
 
   // Pronostico del Mister (Gemini AI)
-  if (options.includePronosticoAi && (partita.pronosticoAi || reportData?.pronosticoAi)) {
-    const pronostico = (partita.pronosticoAi || reportData?.pronosticoAi)!.trim();
-    parts.push("");
-    parts.push("🔮 *IL PRONOSTICO DEL MISTER (by Gemini AI)*");
+  if (
+    options.includePronosticoAi &&
+    (partita.pronosticoAi || reportData?.pronosticoAi)
+  ) {
+    const pronostico = (
+      partita.pronosticoAi || reportData?.pronosticoAi
+    )!.trim();
+    parts.push('');
+    parts.push('🔮 *IL PRONOSTICO DEL MISTER (by Gemini AI)*');
     parts.push(`"${pronostico}"`);
   }
 
-  // Cronaca Sportiva Ignorante (Gemini AI)
-  if (options.includeCronacaAi && (partita.cronacaAi || reportData?.cronacaAi)) {
+  // Cronaca Sportiva Ignorante (Gemini AI) - solo per partite concluse
+  if (
+    phase !== 'in_corso' &&
+    options.includeCronacaAi &&
+    (partita.cronacaAi || reportData?.cronacaAi)
+  ) {
     const cronaca = (partita.cronacaAi || reportData?.cronacaAi)!.trim();
     parts.push('');
     parts.push('🎙️ *CRONACA IGNORANTE DEL MATCH (by Gemini AI)*');
     parts.push(`"${cronaca}"`);
   }
 
-  // MVP, Goliardico e Pagelle
-  if (options.includePagelle) {
+  // MVP, Goliardico e Pagelle (solo quando la partita è conclusa con pagelle)
+  if (phase === 'conclusa_con_pagelle' && options.includePagelle) {
     const tuttiGiocatori: PlayerPerformance[] = [
       ...(partita.teamA || []),
       ...(partita.teamB || []),
@@ -224,11 +505,14 @@ export function formatMatchForWhatsApp(
       });
 
     if (giocatoriConVoto.length > 0) {
-      // Calcolo MVP
       parts.push('');
       if (reportData?.mvp) {
-        const mvpNote = reportData.mvp.note ? ` — _"${reportData.mvp.note}"_` : '';
-        parts.push(`🏆 *MVP DELLA SERATA:* *${reportData.mvp.nome}* (${reportData.mvp.voto})${mvpNote}`);
+        const mvpNote = reportData.mvp.note
+          ? ` — _"${reportData.mvp.note}"_`
+          : '';
+        parts.push(
+          `🏆 *MVP DELLA SERATA:* *${reportData.mvp.nome}* (${reportData.mvp.voto})${mvpNote}`,
+        );
       } else {
         const maxVoto = Number(giocatoriConVoto[0].voto);
         const mvpList = giocatoriConVoto.filter(
@@ -243,18 +527,24 @@ export function formatMatchForWhatsApp(
         }
       }
 
-      // Peggiore Goliardico
       if (reportData?.worst) {
-        const worstNote = reportData.worst.note ? ` — _"${reportData.worst.note}"_` : '';
-        parts.push(`🩴 *Premio "Bidone d'Oro":* *${reportData.worst.nome}* (${reportData.worst.voto})${worstNote} 🍕`);
+        const worstNote = reportData.worst.note
+          ? ` — _"${reportData.worst.note}"_`
+          : '';
+        parts.push(
+          `🩴 *Premio "Bidone d'Oro":* *${reportData.worst.nome}* (${reportData.worst.voto})${worstNote} 🍕`,
+        );
       }
 
-      // Movimenti On Fire
       if (reportData?.onFireEntered && reportData.onFireEntered.length > 0) {
-        parts.push(`🔥 *Entrati On Fire:* ${reportData.onFireEntered.map((p) => p.nome).join(', ')}`);
+        parts.push(
+          `🔥 *Entrati On Fire:* ${reportData.onFireEntered.map((p) => p.nome).join(', ')}`,
+        );
       }
       if (reportData?.onFireExited && reportData.onFireExited.length > 0) {
-        parts.push(`❄️ *Striscia Interrotta:* ${reportData.onFireExited.map((p) => p.nome).join(', ')}`);
+        parts.push(
+          `❄️ *Striscia Interrotta:* ${reportData.onFireExited.map((p) => p.nome).join(', ')}`,
+        );
       }
 
       parts.push('');
@@ -267,17 +557,23 @@ export function formatMatchForWhatsApp(
         }
         parts.push(riga);
       }
-    } else {
-      parts.push('');
-      parts.push('📊 *PAGELLE:* _Non ancora inserite_');
     }
+  } else if (phase === 'conclusa_senza_pagelle') {
+    parts.push('');
+    parts.push('⏳ _Pagelle e voti del Mister in arrivo a breve!_');
   }
 
   // Link diretto alla partita
   if (options.includeLink && partita.id) {
     const link = getMatchDeepLink(partita.id);
     parts.push('');
-    parts.push("🔗 *Vedi tabellino completo, foto e chimica sull'app:*");
+    if (phase === 'in_corso') {
+      parts.push("🔗 *Segui il match live in tempo reale sull'app:*");
+    } else if (phase === 'conclusa_senza_pagelle') {
+      parts.push("🔗 *Vedi tabellino completo e statistiche sull'app:*");
+    } else {
+      parts.push("🔗 *Vedi tabellino completo, foto e chimica sull'app:*");
+    }
     parts.push(link);
   }
 

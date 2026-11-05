@@ -205,8 +205,39 @@
               <span>| 📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
               <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
             </div>
-            @if (g.professione || g.origini || g.statoCivile || g.vizi) {
+            @let playerPhone = canViewPhone(g) ? getPhoneForPlayer(g.id) : null;
+            @if (playerPhone || g.professione || g.origini || g.statoCivile || g.vizi) {
               <div class="player-details-row">
+                @if (playerPhone) {
+                  <span
+                    class="detail-pill"
+                    style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-weight: 700; gap: 6px; padding: 2px 6px;"
+                    title="Numero privato visibile solo al Mister e al giocatore proprietario"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <span>🔒 {{ playerPhone }}</span>
+                    <a
+                      [href]="getTelUrl(playerPhone)"
+                      (click)="$event.stopPropagation()"
+                      title="Chiama {{ g.nome }}"
+                      style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; text-decoration: none; font-size: 0.68rem; font-weight: 800;"
+                    >
+                      <ion-icon name="call-outline" style="font-size: 0.78rem;"></ion-icon>
+                      <span>Chiama</span>
+                    </a>
+                    <a
+                      [href]="getWhatsAppUrl(playerPhone)"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      (click)="$event.stopPropagation()"
+                      title="Invia messaggio WhatsApp a {{ g.nome }}"
+                      style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; background: rgba(37, 211, 102, 0.2); border: 1px solid rgba(37, 211, 102, 0.4); color: #25d366; text-decoration: none; font-size: 0.68rem; font-weight: 800;"
+                    >
+                      <ion-icon name="logo-whatsapp" style="font-size: 0.78rem;"></ion-icon>
+                      <span>WA</span>
+                    </a>
+                  </span>
+                }
                 @if (g.professione) { <span class="detail-pill">💼 {{ g.professione }}</span> }
                 @if (g.origini) { <span class="detail-pill">📍 {{ g.origini }}</span> }
                 @if (g.statoCivile) { <span class="detail-pill">💍 {{ g.statoCivile }}</span> }

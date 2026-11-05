@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
 } from '@angular/core';
 import {
   IonHeader,
@@ -20,6 +21,7 @@ import {
   AlertController,
   ActionSheetController,
   ToastController,
+  ModalController,
   IonSpinner,
 } from '@ionic/angular/standalone';
 import { CommonModule, Location } from '@angular/common';
@@ -44,12 +46,15 @@ import {
   close,
   arrowForward,
   checkmark,
+  logoWhatsapp,
+  shareSocialOutline,
 } from 'ionicons/icons';
 
 import { AuthService } from '../../../services/auth.service';
 import { MatchStateService } from './match-state.service';
 import { MIN_CURRENT_SEASON_DATE } from '../../../utils/season-utils';
-import { ModalitaPortiere } from 'src/app/models/partita.model';
+import { ModalitaPortiere, Partita } from 'src/app/models/partita.model';
+import { MatchShareModalComponent } from '../match-share-modal/match-share-modal.component';
 import { StepConvocatiComponent } from './steps/step-convocati/step-convocati.component';
 import { StepDettagliComponent } from './steps/step-dettagli/step-dettagli.component';
 import { StepSquadreComponent } from './steps/step-squadre/step-squadre.component';
@@ -57,7 +62,6 @@ import { StepMatchComponent } from './steps/step-match/step-match.component';
 import { StepPrestazioniComponent } from './steps/step-prestazioni/step-prestazioni.component';
 import { SyncStatusBadgeComponent } from '../../sync-status-badge/sync-status-badge.component';
 import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
-import { MatchRsvpWidgetComponent } from '../match-rsvp-widget/match-rsvp-widget.component';
 
 @Component({
   selector: 'app-partita-detail',
@@ -83,7 +87,6 @@ import { MatchRsvpWidgetComponent } from '../match-rsvp-widget/match-rsvp-widget
     StepPrestazioniComponent,
     SyncStatusBadgeComponent,
     ThemeToggleComponent,
-    MatchRsvpWidgetComponent,
   ],
   providers: [MatchStateService],
 })
@@ -92,6 +95,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private alertCtrl = inject(AlertController);
   private actionSheetCtrl = inject(ActionSheetController);
   private toastCtrl = inject(ToastController);
+  private modalCtrl = inject(ModalController);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
@@ -100,17 +104,13 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
   @Input() matchData: any;
   isLoading = signal<boolean>(false);
+  isInviteLink = signal<boolean>(false);
   private routeSub?: Subscription;
+  private querySub?: Subscription;
 
   get isAdmin(): boolean {
     return this.auth.isAdmin();
   }
-
-  readonly hasRsvpOrOpen = computed<boolean>(() => {
-    if (!this.state.matchId()) return false;
-    if (!this.state.matchConcluso()) return true;
-    return Object.keys(this.state.rsvp() || {}).length > 0;
-  });
 
   constructor() {
     addIcons({
@@ -121,6 +121,24 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       close,
       arrowForward,
       checkmark,
+      logoWhatsapp,
+      shareSocialOutline,
+    });
+
+    // Flusso Deep-Link & Auth Redirect:
+    // Se l'utente apre un link di invito (?invite=true) e non è loggato,
+    // salva il returnUrl e reindirizzalo al Login/Sign-Up.
+    effect(() => {
+      const authReady = this.auth.authInitialized();
+      const invite = this.isInviteLink();
+      const loggedIn = this.auth.isLoggedIn();
+      const mId = this.state.matchId() || this.route.snapshot.paramMap.get('id');
+
+      if (authReady && invite && !loggedIn && mId && mId !== 'nuova') {
+        const returnUrl = `/partite/${mId}?invite=true`;
+        this.auth.setReturnUrl(returnUrl);
+        this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      }
     });
   }
 
@@ -128,6 +146,11 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.state.onMatchCreated = (newId: string) => {
       this.location.replaceState('/partite/' + newId);
     };
+
+    this.querySub = this.route.queryParamMap.subscribe((qp) => {
+      const inv = qp.get('invite');
+      this.isInviteLink.set(inv === 'true' || inv === '1');
+    });
 
     if (this.matchData) {
       this.initMatchData(this.matchData);
@@ -147,6 +170,9 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
+    }
+    if (this.querySub) {
+      this.querySub.unsubscribe();
     }
     if (this.isAdmin) {
       this.state.flushAutoSave();
@@ -357,12 +383,10 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
           : false
       );
 
-      const idsSalvati = (matchData.convocati || []).map((c: any) => c.id);
-      this.state.tutti.set(
-        baseGiocatori.map((g: any) => ({
-          ...g,
-          selezionato: idsSalvati.includes(g.id),
-        }))
+      this.state.tutti.set(baseGiocatori);
+      this.state.reconcileConvocatiWithRsvp(
+        matchData.convocati || [],
+        matchData.rsvp || {}
       );
       const eventi = matchData.eventiGol || [];
       const normalizePlayer = (p: any) => {
@@ -391,11 +415,23 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.teamB.set((matchData.teamB || []).map(normalizePlayer));
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
 
-      // Se l'utente non è il Mister, mostra direttamente il Report ('prestazioni') se conclusa
-      // oppure il tabellone in sola lettura ('match') con il widget RSVP in alto!
+      const isConvocatiPhase =
+        !matchData.matchConcluso &&
+        matchData.status !== 'in_corso' &&
+        (matchData.step === 'convocati' ||
+          (!matchData.step &&
+            (!matchData.teamA || matchData.teamA.length === 0) &&
+            (!matchData.teamB || matchData.teamB.length === 0)));
+
+      // Se l'utente non è il Mister:
+      // - Se la partita è nello step 'convocati', mostra lo step 'convocati' (con Auto-RSVP attivo)
+      // - Se è conclusa, mostra il Report ('prestazioni')
+      // - Altrimenti mostra il tabellone ('match') con convocazioni chiuse
       if (!this.isAdmin) {
         if (matchData.matchConcluso) {
           this.state.step.set('prestazioni');
+        } else if (isConvocatiPhase) {
+          this.state.step.set('convocati');
         } else {
           this.state.step.set('match');
         }
@@ -451,6 +487,41 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
   chiudi() {
     this.router.navigate(['/partite']);
+  }
+
+  async apriCondivisionePartita() {
+    if (!this.state.matchId() && this.isAdmin) {
+      await this.state.ensureMatchCreatedForInvite();
+    }
+    const partitaSnapshot: Partita = {
+      id: this.state.matchId() || undefined,
+      luogo: this.state.luogo(),
+      dataPartita: this.state.dataPartita(),
+      orario: this.state.orario(),
+      status: this.state.status(),
+      step: this.state.step(),
+      matchConcluso: this.state.matchConcluso(),
+      pagelleInserite: this.state.pagelleInserite(),
+      scoreA: this.state.scoreA(),
+      scoreB: this.state.scoreB(),
+      teamA: this.state.teamA(),
+      teamB: this.state.teamB(),
+      convocati: this.state.convocati(),
+      rsvp: this.state.rsvp(),
+      eventiGol: this.state.eventiGol(),
+      fotoUrl: this.state.fotoUrl(),
+      fotoPath: this.state.fotoPath(),
+      commentoPartita: this.state.commentoPartita(),
+      pronosticoAi: this.state.pronosticoAi(),
+      cronacaAi: this.state.cronacaAi(),
+    };
+
+    const modal = await this.modalCtrl.create({
+      component: MatchShareModalComponent,
+      componentProps: { partita: partitaSnapshot },
+      mode: 'ios',
+    });
+    await modal.present();
   }
 
   cambiaStep(

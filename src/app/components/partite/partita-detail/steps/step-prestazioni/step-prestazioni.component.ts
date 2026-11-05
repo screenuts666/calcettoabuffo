@@ -17,7 +17,7 @@ import {
   clipboardOutline,
   micOutline,
   trendingUpOutline,
-      shieldOutline,
+  shieldOutline,
 } from 'ionicons/icons';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { Partita } from '../../../../../models/partita.model';
@@ -26,6 +26,7 @@ import { StatsEngineService } from '../../../../../services/stats-engine.service
 import { MatchShareModalComponent } from '../../../match-share-modal/match-share-modal.component';
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
+import { AuthService } from '../../../../../services/auth.service';
 
 import { PrestazioniHeroComponent } from './components/prestazioni-hero/prestazioni-hero.component';
 import { PrestazioniTabSintesiComponent } from './components/prestazioni-tab-sintesi/prestazioni-tab-sintesi.component';
@@ -54,6 +55,12 @@ export class StepPrestazioniComponent {
   public state = inject(MatchStateService);
   public statsEngine = inject(StatsEngineService);
   public geminiService = inject(GeminiService);
+  public auth = inject(AuthService);
+
+  /** Reattivo sul ruolo reale corrente (non sul flag statico salvato all'apertura) */
+  get isAdmin(): boolean {
+    return this.auth.isSuperUser();
+  }
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -105,7 +112,7 @@ export class StepPrestazioniComponent {
     return this.statsEngine.getMatchReport(currentMatch);
   });
 
-  
+
   match = computed<Partita>(() => ({
     id: this.state.matchId() || '',
     dataPartita: this.state.dataPartita(),
@@ -212,7 +219,7 @@ export class StepPrestazioniComponent {
   }
 
   async salvaCommentoPartita(silent = false) {
-    if (!this.state.matchId() || this.isSavingCommento()) return;
+    if (!this.isAdmin || !this.state.matchId() || this.isSavingCommento()) return;
     this.isSavingCommento.set(true);
     try {
       await this.state.salvaInDatabase(
@@ -233,7 +240,7 @@ export class StepPrestazioniComponent {
   }
 
   async generaPronostico(force = false) {
-    if (this.isGeneratingPronostico()) return;
+    if (!this.isAdmin || this.isGeneratingPronostico()) return;
     this.isGeneratingPronostico.set(true);
     try {
       const currentMatch: any = {
@@ -274,7 +281,7 @@ export class StepPrestazioniComponent {
   }
 
   async generaCronaca(force = false) {
-    if (this.isGeneratingCronaca()) return;
+    if (!this.isAdmin || this.isGeneratingCronaca()) return;
     this.isGeneratingCronaca.set(true);
     try {
       // Salva preventivamente le ultime note di bordocampo e lo stato su Firestore se la partita esiste
@@ -366,7 +373,7 @@ export class StepPrestazioniComponent {
   }
 
   async modificaAssist(giocatore: any) {
-    if (!this.state.matchDataOriginale?.isAdmin) return;
+    if (!this.isAdmin) return;
 
     const currentAssist = this.getAssistCount(giocatore);
     const alert = await this.alertCtrl.create({
@@ -413,7 +420,7 @@ export class StepPrestazioniComponent {
   }
 
   async modificaAssistEvento(index: number) {
-    if (!this.state.matchDataOriginale?.isAdmin) return;
+    if (!this.isAdmin) return;
 
     const eventi = this.state.eventiGol();
     const evento = eventi[index];
@@ -551,7 +558,7 @@ export class StepPrestazioniComponent {
   }
 
   async apriModificaRisultato() {
-    if (!this.state.matchDataOriginale?.isAdmin) return;
+    if (!this.isAdmin) return;
 
     const alertWarning = await this.alertCtrl.create({
       header: 'Modifica Risultato',

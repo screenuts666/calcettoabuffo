@@ -497,13 +497,6 @@
           <!-- CORPO ESPANDIBILE DELL'ACCORDION (Dettagli, Marcatori, Piantina, Azioni) -->
           @if (isMatchAccordionOpen(m.id, isLive)) {
             <div class="match-accordion-content" (click)="$event.stopPropagation()">
-              @if (!m.matchConcluso || m.rsvp) {
-                <app-match-rsvp-widget
-                  [matchId]="m.id"
-                  [rsvpMap]="m.rsvp"
-                  [matchConcluso]="m.matchConcluso"
-                ></app-match-rsvp-widget>
-              }
               <!-- MARCATORI PER SQUADRA CON EMOJI E DOPPIETTE/TRIPLETTE -->
               @let marcatoriA = getMarcatoriSquadra(m, 'A');
               @let marcatoriB = getMarcatoriSquadra(m, 'B');

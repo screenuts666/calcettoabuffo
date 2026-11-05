@@ -11,6 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.1-dev",
+    "title": "Calcetto Abbuffo 2.0 (Fase 2): Link Invito & RSVP, Privacy Telefono, Squadre a 2 Colonne e Hardening Super User",
+    "userChanges": [
+      "🔗 Link Invito Partita & Auto-RSVP (3 Stati): nello step Convocati puoi rispondere o modificare la tua presenza (Partecipo, Forse, Non partecipo) con badge di conferma e deep-link condivisibile.",
+      "📞 Privacy Numero di Telefono: visibile e modificabile solo da te sulla tua scheda personale o dal Mister, con pulsanti rapidi Chiama e WhatsApp.",
+      "⚖️ Squadre a 2 Colonne Mobile-First: visualizzazione affiancata compatta su schermi piccoli (360px+) nello step Squadre.",
+      "🛡️ Interfaccia Più Pulita per i Giocatori: rimossi tutti i pannelli, sezioni di controllo e bottoni di generazione AI riservati al Super User."
+    ],
+    "superUserChanges": [
+      "👑 Isolamento Totale Controlli Super User: il Pannello di Controllo Super User e i controlli audio/turni in Impostazioni sono visibili solo al Mister autenticato.",
+      "🔒 Blindatura Generazione AI & Prestazioni: protetti i pulsanti di generazione/rigenerazione AI (Telecronaca, Pronostico e Scouting) con guardie reattive su auth.isSuperUser().",
+      "🔒 Isolamento Firestore Zero-Data-Leak per il Telefono: sottocollezione giocatori/{playerId}/private/contact accessibile solo dal proprietario e dal Mister.",
+      "🚀 Versionamento Progressivo: bump versione e aggiornamento automatico release-notes ad ogni deploy."
+    ],
+    "date": "05/11/2026"
+  },
+  {
     "version": "2.0.0-dev",
     "title": "Calcetto Abbuffo 2.0: Nuovo Sistema Account (Google + Email), Ruoli Tifoso/Atleta/Mister, Scheda Personale & RSVP Partite",
     "userChanges": [
@@ -649,11 +666,13 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
 ];
 
 /**
- * Confronta due stringhe semver "x.y.z" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
+ * Confronta due stringhe semver "x.y.z" o "x.y.z-dev" (ritorna >0 se a > b, <0 se a < b, 0 se uguali).
  */
 export function compareSemver(a: string, b: string): number {
-  const pa = (a || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
-  const pb = (b || '0.0.0').split('.').map((n) => parseInt(n, 10) || 0);
+  const cleanA = (a || '0.0.0').split('-')[0];
+  const cleanB = (b || '0.0.0').split('-')[0];
+  const pa = cleanA.split('.').map((n) => parseInt(n, 10) || 0);
+  const pb = cleanB.split('.').map((n) => parseInt(n, 10) || 0);
   for (let i = 0; i < 3; i++) {
     const diff = (pa[i] || 0) - (pb[i] || 0);
     if (diff !== 0) return diff;

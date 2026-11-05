@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
   IonContent,
@@ -77,9 +77,11 @@ export class AuthModalComponent implements OnInit {
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
+  private route = inject(ActivatedRoute, { optional: true });
 
   @Input() initialMode: AuthModalView = 'login';
   @Input() openClaimPicker = false;
+  @Input() returnUrl: string | null = null;
 
   authMode = signal<AuthModalView>('login');
   email = signal<string>('');
@@ -150,13 +152,42 @@ export class AuthModalComponent implements OnInit {
 
   ngOnInit() {
     this.authMode.set(this.initialMode);
-    if (this.openClaimPicker) {
+    const queryReturn = this.route?.snapshot?.queryParamMap?.get('returnUrl');
+    if (this.returnUrl || queryReturn) {
+      this.authService.setReturnUrl(this.returnUrl || queryReturn || null);
+    }
+    if (this.openClaimPicker || (this.authService.isLoggedIn() && !this.authService.hasLinkedPlayer() && this.authService.pendingReturnUrl())) {
       this.showPlayerPicker.set(true);
     }
   }
 
-  chiudi(result?: string) {
-    this.modalCtrl.dismiss(result);
+  private async handlePostAuthRedirect(): Promise<boolean> {
+    const targetUrl =
+      this.returnUrl ||
+      this.route?.snapshot?.queryParamMap?.get('returnUrl') ||
+      this.authService.consumeReturnUrl();
+    if (!targetUrl) return false;
+
+    const topModal = await this.modalCtrl.getTop();
+    if (topModal) {
+      await this.modalCtrl.dismiss('redirected');
+    }
+    await this.router.navigateByUrl(targetUrl);
+    return true;
+  }
+
+  async chiudi(result?: string) {
+    const topModal = await this.modalCtrl.getTop();
+    if (topModal) {
+      await this.modalCtrl.dismiss(result);
+      return;
+    }
+    const targetUrl =
+      this.returnUrl ||
+      this.route?.snapshot?.queryParamMap?.get('returnUrl') ||
+      this.authService.consumeReturnUrl() ||
+      '/partite';
+    await this.router.navigateByUrl(targetUrl);
   }
 
   setAuthMode(mode: AuthModalView) {
@@ -187,17 +218,26 @@ export class AuthModalComponent implements OnInit {
           `Benvenuto ${this.authService.displayName()}! (${this.authService.roleMeta().badgeText})`,
           'success'
         );
+        if (this.authService.hasLinkedPlayer() || this.authService.isSuperUser()) {
+          await this.handlePostAuthRedirect();
+        } else {
+          this.showPlayerPicker.set(true);
+        }
       } else {
         await this.authService.registerWithEmail(
           mail,
           pass,
           this.displayName()
         );
-        this.showPlayerPicker.set(true);
-        await this.mostraToast(
-          'Registrazione completata! Ora puoi associare il tuo profilo giocatore.',
-          'success'
-        );
+        if (this.authService.hasLinkedPlayer()) {
+          await this.handlePostAuthRedirect();
+        } else {
+          this.showPlayerPicker.set(true);
+          await this.mostraToast(
+            'Registrazione completata! Ora associa il tuo profilo giocatore per continuare.',
+            'success'
+          );
+        }
       }
       this.password.set('');
     } catch (err: any) {
@@ -212,13 +252,15 @@ export class AuthModalComponent implements OnInit {
     this.isSubmitting.set(true);
     try {
       await this.authService.loginWithGoogle();
-      if (!this.authService.hasLinkedPlayer()) {
-        this.showPlayerPicker.set(true);
-      }
       await this.mostraToast(
         `Accesso effettuato come ${this.authService.displayName()} (${this.authService.roleMeta().badgeText})`,
         'success'
       );
+      if (!this.authService.hasLinkedPlayer() && !this.authService.isSuperUser()) {
+        this.showPlayerPicker.set(true);
+      } else {
+        await this.handlePostAuthRedirect();
+      }
     } catch (err: any) {
       const msg = this.formatFirebaseAuthError(err);
       if (msg) {
@@ -256,6 +298,7 @@ export class AuthModalComponent implements OnInit {
         `✅ Profilo associato a ${giocatore.nome} (${roleInfo})!`,
         'success'
       );
+      await this.handlePostAuthRedirect();
     } catch (err: any) {
       await this.mostraToast(
         err?.message || 'Errore durante l\'associazione del giocatore.',
@@ -301,10 +344,19 @@ export class AuthModalComponent implements OnInit {
   }
 
   creaMioGiocatoreInRosa() {
-    this.chiudi();
+    const returnUrl =
+      this.returnUrl ||
+      this.route?.snapshot?.queryParamMap?.get('returnUrl') ||
+      this.authService.pendingReturnUrl();
+    this.modalCtrl.getTop().then((top) => {
+      if (top) this.modalCtrl.dismiss();
+    });
     setTimeout(() => {
       this.router.navigate(['/giocatori', 'nuovo'], {
-        queryParams: { selfClaim: '1' },
+        queryParams: {
+          selfClaim: '1',
+          ...(returnUrl ? { returnUrl } : {}),
+        },
       });
     }, 150);
   }

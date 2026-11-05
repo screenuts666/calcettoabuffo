@@ -187,10 +187,34 @@ service cloud.firestore {
           )
         )
       );
+
+      // Sottocollezione Privata Contatti (`giocatori/{playerId}/private/contact`):
+      // Isola il `phoneNumber` garantendo Zero Data Leak verso Tifosi (guest) e altri Atleti.
+      // Lettura e scrittura consentite ESCLUSIVAMENTE al Mister (`superuser`) o al giocatore proprietario (`linkedUid == request.auth.uid`).
+      match /private/{docId} {
+        allow read: if isSuperUser() || (
+          isAuthenticated() &&
+          get(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+        );
+
+        allow write: if isSuperUser() || (
+          isAuthenticated() &&
+          docId == 'contact' &&
+          (
+            (
+              exists(/databases/$(database)/documents/giocatori/$(playerId)) &&
+              get(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+            )
+            ||
+            getAfter(/databases/$(database)/documents/giocatori/$(playerId)).data.get('linkedUid', null) == request.auth.uid
+          ) &&
+          request.resource.data.keys().hasOnly(['phoneNumber', 'updatedAt', 'updatedBy'])
+        );
+      }
     }
 
     // =========================================================================
-    // 3. COLLEZIONE PARTITE: Field-Level Security su RSVP
+    // 3. COLLEZIONE PARTITE: Field-Level Security su RSVP (Solo Step Convocati)
     // =========================================================================
     match /partite/{matchId} {
       // Lettura pubblica del calendario, formazioni e risultati
@@ -201,15 +225,18 @@ service cloud.firestore {
 
       // Update partita:
       // 1. Mister: Full CRUD
-      // 2. Atleta (o giocatore associato): può aggiornare ESCLUSIVAMENTE la propria voce `rsvp[request.auth.uid]`,
-      //    bloccando qualsiasi modifica a data, luogo, punteggi, squadre, stato partita o RSVP altrui.
+      // 2. Atleta (o giocatore associato): può aggiornare ESCLUSIVAMENTE la propria voce `rsvp[request.auth.uid]`
+      //    (e la sincronizzazione della lista `convocati`) SOLO ed esclusivamente quando la partita si trova
+      //    nello step `'convocati'` e non è conclusa.
       allow update: if isSuperUser() || (
         hasLinkedPlayer() &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp']) &&
+        resource.data.get('matchConcluso', false) == false &&
+        resource.data.get('step', 'convocati') == 'convocati' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp', 'convocati']) &&
         request.resource.data.rsvp.diff(resource.data.get('rsvp', {})).affectedKeys().hasOnly([request.auth.uid]) &&
         request.resource.data.rsvp[request.auth.uid].uid == request.auth.uid &&
         request.resource.data.rsvp[request.auth.uid].playerId == getUserData().playerId &&
-        request.resource.data.rsvp[request.auth.uid].status in ['confirmed', 'declined', 'maybe']
+        request.resource.data.rsvp[request.auth.uid].status in ['yes', 'maybe', 'no', 'confirmed', 'declined']
       );
     }
 

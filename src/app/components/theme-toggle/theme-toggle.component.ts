@@ -183,7 +183,9 @@ export class ThemeToggleComponent {
 
     // 4. Impostazioni Audio & Tema
     buttons.push({
-      text: '⚙️ Impostazioni Audio & Tema',
+      text: this.authService.isSuperUser()
+        ? '⚙️ Impostazioni Audio & Tema'
+        : '⚙️ Impostazioni & Tema',
       icon: 'settings-outline',
       handler: () => {
         this.openThemeMenu();

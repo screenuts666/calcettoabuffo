@@ -14,8 +14,269 @@
     h2 {
       margin: 0;
       font-weight: 800;
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       color: var(--app-text-primary);
+    }
+  }
+
+  // PANNELLO INVITO & AUTO-RSVP ESCLUSIVO DELLO STEP CONVOCATI
+  .invite-rsvp-panel {
+    margin-bottom: 14px;
+    padding: 12px;
+    border-radius: 14px;
+    background: linear-gradient(
+      145deg,
+      rgba(16, 185, 129, 0.08) 0%,
+      rgba(15, 23, 42, 0.55) 100%
+    );
+    border: 1px solid rgba(16, 185, 129, 0.32);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+
+    .irp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+
+      .irp-title-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .irp-pill {
+          font-size: 0.68rem;
+          font-weight: 900;
+          letter-spacing: 0.4px;
+          color: #10b981;
+        }
+
+        .irp-counters {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+
+          .irp-cnt {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--app-text-primary);
+
+            small {
+              font-weight: 600;
+              opacity: 0.85;
+              margin-left: 2px;
+            }
+
+            &.yes {
+              border: 1px solid rgba(16, 185, 129, 0.4);
+              color: #34d399;
+            }
+            &.maybe {
+              border: 1px solid rgba(245, 158, 11, 0.4);
+              color: #fbbf24;
+            }
+            &.no {
+              border: 1px solid rgba(239, 68, 68, 0.35);
+              color: #f87171;
+            }
+          }
+        }
+      }
+
+      .irp-share-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+
+        .btn-share-invite {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 8px 12px;
+          border-radius: 10px;
+          border: none;
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: #04130b;
+          font-size: 0.76rem;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+          transition: transform 0.15s ease;
+
+          &:active {
+            transform: scale(0.96);
+          }
+
+          ion-icon {
+            font-size: 1rem;
+          }
+
+          ion-spinner {
+            width: 16px;
+            height: 16px;
+            --color: #04130b;
+          }
+        }
+
+        .btn-copy-invite {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.06);
+          color: var(--app-text-primary);
+          cursor: pointer;
+
+          &:active {
+            transform: scale(0.94);
+          }
+        }
+      }
+    }
+
+    .irp-rsvp-box {
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+      .irp-rsvp-prompt {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+        font-size: 0.73rem;
+        color: var(--app-text-secondary);
+        margin-bottom: 8px;
+
+        .my-current-status {
+          font-size: 0.7rem;
+          font-weight: 800;
+          padding: 2px 8px;
+          border-radius: 999px;
+
+          &[data-status='yes'] {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+          }
+          &[data-status='maybe'] {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+          }
+          &[data-status='no'] {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+          }
+        }
+      }
+
+      .rsvp-3-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+
+        .rsvp-choice-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 8px 4px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.04);
+          color: var(--app-text-primary);
+          cursor: pointer;
+          transition: all 0.18s ease;
+
+          span {
+            font-size: 0.76rem;
+            font-weight: 800;
+            white-space: nowrap;
+          }
+
+          small {
+            font-size: 0.63rem;
+            color: var(--app-text-muted);
+            margin-top: 2px;
+          }
+
+          &.yes.active {
+            background: rgba(16, 185, 129, 0.22);
+            border-color: #10b981;
+            color: #34d399;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+          }
+
+          &.maybe.active {
+            background: rgba(245, 158, 11, 0.22);
+            border-color: #f59e0b;
+            color: #fbbf24;
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+          }
+
+          &.no.active {
+            background: rgba(239, 68, 68, 0.22);
+            border-color: #ef4444;
+            color: #f87171;
+          }
+
+          &:active:not(:disabled) {
+            transform: scale(0.96);
+          }
+
+          &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    .irp-login-cta {
+      width: 100%;
+      margin-top: 4px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px dashed rgba(16, 185, 129, 0.55);
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .maybe-players-strip {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(245, 158, 11, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      .maybe-strip-title {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #fbbf24;
+      }
+
+      .maybe-chip {
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: rgba(245, 158, 11, 0.16);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #fbbf24;
+      }
     }
   }
 
@@ -114,6 +375,23 @@
         overflow: hidden;
       }
 
+      .self-verified-dot {
+        position: absolute;
+        bottom: -3px;
+        left: -3px;
+        background: #04130b;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        @include flex-center;
+        z-index: 2;
+
+        ion-icon {
+          font-size: 18px;
+          color: #10b981;
+        }
+      }
+
       .remove-btn {
         position: absolute;
         top: -4px;
@@ -151,14 +429,64 @@
     --background: transparent;
     --border-color: var(--app-border-color);
 
-    h3 {
-      font-weight: 700;
-      color: var(--app-text-primary);
+    &.is-maybe-row {
+      --background: rgba(245, 158, 11, 0.06);
+      border-left: 3px solid #f59e0b;
+    }
+
+    &.is-declined-row {
+      opacity: 0.65;
+    }
+
+    .player-name-with-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+
+      h3 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--app-text-primary);
+      }
+
+      .rsvp-inline-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 999px;
+
+        &.self-confirmed {
+          background: rgba(16, 185, 129, 0.16);
+          border: 1px solid rgba(16, 185, 129, 0.45);
+          color: #34d399;
+
+          ion-icon {
+            font-size: 0.85rem;
+          }
+        }
+
+        &.maybe-badge {
+          background: rgba(245, 158, 11, 0.18);
+          border: 1px solid rgba(245, 158, 11, 0.45);
+          color: #fbbf24;
+        }
+
+        &.no-badge {
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #f87171;
+        }
+      }
     }
 
     p {
       color: var(--app-text-secondary);
       font-style: italic;
+      margin-top: 2px;
     }
   }
 }
