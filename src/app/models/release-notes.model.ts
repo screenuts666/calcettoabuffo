@@ -11,20 +11,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "1.0.76",
+    "version": "1.0.78",
     "date": "05/11/2026",
-    "title": "Timer Match Continuo (Solo Fischio d'Inizio e Finale) & Correzione Durata Partita",
+    "title": "Orario Reale di Gara (Inizio - Fine), Timestamp Match e Pulizia Diciture Tecniche",
     "userChanges": [
-      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Una volta avviato con 'Fischio d'Inizio', il cronometro scorre continuamente fino al definitivo 'Fischio Finale'.",
-      "📊 Correzione Durata Ultima Partita: ricalcolata e aggiornata la durata dell'ultimo match giocato, riallineando il minutaggio effettivo e le rotazioni dei portieri."
+      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel report di gioco ora sono ben visibili l'orario effettivo del calcio d'inizio e del fischio finale (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
+      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue (come 'Memorizzato nel profilo', 'Salvata nel database', badge di sincronizzazione non necessari e terminologie informatiche) per offrire un'esperienza fluida, focalizzata sul calcio giocato.",
+      "🤝 Chimica di Coppia & Rivalità: grafica e diciture della sezione classifica rese più amichevoli e immediate per tutti i compagni di squadra."
     ],
     "superUserChanges": [
-      "Refactor Modello Timer: introdotto tracciamento assoluto con startedAt e endedAt su Firestore, deprecata toggleTimerState() ed eliminati delta parziali di pausa.",
-      "Script Utility Data-Patch: creato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match (con fallback intelligente sulla media storica)."
+      "Persistenza Timestamp Assoluti: salvataggio su Firestore di inizioPartita e finePartita (Timestamp nativi) insieme alle stringhe orarioInizioReale e orarioFineReale nel documento del match.",
+      "Calcolo Durata Intelligente: calcolo automatico della durata reale della gara basato sul delta temporale esatto tra fischio iniziale e fischio finale.",
+      "Badge Sincronizzazione Cloud: visibilità del componente SyncStatusBadge riservata ai soli utenti Super User / Admin."
     ]
   },
   {
-    "version": "NEXT",
+    "version": "1.0.75",
     "date": "05/11/2026",
     "title": "Timer Match Continuo (Solo Fischio d'Inizio e Finale) & Correzione Durata Partita",
     "userChanges": [

@@ -45,6 +45,10 @@ export interface Partita {
   timerStartAt?: number | null;
   startedAt?: number | null; // Timestamp ms effettivo fischio d'inizio (avvio continuo)
   endedAt?: number | null;   // Timestamp ms effettivo fischio finale definitivo
+  inizioPartita?: any;       // Firestore Timestamp inizio effettivo gara (fischio d'inizio)
+  finePartita?: any;         // Firestore Timestamp fine effettiva gara (fischio finale)
+  orarioInizioReale?: string | null; // Stringa HH:mm inizio effettivo (es. "19:05")
+  orarioFineReale?: string | null;   // Stringa HH:mm fine effettiva (es. "20:03")
   isTimerRunning?: boolean;
   status: TMatchStatus;
   step?: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni';

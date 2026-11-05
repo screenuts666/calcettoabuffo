@@ -126,9 +126,6 @@
     @if (prof?.scoutingReportAi) {
       <div class="scouting-body">
         <div class="scouting-text" [innerHTML]="formatAiMarkdown(prof.scoutingReportAi)"></div>
-        <div class="scouting-footer">
-          <small>💾 Memorizzato nel profilo del giocatore</small>
-        </div>
       </div>
     } @else {
       <div class="scouting-empty">

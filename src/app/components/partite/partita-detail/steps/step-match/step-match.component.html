@@ -53,7 +53,17 @@
       <div class="tb-meta-line">
         <span><ion-icon name="location-outline"></ion-icon> {{ state.luogo() || 'Campo' }}</span>
         <span class="meta-dot">•</span>
-        <span><ion-icon name="time-outline"></ion-icon> {{ state.orario() }}</span>
+        @if (state.orarioInizioReale()) {
+          <span class="real-kickoff-meta">
+            <ion-icon name="time"></ion-icon>
+            Inizio: {{ state.orarioInizioReale() }}
+            @if (state.orarioFineReale()) {
+              - {{ state.orarioFineReale() }}
+            }
+          </span>
+        } @else {
+          <span><ion-icon name="time-outline"></ion-icon> {{ state.orario() }}</span>
+        }
       </div>
       <div class="tb-clock-wrap">
         <span class="live-dot" [class.active]="state.isTimerRunning()"></span>

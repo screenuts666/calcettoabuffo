@@ -15,7 +15,9 @@
     }}</ion-title>
 
     <ion-buttons slot="end" class="detail-header-end">
-      <app-sync-status-badge [compact]="true"></app-sync-status-badge>
+      @if (isAdmin) {
+        <app-sync-status-badge [compact]="true"></app-sync-status-badge>
+      }
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>

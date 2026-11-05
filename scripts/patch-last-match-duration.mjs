@@ -18,6 +18,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  Timestamp,
 } from 'firebase/firestore';
 
 const devConfig = {
@@ -127,24 +128,47 @@ async function patchProject(envName, config) {
     const minuti = avgInfo.avgMin;
     methodUsed = `Fallback Media Storica (${avgInfo.count} partite analizzate -> media: ${avgInfo.avgMin} min / ${avgInfo.avgSec}s)`;
 
-    // Se mancano i timestamp assoluti, ricostruiamoli coerentemente a ritroso da dataOra/conclusione
-    const baseTimeMs = lastData.dataOra?.toMillis
-      ? lastData.dataOra.toMillis()
-      : lastData.dataOra?.seconds
-        ? lastData.dataOra.seconds * 1000
-        : Date.now();
-    endedAt = baseTimeMs + (newDurationSec * 1000);
+    // Se mancano i timestamp assoluti, calcoliamo l'inizio reale (es. dataPartita + orario programmato + 5 min per inizio riscaldamento/fischio)
+    let baseTimeMs;
+    if (lastData.dataPartita && lastData.orario) {
+      const matchIso = `${lastData.dataPartita}T${lastData.orario}:00+01:00`;
+      const parsedMatchDate = new Date(matchIso);
+      if (!isNaN(parsedMatchDate.getTime())) {
+        // Kickoff reale tipicamente 5 minuti dopo l'orario convocazione
+        baseTimeMs = parsedMatchDate.getTime() + 5 * 60 * 1000;
+      }
+    }
+    if (!baseTimeMs) {
+      baseTimeMs = lastData.dataOra?.toMillis
+        ? lastData.dataOra.toMillis()
+        : lastData.dataOra?.seconds
+          ? lastData.dataOra.seconds * 1000
+          : Date.now();
+    }
     startedAt = baseTimeMs;
+    endedAt = baseTimeMs + (newDurationSec * 1000);
   }
+
+  const orarioInizioStr = new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(startedAt));
+
+  const orarioFineStr = new Intl.DateTimeFormat('it-IT', {
+    timeZone: 'Europe/Rome',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(endedAt));
 
   const newDurationMin = Math.round(newDurationSec / 60);
 
-  console.log(`\n📊 Ricalcolo Durata:`);
+  console.log(`\n📊 Ricalcolo Durata & Orari Effettivi:`);
   console.log(`   - Metodo utilizzato : ${methodUsed}`);
   console.log(`   - Vecchio Minutaggio: ${oldDurationSec} sec (~${oldDurationMin} min)`);
   console.log(`   - Nuovo Minutaggio  : ${newDurationSec} sec (~${newDurationMin} min)`);
-  console.log(`   - Timestamp Inizio  : ${startedAt} (${new Date(startedAt).toLocaleTimeString('it-IT')})`);
-  console.log(`   - Timestamp Fine    : ${endedAt} (${new Date(endedAt).toLocaleTimeString('it-IT')})`);
+  console.log(`   - Fischio Inizio    : ${orarioInizioStr} (ms: ${startedAt})`);
+  console.log(`   - Fischio Finale    : ${orarioFineStr} (ms: ${endedAt})`);
 
   if (!shouldApply) {
     console.log(`\n💡 Dry-run completata. Per applicare le modifiche su Firestore riesegui con:`);
@@ -160,6 +184,10 @@ async function patchProject(envName, config) {
     accumulatedTime: newDurationSec,
     startedAt: startedAt,
     endedAt: endedAt,
+    inizioPartita: Timestamp.fromMillis(startedAt),
+    finePartita: Timestamp.fromMillis(endedAt),
+    orarioInizioReale: orarioInizioStr,
+    orarioFineReale: orarioFineStr,
     isTimerRunning: false,
     timerStartAt: null,
   });
