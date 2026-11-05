@@ -124,8 +124,13 @@ export class StepDettagliComponent {
     this.state.triggerAutoSave();
   }
 
-  tornaAConvocati() {
+  vaiAConvocati() {
+    if (!this.state.isDettagliValidi()) return;
     this.state.cambiaStep('convocati');
+  }
+
+  tornaAConvocati() {
+    this.vaiAConvocati();
   }
 
   toggleModalitaA(modalita?: 'rotazione' | 'fisso') {
@@ -146,22 +151,6 @@ export class StepDettagliComponent {
 
   vaiASquadre() {
     if (!this.state.isDettagliValidi()) return;
-    const scelti = this.state.convocati();
-    const idsScelti = scelti.map((g) => g.id);
-
-    this.state.teamA.update((t) => t.filter((g) => idsScelti.includes(g.id)));
-    this.state.teamB.update((t) => t.filter((g) => idsScelti.includes(g.id)));
-
-    const idsAssegnati = [...this.state.teamA(), ...this.state.teamB()].map(
-      (g) => g.id,
-    );
-
-    const nuoviArrivati = scelti.filter((g) => !idsAssegnati.includes(g.id));
-
-    if (nuoviArrivati.length > 0) {
-      this.state.teamA.update((t) => [...t, ...nuoviArrivati]);
-    }
-
     this.state.cambiaStep('squadre');
   }
 }

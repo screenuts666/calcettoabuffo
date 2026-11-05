@@ -70,8 +70,8 @@ export class MatchStateService {
   public onMatchCreated?: (id: string) => void;
   private autoSaveTimer?: any;
 
-  step = signal<'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'>(
-    'convocati'
+  step = signal<'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'>(
+    'dettagli'
   );
   status = signal<TMatchStatus>('da_definire');
   filtro = signal<string>('');
@@ -955,9 +955,31 @@ export class MatchStateService {
     return false;
   }
 
+  /**
+   * Sincronizza i giocatori convocati con le rose di Team A e Team B quando si accede allo step 'squadre',
+   * preservando eventuali formazioni già impostate e integrando i nuovi convocati.
+   */
+  sincronizzaConvocatiInSquadre(): void {
+    const scelti = this.convocati();
+    const idsScelti = scelti.map((g) => g.id);
+
+    this.teamA.update((t) => t.filter((g) => idsScelti.includes(g.id)));
+    this.teamB.update((t) => t.filter((g) => idsScelti.includes(g.id)));
+
+    const idsAssegnati = [...this.teamA(), ...this.teamB()].map((g) => g.id);
+    const nuoviArrivati = scelti.filter((g) => !idsAssegnati.includes(g.id));
+
+    if (nuoviArrivati.length > 0) {
+      this.teamA.update((t) => [...t, ...nuoviArrivati]);
+    }
+  }
+
   cambiaStep(
-    nuovoStep: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
+    nuovoStep: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'
   ) {
+    if (nuovoStep === 'squadre') {
+      this.sincronizzaConvocatiInSquadre();
+    }
     this.step.set(nuovoStep);
     this.triggerAutoSave(true);
   }

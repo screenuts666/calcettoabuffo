@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.0.79",
+    "date": "05/11/2026",
+    "title": "Nuova Sequenza Wizard Partita: Coordinate Match, Convocati e Squadre",
+    "userChanges": [
+      "📍 Coordinate Match come Primo Step: la creazione della partita parte subito dall'inserimento di luogo, data, orario e impostazione portieri, così che tutti i dettagli logistici siano definiti fin dal principio.",
+      "👥 Gestione Convocati Fluida: posizionato subito dopo le coordinate, lo step Convocati consente la selezione rapida dei giocatori per la gara con contatori in tempo reale.",
+      "⚽ Squadre e Formazioni: il bilanciamento e la composizione delle squadre (Bianchi vs Neri) diventano l'ultimo passaggio di preparazione prima dell'inizio del match."
+    ],
+    "superUserChanges": [
+      "Nuovo Wizard Stepper (1. Coordinate -> 2. Convocati -> 3. Squadre): avanzamento logico guidato con sincronizzazione automatica delle rose al passaggio alle formazioni.",
+      "Navigazione e Indietro Ottimizzati: transizioni sicure tra i vari step della partita e ritorno protetto alla lista gare."
+    ]
+  },
+  {
     "version": "1.0.78",
     "date": "05/11/2026",
     "title": "Orario Reale di Gara (Inizio - Fine), Timestamp Match e Pulizia Diciture Tecniche",

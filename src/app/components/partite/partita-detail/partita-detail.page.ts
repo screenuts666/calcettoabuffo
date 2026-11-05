@@ -212,7 +212,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
         teamB: [],
         convocati: [],
         status: 'da_definire',
-        step: 'convocati',
+        step: 'dettagli',
         luogo: luogoPredefinito,
         orario: orarioPredefinito,
         rotazionePortieri: {
@@ -400,7 +400,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.commentoPartita.set('');
       this.state.rotazionePortieri.set(matchData.rotazionePortieri || null);
       this.state.resetMatchState();
-      this.state.step.set('convocati');
+      this.state.step.set('dettagli');
     }
 
     // Ripristina snapshot locale di sicurezza se presente e più recente / offline
@@ -421,7 +421,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   cambiaStep(
-    step: 'convocati' | 'dettagli' | 'squadre' | 'match' | 'prestazioni'
+    step: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'
   ) {
     this.state.cambiaStep(step);
   }
@@ -437,23 +437,23 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   async gestisciIndietro() {
     const currentStep = this.state.step();
 
-    // Se siamo nel primo step ('convocati') o la partita è già conclusa in 'prestazioni', torna direttamente
-    if (currentStep === 'convocati' || (this.state.matchConcluso() && currentStep === 'prestazioni')) {
+    // Se siamo nel primo step ('dettagli') o la partita è già conclusa in 'prestazioni', torna direttamente
+    if (currentStep === 'dettagli' || (this.state.matchConcluso() && currentStep === 'prestazioni')) {
       this.tornaAPartite();
       return;
     }
 
     let prevStepName = '';
-    let prevStepTarget: 'convocati' | 'dettagli' | 'squadre' | 'match' | null = null;
+    let prevStepTarget: 'dettagli' | 'convocati' | 'squadre' | 'match' | null = null;
 
     switch (currentStep) {
-      case 'dettagli':
-        prevStepName = 'Convocati';
-        prevStepTarget = 'convocati';
+      case 'convocati':
+        prevStepName = 'Coordinate Match';
+        prevStepTarget = 'dettagli';
         break;
       case 'squadre':
-        prevStepName = 'Dettagli';
-        prevStepTarget = 'dettagli';
+        prevStepName = 'Giocatori Convocati';
+        prevStepTarget = 'convocati';
         break;
       case 'match':
         prevStepName = 'Formazioni & Squadre';
