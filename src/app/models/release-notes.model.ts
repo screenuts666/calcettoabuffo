@@ -11,7 +11,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.1-dev",
+    "version": "2.0.2-dev",
     "title": "Calcetto Abbuffo 2.0 (Fase 2): Link Invito & RSVP, Privacy Telefono, Squadre a 2 Colonne e Hardening Super User",
     "userChanges": [
       "🔗 Link Invito Partita & Auto-RSVP (3 Stati): nello step Convocati puoi rispondere o modificare la tua presenza (Partecipo, Forse, Non partecipo) con badge di conferma e deep-link condivisibile.",
