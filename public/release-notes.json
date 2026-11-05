@@ -1,6 +1,6 @@
 [
   {
-    "version": "2.0.2",
+    "version": "2.0.4",
     "date": "05/11/2026",
     "title": "Calcetto Abbuffo 2.0: Nuova Piattaforma, Account & Ruoli, Flusso Partita Guidato",
     "userChanges": [
@@ -12,8 +12,8 @@
     ],
     "superUserChanges": [
       "Unificazione Ufficiale Codebase v2.0: deprecazione definitiva della vecchia versione v1.0 e allineamento di produzione su main.",
+      "Switch Impostazioni Gmail (DEV): toggle di controllo dedicato nella scheda Impostazioni (attivo di default in DEV), con esclusione totale e permanente dal DOM in produzione.",
       "Sicurezza Avanzata & RBAC (Field-Level Security): permessi granulari su Firestore, prevenzione privilege escalation e anti-hijacking schede.",
-      "Feature Flag & Architettura Gmail: integrazione Gmail compilata e funzionante, con controllo UI escluso dal DOM in ambiente di produzione.",
       "Hardening Credenziali & Input: zero segreti hardcoded nel client, Least Privilege su scope OAuth e sanitizzazione rigorosa dei parametri deep-link."
     ]
   },
