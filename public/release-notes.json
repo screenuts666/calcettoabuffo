@@ -1,29 +1,28 @@
 [
   {
+    "version": "2.0.4-dev",
+    "date": "05/11/2026",
+    "title": "Nuovo Menu Profilo Utente & Bottom Sheet Ridisegnato",
+    "userChanges": [
+      "✨ Nuovo Menu Profilo Elegante: sostituito il vecchio elenco grigio con una moderna scheda a scorrimento dal basso (Bottom Sheet iOS-style) che include foto profilo, badge di ruolo (👑 Mister, ⚽ Atleta, 📣 Tifoso) ed email.",
+      "👤 Accesso Diretto e Chiaro: icone colorate e descrizioni intuitive per visualizzare la propria scheda atleta, aggiornare le informazioni personali o associare il proprio calciatore.",
+      "🚪 Azioni Rapide e Pulite: accesso immediato a impostazioni audio/tema, gestione account e logout rapido senza duplicazioni di icone o testi disordinati."
+    ],
+    "superUserChanges": [
+      "Amministrazione & Motore MMR: scorciatoie dirette per l'Area Segreta e per il Pannello Gestione Utenti e Ruoli visibili esclusivamente agli utenti con ruolo Super User / Mister.",
+      "Refactoring Architetturale: introdotto il componente standalone UserMenuModalComponent con gestione reattiva delle azioni e transizioni fluide su Ionic ModalController."
+    ]
+  },
+  {
     "version": "2.0.3-dev",
     "date": "05/11/2026",
-    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "title": "Aggiornamento Rapivo & Ottimizzazioni",
     "userChanges": [
       "Miglioramenti di stabilità, velocità e interfaccia grafica."
     ],
     "superUserChanges": [
       "Ultimo commit: chore: bump version to v2.0.2-dev after DEV deploy"
     ]
-  },
-  {
-    "version": "NEXT",
-    "title": "Timer Match Continuo, Orari Reali Gara (Inizio - Fine) e Pulizia Diciture Tecniche",
-    "userChanges": [
-      "⏱️ Scorrimento Continuo del Match: eliminata la possibilità di mettere in pausa o stoppare accidentalmente la partita a metà. Il cronometro parte solo con 'Fischio d'Inizio' e si chiude al definitivo 'Fischio Finale'.",
-      "🕒 Orario Reale di Inizio e Fine Gara: nella lista partite e nel cockpit bordocampo sono ora ben visibili gli orari effettivi di gioco (es. 19:05 - 20:03), evidenziati in azzurro sia nell'intestazione che accanto alla durata complessiva.",
-      "🧹 Interfaccia Pulita e Chiara: rimosse tutte le diciture tecniche superflue ('Memorizzato nel profilo', 'Salvata nel database', 'Salvata nel DB') e aggiornato il titolo in 'Chimica di Coppia & Rivalità'."
-    ],
-    "superUserChanges": [
-      "Persistenza Timestamp Assoluti: salvataggio su Firestore dei timestamp nativi inizioPartita e finePartita insieme alle stringhe orarioInizioReale e orarioFineReale.",
-      "Calcolo Durata Intelligente: calcolo automatico della durata reale della gara basato sul delta temporale esatto tra fischio iniziale e fischio finale.",
-      "Script Data-Patch: integrato script scripts/patch-last-match-duration.mjs per il ricalcolo e aggiornamento automatico della durata dei match storici."
-    ],
-    "date": "05/11/2026"
   },
   {
     "version": "2.0.2-dev",

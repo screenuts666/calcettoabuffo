@@ -10,7 +10,6 @@ import {
   IonButton,
   IonIcon,
   ModalController,
-  ActionSheetController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -39,6 +38,10 @@ import { Giocatore } from '../../models/giocatore.model';
 import { ImpostazioniModalComponent } from '../impostazioni-modal/impostazioni-modal.component';
 import { AuthModalComponent, AuthModalView } from '../auth-modal/auth-modal.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
+import {
+  UserMenuModalComponent,
+  UserMenuActionResult,
+} from '../user-menu-modal/user-menu-modal.component';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -54,7 +57,6 @@ export class ThemeToggleComponent {
   public authService = inject(AuthService);
   public statsEngine = inject(StatsEngineService);
   private modalCtrl = inject(ModalController);
-  private actionSheetCtrl = inject(ActionSheetController);
   private toastCtrl = inject(ToastController);
   private router = inject(Router);
 
@@ -109,7 +111,7 @@ export class ThemeToggleComponent {
   /**
    * Click sul badge Utente nell'Header:
    * - Se NON è loggato: apre direttamente il modale di Login / Registrazione (Email + Google)
-   * - Se è loggato: apre il menu rapido con "La mia scheda", "Area Segreta" (solo Mister), "Profilo & Ruoli", "Impostazioni" e "Logout"
+   * - Se è loggato: apre il moderno bottom sheet con profilo, scheda atleta, area mister, impostazioni e logout
    */
   async onUserHeaderClick() {
     if (!this.authService.isLoggedIn()) {
@@ -117,117 +119,36 @@ export class ThemeToggleComponent {
       return;
     }
 
-    const roleMeta = this.authService.roleMeta();
-    const myPlayer = this.linkedPlayer();
-    const buttons: any[] = [];
-
-    // 1. Link a "La mia scheda" (se ha un playerId associato: Atleta o Mister-Giocatore)
-    //    oppure "Associa il tuo Giocatore"
-    if (myPlayer) {
-      buttons.push({
-        text: `👤 La mia scheda (${myPlayer.nome})`,
-        icon: 'person-outline',
-        handler: () => {
-          this.router.navigate(['/giocatori', myPlayer.id]);
-        },
-      });
-      buttons.push({
-        text: '✏️ Modifica la mia scheda',
-        icon: 'create-outline',
-        handler: () => {
-          this.router.navigate(['/giocatori', myPlayer.id, 'modifica']);
-        },
-      });
-    } else {
-      buttons.push({
-        text: this.authService.isSuperUser()
-          ? '⚽ Associa anche il tuo Giocatore (Opzionale Mister)'
-          : '🙋‍♂️ Sei già in Rosa? Reclama il tuo Giocatore',
-        icon: 'football-outline',
-        handler: () => {
-          this.openAuthModal('login', true);
-        },
-      });
-      buttons.push({
-        text: '➕ Non sei ancora in Rosa? Crea la tua Scheda',
-        icon: 'create-outline',
-        handler: () => {
-          this.router.navigate(['/giocatori', 'nuovo'], {
-            queryParams: { selfClaim: '1' },
-          });
-        },
-      });
-    }
-
-    // 2. Link a "Area Segreta" (ESCLUSIVAMENTE per il Mister / superuser)
-    if (this.authService.isSuperUser()) {
-      buttons.push({
-        text: '🔬 Area Segreta (Motore MMR & Raggi X)',
-        icon: 'shield-checkmark',
-        handler: () => {
-          this.router.navigate(['/area-segreta']);
-        },
-      });
-    }
-
-    // 3. Riepilogo Profilo / Gestione Utenti
-    buttons.push({
-      text: this.authService.isSuperUser()
-        ? '👑 Pannello Profilo & Gestione Ruoli'
-        : '🛡️ Il mio Account & Ruolo',
-      icon: 'person-circle-outline',
-      handler: () => {
-        this.openAuthModal('login');
-      },
-    });
-
-    // 4. Impostazioni Audio & Tema
-    buttons.push({
-      text: this.authService.isSuperUser()
-        ? '⚙️ Impostazioni Audio & Tema'
-        : '⚙️ Impostazioni & Tema',
-      icon: 'settings-outline',
-      handler: () => {
-        this.openThemeMenu();
-      },
-    });
-
-    // 5. Logout
-    buttons.push({
-      text: '🚪 Esci (Logout)',
-      icon: 'log-out-outline',
-      role: 'destructive',
-      handler: async () => {
-        await this.authService.logout();
-        const toast = await this.toastCtrl.create({
-          message: 'Logout effettuato.',
-          duration: 2000,
-          position: 'bottom',
-          mode: 'ios',
-          color: 'medium',
-        });
-        await toast.present();
-      },
-    });
-
-    buttons.push({
-      text: 'Chiudi',
-      icon: 'close-outline',
-      role: 'cancel',
-    });
-
-    const subHeaderRole =
-      this.authService.isSuperUser() && myPlayer
-        ? `${roleMeta.badgeText} · ⚽ ${myPlayer.nome}`
-        : `${roleMeta.badgeText} · ${this.authService.firebaseUser()?.email || ''}`;
-
-    const sheet = await this.actionSheetCtrl.create({
-      header: myPlayer?.nome || this.authService.displayName(),
-      subHeader: subHeaderRole,
+    const modal = await this.modalCtrl.create({
+      component: UserMenuModalComponent,
+      breakpoints: [0, 0.78, 1],
+      initialBreakpoint: 0.78,
+      handle: true,
       mode: 'ios',
-      buttons,
+      cssClass: 'user-menu-sheet-modal',
     });
-    await sheet.present();
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss<UserMenuActionResult>();
+    if (!data) return;
+
+    if (data.type === 'navigate') {
+      await this.router.navigate(data.url, { queryParams: data.queryParams });
+    } else if (data.type === 'auth') {
+      await this.openAuthModal('login', data.openClaimPicker);
+    } else if (data.type === 'settings') {
+      await this.openThemeMenu();
+    } else if (data.type === 'logout') {
+      await this.authService.logout();
+      const toast = await this.toastCtrl.create({
+        message: 'Logout effettuato.',
+        duration: 2000,
+        position: 'bottom',
+        mode: 'ios',
+        color: 'medium',
+      });
+      await toast.present();
+    }
   }
 
   async openAuthModal(

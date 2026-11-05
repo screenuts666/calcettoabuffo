@@ -11,9 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.4-dev",
+    "date": "05/11/2026",
+    "title": "Nuovo Menu Profilo Utente & Bottom Sheet Ridisegnato",
+    "userChanges": [
+      "✨ Nuovo Menu Profilo Elegante: sostituito il vecchio elenco grigio con una moderna scheda a scorrimento dal basso (Bottom Sheet iOS-style) che include foto profilo, badge di ruolo (👑 Mister, ⚽ Atleta, 📣 Tifoso) ed email.",
+      "👤 Accesso Diretto e Chiaro: icone colorate e descrizioni intuitive per visualizzare la propria scheda atleta, aggiornare le informazioni personali o associare il proprio calciatore.",
+      "🚪 Azioni Rapide e Pulite: accesso immediato a impostazioni audio/tema, gestione account e logout rapido senza duplicazioni di icone o testi disordinati."
+    ],
+    "superUserChanges": [
+      "Amministrazione & Motore MMR: scorciatoie dirette per l'Area Segreta e per il Pannello Gestione Utenti e Ruoli visibili esclusivamente agli utenti con ruolo Super User / Mister.",
+      "Refactoring Architetturale: introdotto il componente standalone UserMenuModalComponent con gestione reattiva delle azioni e transizioni fluide su Ionic ModalController."
+    ]
+  },
+  {
     "version": "2.0.3-dev",
     "date": "05/11/2026",
-    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "title": "Aggiornamento Rapivo & Ottimizzazioni",
     "userChanges": [
       "Miglioramenti di stabilità, velocità e interfaccia grafica."
     ],
