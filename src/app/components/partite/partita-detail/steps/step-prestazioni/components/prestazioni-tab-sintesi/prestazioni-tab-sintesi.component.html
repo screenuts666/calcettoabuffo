@@ -23,8 +23,13 @@
             [disabled]="isGeneratingCronaca"
             title="Rigenera la telecronaca con Gemini"
           >
-            <ion-icon name="refresh-outline" [class.spin]="isGeneratingCronaca"></ion-icon>
-            <span>{{ isGeneratingCronaca ? 'Riscrivo...' : '🔄 Rigenera' }}</span>
+            <ion-icon
+              name="refresh-outline"
+              [class.spin]="isGeneratingCronaca"
+            ></ion-icon>
+            <span>{{
+              isGeneratingCronaca ? "Riscrivo..." : "🔄 Rigenera"
+            }}</span>
           </button>
         }
       </div>
@@ -32,17 +37,30 @@
 
     <div class="cronaca-preview-box">
       <div class="cronaca-bubble" [class.collapsed]="!isCronacaExpanded">
-        <div class="cronaca-text" [innerHTML]="formatAiMarkdown(cronacaAi)"></div>
+        <div
+          class="cronaca-text"
+          [innerHTML]="formatAiMarkdown(cronacaAi)"
+        ></div>
         @if (!isCronacaExpanded) {
           <div class="fade-overlay"></div>
         }
       </div>
 
       <div class="cronaca-actions-row">
-        <button type="button" class="expand-text-btn" (click)="toggleCronacaExpand()">
-          {{ isCronacaExpanded ? 'Riduci testo ▲' : 'Leggi tutta la cronaca ▼' }}
+        <button
+          type="button"
+          class="expand-text-btn"
+          (click)="toggleCronacaExpand()"
+        >
+          {{
+            isCronacaExpanded ? "Riduci testo ▲" : "Leggi tutta la cronaca ▼"
+          }}
         </button>
-        <button type="button" class="spogliatoio-link-btn" (click)="goToSpogliatoioClick.emit()">
+        <button
+          type="button"
+          class="spogliatoio-link-btn"
+          (click)="goToSpogliatoioClick.emit()"
+        >
           <ion-icon name="chatbubbles-outline"></ion-icon>
           <span>Apri Spogliatoio</span>
         </button>
@@ -74,7 +92,6 @@
   </div>
 }
 <div class="spotlight-awards-container">
-
   <!-- MVP DEL MATCH 👑 -->
   @if (mvp) {
     <div class="award-card mvp-award-card">
@@ -87,15 +104,22 @@
       <div class="award-player-body">
         <div class="award-avatar-wrap">
           <ion-avatar class="award-avatar mvp-avatar">
-            <app-player-avatar [fotoUrl]="mvp.fotoUrl" [alt]="mvp.nome"></app-player-avatar>
+            <app-player-avatar
+              [fotoUrl]="mvp.fotoUrl"
+              [alt]="mvp.nome"
+            ></app-player-avatar>
           </ion-avatar>
           <div class="mvp-crown-badge">👑</div>
         </div>
 
         <div class="award-details">
           <div class="award-player-name">{{ mvp.nome }}</div>
-          <div class="award-team-tag" [class.white]="mvp.team === 'A'" [class.black]="mvp.team === 'B'">
-            {{ mvp.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+          <div
+            class="award-team-tag"
+            [class.white]="mvp.team === 'A'"
+            [class.black]="mvp.team === 'B'"
+          >
+            {{ mvp.team === "A" ? "⚪ Team Bianchi" : "⚫ Team Neri" }}
           </div>
 
           <div class="award-metrics-row">
@@ -103,12 +127,10 @@
               ⭐ Voto <strong>{{ mvp.voto }}</strong>
             </span>
             @if ((mvp.gol || 0) > 0) {
-              <span class="award-goals-pill">
-                ⚽ {{ mvp.gol }} Gol
-              </span>
+              <span class="award-goals-pill"> ⚽ {{ mvp.gol }} Gol </span>
             }
             <span class="award-mmr-pill">
-              {{ (mvp.mmrDelta || 0) >= 0 ? '+' : '' }}{{ mvp.mmrDelta }} MMR
+              {{ (mvp.mmrDelta || 0) >= 0 ? "+" : "" }}{{ mvp.mmrDelta }} MMR
             </span>
           </div>
 
@@ -134,15 +156,22 @@
       <div class="award-player-body">
         <div class="award-avatar-wrap">
           <ion-avatar class="award-avatar worst-avatar">
-            <app-player-avatar [fotoUrl]="worst.fotoUrl" [alt]="worst.nome"></app-player-avatar>
+            <app-player-avatar
+              [fotoUrl]="worst.fotoUrl"
+              [alt]="worst.nome"
+            ></app-player-avatar>
           </ion-avatar>
           <div class="worst-flipflop-badge">🩴</div>
         </div>
 
         <div class="award-details">
           <div class="award-player-name">{{ worst.nome }}</div>
-          <div class="award-team-tag" [class.white]="worst.team === 'A'" [class.black]="worst.team === 'B'">
-            {{ worst.team === 'A' ? '⚪ Team Bianchi' : '⚫ Team Neri' }}
+          <div
+            class="award-team-tag"
+            [class.white]="worst.team === 'A'"
+            [class.black]="worst.team === 'B'"
+          >
+            {{ worst.team === "A" ? "⚪ Team Bianchi" : "⚫ Team Neri" }}
           </div>
 
           <div class="award-metrics-row">
@@ -160,14 +189,14 @@
             </div>
           } @else {
             <div class="worst-comfort-note">
-              Tanti lisci e passaggi agli avversari... ci si rifà alla prossima birra! 🍻
+              Tanti lisci e passaggi agli avversari... ci si rifà alla prossima
+              birra! 🍻
             </div>
           }
         </div>
       </div>
     </div>
   }
-
 </div>
 
 <!-- CRONOLOGIA GOL & ASSIST -->
@@ -179,7 +208,9 @@
         <span class="section-title">Cronologia Gol</span>
       </div>
       @if (isAdmin) {
-        <span class="timeline-edit-hint">Tocca un gol per modificare l'assist</span>
+        <span class="timeline-edit-hint"
+          >Tocca un gol per modificare l'assist</span
+        >
       }
     </div>
 
@@ -189,20 +220,23 @@
           class="timeline-goal-item"
           [class.team-b-goal]="gol.teamVantaggio === 'B'"
           [class.clickable]="isAdmin && !gol.isAutogoal"
-          (click)="isAdmin && !gol.isAutogoal ? editAssistClick.emit($index) : null"
+          (click)="
+            isAdmin && !gol.isAutogoal ? editAssistClick.emit($index) : null
+          "
         >
-          <div class="timeline-goal-time">{{ gol.tempo || '--:--' }}</div>
+          <div class="timeline-goal-time">{{ gol.tempo || "--:--" }}</div>
           <div
             class="timeline-team-badge"
             [class.white]="gol.teamVantaggio === 'A'"
             [class.black]="gol.teamVantaggio === 'B'"
           >
-            {{ gol.teamVantaggio === 'A' ? '⚪ Bianchi' : '⚫ Neri' }}
+            {{ gol.teamVantaggio === "A" ? "⚪ Bianchi" : "⚫ Neri" }}
           </div>
           <div class="timeline-goal-info">
             <span class="timeline-scorer">
               @if (gol.isAutogoal) {
-                ⚠️ <strong>{{ gol.nome }}</strong> <em class="autogol-tag">(Autogol)</em>
+                ⚠️ <strong>{{ gol.nome }}</strong>
+                <em class="autogol-tag">(Autogol)</em>
               } @else {
                 ⚽ <strong>{{ gol.nome }}</strong>
               }
@@ -211,7 +245,9 @@
             @if (!gol.isAutogoal) {
               <span class="timeline-assist">
                 @if (gol.assistNome) {
-                  <span class="assist-tag">👟 Assist: <strong>{{ gol.assistNome }}</strong></span>
+                  <span class="assist-tag"
+                    >👟 Assist: <strong>{{ gol.assistNome }}</strong></span
+                  >
                 } @else {
                   <span class="no-assist-tag">⚡ Azione personale</span>
                 }

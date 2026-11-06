@@ -16,7 +16,6 @@
 
 <ion-content class="user-menu-content" [scrollY]="true">
   <div class="user-menu-container">
-
     <!-- HERO PROFILE CARD -->
     <div class="profile-hero-card" [attr.data-role]="authService.role()">
       <div class="hero-avatar-wrap">
@@ -36,7 +35,8 @@
         <div class="hero-title-row">
           <h2 class="hero-name">{{ displayName() }}</h2>
           <span class="role-badge-pill" [attr.data-role]="authService.role()">
-            {{ authService.roleMeta().emoji }} {{ authService.roleMeta().label }}
+            {{ authService.roleMeta().emoji }}
+            {{ authService.roleMeta().label }}
           </span>
         </div>
 
@@ -44,7 +44,9 @@
           @if (linkedPlayer(); as lp) {
             <span class="hero-link-chip">
               <ion-icon name="football-outline"></ion-icon>
-              <span>Atleta in rosa: <strong>{{ lp.nome }}</strong></span>
+              <span
+                >Atleta in rosa: <strong>{{ lp.nome }}</strong></span
+              >
             </span>
           }
           @if (authService.firebaseUser()?.email; as email) {
@@ -70,9 +72,14 @@
             </div>
             <div class="item-text">
               <span class="item-title">La mia scheda</span>
-              <span class="item-desc">Statistiche, trend, pagelle e trofei</span>
+              <span class="item-desc"
+                >Statistiche, trend, pagelle e trofei</span
+              >
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
 
           <div class="item-divider"></div>
@@ -88,25 +95,31 @@
             </div>
             <div class="item-text">
               <span class="item-title">Modifica profilo atleta</span>
-              <span class="item-desc">Foto, soprannome, ruolo, piede e bio</span>
+              <span class="item-desc"
+                >Foto, soprannome, ruolo, piede e bio</span
+              >
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
         } @else {
           <!-- Reclama Giocatore -->
-          <button
-            type="button"
-            class="menu-item-row"
-            (click)="apriClaim()"
-          >
+          <button type="button" class="menu-item-row" (click)="apriClaim()">
             <div class="item-icon-box accent-emerald">
               <ion-icon name="football-outline"></ion-icon>
             </div>
             <div class="item-text">
               <span class="item-title">Collega il tuo Giocatore</span>
-              <span class="item-desc">Sei già nella rosa? Associa la scheda</span>
+              <span class="item-desc"
+                >Sei già nella rosa? Associa la scheda</span
+              >
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
 
           <div class="item-divider"></div>
@@ -122,9 +135,14 @@
             </div>
             <div class="item-text">
               <span class="item-title">Crea Scheda Atleta</span>
-              <span class="item-desc">Non sei ancora in rosa? Registra il profilo</span>
+              <span class="item-desc"
+                >Non sei ancora in rosa? Registra il profilo</span
+              >
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
         }
       </div>
@@ -147,16 +165,15 @@
               <span class="item-title">Area Segreta (Motore MMR)</span>
               <span class="item-desc">Formule ELO, parametri e simulatore</span>
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
 
           <div class="item-divider"></div>
 
-          <button
-            type="button"
-            class="menu-item-row"
-            (click)="apriAuth()"
-          >
+          <button type="button" class="menu-item-row" (click)="apriAuth()">
             <div class="item-icon-box accent-gold">
               <ion-icon name="people-outline"></ion-icon>
             </div>
@@ -164,7 +181,10 @@
               <span class="item-title">Gestione Utenti & Ruoli</span>
               <span class="item-desc">Assegna ruoli, atleti e permessi</span>
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
         </div>
       </div>
@@ -186,17 +206,16 @@
             <span class="item-title">Impostazioni</span>
             <span class="item-desc">Audio, tema e cache</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+          <ion-icon
+            name="chevron-forward-outline"
+            class="item-chevron"
+          ></ion-icon>
         </button>
 
         @if (!authService.isSuperUser()) {
           <div class="item-divider"></div>
 
-          <button
-            type="button"
-            class="menu-item-row"
-            (click)="apriAuth()"
-          >
+          <button type="button" class="menu-item-row" (click)="apriAuth()">
             <div class="item-icon-box accent-gold">
               <ion-icon name="person-circle-outline"></ion-icon>
             </div>
@@ -204,7 +223,10 @@
               <span class="item-title">Il Mio Account</span>
               <span class="item-desc">Dati profilo, email e sicurezza</span>
             </div>
-            <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+            <ion-icon
+              name="chevron-forward-outline"
+              class="item-chevron"
+            ></ion-icon>
           </button>
         }
 
@@ -223,7 +245,10 @@
             <span class="item-title">Esci (Logout)</span>
             <span class="item-desc">Disconnetti la sessione corrente</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="item-chevron"></ion-icon>
+          <ion-icon
+            name="chevron-forward-outline"
+            class="item-chevron"
+          ></ion-icon>
         </button>
       </div>
     </div>
@@ -233,7 +258,5 @@
       <ion-icon name="close-outline"></ion-icon>
       <span>Chiudi</span>
     </button>
-
   </div>
 </ion-content>
-

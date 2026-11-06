@@ -18,7 +18,11 @@
 
   <!-- BADGE STATUS BILANCIAMENTO ATTUALE -->
   @if (currentBalanceInfo(); as bal) {
-    <div class="live-balance-chip" [class.balanced]="bal.isBalanced" [class.unbalanced]="!bal.isBalanced">
+    <div
+      class="live-balance-chip"
+      [class.balanced]="bal.isBalanced"
+      [class.unbalanced]="!bal.isBalanced"
+    >
       <div class="chip-main">
         <span class="chip-dot"></span>
         <span class="chip-label">Stato Attuale:</span>
@@ -52,7 +56,7 @@
     </div>
 
     <!-- BARRA COMPATTA PORTIERE FISSO O ROTAZIONE BIANCHI -->
-    @if (state.modalitaPortieriA() === 'fisso') {
+    @if (state.modalitaPortieriA() === "fisso") {
       <div
         class="gk-fixed-selector-bar team-a"
         (click)="apriSelettorePortiereFisso('A')"
@@ -62,7 +66,9 @@
           <span class="fixed-icon">🧤</span>
           <div class="fixed-info">
             <span class="fixed-title">
-              <strong>{{ state.portieriInfoA().attuale?.nome || 'Scegli portiere' }}</strong>
+              <strong>{{
+                state.portieriInfoA().attuale?.nome || "Scegli portiere"
+              }}</strong>
             </span>
             <small class="fixed-sub">
               @if (state.portieriInfoA().isDiRuolo) {
@@ -82,7 +88,7 @@
     }
 
     <div class="players-list">
-      @for (g of state.teamA(); track (g.id || g.nome) + '_' + $index) {
+      @for (g of state.teamA(); track (g.id || g.nome) + "_" + $index) {
         <div
           class="player-row interactive-row"
           (click)="spostaIn(g, 'B')"
@@ -98,10 +104,16 @@
               [alt]="g.nome"
               class="avatar-img"
             ></app-player-avatar>
-            @if (isPortiereFisso('A', g.id)) {
-              <span class="role-mini-badge fixed-gk" title="Portiere Fisso Designato">🧤</span>
+            @if (isPortiereFisso("A", g.id)) {
+              <span
+                class="role-mini-badge fixed-gk"
+                title="Portiere Fisso Designato"
+                >🧤</span
+              >
             } @else if (isDiRuolo(g)) {
-              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo">👑</span>
+              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo"
+                >👑</span
+              >
             } @else if (g.ruoloPreferito) {
               <span class="role-mini-badge" [title]="g.ruoloPreferito">
                 {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -120,7 +132,7 @@
               >
                 {{ getPlayerMmr(g) }}
               </span>
-              @if (isPortiereFisso('A', g.id)) {
+              @if (isPortiereFisso("A", g.id)) {
                 <span class="gk-role-tag">In Porta</span>
               } @else if (isDiRuolo(g)) {
                 <span class="gk-role-tag pure">Portiere</span>
@@ -154,7 +166,7 @@
     </div>
 
     <!-- BARRA COMPATTA PORTIERE FISSO O ROTAZIONE NERI -->
-    @if (state.modalitaPortieriB() === 'fisso') {
+    @if (state.modalitaPortieriB() === "fisso") {
       <div
         class="gk-fixed-selector-bar team-b"
         (click)="apriSelettorePortiereFisso('B')"
@@ -164,7 +176,9 @@
           <span class="fixed-icon">🧤</span>
           <div class="fixed-info">
             <span class="fixed-title">
-              <strong>{{ state.portieriInfoB().attuale?.nome || 'Scegli portiere' }}</strong>
+              <strong>{{
+                state.portieriInfoB().attuale?.nome || "Scegli portiere"
+              }}</strong>
             </span>
             <small class="fixed-sub">
               @if (state.portieriInfoB().isDiRuolo) {
@@ -184,7 +198,7 @@
     }
 
     <div class="players-list">
-      @for (g of state.teamB(); track (g.id || g.nome) + '_' + $index) {
+      @for (g of state.teamB(); track (g.id || g.nome) + "_" + $index) {
         <div
           class="player-row interactive-row"
           (click)="spostaIn(g, 'A')"
@@ -200,10 +214,16 @@
               [alt]="g.nome"
               class="avatar-img"
             ></app-player-avatar>
-            @if (isPortiereFisso('B', g.id)) {
-              <span class="role-mini-badge fixed-gk" title="Portiere Fisso Designato">🧤</span>
+            @if (isPortiereFisso("B", g.id)) {
+              <span
+                class="role-mini-badge fixed-gk"
+                title="Portiere Fisso Designato"
+                >🧤</span
+              >
             } @else if (isDiRuolo(g)) {
-              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo">👑</span>
+              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo"
+                >👑</span
+              >
             } @else if (g.ruoloPreferito) {
               <span class="role-mini-badge" [title]="g.ruoloPreferito">
                 {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -222,7 +242,7 @@
               >
                 {{ getPlayerMmr(g) }}
               </span>
-              @if (isPortiereFisso('B', g.id)) {
+              @if (isPortiereFisso("B", g.id)) {
                 <span class="gk-role-tag">In Porta</span>
               } @else if (isDiRuolo(g)) {
                 <span class="gk-role-tag pure">Portiere</span>
@@ -261,10 +281,14 @@
         <ion-icon name="trending-up-outline" class="section-icon"></ion-icon>
         <span class="section-title">Quote & Pronostico Pre-Match</span>
       </div>
-      <div class="favorite-pill" [class.white-fav]="odds.favoriteTeam === 'A'" [class.black-fav]="odds.favoriteTeam === 'B'">
-        @if (odds.favoriteTeam === 'A') {
+      <div
+        class="favorite-pill"
+        [class.white-fav]="odds.favoriteTeam === 'A'"
+        [class.black-fav]="odds.favoriteTeam === 'B'"
+      >
+        @if (odds.favoriteTeam === "A") {
           <span>⚪ Favoriti Bianchi (+{{ odds.favoriteMargin }}%)</span>
-        } @else if (odds.favoriteTeam === 'B') {
+        } @else if (odds.favoriteTeam === "B") {
           <span>⚫ Favoriti Neri (+{{ odds.favoriteMargin }}%)</span>
         } @else {
           <span>⚖️ Sfida Equilibrata</span>
@@ -284,8 +308,14 @@
       </div>
 
       <div class="odds-progress-track">
-        <div class="odds-progress-fill white-fill" [style.width.%]="odds.probAPercent"></div>
-        <div class="odds-progress-fill black-fill" [style.width.%]="odds.probBPercent"></div>
+        <div
+          class="odds-progress-fill white-fill"
+          [style.width.%]="odds.probAPercent"
+        ></div>
+        <div
+          class="odds-progress-fill black-fill"
+          [style.width.%]="odds.probBPercent"
+        ></div>
       </div>
 
       <div class="odds-mmr-sub">
@@ -317,8 +347,13 @@
               [disabled]="isGeneratingPronostico()"
               title="Rigenera il pronostico con Gemini"
             >
-              <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico()"></ion-icon>
-              <span>{{ isGeneratingPronostico() ? 'Ricalcolo...' : '🔄 Rigenera' }}</span>
+              <ion-icon
+                name="refresh-outline"
+                [class.spin]="isGeneratingPronostico()"
+              ></ion-icon>
+              <span>{{
+                isGeneratingPronostico() ? "Ricalcolo..." : "🔄 Rigenera"
+              }}</span>
             </button>
           </div>
         }
@@ -326,7 +361,10 @@
 
       @if (state.pronosticoAi(); as pronostico) {
         <div class="ai-box-body">
-          <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(pronostico)"></div>
+          <div
+            class="ai-quote-text"
+            [innerHTML]="formatAiMarkdown(pronostico)"
+          ></div>
         </div>
       } @else {
         <div class="ai-empty-prompt">
@@ -367,7 +405,11 @@
   slot="fixed"
   style="margin-bottom: 20px; margin-right: 10px"
 >
-  <ion-fab-button color="success" (click)="confermaSquadre()" title="Conferma formazioni">
+  <ion-fab-button
+    color="success"
+    (click)="confermaSquadre()"
+    title="Conferma formazioni"
+  >
     <ion-icon name="checkmark"></ion-icon>
   </ion-fab-button>
 </ion-fab>

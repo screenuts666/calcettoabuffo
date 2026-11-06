@@ -43,12 +43,16 @@ export class GmailIntegrationService {
    * Flag di visibilità del toggle/pulsante nella UI (controllato dalla build: true in dev, false in prod).
    * Su prod questo valore è false e la direttiva `@if` non renderizza l'elemento nel DOM.
    */
-  readonly showUiToggle = computed<boolean>(() => this.v2Features.showUiToggle());
+  readonly showUiToggle = computed<boolean>(() =>
+    this.v2Features.showUiToggle(),
+  );
 
   /**
    * Stato attivo/disattivo dell'integrazione unificata v2.0 (default true in dev, false in prod).
    */
-  readonly isFeatureEnabled = computed<boolean>(() => this.v2Features.isEnabled());
+  readonly isFeatureEnabled = computed<boolean>(() =>
+    this.v2Features.isEnabled(),
+  );
 
   /**
    * Abilita o disabilita le funzionalità v2.0 (Account + Gmail).
@@ -91,7 +95,8 @@ export class GmailIntegrationService {
    * Genera il messaggio email strutturato per l'invito alle convocazioni.
    */
   buildInvitePayload(options: GmailInviteOptions): GmailEmailPayload {
-    const safeDataStr = this.sanitizeHeaderField(options.dataStr) || 'Prossima Partita';
+    const safeDataStr =
+      this.sanitizeHeaderField(options.dataStr) || 'Prossima Partita';
     const safeLuogo = this.sanitizeHeaderField(options.luogo);
     const safeOrario = this.sanitizeHeaderField(options.orario);
     const safeLink = this.sanitizeUrl(options.deepLink);
@@ -113,12 +118,14 @@ export class GmailIntegrationService {
     }
 
     if (options.totalConvocati && options.totalConvocati > 0) {
-      lines.push(`👥 Convocati attualmente confermati: ${options.totalConvocati}`);
+      lines.push(
+        `👥 Convocati attualmente confermati: ${options.totalConvocati}`,
+      );
     }
 
     lines.push('');
     lines.push(
-      '👉 Clicca sul link seguente per confermare la tua presenza (Partecipo / Forse / Non partecipo):'
+      '👉 Clicca sul link seguente per confermare la tua presenza (Partecipo / Forse / Non partecipo):',
     );
     lines.push(safeLink);
     lines.push('');
@@ -156,7 +163,11 @@ export class GmailIntegrationService {
 
     try {
       if (typeof window !== 'undefined') {
-        const opened = window.open(gmailWebUrl, '_blank', 'noopener,noreferrer');
+        const opened = window.open(
+          gmailWebUrl,
+          '_blank',
+          'noopener,noreferrer',
+        );
         if (!opened) {
           // Fallback popup bloccato: usa mailto:
           this.triggerMailtoFallback(payload);
@@ -164,7 +175,10 @@ export class GmailIntegrationService {
         return true;
       }
     } catch (err) {
-      console.warn('Impossibile aprire Gmail Web composer, fallback mailto:', err);
+      console.warn(
+        'Impossibile aprire Gmail Web composer, fallback mailto:',
+        err,
+      );
       this.triggerMailtoFallback(payload);
     }
     return false;
@@ -176,9 +190,8 @@ export class GmailIntegrationService {
   private triggerMailtoFallback(payload: GmailEmailPayload): void {
     if (typeof window === 'undefined') return;
     const mailtoUrl = `mailto:${encodeURIComponent(payload.to)}?subject=${encodeURIComponent(
-      payload.subject
+      payload.subject,
     )}&body=${encodeURIComponent(payload.body)}`;
     window.location.href = mailtoUrl;
   }
 }
-

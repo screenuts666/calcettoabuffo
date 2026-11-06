@@ -64,10 +64,14 @@ export class AuthService {
   private readonly v2Features = inject(V2FeaturesService);
 
   /** In PROD showAccountUi è SEMPRE false, in DEV è true se showUiToggle è attivo */
-  readonly showAccountUi = computed<boolean>(() => this.v2Features.showUiToggle());
+  readonly showAccountUi = computed<boolean>(() =>
+    this.v2Features.showUiToggle(),
+  );
 
   /** In PROD isAccountEnabled è TASSATIVAMENTE false; in DEV segue lo switch unico v2.0 */
-  readonly isAccountEnabled = computed<boolean>(() => this.v2Features.isEnabled());
+  readonly isAccountEnabled = computed<boolean>(() =>
+    this.v2Features.isEnabled(),
+  );
 
   toggleAccountFeature(forcedValue?: boolean): boolean {
     return this.v2Features.toggle(forcedValue);
@@ -99,7 +103,7 @@ export class AuthService {
 
   readonly roleMeta = computed<RoleMeta>(() => ROLE_METADATA[this.role()]);
   readonly roleLabel = computed<'Tifoso' | 'Atleta' | 'Mister'>(
-    () => this.roleMeta().label
+    () => this.roleMeta().label,
   );
 
   readonly isGuest = computed<boolean>(() => this.role() === 'guest');
@@ -120,7 +124,7 @@ export class AuthService {
    * Valido sia per l'`Atleta` (`role === 'user'`) sia per il `Mister` che gioca anche in campo (`role === 'superuser'`).
    */
   readonly linkedPlayerId = computed<string | null>(
-    () => this.userProfile()?.playerId || null
+    () => this.userProfile()?.playerId || null,
   );
 
   readonly hasLinkedPlayer = computed<boolean>(() => !!this.linkedPlayerId());
@@ -192,11 +196,17 @@ export class AuthService {
    */
   private cleanupLegacyLocalStorage() {
     if (typeof localStorage === 'undefined') return;
-    const forbiddenKeys = ['isAdmin', 'userRole', 'role', 'auth_role', 'calcetto_role'];
+    const forbiddenKeys = [
+      'isAdmin',
+      'userRole',
+      'role',
+      'auth_role',
+      'calcetto_role',
+    ];
     for (const k of forbiddenKeys) {
       try {
         localStorage.removeItem(k);
-      } catch { }
+      } catch {}
     }
   }
 
@@ -230,7 +240,7 @@ export class AuthService {
         // Verifica se esiste già un giocatore (o un profilo precedente con la stessa email, es. Admin Legacy entrato con Google)
         const autoPlayerId = await this.resolveAutoLinkedPlayerId(
           user,
-          isLegacyAdmin
+          isLegacyAdmin,
         );
         const initialRole: UserRole = isLegacyAdmin
           ? 'superuser'
@@ -305,10 +315,13 @@ export class AuthService {
         ) {
           patch['displayName'] = user.displayName;
         }
-        updateDoc(userDocRef, patch).catch(() => { });
+        updateDoc(userDocRef, patch).catch(() => {});
       }
     } catch (err) {
-      console.warn('Impossibile sincronizzare il profilo utente iniziale:', err);
+      console.warn(
+        'Impossibile sincronizzare il profilo utente iniziale:',
+        err,
+      );
       if (isLegacyAdmin) {
         this.userProfile.set({
           uid: user.uid,
@@ -346,7 +359,7 @@ export class AuthService {
       },
       (err) => {
         console.warn('Avviso listener profilo utente:', err);
-      }
+      },
     );
   }
 
@@ -356,13 +369,15 @@ export class AuthService {
    */
   private async resolveAutoLinkedPlayerId(
     user: User,
-    isLegacyAdmin: boolean
+    isLegacyAdmin: boolean,
   ): Promise<string | null> {
     if (!this.firestore || !user.uid) return null;
     const cleanEmail = (user.email || '').trim().toLowerCase();
 
     try {
-      const playersSnap = await getDocs(collection(this.firestore, 'giocatori'));
+      const playersSnap = await getDocs(
+        collection(this.firestore, 'giocatori'),
+      );
       let matchedPlayerId: string | null = null;
 
       playersSnap.forEach((pDoc) => {
@@ -397,7 +412,7 @@ export class AuthService {
           linkedUid: user.uid,
           linkedEmail: user.email || null,
           updatedAt: new Date().toISOString(),
-        }).catch(() => { });
+        }).catch(() => {});
       }
 
       return matchedPlayerId;
@@ -417,7 +432,7 @@ export class AuthService {
     const cred = await signInWithEmailAndPassword(
       this.auth,
       email.trim(),
-      password
+      password,
     );
     this.firebaseUser.set(cred.user);
     await this.syncAndListenUserProfile(cred.user);
@@ -431,7 +446,7 @@ export class AuthService {
   async registerWithEmail(
     email: string,
     password: string,
-    displayName: string
+    displayName: string,
   ): Promise<boolean> {
     if (!this.auth) {
       throw new Error('Servizio Firebase Auth non disponibile.');
@@ -440,11 +455,11 @@ export class AuthService {
     const cred = await createUserWithEmailAndPassword(
       this.auth,
       email.trim(),
-      password
+      password,
     );
     if (cleanName) {
       await updateProfile(cred.user, { displayName: cleanName }).catch(
-        () => { }
+        () => {},
       );
     }
     this.firebaseUser.set(cred.user);
@@ -510,7 +525,7 @@ export class AuthService {
    * Tifosi (`guest`) e altri Atleti NON possono mai vederlo.
    */
   canViewPlayerPhone(
-    player?: { id?: string | null; linkedUid?: string | null } | null
+    player?: { id?: string | null; linkedUid?: string | null } | null,
   ): boolean {
     if (!player) return false;
     if (this.isSuperUser()) return true;
@@ -531,10 +546,12 @@ export class AuthService {
 
     try {
       const contactSnap = await getDoc(
-        doc(this.firestore, `giocatori/${playerId}/private/contact`)
+        doc(this.firestore, `giocatori/${playerId}/private/contact`),
       );
       if (!contactSnap.exists()) return null;
-      const phone = (contactSnap.data()?.['phoneNumber'] || '').toString().trim();
+      const phone = (contactSnap.data()?.['phoneNumber'] || '')
+        .toString()
+        .trim();
       return phone || null;
     } catch {
       return null;
@@ -547,7 +564,7 @@ export class AuthService {
    */
   async savePlayerPhoneNumber(
     playerId: string,
-    phoneNumber: string
+    phoneNumber: string,
   ): Promise<void> {
     const user = this.firebaseUser();
     if (!playerId || !user || !this.firestore) return;
@@ -590,7 +607,7 @@ export class AuthService {
       !this.isSuperUser()
     ) {
       throw new Error(
-        'Questo giocatore è già stato reclamato da un altro utente. Contatta il Mister in caso di errore.'
+        'Questo giocatore è già stato reclamato da un altro utente. Contatta il Mister in caso di errore.',
       );
     }
 
@@ -602,11 +619,7 @@ export class AuthService {
     const batch = writeBatch(this.firestore);
 
     // Se il Mister aveva già un altro giocatore collegato e lo sta cambiando, libera il precedente
-    if (
-      this.isSuperUser() &&
-      prevPlayerId &&
-      prevPlayerId !== playerId
-    ) {
+    if (this.isSuperUser() && prevPlayerId && prevPlayerId !== playerId) {
       const oldPlayerRef = doc(this.firestore, `giocatori/${prevPlayerId}`);
       batch.update(oldPlayerRef, {
         linkedUid: null,
@@ -649,11 +662,13 @@ export class AuthService {
    */
   async createAndClaimPlayer(
     playerPayload: Record<string, any>,
-    phoneNumber?: string | null
+    phoneNumber?: string | null,
   ): Promise<string> {
     const user = this.firebaseUser();
     if (!user || !this.firestore) {
-      throw new Error('Devi effettuare il login per creare la tua scheda giocatore.');
+      throw new Error(
+        'Devi effettuare il login per creare la tua scheda giocatore.',
+      );
     }
 
     if (this.hasLinkedPlayer() && !this.isSuperUser()) {
@@ -694,7 +709,7 @@ export class AuthService {
           phoneNumber: cleanPhone,
           updatedAt: now,
           updatedBy: user.uid,
-        }
+        },
       );
     }
 
@@ -720,7 +735,9 @@ export class AuthService {
     const currentPlayerId = this.linkedPlayerId();
     if (!user || !this.firestore || !currentPlayerId) return;
     if (!this.isSuperUser()) {
-      throw new Error('Solo il Mister può scollegare autonomamente un giocatore.');
+      throw new Error(
+        'Solo il Mister può scollegare autonomamente un giocatore.',
+      );
     }
 
     const now = new Date().toISOString();
@@ -754,7 +771,7 @@ export class AuthService {
       list.push({ ...(d.data() as AppUserProfile), uid: d.id });
     });
     return list.sort((a, b) =>
-      (a.displayName || a.email).localeCompare(b.displayName || b.email)
+      (a.displayName || a.email).localeCompare(b.displayName || b.email),
     );
   }
 
@@ -765,19 +782,16 @@ export class AuthService {
   async adminUpdateUserRoleAndPlayer(
     targetUser: AppUserProfile,
     newRole: UserRole,
-    newPlayerId: string | null
+    newPlayerId: string | null,
   ): Promise<void> {
     if (!this.firestore || !this.isSuperUser()) {
       throw new Error('Operazione riservata al Mister.');
     }
 
     // Impedisci il downgrade dell'account Legacy principale
-    if (
-      isLegacySuperUserEmail(targetUser.email) &&
-      newRole !== 'superuser'
-    ) {
+    if (isLegacySuperUserEmail(targetUser.email) && newRole !== 'superuser') {
       throw new Error(
-        'Non è possibile rimuovere il ruolo di Mister dall\'account Admin principale.'
+        "Non è possibile rimuovere il ruolo di Mister dall'account Admin principale.",
       );
     }
 
@@ -794,15 +808,12 @@ export class AuthService {
 
     // Se l'utente aveva un giocatore precedente diverso, liberalo
     if (targetUser.playerId && targetUser.playerId !== newPlayerId) {
-      batch.update(
-        doc(this.firestore, `giocatori/${targetUser.playerId}`),
-        {
-          linkedUid: null,
-          linkedEmail: null,
-          claimedAt: null,
-          updatedAt: now,
-        }
-      );
+      batch.update(doc(this.firestore, `giocatori/${targetUser.playerId}`), {
+        linkedUid: null,
+        linkedEmail: null,
+        claimedAt: null,
+        updatedAt: now,
+      });
     }
 
     // Se è stato assegnato un nuovo giocatore, aggiorna `giocatori/{newPlayerId}`
@@ -858,7 +869,7 @@ export class AuthService {
    * (è `superuser` oppure è il proprietario `linkedUid == user.uid`).
    */
   async verifyCanEditPlayerFromFirestore(
-    playerId: string | null
+    playerId: string | null,
   ): Promise<boolean> {
     if (!playerId || !this.auth || !this.firestore) return false;
 
@@ -931,7 +942,7 @@ export class AuthService {
   async unlockVault(
     pin: string,
     email?: string,
-    password?: string
+    password?: string,
   ): Promise<boolean> {
     const verifiedMister = await this.verifySuperUserFromFirestore();
     if (!verifiedMister) {
@@ -1007,7 +1018,7 @@ export const superUserMatchGuard: CanMatchFn = async () => {
  * Consente l'accesso solo al `Mister` (`superuser`) o all'`Atleta` proprietario della scheda (`linkedUid == auth.uid`).
  */
 export const canEditPlayerGuard: CanActivateFn = async (
-  route: ActivatedRouteSnapshot
+  route: ActivatedRouteSnapshot,
 ) => {
   const authService = inject(AuthService);
   const router = inject(Router);
@@ -1037,4 +1048,3 @@ export const canCreatePlayerGuard: CanActivateFn = async () => {
   }
   return router.createUrlTree(['/rosa']);
 };
-

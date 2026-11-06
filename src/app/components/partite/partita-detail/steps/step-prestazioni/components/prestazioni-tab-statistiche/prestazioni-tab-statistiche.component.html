@@ -18,7 +18,8 @@
           [class.val-positive]="report.teamAvgMmrDeltaA > 0"
           [class.val-negative]="report.teamAvgMmrDeltaA < 0"
         >
-          {{ report.teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ report.teamAvgMmrDeltaA }} MMR
+          {{ report.teamAvgMmrDeltaA >= 0 ? "+" : ""
+          }}{{ report.teamAvgMmrDeltaA }} MMR
         </span>
       </div>
       <div class="shift-stat-item">
@@ -30,7 +31,7 @@
       <div class="shift-stat-item">
         <span class="stat-name">Voto Medio</span>
         <span class="stat-val vote-val">
-          ⭐ {{ report.votoMedioA > 0 ? report.votoMedioA : '-' }}
+          ⭐ {{ report.votoMedioA > 0 ? report.votoMedioA : "-" }}
         </span>
       </div>
     </div>
@@ -45,7 +46,8 @@
           [class.val-positive]="report.teamAvgMmrDeltaB > 0"
           [class.val-negative]="report.teamAvgMmrDeltaB < 0"
         >
-          {{ report.teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ report.teamAvgMmrDeltaB }} MMR
+          {{ report.teamAvgMmrDeltaB >= 0 ? "+" : ""
+          }}{{ report.teamAvgMmrDeltaB }} MMR
         </span>
       </div>
       <div class="shift-stat-item">
@@ -57,7 +59,7 @@
       <div class="shift-stat-item">
         <span class="stat-name">Voto Medio</span>
         <span class="stat-val vote-val">
-          ⭐ {{ report.votoMedioB > 0 ? report.votoMedioB : '-' }}
+          ⭐ {{ report.votoMedioB > 0 ? report.votoMedioB : "-" }}
         </span>
       </div>
     </div>
@@ -65,7 +67,11 @@
 </div>
 
 <!-- RADAR ON FIRE -->
-@if (report.onFireEntered.length > 0 || report.onFireExited.length > 0 || report.onFireMaintained.length > 0) {
+@if (
+  report.onFireEntered.length > 0 ||
+  report.onFireExited.length > 0 ||
+  report.onFireMaintained.length > 0
+) {
   <div class="report-section-card onfire-section-card">
     <div class="section-card-header">
       <div class="header-left">
@@ -75,16 +81,17 @@
     </div>
 
     <div class="onfire-tags-container">
-      @for (p of report.onFireEntered; track (p.id || p.nome) + '_' + $index) {
+      @for (p of report.onFireEntered; track (p.id || p.nome) + "_" + $index) {
         <div class="onfire-chip entered">
           <span class="chip-emoji">🔥</span>
           <span class="chip-text">
-            <strong>{{ p.nome }}</strong> ENTRA ON FIRE! ({{ p.streakAfter }}V di fila)
+            <strong>{{ p.nome }}</strong> ENTRA ON FIRE! ({{ p.streakAfter }}V
+            di fila)
           </span>
         </div>
       }
 
-      @for (p of report.onFireExited; track (p.id || p.nome) + '_' + $index) {
+      @for (p of report.onFireExited; track (p.id || p.nome) + "_" + $index) {
         <div class="onfire-chip exited">
           <span class="chip-emoji">❄️</span>
           <span class="chip-text">
@@ -93,11 +100,15 @@
         </div>
       }
 
-      @for (p of report.onFireMaintained; track (p.id || p.nome) + '_' + $index) {
+      @for (
+        p of report.onFireMaintained;
+        track (p.id || p.nome) + "_" + $index
+      ) {
         <div class="onfire-chip maintained">
           <span class="chip-emoji">🔥</span>
           <span class="chip-text">
-            <strong>{{ p.nome }}</strong> Inarrestabile! ({{ p.streakAfter }}V consecutive)
+            <strong>{{ p.nome }}</strong> Inarrestabile! ({{ p.streakAfter }}V
+            consecutive)
           </span>
         </div>
       }
@@ -109,13 +120,20 @@
 <div class="report-section-card odds-section-card">
   <div class="section-card-header">
     <div class="header-left">
-      <ion-icon name="trending-up-outline" class="section-icon odds-icon"></ion-icon>
+      <ion-icon
+        name="trending-up-outline"
+        class="section-icon odds-icon"
+      ></ion-icon>
       <span class="section-title">Verdetto vs Pronostico Iniziale</span>
     </div>
-    <div class="favorite-pill" [class.white-fav]="report.odds.favoriteTeam === 'A'" [class.black-fav]="report.odds.favoriteTeam === 'B'">
-      @if (report.odds.favoriteTeam === 'A') {
+    <div
+      class="favorite-pill"
+      [class.white-fav]="report.odds.favoriteTeam === 'A'"
+      [class.black-fav]="report.odds.favoriteTeam === 'B'"
+    >
+      @if (report.odds.favoriteTeam === "A") {
         <span>⚪ Favoriti Bianchi (+{{ report.odds.favoriteMargin }}%)</span>
-      } @else if (report.odds.favoriteTeam === 'B') {
+      } @else if (report.odds.favoriteTeam === "B") {
         <span>⚫ Favoriti Neri (+{{ report.odds.favoriteMargin }}%)</span>
       } @else {
         <span>⚖️ Partita Equilibrata</span>
@@ -173,8 +191,13 @@
             [disabled]="isGeneratingPronostico"
             title="Rigenera il pronostico con Gemini"
           >
-            <ion-icon name="refresh-outline" [class.spin]="isGeneratingPronostico"></ion-icon>
-            <span>{{ isGeneratingPronostico ? 'Ricalcolo...' : '🔄 Rigenera AI' }}</span>
+            <ion-icon
+              name="refresh-outline"
+              [class.spin]="isGeneratingPronostico"
+            ></ion-icon>
+            <span>{{
+              isGeneratingPronostico ? "Ricalcolo..." : "🔄 Rigenera AI"
+            }}</span>
           </button>
         </div>
       }
@@ -182,7 +205,10 @@
 
     @if (pronosticoAi) {
       <div class="ai-pronostico-body">
-        <div class="ai-quote-text" [innerHTML]="formatAiMarkdown(pronosticoAi)"></div>
+        <div
+          class="ai-quote-text"
+          [innerHTML]="formatAiMarkdown(pronosticoAi)"
+        ></div>
       </div>
     } @else {
       <div class="ai-empty-prompt">

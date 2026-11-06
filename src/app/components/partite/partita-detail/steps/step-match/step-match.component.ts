@@ -33,7 +33,7 @@ import {
   volumeMute,
   volumeHigh,
   notificationsOutline,
-      megaphoneOutline,
+  megaphoneOutline,
   settingsOutline,
   diceOutline,
   listOutline,
@@ -59,13 +59,7 @@ import { ImpostazioniModalComponent } from '../../../../impostazioni-modal/impos
   styleUrls: ['./step-match.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    IonButton,
-    IonIcon,
-    IonAvatar,
-    PlayerAvatarComponent,
-  ],
+  imports: [CommonModule, IonButton, IonIcon, IonAvatar, PlayerAvatarComponent],
 })
 export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
@@ -114,31 +108,32 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   constructor() {
     addIcons({
+      volumeMute,
+      createOutline,
       locationOutline,
+      time,
       timeOutline,
       play,
+      football,
+      arrowUndoOutline,
+      volumeHigh,
+      diceOutline,
+      stop,
+      closeOutline,
+      arrowBackOutline,
       pause,
       add,
       remove,
-      stop,
-      football,
       trashOutline,
       musicalNotes,
-      volumeMute,
-      volumeHigh,
       notificationsOutline,
       settingsOutline,
-      diceOutline,
       listOutline,
       chevronUpOutline,
       chevronDownOutline,
       shieldOutline,
       flash,
-      closeOutline,
-      arrowBackOutline,
       warningOutline,
-      createOutline,
-      arrowUndoOutline,
     });
   }
 
@@ -171,11 +166,16 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
     this.timerRef = setInterval(() => {
       if (this.state.isTimerRunning()) {
-        const start = this.state.startedAt() || this.state.timerStartAt() || Date.now();
+        const start =
+          this.state.startedAt() || this.state.timerStartAt() || Date.now();
         const diffSec = Math.floor((Date.now() - start) / 1000);
-        const newCronometro = this.state.accumulatedTime() > 0 && !this.state.startedAt()
-          ? this.state.accumulatedTime() + Math.floor((Date.now() - (this.state.timerStartAt() || Date.now())) / 1000)
-          : diffSec;
+        const newCronometro =
+          this.state.accumulatedTime() > 0 && !this.state.startedAt()
+            ? this.state.accumulatedTime() +
+              Math.floor(
+                (Date.now() - (this.state.timerStartAt() || Date.now())) / 1000,
+              )
+            : diffSec;
         this.state.cronometro.set(newCronometro);
 
         // Salvataggio periodico di sicurezza in locale ogni 5 secondi
@@ -202,17 +202,23 @@ export class StepMatchComponent implements OnInit, OnDestroy {
             }
           } else {
             // Preavviso toast prima del cambio (-30s standard, -10s in DEV)
-            const isPreAlertTime = (turnSec >= 60 && secRim === 30) || (turnSec === 30 && secRim === 10);
-            if (
-              isPreAlertTime &&
-              this.ultimoPreAlertTurno !== turnIndex
-            ) {
+            const isPreAlertTime =
+              (turnSec >= 60 && secRim === 30) ||
+              (turnSec === 30 && secRim === 10);
+            if (isPreAlertTime && this.ultimoPreAlertTurno !== turnIndex) {
               this.ultimoPreAlertTurno = turnIndex;
-              this.mostraToastFeedback(`⏳ Tra ${secRim} secondi cambio portiere!`, 'warning');
+              this.mostraToastFeedback(
+                `⏳ Tra ${secRim} secondi cambio portiere!`,
+                'warning',
+              );
             }
 
             // Cambio portiere quando scade il turno
-            if (newCronometro > 0 && turnIndex > 0 && turnIndex !== this.ultimoCambioTurno) {
+            if (
+              newCronometro > 0 &&
+              turnIndex > 0 &&
+              turnIndex !== this.ultimoCambioTurno
+            ) {
               this.ultimoCambioTurno = turnIndex;
               this.state.setCambioPortiereAttivo(true);
             }
@@ -262,7 +268,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     } else {
       this.state.inizializzaRotazionePortieri(true);
       await this.mostraToastFeedback(
-        '🎲 Rotazione rimescolata per entrambe le squadre'
+        '🎲 Rotazione rimescolata per entrambe le squadre',
       );
     }
     await this.state.salvaInDatabase(false);
@@ -293,7 +299,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           this.state.impostaPortiereFisso(team, p.id);
           await this.state.salvaInDatabase(false);
           await this.mostraToastFeedback(
-            `🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`
+            `🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`,
           );
         },
       };
@@ -445,8 +451,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
       await this.mostraToastFeedback(
-        '⏱️ Fischia prima l\'inizio con ▶ FISCHIO D\'INIZIO per sbloccare i gol!',
-        'warning'
+        "⏱️ Fischia prima l'inizio con ▶ FISCHIO D'INIZIO per sbloccare i gol!",
+        'warning',
       );
       return;
     }
@@ -460,12 +466,12 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   async toccaGiocatorePerGolRapido(
     player: PlayerPerformance,
-    teamVantaggio: 'A' | 'B'
+    teamVantaggio: 'A' | 'B',
   ) {
     if (this.state.cronometro() <= 0) {
       await this.mostraToastFeedback(
         '⏱️ Premi prima ▶ AVVIA per far partire la partita!',
-        'warning'
+        'warning',
       );
       return;
     }
@@ -519,16 +525,15 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     giocatore: PlayerPerformance,
     teamVantaggio: 'A' | 'B',
     isAutogoal: boolean,
-    assistMan: PlayerPerformance | null = null
+    assistMan: PlayerPerformance | null = null,
   ) {
     const { portiereSubitoNome } = await this.state.aggiungiGolPartita(
       giocatore,
       teamVantaggio,
       isAutogoal,
-      assistMan
+      assistMan,
     );
     this.soundSettings.playGoalSound(isAutogoal);
-
 
     const portiereTag = portiereSubitoNome
       ? ` · 🧤 in porta: ${portiereSubitoNome}`
@@ -557,7 +562,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   private async mostraToastFeedback(
     message: string,
-    color: 'success' | 'warning' | 'danger' = 'success'
+    color: 'success' | 'warning' | 'danger' = 'success',
   ) {
     const toast = await this.toastCtrl.create({
       message,

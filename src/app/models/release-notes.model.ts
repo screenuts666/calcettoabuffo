@@ -11,7 +11,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.8",
+    "version": "2.0.10",
     "date": "06/11/2026",
     "title": "Refactoring UI/UX Globale, Zero-Fluff Microcopy e Switch Unificato v2.0",
     "userChanges": [

@@ -35,7 +35,10 @@ import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { Giocatore } from '../../models/giocatore.model';
 import { ImpostazioniModalComponent } from '../impostazioni-modal/impostazioni-modal.component';
-import { AuthModalComponent, AuthModalView } from '../auth-modal/auth-modal.component';
+import {
+  AuthModalComponent,
+  AuthModalView,
+} from '../auth-modal/auth-modal.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import {
   UserMenuModalComponent,
@@ -152,7 +155,7 @@ export class ThemeToggleComponent {
 
   async openAuthModal(
     initialMode: AuthModalView = 'login',
-    openClaimPicker = false
+    openClaimPicker = false,
   ) {
     const modal = await this.modalCtrl.create({
       component: AuthModalComponent,
