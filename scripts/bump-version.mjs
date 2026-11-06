@@ -1,48 +1,57 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { execSync } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, "..");
 
-const pkgPath = path.join(rootDir, 'package.json');
-const publicVersionPath = path.join(rootDir, 'public', 'version.json');
-const publicReleaseNotesPath = path.join(rootDir, 'public', 'release-notes.json');
-const envVersionPath = path.join(rootDir, 'src', 'environments', 'version.ts');
+const pkgPath = path.join(rootDir, "package.json");
+const publicVersionPath = path.join(rootDir, "public", "version.json");
+const publicReleaseNotesPath = path.join(
+  rootDir,
+  "public",
+  "release-notes.json",
+);
+const envVersionPath = path.join(rootDir, "src", "environments", "version.ts");
 const releaseNotesModelPath = path.join(
   rootDir,
-  'src',
-  'app',
-  'models',
-  'release-notes.model.ts'
+  "src",
+  "app",
+  "models",
+  "release-notes.model.ts",
 );
 
 const args = process.argv.slice(2);
-const noBump = args.includes('--no-bump');
-const forceBump = args.includes('--force-bump') || args.includes('--bump');
-const alignOnly = args.includes('--align') || args.includes('--sync');
+const noBump = args.includes("--no-bump");
+const forceBump = args.includes("--force-bump") || args.includes("--bump");
+const alignOnly = args.includes("--align") || args.includes("--sync");
 
-const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-const currentVersion = pkg.version || '2.0.0-dev';
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+const currentVersion = pkg.version || "2.0.0-dev";
 
 // Leggi release-notes.json
 let releaseNotes = [];
 if (fs.existsSync(publicReleaseNotesPath)) {
   try {
-    releaseNotes = JSON.parse(fs.readFileSync(publicReleaseNotesPath, 'utf-8'));
+    releaseNotes = JSON.parse(fs.readFileSync(publicReleaseNotesPath, "utf-8"));
   } catch {
     releaseNotes = [];
   }
 }
 
-const top = Array.isArray(releaseNotes) && releaseNotes.length > 0 ? releaseNotes[0] : null;
-const hasNextDraft = Boolean(top && (top.version === 'NEXT' || top.version === 'DRAFT'));
+const top =
+  Array.isArray(releaseNotes) && releaseNotes.length > 0
+    ? releaseNotes[0]
+    : null;
+const hasNextDraft = Boolean(
+  top && (top.version === "NEXT" || top.version === "DRAFT"),
+);
 
 function computeBumpedVersion(ver) {
-  const [coreVersion, preReleaseSuffix] = (ver || '2.0.0').split('-');
-  const parts = coreVersion.split('.').map((n) => parseInt(n, 10) || 0);
+  const [coreVersion, preReleaseSuffix] = (ver || "2.0.0").split("-");
+  const parts = coreVersion.split(".").map((n) => parseInt(n, 10) || 0);
   if (parts[0] === 0 && parts[1] === 0) {
     parts[0] = 2;
     parts[1] = 0;
@@ -78,25 +87,25 @@ let targetVersion = currentVersion;
 if (shouldBump) {
   targetVersion = computeBumpedVersion(currentVersion);
   pkg.version = targetVersion;
-  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
+  fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf-8");
 }
 
 const timestamp = Date.now();
-const buildDate = new Intl.DateTimeFormat('it-IT', {
-  timeZone: 'Europe/Rome',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
+const buildDate = new Intl.DateTimeFormat("it-IT", {
+  timeZone: "Europe/Rome",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
 }).format(new Date(timestamp));
 
-const shortDate = new Intl.DateTimeFormat('it-IT', {
-  timeZone: 'Europe/Rome',
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
+const shortDate = new Intl.DateTimeFormat("it-IT", {
+  timeZone: "Europe/Rome",
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
 }).format(new Date(timestamp));
 
 const buildId = `${targetVersion}-${timestamp}`;
@@ -111,8 +120,8 @@ const versionPayload = {
 fs.mkdirSync(path.dirname(publicVersionPath), { recursive: true });
 fs.writeFileSync(
   publicVersionPath,
-  JSON.stringify(versionPayload, null, 2) + '\n',
-  'utf-8'
+  JSON.stringify(versionPayload, null, 2) + "\n",
+  "utf-8",
 );
 
 const tsContent = `// FILE GENERATO AUTOMATICAMENTE DA scripts/bump-version.mjs
@@ -126,29 +135,29 @@ export const APP_VERSION_INFO = {
 `;
 
 fs.mkdirSync(path.dirname(envVersionPath), { recursive: true });
-fs.writeFileSync(envVersionPath, tsContent, 'utf-8');
+fs.writeFileSync(envVersionPath, tsContent, "utf-8");
 
 // ─── AGGIORNAMENTO RELEASE NOTES ──────────────────────────────────────────
 if (Array.isArray(releaseNotes) && releaseNotes.length > 0) {
-  if (top && (top.version === 'NEXT' || top.version === 'DRAFT')) {
+  if (top && (top.version === "NEXT" || top.version === "DRAFT")) {
     top.version = targetVersion;
     top.date = shortDate;
   } else if (forceBump && top && top.version !== targetVersion) {
     try {
-      const gitSubject = execSync('git log -1 --pretty=%s', {
+      const gitSubject = execSync("git log -1 --pretty=%s", {
         cwd: rootDir,
-        encoding: 'utf-8',
+        encoding: "utf-8",
       }).trim();
       releaseNotes.unshift({
         version: targetVersion,
         date: shortDate,
-        title: 'Aggiornamento Rapido & Ottimizzazioni',
+        title: "Aggiornamento Rapido & Ottimizzazioni",
         userChanges: [
-          'Miglioramenti di stabilità, velocità e interfaccia grafica.',
+          "Miglioramenti di stabilità, velocità e interfaccia grafica.",
         ],
         superUserChanges: gitSubject
           ? [`Ultimo commit: ${gitSubject}`]
-          : ['Ottimizzazioni tecniche e di sincronizzazione.'],
+          : ["Ottimizzazioni tecniche e di sincronizzazione."],
       });
     } catch {
       top.version = targetVersion;
@@ -158,8 +167,8 @@ if (Array.isArray(releaseNotes) && releaseNotes.length > 0) {
 
   fs.writeFileSync(
     publicReleaseNotesPath,
-    JSON.stringify(releaseNotes, null, 2) + '\n',
-    'utf-8'
+    JSON.stringify(releaseNotes, null, 2) + "\n",
+    "utf-8",
   );
 
   const modelFileContent = `// FILE SINCRONIZZATO AUTOMATICAMENTE DA public/release-notes.json TRAMITE scripts/bump-version.mjs
@@ -176,7 +185,7 @@ export interface ReleaseNoteEntry {
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = ${JSON.stringify(
     releaseNotes,
     null,
-    2
+    2,
   )};
 
 /**
@@ -217,15 +226,15 @@ export function getReleaseNotesDelta(
 }
 `;
 
-  fs.writeFileSync(releaseNotesModelPath, modelFileContent, 'utf-8');
+  fs.writeFileSync(releaseNotesModelPath, modelFileContent, "utf-8");
 }
 
 if (shouldBump) {
   console.log(
-    `\n🚀 [Calcetto Abbuffo] Nuova Versione Rilasciata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`
+    `\n🚀 [Calcetto Abbuffo] Nuova Versione Rilasciata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`,
   );
 } else {
   console.log(
-    `\n⚡ [Calcetto Abbuffo] Versione Sincronizzata & Allineata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`
+    `\n⚡ [Calcetto Abbuffo] Versione Sincronizzata & Allineata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`,
   );
 }

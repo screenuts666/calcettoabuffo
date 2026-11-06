@@ -1,16 +1,16 @@
-<!-- CRONACA SPORTIVA IGNORANTE (GEMINI 2.5 FLASH) -->
+<!-- TELECRONACA IGNORANTE AI (FORMATO PODCAST & ANTEPRIMA COMPATTA) -->
 <div class="report-section-card cronaca-section-card">
   <div class="section-card-header">
     <div class="header-left">
       <ion-icon name="mic-outline" class="section-icon mic-icon"></ion-icon>
-      <span class="section-title">Telecronaca Ignorante</span>
+      <span class="section-title">Telecronaca Ignorante AI</span>
     </div>
     @if (cronacaAi) {
       <div class="header-actions">
         <app-ai-tts-button
           [text]="cronacaAi"
           [id]="'cronaca-' + (matchId || 'temp')"
-          label="Ascolta Telecronaca"
+          label="Ascolta"
           shareTitle="Telecronaca Ignorante Partita"
         ></app-ai-tts-button>
         <button
@@ -24,28 +24,41 @@
             name="refresh-outline"
             [class.spin]="isGeneratingCronaca"
           ></ion-icon>
-          <span>{{
-            isGeneratingCronaca ? "Riscrivo..." : "🔄 Rigenera AI"
-          }}</span>
+          <span>{{ isGeneratingCronaca ? "Riscrivo..." : "Rigenera" }}</span>
         </button>
       </div>
     }
   </div>
 
   @if (cronacaAi) {
-    <div class="cronaca-content-box">
-      <div class="cronaca-bubble">
-        <div
-          class="cronaca-text"
-          [innerHTML]="formatAiMarkdown(cronacaAi)"
-        ></div>
+    <div class="cronaca-body-wrap" [class.is-collapsed]="!isCronacaExpanded()">
+      <div class="cronaca-content-box">
+        <div class="cronaca-bubble">
+          <div
+            class="cronaca-text"
+            [innerHTML]="formatAiMarkdown(cronacaAi)"
+          ></div>
+        </div>
       </div>
+      @if (!isCronacaExpanded()) {
+        <div class="cronaca-fade-overlay" (click)="toggleCronaca()"></div>
+      }
     </div>
+
+    <button
+      type="button"
+      class="cronaca-expand-btn"
+      (click)="toggleCronaca()"
+      [attr.aria-expanded]="isCronacaExpanded()"
+    >
+      <span>{{ isCronacaExpanded() ? "Comprimi telecronaca" : "Leggi tutta la telecronaca" }}</span>
+      <ion-icon [name]="isCronacaExpanded() ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </button>
   } @else {
-    <div class="ai-empty-cronaca">
-      <div class="empty-icon">📢</div>
+    <div class="ai-empty-cronaca-compact">
       <div class="empty-info">
-        <h4>Nessuna telecronaca presente</h4>
+        <span class="empty-icon">📢</span>
+        <span class="empty-text">Nessuna telecronaca presente</span>
       </div>
       <button
         type="button"
@@ -55,42 +68,17 @@
       >
         @if (isGeneratingCronaca) {
           <ion-spinner name="crescent"></ion-spinner>
-          <span>Generazione telecronaca in corso...</span>
+          <span>Generazione in corso...</span>
         } @else {
           <ion-icon name="sparkles"></ion-icon>
-          <span>🎙️ Genera Cronaca Ignorante AI</span>
+          <span>Genera Telecronaca AI</span>
         }
       </button>
     </div>
   }
 </div>
 
-<!-- CHIMICA & DUELLI IN CAMPO -->
-@if (chemistryNotes.length > 0) {
-  <div class="report-section-card chemistry-section-card">
-    <div class="section-card-header">
-      <div class="header-left">
-        <ion-icon
-          name="sparkles"
-          class="section-icon chemistry-icon"
-        ></ion-icon>
-        <span class="section-title">Chimica & Duelli</span>
-      </div>
-    </div>
-
-    <div class="chemistry-notes-list">
-      @for (chem of chemistryNotes; track (chem.title || "") + "_" + $index) {
-        <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
-          <div class="chem-badge-pill">{{ chem.badge }}</div>
-          <div class="chem-note-title">{{ chem.title }}</div>
-          <div class="chem-note-desc">{{ chem.description }}</div>
-        </div>
-      }
-    </div>
-  </div>
-}
-
-<!-- BACHECA TERZO TEMPO & COMMENTI COMMUNITY -->
+<!-- BACHECA TERZO TEMPO & COMMENTI COMMUNITY (IN PRIMO PIANO) -->
 @if (matchId) {
   <app-partita-comments [matchId]="matchId" [match]="match"></app-partita-comments>
 }

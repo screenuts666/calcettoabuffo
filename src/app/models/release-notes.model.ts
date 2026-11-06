@@ -11,6 +11,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.23",
+    "date": "06/11/2026",
+    "title": "Restyling Terzo Tempo & Bacheca Commenti in Primo Piano",
+    "userChanges": [
+      "💬 Bacheca Terzo Tempo Protagonista: la sezione commenti e sfottò post-partita è ora posizionata subito in alto, visibile e utilizzabile istantaneamente senza dover scorrere.",
+      "🎙️ Telecronaca Ignorante Compatta: ridisegnata come un podcast moderno, con audio TTS pronto all'ascolto immediato e testo comprimibile per non rubare spazio ai commenti.",
+      "🤝 Chimica & Duelli in Stats: spostate le schede di intesa di coppia (Gemelli del Gol) e rivalità (Bestie Nere) nella tab 'Stats & MMR' per un'analisi tattica completa."
+    ],
+    "superUserChanges": [
+      "⚡ Layout Spogliatoio Ottimizzato: rimossa la duplicazione e il disordine visivo nel Terzo Tempo, integrato accordion fluido per la telecronaca.",
+      "📊 Coerenza Architetturale Stats: ricollocate le `chemistryNotes` in `prestazioni-tab-statistiche` insieme al Radar On Fire e alle Quote pre-match."
+    ]
+  },
+  {
     "version": "2.0.22",
     "date": "06/11/2026",
     "title": "Allineamento Automatico Versioni DEV & PROD",

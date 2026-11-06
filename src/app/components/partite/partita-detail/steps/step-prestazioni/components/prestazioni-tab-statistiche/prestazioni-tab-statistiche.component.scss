@@ -24,6 +24,7 @@
         &.odds-icon { color: var(--app-primary); }
         &.flash-icon { color: var(--app-accent-gold); }
         &.fire-icon { color: var(--app-accent-orange); }
+        &.chemistry-icon { color: var(--app-accent-purple); }
       }
 
       .section-title {
@@ -287,5 +288,68 @@
 
   ion-icon.spin {
     animation: spin 1s linear infinite;
+  }
+}
+
+// 6. CHIMICA & DUELLI STORICI
+.chemistry-section-card {
+  .chem-counter-badge {
+    @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
+    font-size: 0.72rem;
+    padding: 2px 7px;
+  }
+
+  .chemistry-notes-list {
+    @include flex-col(8px);
+    margin-top: 4px;
+
+    .chem-note-card {
+      padding: 9px 12px;
+      border-radius: 10px;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-border-color);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .chem-badge-pill {
+        font-size: 0.65rem;
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--app-text-secondary);
+      }
+
+      .chem-note-title {
+        font-size: 0.84rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      .chem-note-desc {
+        font-size: 0.74rem;
+        color: var(--app-text-secondary);
+        line-height: 1.35;
+      }
+
+      &.chem-synergy {
+        border-left: 3px solid var(--app-primary);
+        background: linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0%, var(--app-surface-subtle) 100%);
+
+        .chem-badge-pill {
+          color: var(--app-accent-blue);
+        }
+      }
+
+      &.chem-nemesis,
+      &.chem-rivalry {
+        border-left: 3px solid var(--app-accent-danger, #ef4444);
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.05) 0%, var(--app-surface-subtle) 100%);
+
+        .chem-badge-pill {
+          color: var(--app-accent-danger, #ef4444);
+        }
+      }
+    }
   }
 }

@@ -116,6 +116,32 @@
   </div>
 }
 
+<!-- CHIMICA DI SQUADRA & DUELLI STORICI -->
+@if (report.chemistryNotes && report.chemistryNotes.length > 0) {
+  <div class="report-section-card chemistry-section-card">
+    <div class="section-card-header">
+      <div class="header-left">
+        <ion-icon
+          name="sparkles"
+          class="section-icon chemistry-icon"
+        ></ion-icon>
+        <span class="section-title">Chimica & Duelli in Campo</span>
+      </div>
+      <span class="chem-counter-badge">{{ report.chemistryNotes.length }}</span>
+    </div>
+
+    <div class="chemistry-notes-list">
+      @for (chem of report.chemistryNotes; track (chem.title || "") + "_" + $index) {
+        <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
+          <div class="chem-badge-pill">{{ chem.badge }}</div>
+          <div class="chem-note-title">{{ chem.title }}</div>
+          <div class="chem-note-desc">{{ chem.description }}</div>
+        </div>
+      }
+    </div>
+  </div>
+}
+
 <!-- PRONOSTICO & QUOTE PRE-MATCH -->
 <div class="report-section-card odds-section-card">
   <div class="section-card-header">

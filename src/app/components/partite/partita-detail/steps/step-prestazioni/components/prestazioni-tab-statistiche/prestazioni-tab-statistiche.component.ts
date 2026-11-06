@@ -9,6 +9,7 @@ import { addIcons } from 'ionicons';
 import {
   flash,
   flame,
+  sparkles,
   trendingUpOutline,
 } from 'ionicons/icons';
 import { MatchReportData } from '../../../../../../../models/mmr.model';
@@ -30,6 +31,7 @@ export class PrestazioniTabStatisticheComponent {
     addIcons({
       flash,
       flame,
+      sparkles,
       trendingUpOutline,
     });
   }

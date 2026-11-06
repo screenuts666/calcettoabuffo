@@ -4,6 +4,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
@@ -12,8 +13,9 @@ import {
   sparkles,
   micOutline,
   refreshOutline,
+  chevronDownOutline,
+  chevronUpOutline,
 } from 'ionicons/icons';
-import { MatchReportChemistryItem } from '../../../../../../../models/mmr.model';
 import { formatAiMarkdown } from '../../../../../../../utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../../../../../../shared/components';
 import { PartitaCommentsComponent } from '../../../../../partita-comments/partita-comments.component';
@@ -36,12 +38,12 @@ export class PrestazioniTabSpogliatoioComponent {
   @Input() matchId?: string | null = null;
   @Input() match?: any = null;
   @Input() cronacaAi?: string | null = null;
-  @Input() chemistryNotes: MatchReportChemistryItem[] = [];
   @Input() isAdmin: boolean = false;
   @Input() isGeneratingCronaca: boolean = false;
 
   @Output() generateCronacaClick = new EventEmitter<boolean>();
 
+  readonly isCronacaExpanded = signal<boolean>(false);
   readonly formatAiMarkdown = formatAiMarkdown;
 
   constructor() {
@@ -49,6 +51,12 @@ export class PrestazioniTabSpogliatoioComponent {
       sparkles,
       micOutline,
       refreshOutline,
+      chevronDownOutline,
+      chevronUpOutline,
     });
+  }
+
+  toggleCronaca(): void {
+    this.isCronacaExpanded.update((v) => !v);
   }
 }
