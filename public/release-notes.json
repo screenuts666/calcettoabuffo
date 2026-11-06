@@ -1,5 +1,29 @@
 [
   {
+    "version": "2.0.17",
+    "date": "06/11/2026",
+    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "userChanges": [
+      "Miglioramenti di stabilità, velocità e interfaccia grafica."
+    ],
+    "superUserChanges": [
+      "Ultimo commit: fix: risolto campetto duplicato in resoconto e pulizia match-photo"
+    ]
+  },
+  {
+    "version": "2.0.16",
+    "date": "06/11/2026",
+    "title": "Fix Commenti Terzo Tempo & Icone di Sistema",
+    "userChanges": [
+      "💬 Commenti Terzo Tempo Funzionanti: abilitati i permessi su cloud Firestore per consentire la lettura e l'invio immediato dei commenti post-partita nella bacheca del Terzo Tempo.",
+      "✨ Ottimizzazione Icone: risolti i warning e gli errori di caricamento per le icone del cronometro e del megafono."
+    ],
+    "superUserChanges": [
+      "🛡️ Regole Firestore Commenti: aggiunta la regola per la sottocollezione `partite/{matchId}/commenti` con validazione campi e permessi di cancellazione per l'autore o il Mister.",
+      "🎨 Ionicons Registry: registrate le icone `time` e `megaphoneOutline` nei rispettivi componenti Ionic standalone."
+    ]
+  },
+  {
     "version": "2.0.14",
     "date": "06/11/2026",
     "title": "Aggiornamento Rapido & Ottimizzazioni",

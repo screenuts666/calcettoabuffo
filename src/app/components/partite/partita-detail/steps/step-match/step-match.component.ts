@@ -118,6 +118,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       football,
       arrowUndoOutline,
       volumeHigh,
+      megaphoneOutline,
       diceOutline,
       stop,
       closeOutline,

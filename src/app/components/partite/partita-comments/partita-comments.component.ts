@@ -119,7 +119,7 @@ export class PartitaCommentsComponent implements OnInit, OnDestroy {
 
     try {
       const isMister = this.authService.isSuperUser();
-      const currentUid = this.currentUserId() || undefined;
+      const currentUid = this.currentUserId() || null;
       const authorName = this.currentAuthorName();
       const authorPhotoUrl = this.authService.userProfile()?.photoURL || null;
 
@@ -161,6 +161,7 @@ export class PartitaCommentsComponent implements OnInit, OnDestroy {
         authorName,
         authorPhotoUrl,
         authorRole: isMister ? 'superuser' : 'user',
+        playerId: this.authService.linkedPlayerId() || null,
         playerTeam: team,
         playerBadge: badge,
         text,

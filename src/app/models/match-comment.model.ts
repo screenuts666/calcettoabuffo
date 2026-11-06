@@ -1,7 +1,7 @@
 export interface MatchComment {
   id: string;
   matchId: string;
-  authorUid?: string;
+  authorUid?: string | null;
   authorName: string;
   authorPhotoUrl?: string | null;
   authorRole: 'superuser' | 'user' | 'guest';

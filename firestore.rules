@@ -238,6 +238,32 @@ service cloud.firestore {
         request.resource.data.rsvp[request.auth.uid].playerId == getUserData().playerId &&
         request.resource.data.rsvp[request.auth.uid].status in ['yes', 'maybe', 'no', 'confirmed', 'declined']
       );
+
+      // Sottocollezione Commenti della Partita ("Terzo Tempo")
+      match /commenti/{commentId} {
+        // Lettura pubblica dei commenti
+        allow read: if true;
+
+        // Scrittura consentita sia a utenti autenticati che anonimi/ospiti (con validazione del testo)
+        allow create: if isSuperUser() || (
+          request.resource.data.text is string &&
+          request.resource.data.text.size() > 0 &&
+          request.resource.data.text.size() <= 1000 &&
+          request.resource.data.authorName is string
+        );
+
+        // Eliminazione consentita al Mister o all'autore del commento
+        allow delete: if isSuperUser() || (
+          isAuthenticated() &&
+          resource.data.get('authorUid', null) == request.auth.uid
+        );
+
+        // Modifica commento consentita al Mister o all'autore
+        allow update: if isSuperUser() || (
+          isAuthenticated() &&
+          resource.data.get('authorUid', null) == request.auth.uid
+        );
+      }
     }
 
     // =========================================================================
