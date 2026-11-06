@@ -7,7 +7,6 @@
         class="section-icon commento-icon"
       ></ion-icon>
       <span class="section-title">Note a Bordocampo</span>
-      <span class="author-badge">di</span>
     </div>
     @if (isAdmin) {
       <div class="header-admin-actions">
@@ -37,13 +36,6 @@
         (input)="commentoChange.emit($event)"
         (blur)="saveCommentoClick.emit(true)"
       ></textarea>
-      <div class="commento-ai-feedback">
-        <ion-icon name="sparkles" class="sparkle-hint-icon"></ion-icon>
-        <span
-          >L'AI prenderà queste note per arricchire la telecronaca ignorante e i
-          commenti della partita!</span
-        >
-      </div>
     </div>
   } @else {
     @if (commentoPartita.trim()) {

@@ -146,22 +146,6 @@
         background: var(--app-card-bg);
       }
     }
-
-    .commento-ai-feedback {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      margin-top: 8px;
-      font-size: 0.76rem;
-      font-weight: 600;
-      color: var(--app-accent-purple);
-
-      .sparkle-hint-icon {
-        font-size: 0.95rem;
-        color: var(--app-accent-purple);
-        flex-shrink: 0;
-      }
-    }
   }
 
   .commento-view-wrapper {
