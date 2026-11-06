@@ -1,12 +1,57 @@
 <div class="prestazioni-tab-portieri-container animate-fade-in">
 
-  <!-- BANNER INTRODUTTIVO PORTIERI -->
-  <div class="gk-intro-banner">
-    <div class="gk-intro-icon">🧤</div>
-    <div class="gk-intro-text">
-      <h3>Prestazioni & Turni Portieri</h3>
+  <!-- NOTE PORTIERI (COMPATTE ALL'INIZIO DELLA TAB) -->
+  @if (isAdmin || noteInput()) {
+    <div class="gk-notes-section compact-notes">
+      <div class="notes-header">
+        <div class="notes-title-wrap">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <h4>Note Portieri</h4>
+        </div>
+        @if (isAdmin) {
+          <div class="notes-actions-row">
+            @if (gkSummary?.notesPrompt) {
+              <button
+                type="button"
+                class="btn-import-summary"
+                (click)="importaResocontoAutomatico()"
+                title="Importa il resoconto statistico automatico"
+              >
+                <span>⚡ Importa</span>
+              </button>
+            }
+            <button
+              type="button"
+              class="btn-save-notes"
+              (click)="onSalvaNote()"
+              [class.saved]="isNoteSaved()"
+              title="Salva le note dei portieri"
+            >
+              <ion-icon [name]="isNoteSaved() ? 'checkmark-circle-outline' : 'save-outline'"></ion-icon>
+              <span>{{ isNoteSaved() ? 'Salvate!' : 'Salva' }}</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      @if (isAdmin) {
+        <div class="notes-editor-box">
+          <textarea
+            class="notes-textarea compact-textarea"
+            rows="2"
+            placeholder="Note rapide sui portieri (uscite, rigori, parate decisive)..."
+            [ngModel]="noteInput()"
+            (ngModelChange)="onNoteChange($event)"
+            (blur)="onSalvaNote()"
+          ></textarea>
+        </div>
+      } @else if (noteInput()) {
+        <div class="notes-view-box compact-view">
+          <p class="notes-view-text">{{ noteInput() }}</p>
+        </div>
+      }
     </div>
-  </div>
+  }
 
   <!-- SQUADRA BIANCHI -->
   <div class="gk-team-section">
@@ -176,61 +221,6 @@
       <div class="gk-summary-bubble black">
         <span class="summary-tag">📊 Resoconto Neri:</span>
         <p>{{ gkSummary!.summaryB }}</p>
-      </div>
-    }
-  </div>
-
-  <!-- SEZIONE NOTE PORTIERI (OPZIONALE) -->
-  <div class="gk-notes-section">
-    <div class="notes-header">
-      <div class="notes-title-wrap">
-        <ion-icon name="document-text-outline"></ion-icon>
-        <h4>Note Portieri & Interventi</h4>
-        <span class="optional-chip">Opzionale</span>
-      </div>
-      @if (isAdmin) {
-        <div class="notes-actions-row">
-          @if (gkSummary?.notesPrompt) {
-            <button
-              type="button"
-              class="btn-import-summary"
-              (click)="importaResocontoAutomatico()"
-              title="Importa il resoconto statistico generato automaticamente"
-            >
-              <span>⚡ Importa Resoconto</span>
-            </button>
-          }
-          <button
-            type="button"
-            class="btn-save-notes"
-          (click)="onSalvaNote()"
-          [class.saved]="isNoteSaved()"
-        >
-          <ion-icon [name]="isNoteSaved() ? 'checkmark-circle-outline' : 'save-outline'"></ion-icon>
-          <span>{{ isNoteSaved() ? 'Salvate!' : 'Salva Note' }}</span>
-        </button>
-        </div>
-      }
-    </div>
-
-    @if (isAdmin) {
-      <div class="notes-editor-box">
-        <textarea
-          class="notes-textarea"
-          rows="3"
-          placeholder="Es. Grande prestazione di Angelo nel 2° tempo con due uscite decisive; Paolo determinante sulle conclusioni ravvicinate..."
-          [ngModel]="noteInput()"
-          (ngModelChange)="onNoteChange($event)"
-        ></textarea>
-        <span class="notes-hint">Le note sono visibili a tutti i giocatori nel report della partita.</span>
-      </div>
-    } @else {
-      <div class="notes-view-box">
-        @if (noteInput()) {
-          <p class="notes-view-text">{{ noteInput() }}</p>
-        } @else {
-          <p class="notes-empty-text">Nessuna nota specifica registrata per i portieri di questa partita.</p>
-        }
       </div>
     }
   </div>

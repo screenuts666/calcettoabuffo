@@ -103,6 +103,10 @@
         [pagelleInserite]="state.pagelleInserite()"
         [isAdmin]="isAdmin"
         [mvpId]="report().mvp?.id"
+        [commentoPartita]="state.commentoPartita()"
+        [isSavingCommento]="isSavingCommento()"
+        (commentoChange)="onCommentoPartitaChange($event)"
+        (saveCommentoClick)="salvaCommentoPartita($event)"
         (voteChange)="aggiornaVoto($event.player, $event.event)"
         (noteChange)="aggiornaNote($event.player, $event.note)"
         (editAssist)="modificaAssist($event)"
@@ -126,16 +130,11 @@
       <app-prestazioni-tab-spogliatoio
         [matchId]="state.matchId()"
         [match]="match()"
-        [commentoPartita]="state.commentoPartita()"
         [cronacaAi]="state.cronacaAi()"
         [chemistryNotes]="report().chemistryNotes"
         [isAdmin]="isAdmin"
-        [isSavingCommento]="isSavingCommento()"
         [isGeneratingCronaca]="isGeneratingCronaca()"
-        (commentoChange)="onCommentoPartitaChange($event)"
-        (saveCommentoClick)="salvaCommentoPartita($event)"
         (generateCronacaClick)="generaCronaca($event)"
-        (insertGkNotesClick)="inserisciNotePortieri()"
       ></app-prestazioni-tab-spogliatoio>
     }
 

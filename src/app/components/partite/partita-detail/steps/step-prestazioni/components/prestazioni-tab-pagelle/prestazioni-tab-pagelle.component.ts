@@ -9,7 +9,13 @@ import {
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { createOutline } from 'ionicons/icons';
+import {
+  createOutline,
+  chatboxEllipsesOutline,
+  saveOutline,
+  checkmarkCircleOutline,
+  hourglassOutline,
+} from 'ionicons/icons';
 import { MatchReportPlayer } from '../../../../../../../models/mmr.model';
 import { PrestazioniPlayerCardComponent } from '../prestazioni-player-card/prestazioni-player-card.component';
 
@@ -33,14 +39,24 @@ export class PrestazioniTabPagelleComponent {
   @Input() pagelleInserite: boolean = false;
   @Input() isAdmin: boolean = false;
   @Input() mvpId?: string;
+  @Input() commentoPartita: string = '';
+  @Input() isSavingCommento: boolean = false;
 
   @Output() voteChange = new EventEmitter<{ player: any; event: Event }>();
   @Output() noteChange = new EventEmitter<{ player: any; note: string }>();
   @Output() editAssist = new EventEmitter<any>();
+  @Output() commentoChange = new EventEmitter<Event>();
+  @Output() saveCommentoClick = new EventEmitter<boolean>();
 
   teamPagelleFilter = signal<'all' | 'A' | 'B'>('all');
 
   constructor() {
-    addIcons({ createOutline });
+    addIcons({
+      createOutline,
+      chatboxEllipsesOutline,
+      saveOutline,
+      checkmarkCircleOutline,
+      hourglassOutline,
+    });
   }
 }

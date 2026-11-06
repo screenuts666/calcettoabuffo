@@ -11,25 +11,28 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.19",
+    "version": "2.0.21",
     "date": "06/11/2026",
     "title": "Aggiornamento Rapido & Ottimizzazioni",
     "userChanges": [
       "Miglioramenti di stabilità, velocità e interfaccia grafica."
     ],
     "superUserChanges": [
-      "Ultimo commit: fix: firestore security rules per commenti terzo tempo e registrazione icone time/megaphone"
+      "Ultimo commit: fix(ui): rimossa label didattica ridondante note bordocampo"
     ]
   },
   {
-    "version": "2.0.18",
+    "version": "2.0.20",
     "date": "06/11/2026",
-    "title": "Pulizia Microcopy & Ottimizzazione Note",
+    "title": "Ottimizzazione Note Pagelle & Portieri Compatti",
     "userChanges": [
-      "🧹 Pulizia Interfaccia: eliminata la didascalia esplicativa superflua sotto il campo note a bordocampo per un design più asciutto e pulito."
+      "📝 Note a Bordocampo in Pagelle: spostate all'inizio della tab Pagelle in un riquadro compatto e minimale, permettendo di consultarle o compilarle direttamente durante la valutazione dei giocatori.",
+      "🧤 Note Portieri Compatte: riorganizzate in testa alla tab Portieri rimuovendo banner ingombranti e riducendo l'ingombro verticale al minimo.",
+      "🧹 Pulizia Terzo Tempo: la tab Spogliatoio/Terzo Tempo è ora dedicata esclusivamente alla telecronaca AI, ai duelli e alla bacheca commenti."
     ],
     "superUserChanges": [
-      "✂️ Rimozione testi didattici ridondanti nella tab Terzo Tempo / Spogliatoio."
+      "⚡ UX Compattazione Note: ridotto il padding e l'altezza delle textarea (2 righe con auto-salvataggio al blur), eliminati banner decorativi superflui.",
+      "🔄 Input & Output Sincronizzati: collegati `commentoPartita` e relativo salvataggio direttamente al componente pagelle."
     ]
   },
   {

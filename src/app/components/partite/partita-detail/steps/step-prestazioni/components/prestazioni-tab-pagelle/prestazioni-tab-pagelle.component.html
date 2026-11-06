@@ -1,3 +1,44 @@
+<!-- NOTE A BORDOCAMPO (COMPATTE ALL'INIZIO DELLE PAGELLE) -->
+@if (isAdmin || commentoPartita.trim()) {
+  <div class="pagelle-notes-banner">
+    <div class="notes-header">
+      <div class="notes-title-wrap">
+        <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+        <span class="notes-title">Note a Bordocampo</span>
+      </div>
+      @if (isAdmin) {
+        <button
+          type="button"
+          class="btn-save-note"
+          (click)="saveCommentoClick.emit(false)"
+          [disabled]="isSavingCommento"
+          title="Salva le note a bordocampo"
+        >
+          <ion-icon [name]="isSavingCommento ? 'hourglass-outline' : 'save-outline'"></ion-icon>
+          <span>{{ isSavingCommento ? 'Salvataggio...' : 'Salva' }}</span>
+        </button>
+      }
+    </div>
+
+    @if (isAdmin) {
+      <div class="notes-editor-wrap">
+        <textarea
+          class="notes-custom-textarea"
+          rows="2"
+          placeholder="Note generali sul match (es. campo bagnato, contrasti accesi, rigori contestati)..."
+          [value]="commentoPartita"
+          (input)="commentoChange.emit($event)"
+          (blur)="saveCommentoClick.emit(true)"
+        ></textarea>
+      </div>
+    } @else if (commentoPartita.trim()) {
+      <div class="notes-display-box">
+        <p class="notes-text">“{{ commentoPartita }}”</p>
+      </div>
+    }
+  </div>
+}
+
 <!-- SUB-FILTER SQUADRE -->
 <div class="pagelle-team-filter-bar">
   <button

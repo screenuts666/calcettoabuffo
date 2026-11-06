@@ -11,41 +11,7 @@
   padding: 12px 14px 28px;
 }
 
-// 1. BANNER INTRODUTTIVO
-.gk-intro-banner {
-  @include card-surface(14px, 12px);
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(16, 185, 129, 0.08));
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  .gk-intro-icon {
-    font-size: 2rem;
-    line-height: 1;
-    filter: drop-shadow(0 2px 6px rgba(251, 191, 36, 0.35));
-  }
-
-  .gk-intro-text {
-    flex: 1;
-
-    h3 {
-      margin: 0;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: var(--app-text-primary);
-      letter-spacing: -0.2px;
-    }
-
-    p {
-      margin: 2px 0 0;
-      font-size: 0.74rem;
-      color: var(--app-text-muted);
-      line-height: 1.35;
-    }
-  }
-}
-
+// 1. BANNER INTRODUTTIVO (DEPRECATO - RIMOSSO PER RECUPERO SPAZIO)
 // 2. SEZIONE SQUADRA
 .gk-team-section {
   display: flex;
@@ -323,101 +289,81 @@
   }
 }
 
-// 5. SEZIONE NOTE PORTIERI LIBERE (OPZIONALE)
+// 5. SEZIONE NOTE PORTIERI (COMPATTA IN TESTA)
 .gk-notes-section {
-  @include card-surface(16px, 14px);
-  background: var(--app-card-bg);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  @include card-surface(12px, 8px 12px);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.22);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 
   .notes-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    flex-wrap: wrap;
 
     .notes-title-wrap {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
 
       ion-icon {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
         color: #10b981;
       }
 
       h4 {
         margin: 0;
-        font-size: 0.92rem;
-        font-weight: 800;
-        color: var(--app-text-primary);
-      }
-
-      .optional-chip {
-        font-size: 0.65rem;
+        font-size: 0.84rem;
         font-weight: 700;
-        color: var(--app-text-muted);
-        background: rgba(255, 255, 255, 0.06);
-        padding: 2px 6px;
-        border-radius: 6px;
-        border: 1px solid var(--app-card-border);
-        text-transform: uppercase;
+        color: var(--app-text-primary);
       }
     }
 
     .notes-actions-row {
       display: flex;
       align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 6px;
     }
 
     .btn-import-summary {
       background: rgba(251, 191, 36, 0.15);
       border: 1px solid rgba(251, 191, 36, 0.35);
       color: #fbbf24;
-      font-size: 0.76rem;
+      font-size: 0.72rem;
       font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 8px;
+      padding: 3px 8px;
+      border-radius: 6px;
       cursor: pointer;
       transition: all 0.15s ease;
 
       &:hover {
         background: rgba(251, 191, 36, 0.25);
-        transform: translateY(-1px);
       }
     }
 
     .btn-save-notes {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
-      font-weight: 800;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
       color: #fff;
       background: linear-gradient(135deg, #10b981, #059669);
       border: none;
-      border-radius: 8px;
-      padding: 6px 12px;
+      border-radius: 6px;
+      padding: 3px 10px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
       transition: all 0.2s ease;
 
       ion-icon {
-        font-size: 1rem;
+        font-size: 0.9rem;
       }
 
       &.saved {
         background: #059669;
-      }
-
-      &:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
       }
     }
   }
@@ -425,20 +371,20 @@
   .notes-editor-box {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 
     .notes-textarea {
       width: 100%;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--app-card-border);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 0.85rem;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
       color: var(--app-text-primary);
       font-family: inherit;
-      line-height: 1.45;
+      line-height: 1.4;
       resize: vertical;
-      min-height: 70px;
+      min-height: 44px;
       outline: none;
       transition: border-color 0.2s ease;
 
@@ -448,36 +394,23 @@
 
       &::placeholder {
         color: var(--app-text-muted);
-        opacity: 0.7;
+        opacity: 0.65;
       }
-    }
-
-    .notes-hint {
-      font-size: 0.7rem;
-      color: var(--app-text-muted);
-      font-style: italic;
     }
   }
 
   .notes-view-box {
-    padding: 8px 12px;
+    padding: 6px 10px;
     background: rgba(0, 0, 0, 0.15);
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid var(--app-border-color);
 
     .notes-view-text {
       margin: 0;
-      font-size: 0.85rem;
-      line-height: 1.5;
+      font-size: 0.82rem;
+      line-height: 1.4;
       color: var(--app-text-primary);
       white-space: pre-wrap;
-    }
-
-    .notes-empty-text {
-      margin: 0;
-      font-size: 0.78rem;
-      font-style: italic;
-      color: var(--app-text-muted);
     }
   }
 }

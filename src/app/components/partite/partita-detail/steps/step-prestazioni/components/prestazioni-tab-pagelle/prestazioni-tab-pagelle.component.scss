@@ -4,6 +4,108 @@
   display: block;
 }
 
+// NOTE A BORDOCAMPO COMPATTE IN TESTA ALLE PAGELLE
+.pagelle-notes-banner {
+  @include card-surface(12px, 8px 12px);
+  margin: 0 10px 10px 10px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(88, 28, 135, 0.05));
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .notes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .notes-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      ion-icon {
+        font-size: 1.1rem;
+        color: var(--app-accent-purple, #a855f7);
+      }
+
+      .notes-title {
+        font-size: 0.84rem;
+        font-weight: 700;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .btn-save-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #a855f7, #7e22ce);
+      border: none;
+      border-radius: 6px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 0.9rem;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  .notes-editor-wrap {
+    .notes-custom-textarea {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--app-card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      color: var(--app-text-primary);
+      font-family: inherit;
+      line-height: 1.4;
+      resize: vertical;
+      min-height: 44px;
+      outline: none;
+      transition: border-color 0.2s ease;
+
+      &:focus {
+        border-color: var(--app-accent-purple, #a855f7);
+      }
+
+      &::placeholder {
+        color: var(--app-text-muted);
+        opacity: 0.65;
+      }
+    }
+  }
+
+  .notes-display-box {
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    border: 1px solid var(--app-border-color);
+
+    .notes-text {
+      margin: 0;
+      font-size: 0.82rem;
+      font-style: italic;
+      line-height: 1.4;
+      color: var(--app-text-primary);
+      white-space: pre-wrap;
+    }
+  }
+}
+
 // FILTRO SQUADRA PAGELLE
 .pagelle-team-filter-bar {
   @include flex-center;

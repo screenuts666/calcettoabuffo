@@ -9,9 +9,6 @@ import { CommonModule } from '@angular/common';
 import { IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  chatboxEllipsesOutline,
-  hourglassOutline,
-  saveOutline,
   sparkles,
   micOutline,
   refreshOutline,
@@ -38,25 +35,17 @@ import { PartitaCommentsComponent } from '../../../../../partita-comments/partit
 export class PrestazioniTabSpogliatoioComponent {
   @Input() matchId?: string | null = null;
   @Input() match?: any = null;
-  @Input() commentoPartita: string = '';
   @Input() cronacaAi?: string | null = null;
   @Input() chemistryNotes: MatchReportChemistryItem[] = [];
   @Input() isAdmin: boolean = false;
-  @Input() isSavingCommento: boolean = false;
   @Input() isGeneratingCronaca: boolean = false;
 
-  @Output() commentoChange = new EventEmitter<Event>();
-  @Output() saveCommentoClick = new EventEmitter<boolean>();
   @Output() generateCronacaClick = new EventEmitter<boolean>();
-  @Output() insertGkNotesClick = new EventEmitter<void>();
 
   readonly formatAiMarkdown = formatAiMarkdown;
 
   constructor() {
     addIcons({
-      chatboxEllipsesOutline,
-      hourglassOutline,
-      saveOutline,
       sparkles,
       micOutline,
       refreshOutline,
