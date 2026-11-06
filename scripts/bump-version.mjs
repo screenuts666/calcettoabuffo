@@ -21,13 +21,27 @@ const releaseNotesModelPath = path.join(
 
 const args = process.argv.slice(2);
 const noBump = args.includes('--no-bump');
+const forceBump = args.includes('--force-bump') || args.includes('--bump');
+const alignOnly = args.includes('--align') || args.includes('--sync');
 
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
 const currentVersion = pkg.version || '2.0.0-dev';
 
-let nextVersion = currentVersion;
-if (!noBump) {
-  const [coreVersion, preReleaseSuffix] = currentVersion.split('-');
+// Leggi release-notes.json
+let releaseNotes = [];
+if (fs.existsSync(publicReleaseNotesPath)) {
+  try {
+    releaseNotes = JSON.parse(fs.readFileSync(publicReleaseNotesPath, 'utf-8'));
+  } catch {
+    releaseNotes = [];
+  }
+}
+
+const top = Array.isArray(releaseNotes) && releaseNotes.length > 0 ? releaseNotes[0] : null;
+const hasNextDraft = Boolean(top && (top.version === 'NEXT' || top.version === 'DRAFT'));
+
+function computeBumpedVersion(ver) {
+  const [coreVersion, preReleaseSuffix] = (ver || '2.0.0').split('-');
   const parts = coreVersion.split('.').map((n) => parseInt(n, 10) || 0);
   if (parts[0] === 0 && parts[1] === 0) {
     parts[0] = 2;
@@ -37,10 +51,33 @@ if (!noBump) {
     parts[2] = (parts[2] || 0) + 1;
   }
   const bumpedCore = `${parts[0]}.${parts[1]}.${parts[2]}`;
-  nextVersion = preReleaseSuffix
-    ? `${bumpedCore}-${preReleaseSuffix}`
-    : bumpedCore;
-  pkg.version = nextVersion;
+  return preReleaseSuffix ? `${bumpedCore}-${preReleaseSuffix}` : bumpedCore;
+}
+
+// Decisione intelligente di incremento versione:
+// 1. --no-bump o --align: mai incrementare.
+// 2. --force-bump: forza incremento sempre.
+// 3. hasNextDraft: incremento voluto (c'è una bozza NEXT pronta per il rilascio).
+// 4. Se top.version === currentVersion: la versione corrente è già sincronizzata con l'ultima nota,
+//    quindi NON incrementare ulteriormente (garantisce DEV e PROD allineati se deployati in sequenza).
+// 5. Default: se non c'è bozza e non c'è force-bump, mantieni la versione corrente per evitare doppi incrementi accidentali.
+let shouldBump = false;
+if (noBump || alignOnly) {
+  shouldBump = false;
+} else if (forceBump) {
+  shouldBump = true;
+} else if (hasNextDraft) {
+  shouldBump = true;
+} else if (top && top.version === currentVersion) {
+  shouldBump = false;
+} else {
+  shouldBump = false;
+}
+
+let targetVersion = currentVersion;
+if (shouldBump) {
+  targetVersion = computeBumpedVersion(currentVersion);
+  pkg.version = targetVersion;
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf-8');
 }
 
@@ -62,10 +99,10 @@ const shortDate = new Intl.DateTimeFormat('it-IT', {
   year: 'numeric',
 }).format(new Date(timestamp));
 
-const buildId = `${nextVersion}-${timestamp}`;
+const buildId = `${targetVersion}-${timestamp}`;
 
 const versionPayload = {
-  version: nextVersion,
+  version: targetVersion,
   buildId,
   timestamp,
   buildDate,
@@ -81,7 +118,7 @@ fs.writeFileSync(
 const tsContent = `// FILE GENERATO AUTOMATICAMENTE DA scripts/bump-version.mjs
 // NON MODIFICARE MANUALMENTE
 export const APP_VERSION_INFO = {
-  version: '${nextVersion}',
+  version: '${targetVersion}',
   buildId: '${buildId}',
   timestamp: ${timestamp},
   buildDate: '${buildDate}',
@@ -91,33 +128,19 @@ export const APP_VERSION_INFO = {
 fs.mkdirSync(path.dirname(envVersionPath), { recursive: true });
 fs.writeFileSync(envVersionPath, tsContent, 'utf-8');
 
-// ─── GESTIONE AUTOMATICA RELEASE NOTES DA public/release-notes.json ───────
-let releaseNotes = [];
-if (fs.existsSync(publicReleaseNotesPath)) {
-  try {
-    releaseNotes = JSON.parse(fs.readFileSync(publicReleaseNotesPath, 'utf-8'));
-  } catch {
-    releaseNotes = [];
-  }
-}
-
+// ─── AGGIORNAMENTO RELEASE NOTES ──────────────────────────────────────────
 if (Array.isArray(releaseNotes) && releaseNotes.length > 0) {
-  const top = releaseNotes[0];
-
-  // Se la prima voce è marcata come "NEXT" o "DRAFT",
-  // allinea automaticamente la versione a `nextVersion` e la data a `shortDate`.
-  if (top.version === 'NEXT' || top.version === 'DRAFT') {
-    top.version = nextVersion;
+  if (top && (top.version === 'NEXT' || top.version === 'DRAFT')) {
+    top.version = targetVersion;
     top.date = shortDate;
-  } else if (!noBump && top.version !== nextVersion) {
-    // Fallback automatico da git log se si lancia il deploy da terminale senza aver preparato "NEXT"
+  } else if (forceBump && top && top.version !== targetVersion) {
     try {
       const gitSubject = execSync('git log -1 --pretty=%s', {
         cwd: rootDir,
         encoding: 'utf-8',
       }).trim();
       releaseNotes.unshift({
-        version: nextVersion,
+        version: targetVersion,
         date: shortDate,
         title: 'Aggiornamento Rapido & Ottimizzazioni',
         userChanges: [
@@ -128,7 +151,7 @@ if (Array.isArray(releaseNotes) && releaseNotes.length > 0) {
           : ['Ottimizzazioni tecniche e di sincronizzazione.'],
       });
     } catch {
-      top.version = nextVersion;
+      top.version = targetVersion;
       top.date = shortDate;
     }
   }
@@ -197,6 +220,12 @@ export function getReleaseNotesDelta(
   fs.writeFileSync(releaseNotesModelPath, modelFileContent, 'utf-8');
 }
 
-console.log(
-  `\n🚀 [Calcetto Abbuffo] Versione App aggiornata: v${nextVersion} (buildId: ${buildId} | ${buildDate})\n`
-);
+if (shouldBump) {
+  console.log(
+    `\n🚀 [Calcetto Abbuffo] Nuova Versione Rilasciata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`
+  );
+} else {
+  console.log(
+    `\n⚡ [Calcetto Abbuffo] Versione Sincronizzata & Allineata: v${targetVersion} (buildId: ${buildId} | ${buildDate})\n`
+  );
+}

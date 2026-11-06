@@ -1,17 +1,20 @@
 {
   "name": "calcettoabbuffo",
-  "version": "2.0.21",
+  "version": "2.0.22",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",
-    "version:bump": "node scripts/bump-version.mjs",
+    "version:bump": "node scripts/bump-version.mjs --force-bump",
+    "version:align": "node scripts/bump-version.mjs --align",
     "start": "node scripts/bump-version.mjs --no-bump && nx serve",
     "build": "node scripts/bump-version.mjs --no-bump && nx build",
     "build:dev": "node scripts/bump-version.mjs --no-bump && nx build --configuration staging",
     "deploy:dev": "node scripts/bump-version.mjs && nx build --configuration staging && firebase deploy --only hosting,storage,firestore:rules --project default",
     "build:prod": "node scripts/bump-version.mjs --no-bump && nx build --configuration production",
-    "deploy:prod": "node scripts/bump-version.mjs && nx build --configuration production && firebase deploy --only hosting,storage,firestore:rules --project prod",
+    "deploy:prod": "node scripts/bump-version.mjs --align && nx build --configuration production && firebase deploy --only hosting,storage,firestore:rules --project prod",
+    "deploy": "npm run deploy:dev && npm run deploy:prod",
+    "deploy:all": "npm run deploy:dev && npm run deploy:prod",
     "watch": "node scripts/bump-version.mjs --no-bump && nx build --watch --configuration development",
     "test": "nx test",
     "lint": "nx lint"

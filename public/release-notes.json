@@ -1,13 +1,15 @@
 [
   {
-    "version": "2.0.21",
+    "version": "2.0.22",
     "date": "06/11/2026",
-    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "title": "Allineamento Automatico Versioni DEV & PROD",
     "userChanges": [
-      "Miglioramenti di stabilità, velocità e interfaccia grafica."
+      "⚡ Versione Sincronizzata: allineata definitivamente la numerazione tra ambiente DEV e PROD, garantendo che tutti i dispositivi visualizzino sempre la medesima release.",
+      "🧹 Pulizia Interfaccia: eliminate label e testi didattici superflui nelle tab post-partita per una visualizzazione più pulita e rapida."
     ],
     "superUserChanges": [
-      "Ultimo commit: fix(ui): rimossa label didattica ridondante note bordocampo"
+      "🛡️ Smart Version Bumper: `scripts/bump-version.mjs` verifica se la versione è già sincronizzata con l'ultima release note, prevenendo doppi incrementi (+1 su DEV e +1 su PROD).",
+      "🚀 Deploy Atomico: aggiunti comandi unificati `npm run deploy` e `npm run deploy:all` per compilare e deployare sia DEV che PROD allineati in un singolo comando."
     ]
   },
   {
@@ -21,7 +23,8 @@
     ],
     "superUserChanges": [
       "⚡ UX Compattazione Note: ridotto il padding e l'altezza delle textarea (2 righe con auto-salvataggio al blur), eliminati banner decorativi superflui.",
-      "🔄 Input & Output Sincronizzati: collegati `commentoPartita` e relativo salvataggio direttamente al componente pagelle."
+      "🔄 Input & Output Sincronizzati: collegati `commentoPartita` e relativo salvataggio direttamente al componente pagelle.",
+      "🎨 Rimozione Label Didattiche: pulita la tab spogliatoio dai testi esplicativi superflui."
     ]
   },
   {
@@ -37,19 +40,6 @@
   },
   {
     "version": "2.0.16",
-    "date": "06/11/2026",
-    "title": "Fix Commenti Terzo Tempo & Icone di Sistema",
-    "userChanges": [
-      "💬 Commenti Terzo Tempo Funzionanti: abilitati i permessi su cloud Firestore per consentire la lettura e l'invio immediato dei commenti post-partita nella bacheca del Terzo Tempo.",
-      "✨ Ottimizzazione Icone: risolti i warning e gli errori di caricamento per le icone del cronometro e del megafono."
-    ],
-    "superUserChanges": [
-      "🛡️ Regole Firestore Commenti: aggiunta la regola per la sottocollezione `partite/{matchId}/commenti` con validazione campi e permessi di cancellazione per l'autore o il Mister.",
-      "🎨 Ionicons Registry: registrate le icone `time` e `megaphoneOutline` nei rispettivi componenti Ionic standalone."
-    ]
-  },
-  {
-    "version": "NEXT",
     "date": "06/11/2026",
     "title": "Fix Commenti Terzo Tempo & Icone di Sistema",
     "userChanges": [
