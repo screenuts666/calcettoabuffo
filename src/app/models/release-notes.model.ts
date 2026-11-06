@@ -11,21 +11,17 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.5",
-    "date": "05/11/2026",
-    "title": "Calcetto Abbuffo 2.0: Nuova Piattaforma, Account & Ruoli, Flusso Partita Guidato",
+    "version": "2.0.7",
+    "date": "06/11/2026",
+    "title": "Esclusione Account Header su Prod, Feature Flag Switchabile in Dev & Hardening",
     "userChanges": [
-      "✨ Benvenuti su Calcetto Abbuffo 2.0: debutto ufficiale in produzione della nuova versione con supporto account Google/Email, ruoli Tifoso/Atleta/Mister e schede giocatore individuali.",
-      "📍 Nuovo Ordine Naturale del Match: preparazione guidata a 3 passaggi: 1. Coordinate (luogo, data, orario) -> 2. Convocati (con link RSVP Partecipo/Forse/Non partecipo rapido) -> 3. Formazioni Squadre.",
-      "📲 Convocazioni & Auto-RSVP WhatsApp: rispondi all'invito con un tocco dal link condiviso senza bisogno di chat infinite e visualizza i presenti in tempo reale.",
-      "👤 Menu Profilo Elegante: visualizza la tua scheda atleta, aggiorna i dati personali o consulta le statistiche di rendimento con il nuovo bottom-sheet dedicato.",
-      "🛡️ Privacy e Sicurezza Garantite: navigazione blindata e protezione totale dei contatti personali e dei dati."
+      "✨ Interfaccia Pulita e Focalizzata: l'header in produzione torna essenziale e focalizzato sulle partite, rimuovendo il pulsante 'Accedi' per un'esperienza fluida.",
+      "⚙️ Accesso Mister Semplificato: gestione del profilo e accesso Super User disponibili direttamente dalle Impostazioni in tutta sicurezza."
     ],
     "superUserChanges": [
-      "Unificazione Ufficiale Codebase v2.0: deprecazione definitiva della vecchia versione v1.0 e allineamento di produzione su main.",
-      "Switch Impostazioni Gmail (DEV): toggle di controllo dedicato nella scheda Impostazioni (attivo di default in DEV), con esclusione totale e permanente dal DOM in produzione.",
-      "Sicurezza Avanzata & RBAC (Field-Level Security): permessi granulari su Firestore, prevenzione privilege escalation e anti-hijacking schede.",
-      "Hardening Credenziali & Input: zero segreti hardcoded nel client, Least Privilege su scope OAuth e sanitizzazione rigorosa dei parametri deep-link."
+      "Esclusione Totale Account Header in PROD: rimosso al 100% dal DOM di produzione il pulsante Accedi / profilo utente tramite direttiva condizionale su showAccountUi (sempre false in prod).",
+      "Switch DEV nelle Impostazioni: aggiunto switch di test visibile esclusivamente in DEV per accendere o spegnere a piacimento la visualizzazione dell'account nell'header.",
+      "Protezione Accesso Super User: garantito l'accesso Mister dal modale Impostazioni anche a pulsante header disattivato."
     ]
   },
   {

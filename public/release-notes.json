@@ -1,6 +1,6 @@
 [
   {
-    "version": "NEXT",
+    "version": "2.0.7",
     "date": "06/11/2026",
     "title": "Esclusione Account Header su Prod, Feature Flag Switchabile in Dev & Hardening",
     "userChanges": [
