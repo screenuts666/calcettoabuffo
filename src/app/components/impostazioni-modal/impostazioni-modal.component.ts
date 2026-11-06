@@ -45,6 +45,7 @@ import {
   cloudDoneOutline,
   syncOutline,
   mailOutline,
+  personOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
@@ -114,6 +115,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       cloudDoneOutline,
       syncOutline,
       mailOutline,
+      personOutline,
     });
   }
 
@@ -297,6 +299,14 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     const next = this.gmail.toggleFeature();
     this.mostraToast(
       next ? '📧 Integrazione Gmail: ATTIVATA (DEV)' : '📧 Integrazione Gmail: DISATTIVATA',
+      next ? 'success' : 'medium'
+    );
+  }
+
+  toggleAccountSetting() {
+    const next = this.authService.toggleAccountFeature();
+    this.mostraToast(
+      next ? '👤 Account nell\'Header: ATTIVATO (DEV)' : '👤 Account nell\'Header: DISATTIVATO',
       next ? 'success' : 'medium'
     );
   }

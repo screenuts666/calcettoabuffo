@@ -4,6 +4,10 @@ export const environment = {
   googleWebClientId:
     '1048869516820-347c5gsquv8ga88l5hcvgshvc6pn87ls.apps.googleusercontent.com',
   features: {
+    userAccount: {
+      enabled: true,
+      showUiToggle: true,
+    },
     gmailIntegration: {
       enabled: true,
       showUiToggle: true,

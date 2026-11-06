@@ -11,7 +11,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.4",
+    "version": "2.0.5",
     "date": "05/11/2026",
     "title": "Calcetto Abbuffo 2.0: Nuova Piattaforma, Account & Ruoli, Flusso Partita Guidato",
     "userChanges": [
