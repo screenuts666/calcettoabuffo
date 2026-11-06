@@ -287,6 +287,60 @@
         transform: scale(1.25) rotate(180deg);
       }
     }
+
+    // Badge Corona MVP
+    .pitch-mvp-badge {
+      position: absolute;
+      top: -7px;
+      left: -7px;
+      font-size: 0.72rem;
+      line-height: 1;
+      background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+      border-radius: 50%;
+      width: 17px;
+      height: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(251, 191, 36, 0.9);
+      border: 1px solid #ffffff;
+      z-index: 5;
+    }
+
+    // Badge Statistiche Match (Gol e Assist)
+    .pitch-stat-badge {
+      position: absolute;
+      font-size: 0.52rem;
+      font-weight: 900;
+      line-height: 1;
+      border-radius: 999px;
+      padding: 1px 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      z-index: 4;
+
+      &.goal {
+        bottom: -5px;
+        left: -6px;
+        background: #10b981;
+        color: #ffffff;
+      }
+
+      &.assist {
+        bottom: -5px;
+        right: -6px;
+        background: #06b6d4;
+        color: #ffffff;
+      }
+    }
+
+    &.is-mvp {
+      border-color: #fbbf24 !important;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.95), 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+    }
   }
 
   // Bordo per SQUADRA BIANCHI
@@ -340,12 +394,33 @@
       line-height: 1.1;
     }
 
+    .label-sub-row {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
     .label-role {
       font-size: 0.45rem;
       font-weight: 900;
       color: #38bdf8;
       letter-spacing: 0.04em;
       line-height: 1;
+    }
+
+    .label-grade {
+      font-size: 0.46rem;
+      font-weight: 900;
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0 2px;
+      border-radius: 2px;
+      line-height: 1;
+
+      &.mvp-grade {
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.3);
+      }
     }
   }
 
@@ -497,6 +572,109 @@
 
     &:hover {
       color: #ffffff;
+    }
+  }
+
+  // MVP Hero Banner
+  .popup-mvp-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 3px 8px;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.15) 100%);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    border-radius: 6px;
+    color: #fbbf24;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.03em;
+  }
+
+  // Griglia Eventi Match (Gol, Assist, Autogol, Voto)
+  .popup-events-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+
+    .pe-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 3px 2px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+
+      .pe-icon {
+        font-size: 0.72rem;
+        line-height: 1;
+      }
+
+      .pe-val {
+        font-size: 0.78rem;
+        font-weight: 900;
+        line-height: 1.1;
+      }
+
+      .pe-lbl {
+        font-size: 0.5rem;
+        color: rgba(255, 255, 255, 0.6);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      &.goal {
+        color: #10b981;
+      }
+
+      &.assist {
+        color: #06b6d4;
+      }
+
+      &.autogoal {
+        color: #ef4444;
+      }
+
+      &.grade {
+        color: #e2e8f0;
+
+        &.mvp-grade {
+          color: #fbbf24;
+        }
+      }
+    }
+  }
+
+  // Note del Mister
+  .popup-mister-notes {
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border-left: 2px solid #38bdf8;
+    border-radius: 4px;
+
+    .pmn-lbl {
+      display: block;
+      font-size: 0.52rem;
+      font-weight: 800;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pmn-quote {
+      margin: 2px 0 0;
+      font-size: 0.64rem;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.25;
     }
   }
 

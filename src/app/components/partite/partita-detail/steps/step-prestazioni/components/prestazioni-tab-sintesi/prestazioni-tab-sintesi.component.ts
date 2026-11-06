@@ -22,8 +22,7 @@ import {
 } from 'ionicons/icons';
 import { MatchReportPlayer } from '../../../../../../../models/mmr.model';
 import { PlayerAvatarComponent, MatchPhotoComponent } from '../../../../../../../shared/components';
-import { AiTtsButtonComponent } from '../../../../../../ai-tts-button/ai-tts-button.component';
-import { formatAiMarkdown } from '../../../../../../../utils/ai-format.utils';
+import { TacticalPitchComponent } from '../../../../../tactical-pitch/tactical-pitch.component';
 
 @Component({
   selector: 'app-prestazioni-tab-sintesi',
@@ -37,11 +36,11 @@ import { formatAiMarkdown } from '../../../../../../../utils/ai-format.utils';
     IonIcon,
     PlayerAvatarComponent,
     MatchPhotoComponent,
-    IonSpinner,
-    AiTtsButtonComponent,
+    TacticalPitchComponent,
   ],
 })
 export class PrestazioniTabSintesiComponent {
+  @Input() match: any = null;
   @Input() mvp: MatchReportPlayer | null = null;
   @Input() worst: MatchReportPlayer | null = null;
   @Input() eventiGol: any[] = [];
@@ -50,19 +49,6 @@ export class PrestazioniTabSintesiComponent {
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editAssistClick = new EventEmitter<number>();
-  @Input() cronacaAi?: string | null = null;
-  @Input() isGeneratingCronaca: boolean = false;
-  @Input() matchId?: string | null = null;
-
-  @Output() generateCronacaClick = new EventEmitter<boolean>();
-  @Output() goToSpogliatoioClick = new EventEmitter<void>();
-
-  readonly formatAiMarkdown = formatAiMarkdown;
-  isCronacaExpanded: boolean = false;
-
-  toggleCronacaExpand() {
-    this.isCronacaExpanded = !this.isCronacaExpanded;
-  }
 
   constructor() {
     addIcons({
@@ -70,11 +56,6 @@ export class PrestazioniTabSintesiComponent {
       football,
       createOutline,
       logoWhatsapp,
-  micOutline,
-  sparkles,
-  refreshOutline,
-  arrowForwardOutline,
-  chatbubblesOutline,
     });
   }
 }

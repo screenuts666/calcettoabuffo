@@ -21,6 +21,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   locationOutline,
+  time,
   timeOutline,
   play,
   pause,

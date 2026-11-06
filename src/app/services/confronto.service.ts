@@ -377,6 +377,8 @@ export class ConfrontoService {
       : currentMmr;
     const form = mmrStats?.form || {
       currentStreak: 0,
+      currentDrawStreak: 0,
+      bestDrawStreak: 0,
       status: 'neutral',
       statusLabel: 'Costante',
       emoji: '➖',

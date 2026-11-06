@@ -1,0 +1,113 @@
+<div class="partita-comments-container">
+  <div class="comments-header">
+    <div class="header-title-box">
+      <ion-icon name="chatbubble-ellipses-outline" class="title-icon"></ion-icon>
+      <span class="title-text">Bacheca Terzo Tempo</span>
+      <span class="count-badge">{{ comments().length }}</span>
+    </div>
+  </div>
+
+  @if (!isV2Active()) {
+    <!-- STATO PROD / V2 NON ATTIVA: ANTEPRIMA PULITA SENZA ERRORI -->
+    <div class="comments-locked-card">
+      <div class="locked-icon-wrap">
+        <ion-icon name="lock-closed-outline"></ion-icon>
+      </div>
+      <div class="locked-info">
+        <h4>Spazio Terzo Tempo · Prossimamente</h4>
+        <p>A breve ogni giocatore potrà commentare, votare e sfottere i compagni direttamente qui con l'aggiornamento Community v2.0!</p>
+      </div>
+    </div>
+  } @else {
+    <!-- LISTA DEI COMMENTI REALI IN TEMPO REALE -->
+    <div class="comments-list">
+      @for (c of comments(); track c.id) {
+        <div class="comment-item" [class.is-mine]="c.authorUid === currentUserId()">
+          <div class="comment-avatar-wrap">
+            <app-player-avatar
+              [fotoUrl]="c.authorPhotoUrl"
+              [alt]="c.authorName"
+              class="comment-avatar"
+            ></app-player-avatar>
+          </div>
+
+          <div class="comment-bubble">
+            <div class="comment-meta-row">
+              <div class="author-details">
+                <span class="author-name">{{ c.authorName }}</span>
+                @if (c.playerBadge) {
+                  <span
+                    class="player-badge"
+                    [class.team-white]="c.playerTeam === 'A'"
+                    [class.team-black]="c.playerTeam === 'B'"
+                    [class.is-mister]="c.authorRole === 'superuser'"
+                  >
+                    {{ c.playerBadge }}
+                  </span>
+                }
+              </div>
+
+              <div class="meta-right">
+                <span class="comment-time">{{ c.createdAt | date:'HH:mm · dd/MM' }}</span>
+                @if (canDelete(c)) {
+                  <button
+                    type="button"
+                    class="delete-btn"
+                    (click)="eliminaCommento(c.id)"
+                    title="Elimina commento"
+                  >
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="comment-text">{{ c.text }}</div>
+          </div>
+        </div>
+      } @empty {
+        <div class="comments-empty">
+          <span class="empty-icon">🍻</span>
+          <p>Nessun commento nel Terzo Tempo per ora.</p>
+          <small>Rompi il ghiaccio e scrivi il primo commento della serata!</small>
+        </div>
+      }
+    </div>
+
+    <!-- BARRA DI INSERIMENTO COMMENTO -->
+    <div class="comment-input-bar">
+      <div class="input-author-preview">
+        <span>Stai commentando come: <strong>{{ currentAuthorName() }}</strong></span>
+      </div>
+
+      <div class="input-row">
+        <textarea
+          class="comment-textarea"
+          rows="2"
+          maxlength="300"
+          placeholder="Scrivi un commento o sfottò post-partita..."
+          [ngModel]="newCommentText()"
+          (ngModelChange)="newCommentText.set($event)"
+          (keydown)="onKeyDown($event)"
+        ></textarea>
+
+        <button
+          type="button"
+          class="send-btn"
+          [disabled]="!newCommentText().trim() || isSubmitting()"
+          (click)="inviaCommento()"
+          title="Invia commento"
+        >
+          @if (isSubmitting()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon name="send"></ion-icon>
+          }
+        </button>
+      </div>
+      <div class="input-char-counter">
+        {{ newCommentText().length }}/300
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,316 @@
+.partita-comments-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .header-title-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .title-icon {
+      font-size: 1.15rem;
+      color: var(--app-accent-blue);
+    }
+
+    .title-text {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+
+    .count-badge {
+      font-size: 0.68rem;
+      font-weight: 900;
+      background: var(--app-surface-subtle);
+      color: var(--app-text-secondary);
+      padding: 1px 6px;
+      border-radius: 10px;
+      border: 1px solid var(--app-card-border);
+    }
+  }
+}
+
+// Stato Bloccato / Pre-rollout v2.0
+.comments-locked-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--app-card-border);
+
+  .locked-icon-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--app-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--app-text-secondary);
+    flex-shrink: 0;
+  }
+
+  .locked-info {
+    h4 {
+      margin: 0 0 3px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.72rem;
+      line-height: 1.35;
+      color: var(--app-text-secondary);
+    }
+  }
+}
+
+// Lista Commenti
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.comment-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  &.is-mine {
+    .comment-bubble {
+      border-color: rgba(56, 189, 248, 0.25);
+      background: rgba(56, 189, 248, 0.03);
+    }
+  }
+
+  .comment-avatar-wrap {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+
+    .comment-avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+    }
+  }
+
+  .comment-bubble {
+    flex: 1;
+    min-width: 0;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+
+  .comment-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 4px;
+
+    .author-details {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 5px;
+
+      .author-name {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      .player-badge {
+        font-size: 0.6rem;
+        font-weight: 900;
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--app-text-secondary);
+
+        &.team-white {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
+
+        &.team-black {
+          background: rgba(245, 158, 11, 0.15);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        &.is-mister {
+          background: rgba(234, 179, 8, 0.2);
+          color: #facc15;
+          border: 1px solid rgba(234, 179, 8, 0.4);
+        }
+      }
+    }
+
+    .meta-right {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+
+      .comment-time {
+        font-size: 0.62rem;
+        color: var(--app-text-muted, rgba(255, 255, 255, 0.4));
+      }
+
+      .delete-btn {
+        background: transparent;
+        border: none;
+        color: var(--app-text-secondary);
+        font-size: 0.85rem;
+        cursor: pointer;
+        padding: 2px;
+        opacity: 0.6;
+        transition: opacity 0.15s;
+
+        &:hover {
+          opacity: 1;
+          color: #ef4444;
+        }
+      }
+    }
+  }
+
+  .comment-text {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--app-text-primary);
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+}
+
+// Stato vuoto
+.comments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  text-align: center;
+  color: var(--app-text-secondary);
+
+  .empty-icon {
+    font-size: 2rem;
+    margin-bottom: 6px;
+  }
+
+  p {
+    margin: 0 0 2px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--app-text-primary);
+  }
+
+  small {
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+}
+
+// Barra Input
+.comment-input-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-top: 8px;
+  border-top: 1px solid var(--app-card-border);
+
+  .input-author-preview {
+    font-size: 0.68rem;
+    color: var(--app-text-secondary);
+
+    strong {
+      color: var(--app-accent-blue);
+    }
+  }
+
+  .input-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+
+    .comment-textarea {
+      flex: 1;
+      min-width: 0;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 0.8rem;
+      color: var(--app-text-primary);
+      resize: none;
+      font-family: inherit;
+
+      &:focus {
+        outline: none;
+        border-color: var(--app-accent-blue);
+      }
+
+      &::placeholder {
+        color: var(--app-text-secondary);
+        opacity: 0.7;
+      }
+    }
+
+    .send-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      border: none;
+      background: var(--app-accent-blue);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, transform 0.1s;
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      &:not(:disabled):active {
+        transform: scale(0.95);
+      }
+    }
+  }
+
+  .input-char-counter {
+    text-align: right;
+    font-size: 0.6rem;
+    color: var(--app-text-secondary);
+    opacity: 0.7;
+  }
+}

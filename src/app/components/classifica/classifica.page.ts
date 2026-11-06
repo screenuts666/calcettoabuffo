@@ -360,6 +360,8 @@ export class ClassificaPage {
       const pastSeasonsBanners = playerMmr?.pastSeasonsBanners || allTimeMmr?.pastSeasonsBanners || [];
       const form = isRanked && playerMmr?.form ? playerMmr.form : {
         currentStreak: 0,
+        currentDrawStreak: 0,
+        bestDrawStreak: 0,
         status: 'neutral' as const,
         statusLabel: 'Costante',
         emoji: '➖',

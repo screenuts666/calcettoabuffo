@@ -36,6 +36,12 @@ export interface PositionedPlayer {
   roleLabel: string;
   tacticalRoleDescription?: string;
   originalPlayer: any;
+  gol: number;
+  assist: number;
+  autogol: number;
+  voto?: number | null;
+  note?: string | null;
+  isMvp: boolean;
 }
 
 export interface TacticalSlot {
@@ -873,9 +879,74 @@ export class TacticalPitchComponent {
     return assignment;
   }
 
+  // --- METRICHE E EVENTI MATCH PER SINGOLO GIOCATORE ---
+  private getPlayerMatchEvents(player: any, m: any): {
+    gol: number;
+    assist: number;
+    autogol: number;
+    voto?: number | null;
+    note?: string | null;
+    isMvp: boolean;
+  } {
+    if (!player) {
+      return { gol: 0, assist: 0, autogol: 0, isMvp: false };
+    }
+    const id = player.id;
+    const nomeNorm = (player.nome || '').trim().toLowerCase();
+    const eventi = m?.eventiGol || [];
+
+    let gol = 0;
+    let autogol = 0;
+    let assist = 0;
+
+    if (eventi.length > 0) {
+      for (const eg of eventi) {
+        const matchesPlayer =
+          (id && eg.giocatoreId === id) ||
+          (eg.nome && eg.nome.trim().toLowerCase() === nomeNorm);
+        if (matchesPlayer) {
+          if (eg.isAutogoal) autogol++;
+          else gol++;
+        }
+        const matchesAssist =
+          (id && eg.assistId === id) ||
+          (eg.assistNome && eg.assistNome.trim().toLowerCase() === nomeNorm);
+        if (matchesAssist && !eg.isAutogoal) {
+          assist++;
+        }
+      }
+    } else {
+      gol = Number(player.gol || 0);
+      assist = Number(player.assist || 0);
+      autogol = Number(player.autogol || 0);
+    }
+
+    const rawVoto = player.voto;
+    const votoNum =
+      rawVoto !== undefined && rawVoto !== null && !isNaN(Number(rawVoto)) && Number(rawVoto) > 0
+        ? Number(rawVoto)
+        : null;
+    const note = player.note || null;
+
+    let isMvp = Boolean(player.isMvp || (m?.mvpId && m.mvpId === id));
+    if (!isMvp && votoNum && votoNum >= 7 && m) {
+      const allPlayers = [...(m.teamA || []), ...(m.teamB || [])];
+      const maxVote = Math.max(
+        0,
+        ...allPlayers.map((p: any) => (p.voto ? Number(p.voto) : 0)),
+      );
+      if (maxVote > 0 && votoNum === maxVote) {
+        isMvp = true;
+      }
+    }
+
+    return { gol, assist, autogol, voto: votoNum, note, isMvp };
+  }
+
   // --- CALCOLO POSIZIONAMENTO REATTIVO DEI GIOCATORI ---
   readonly positionedPlayers = computed<PositionedPlayer[]>(() => {
     const { teamA, teamB } = this.normalizedTeams();
+    const m = this.currentMatch();
     const result: PositionedPlayer[] = [];
 
     // --- 1. SQUADRA A (BIANCHI - META CAMPO SINISTRA) ---
@@ -886,6 +957,7 @@ export class TacticalPitchComponent {
 
       if (gkA) {
         const turnLabel = gkAInfo.isRotation ? ` ${gkAInfo.currentTurn}/${gkAInfo.totalTurns}` : '';
+        const events = this.getPlayerMatchEvents(gkA, m);
         result.push({
           id: gkA.id || 'gk-a',
           nome: gkA.nome || 'Portiere A',
@@ -899,6 +971,7 @@ export class TacticalPitchComponent {
             ? `Portiere di Turno (${gkAInfo.currentTurn}/${gkAInfo.totalTurns})`
             : 'Portiere in Porta',
           originalPlayer: gkA,
+          ...events,
         });
       }
 
@@ -906,6 +979,7 @@ export class TacticalPitchComponent {
       const assignmentsA = this.assignPlayersToSlots(outfieldA, slotsA, 'A');
 
       assignmentsA.forEach(({ player, slot }) => {
+        const events = this.getPlayerMatchEvents(player, m);
         result.push({
           id: player.id || `out-a-${slot.x}-${slot.y}`,
           nome: player.nome,
@@ -917,6 +991,7 @@ export class TacticalPitchComponent {
           roleLabel: slot.label,
           tacticalRoleDescription: slot.descA,
           originalPlayer: player,
+          ...events,
         });
       });
     }
@@ -929,6 +1004,7 @@ export class TacticalPitchComponent {
 
       if (gkB) {
         const turnLabel = gkBInfo.isRotation ? ` ${gkBInfo.currentTurn}/${gkBInfo.totalTurns}` : '';
+        const events = this.getPlayerMatchEvents(gkB, m);
         result.push({
           id: gkB.id || 'gk-b',
           nome: gkB.nome || 'Portiere B',
@@ -942,6 +1018,7 @@ export class TacticalPitchComponent {
             ? `Portiere di Turno (${gkBInfo.currentTurn}/${gkBInfo.totalTurns})`
             : 'Portiere in Porta',
           originalPlayer: gkB,
+          ...events,
         });
       }
 
@@ -949,6 +1026,7 @@ export class TacticalPitchComponent {
       const assignmentsB = this.assignPlayersToSlots(outfieldB, slotsB, 'B');
 
       assignmentsB.forEach(({ player, slot }) => {
+        const events = this.getPlayerMatchEvents(player, m);
         result.push({
           id: player.id || `out-b-${slot.x}-${slot.y}`,
           nome: player.nome,
@@ -960,6 +1038,7 @@ export class TacticalPitchComponent {
           roleLabel: slot.label,
           tacticalRoleDescription: slot.descB,
           originalPlayer: player,
+          ...events,
         });
       });
     }

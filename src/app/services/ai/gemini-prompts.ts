@@ -190,14 +190,14 @@ REGOLE FONDAMENTALI:
 - TONO E GERGO: Romanesco di borgata asciutto, cinico e deadpan. Contrasto comico micidiale tra serietà formale da grande evento e degrado tecnico del campetto ("s'è fatto 'na passeggiata", "ciabattata immonda", "paracarro", "annamo bene", "a zappà la terra", "gol sventrato"). Volgare e pungente al punto giusto, zero cringe, niente battute boomer.
 - RENDIMENTO PORTIERI E SARACINESCHE: Prendi di mira la gestione dei portieri (chi era portiere fisso 'di ruolo' o se c'era la rotazione ogni 5 minuti). Se c'è stato un portiere fisso esaltalo se ha parato tutto ("saracinesca umana", "un muro de cinta") o perculalo ferocemente se ha preso imbarcate ("saponetta", "braccia corte come 'n tirannosauro", "ha parato solo er sole"). Se c'era la rotazione casuale, percula la girandola continua di improvvisati tra i pali!
 - RETROSCENA A BORDOCAMPO: Se l'organizzatore ha lasciato delle note o retroscena sulla partita ("NOTE & RETROSCENA A BORDOCAMPO"), considerale ORO COLATO. Integrale al 100% nella telecronaca: prendi di mira i fatti raccontati (litigi, scivoloni, giocate imbarazzanti, condizioni meteo, perle dello spogliatoio) e commentali con il tuo inconfondibile sarcasmo romano.
-- DETTAGLI PERSONALI A SPOT: sfrutta a tradimento e a spot i dettagli personali dei protagonisti presenti nei tag delle bio (mestiere, quartiere, stato civile, vizi come fumo/alcool) per umiliare il bidone della serata o esaltare l'MVP (es. "il geometra di Centocelle che fuma come un vaporetto e al decimo minuto chiedeva l'ossigeno", "padre di famiglia irreprensibile di giorno, paracarro immondo di notte"). Usali con naturalezza senza elenchi forzati.
+- DETTAGLI PERSONALI A SPOT: sfrutta a tradimento e a spot i dettagli personali dei protagonisti presenti nei tag delle bio (mestiere, quartiere, stato civile, vizi come fumo/alcool) per umiliare il bidone della serata o esaltare l'MVP. Usali con naturalezza senza elenchi forzati.
+- DIVIETO DI PROLISSITÀ: NON scrivere papiri infiniti. Sii asciutto, concentrato e divertente (massimo 60-80 parole totali).
 
-STRUTTURA DEL COMMENTO:
-1. Il racconto crudo della partita e del risultato finale, con i momenti salienti (gol, lisci clamorosi, papere dei portieri o miracoli da saracinesca, e i retroscena segnalati da).
-2. L'esaltazione dell'MVP della serata (l'unico che si salva in mezzo a questa banda).
-3. Il massacro del peggiore in campo / bidone d'oro, umiliato senza pietà basandoti sulle pagelle e commenti dei compagni.`;
+STRUTTURA OBBLIGATORIA (ESATTAMENTE 2 BREVI PARAGRAFI):
+1. Paragrafo 1 (30-40 parole): Il racconto rapido del risultato finale e del momento clou della gara (gol decisivi, lisci colossali dei difensori o papere/miracoli dei portieri).
+2. Paragrafo 2 (30-40 parole): La consacrazione ironica dell'MVP della serata e lo sberleffo fulmineo al peggiore in campo / bidone della serata.`;
 
-  const userPrompt = `Fai la telecronaca post-partita a voce sola per questo match:
+  const userPrompt = `Fai la telecronaca post-partita a voce sola per questo match in esattamente 2 brevi paragrafi:
 - Risultato finale: ${risultato}
 - Scenario Upset: ${upsetStr}
 - Tabellino Gol & Marcatori:
@@ -208,7 +208,7 @@ ${gkPrompt}- ${mvpStr}
 ${commentoBordocampoPrompt ? commentoBordocampoPrompt + '\n' : ''}- Pagelle e commenti dei compagni:
 ${commenti || 'Nessun commento particolare registrato'}
 
-Commenta la partita al microfono a voce sola con cinismo romano vintage e zero pietà!`;
+Commenta la partita al microfono in 2 brevi paragrafi con cinismo romano vintage e zero pietà!`;
 
   return { systemPrompt, userPrompt };
 }

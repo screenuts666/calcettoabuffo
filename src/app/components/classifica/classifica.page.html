@@ -253,6 +253,13 @@
               >
                 ❄️
               </span>
+            } @else if ((g.form.currentDrawStreak || 0) >= 2) {
+              <span
+                class="floating-badge draw-streak"
+                [title]="'Pareggite: ' + g.form.currentDrawStreak + ' pareggi consecutivi'"
+              >
+                🤝
+              </span>
             }
           </div>
 

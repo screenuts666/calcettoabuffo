@@ -19,6 +19,7 @@ import {
 import { MatchReportChemistryItem } from '../../../../../../../models/mmr.model';
 import { formatAiMarkdown } from '../../../../../../../utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../../../../../../shared/components';
+import { PartitaCommentsComponent } from '../../../../../partita-comments/partita-comments.component';
 
 @Component({
   selector: 'app-prestazioni-tab-spogliatoio',
@@ -26,10 +27,17 @@ import { AiTtsButtonComponent } from '../../../../../../../shared/components';
   styleUrls: ['./prestazioni-tab-spogliatoio.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonIcon, IonSpinner, AiTtsButtonComponent],
+  imports: [
+    CommonModule,
+    IonIcon,
+    IonSpinner,
+    AiTtsButtonComponent,
+    PartitaCommentsComponent,
+  ],
 })
 export class PrestazioniTabSpogliatoioComponent {
   @Input() matchId?: string | null = null;
+  @Input() match?: any = null;
   @Input() commentoPartita: string = '';
   @Input() cronacaAi?: string | null = null;
   @Input() chemistryNotes: MatchReportChemistryItem[] = [];

@@ -627,24 +627,23 @@
                   </button>
                 }
 
+                <!-- AI: Unico commento AI compatto per partita (a gara conclusa niente doppio tasto) -->
                 @if (m.cronacaAi) {
                   <button
                     type="button"
                     class="action-pill cronaca-pill"
                     (click)="$event.stopPropagation(); apriAiModal('cronaca', m)"
-                    title="Ascolta o leggi la telecronaca ignorante"
+                    title="Ascolta o leggi il commento del match"
                   >
                     <ion-icon name="mic"></ion-icon>
-                    <span>Telecronaca</span>
+                    <span>Commento AI</span>
                   </button>
-                }
-
-                @if (m.pronosticoAi) {
+                } @else if (m.pronosticoAi && m.status !== 'conclusa' && !m.matchConcluso) {
                   <button
                     type="button"
                     class="action-pill pronostico-pill"
                     (click)="$event.stopPropagation(); apriAiModal('pronostico', m)"
-                    title="Ascolta o leggi il pronostico del Mister"
+                    title="Ascolta o leggi il pronostico pre-match"
                   >
                     <ion-icon name="sparkles"></ion-icon>
                     <span>Pronostico</span>

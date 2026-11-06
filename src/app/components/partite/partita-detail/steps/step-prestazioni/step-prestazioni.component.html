@@ -27,7 +27,7 @@
         (click)="activeTab.set('sintesi')"
       >
         <ion-icon name="flash"></ion-icon>
-        <span class="tab-label-text">Sintesi</span>
+        <span class="tab-label-text">Resoconto</span>
       </button>
 
       <button
@@ -59,8 +59,8 @@
         [class.active]="activeTab() === 'spogliatoio'"
         (click)="activeTab.set('spogliatoio')"
       >
-        <ion-icon name="mic-outline"></ion-icon>
-        <span class="tab-label-text">Spogliatoio</span>
+        <ion-icon name="chatbubbles-outline"></ion-icon>
+        <span class="tab-label-text">Terzo Tempo</span>
       </button>
 
       <button
@@ -70,7 +70,7 @@
         (click)="activeTab.set('statistiche')"
       >
         <ion-icon name="trending-up-outline"></ion-icon>
-        <span class="tab-label-text">Stats</span>
+        <span class="tab-label-text">Stats & MMR</span>
       </button>
     </div>
   </div>
@@ -79,6 +79,7 @@
   <div class="tab-content-area animate-fade-in">
     @if (activeTab() === 'sintesi') {
       <app-prestazioni-tab-sintesi
+        [match]="match()"
         [mvp]="report().mvp"
         [worst]="report().worst"
         [eventiGol]="state.eventiGol()"
@@ -86,11 +87,6 @@
         [gkSummary]="gkSummary()"
         (shareClick)="apriCondivisione()"
         (editAssistClick)="modificaAssistEvento($event)"
-        [cronacaAi]="state.cronacaAi()"
-        [isGeneratingCronaca]="isGeneratingCronaca()"
-        [matchId]="state.matchId()"
-        (generateCronacaClick)="generaCronaca($event)"
-        (goToSpogliatoioClick)="activeTab.set('spogliatoio')"
       ></app-prestazioni-tab-sintesi>
     }
 
@@ -129,6 +125,7 @@
     @if (activeTab() === 'spogliatoio') {
       <app-prestazioni-tab-spogliatoio
         [matchId]="state.matchId()"
+        [match]="match()"
         [commentoPartita]="state.commentoPartita()"
         [cronacaAi]="state.cronacaAi()"
         [chemistryNotes]="report().chemistryNotes"
@@ -147,9 +144,6 @@
         [matchId]="state.matchId()"
         [report]="report()"
         [isAdmin]="isAdmin"
-        [pronosticoAi]="state.pronosticoAi()"
-        [isGeneratingPronostico]="isGeneratingPronostico()"
-        (generatePronosticoClick)="generaPronostico($event)"
       ></app-prestazioni-tab-statistiche>
     }
   </div>

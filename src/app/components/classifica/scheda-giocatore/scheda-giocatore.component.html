@@ -154,6 +154,10 @@
         <span class="form-badge-large in-crisis">
           ❄️ In Crisi ({{ prof.form.currentStreak }} sconfitte)
         </span>
+      } @else if ((prof?.form?.currentDrawStreak || 0) >= 2) {
+        <span class="form-badge-large draw-streak">
+          🤝 Pareggite (+{{ prof.form.currentDrawStreak }} pareggi)
+        </span>
       } @else {
         <span class="form-badge-large neutral">
           ➖ Forma Costante

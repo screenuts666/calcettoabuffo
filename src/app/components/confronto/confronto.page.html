@@ -51,6 +51,8 @@
               <span class="form-badge on-fire">🔥</span>
             } @else if (comp.playerA.form.status === 'in_crisis') {
               <span class="form-badge in-crisis">❄️</span>
+            } @else if ((comp.playerA.form.currentDrawStreak || 0) >= 2) {
+              <span class="form-badge draw-streak">🤝</span>
             }
           </div>
 
@@ -112,6 +114,8 @@
               <span class="form-badge on-fire">🔥</span>
             } @else if (comp.playerB.form.status === 'in_crisis') {
               <span class="form-badge in-crisis">❄️</span>
+            } @else if ((comp.playerB.form.currentDrawStreak || 0) >= 2) {
+              <span class="form-badge draw-streak">🤝</span>
             }
           </div>
 
@@ -426,6 +430,8 @@
               <span>🔥 On Fire (+{{ comp.playerA.form.currentStreak }}V)</span>
             } @else if (comp.playerA.form.status === 'in_crisis') {
               <span>❄️ In Crisi ({{ comp.playerA.form.currentStreak }}S)</span>
+            } @else if ((comp.playerA.form.currentDrawStreak || 0) >= 2) {
+              <span>🤝 Pareggite (+{{ comp.playerA.form.currentDrawStreak }}P)</span>
             } @else {
               <span>➖ Forma Costante</span>
             }
@@ -450,6 +456,9 @@
           <div class="form-records">
             <div>Miglior serie V: <b>+{{ comp.playerA.form.bestWinStreak }}</b></div>
             <div>Peggior serie S: <b>{{ comp.playerA.form.worstLossStreak }}</b></div>
+            @if ((comp.playerA.form.bestDrawStreak || 0) > 1) {
+              <div>Max pareggi: <b>{{ comp.playerA.form.bestDrawStreak }}</b></div>
+            }
           </div>
         </div>
 
@@ -470,6 +479,8 @@
               <span>🔥 On Fire (+{{ comp.playerB.form.currentStreak }}V)</span>
             } @else if (comp.playerB.form.status === 'in_crisis') {
               <span>❄️ In Crisi ({{ comp.playerB.form.currentStreak }}S)</span>
+            } @else if ((comp.playerB.form.currentDrawStreak || 0) >= 2) {
+              <span>🤝 Pareggite (+{{ comp.playerB.form.currentDrawStreak }}P)</span>
             } @else {
               <span>➖ Forma Costante</span>
             }
@@ -494,6 +505,9 @@
           <div class="form-records">
             <div>Miglior serie V: <b>+{{ comp.playerB.form.bestWinStreak }}</b></div>
             <div>Peggior serie S: <b>{{ comp.playerB.form.worstLossStreak }}</b></div>
+            @if ((comp.playerB.form.bestDrawStreak || 0) > 1) {
+              <div>Max pareggi: <b>{{ comp.playerB.form.bestDrawStreak }}</b></div>
+            }
           </div>
         </div>
       </div>

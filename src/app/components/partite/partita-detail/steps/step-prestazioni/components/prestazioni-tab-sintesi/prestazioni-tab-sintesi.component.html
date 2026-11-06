@@ -1,96 +1,10 @@
-<!-- SPOTLIGHT AWARDS: MVP & BIDONE DELLA SERATA -->
-<!-- TELECRONACA IGNORANTE (GEMINI AI) IN PRIMO PIANO -->
-@if (cronacaAi) {
-  <div class="report-section-card cronaca-spotlight-card animate-fade-in">
-    <div class="section-card-header">
-      <div class="header-left">
-        <ion-icon name="mic-outline" class="section-icon mic-icon"></ion-icon>
-        <span class="section-title">Telecronaca Ignorante</span>
-        <span class="ai-sparkle-pill">✨ AI</span>
-      </div>
-      <div class="header-actions">
-        <app-ai-tts-button
-          [text]="cronacaAi"
-          [id]="'cronaca-sintesi-' + (matchId || 'temp')"
-          label="Ascolta Telecronaca"
-          shareTitle="Telecronaca Ignorante Partita"
-        ></app-ai-tts-button>
-        @if (isAdmin) {
-          <button
-            type="button"
-            class="ai-refresh-btn"
-            (click)="generateCronacaClick.emit(true)"
-            [disabled]="isGeneratingCronaca"
-            title="Rigenera la telecronaca con Gemini"
-          >
-            <ion-icon
-              name="refresh-outline"
-              [class.spin]="isGeneratingCronaca"
-            ></ion-icon>
-            <span>{{
-              isGeneratingCronaca ? "Riscrivo..." : "🔄 Rigenera"
-            }}</span>
-          </button>
-        }
-      </div>
-    </div>
-
-    <div class="cronaca-preview-box">
-      <div class="cronaca-bubble" [class.collapsed]="!isCronacaExpanded">
-        <div
-          class="cronaca-text"
-          [innerHTML]="formatAiMarkdown(cronacaAi)"
-        ></div>
-        @if (!isCronacaExpanded) {
-          <div class="fade-overlay"></div>
-        }
-      </div>
-
-      <div class="cronaca-actions-row">
-        <button
-          type="button"
-          class="expand-text-btn"
-          (click)="toggleCronacaExpand()"
-        >
-          {{
-            isCronacaExpanded ? "Riduci testo ▲" : "Leggi tutta la cronaca ▼"
-          }}
-        </button>
-        <button
-          type="button"
-          class="spogliatoio-link-btn"
-          (click)="goToSpogliatoioClick.emit()"
-        >
-          <ion-icon name="chatbubbles-outline"></ion-icon>
-          <span>Apri Spogliatoio</span>
-        </button>
-      </div>
-    </div>
-  </div>
-} @else if (isAdmin) {
-  <div class="report-section-card cronaca-prompt-card animate-fade-in">
-    <div class="prompt-inner">
-      <div class="prompt-icon">🎙️</div>
-      <div class="prompt-text">
-        <h4>Telecronaca non generata</h4>
-      </div>
-      <button
-        type="button"
-        class="ai-generate-cronaca-quick-btn"
-        (click)="generateCronacaClick.emit(false)"
-        [disabled]="isGeneratingCronaca"
-      >
-        @if (isGeneratingCronaca) {
-          <ion-spinner name="crescent"></ion-spinner>
-          <span>Generazione in corso...</span>
-        } @else {
-          <ion-icon name="sparkles"></ion-icon>
-          <span>🎙️ Genera Cronaca AI</span>
-        }
-      </button>
-    </div>
+<!-- PIANTINA TATTICA INTERATTIVA CON EVENTI MATCH (GOL, ASSIST, VOTI, MVP) -->
+@if (match) {
+  <div class="sintesi-pitch-wrapper">
+    <app-tactical-pitch [match]="match"></app-tactical-pitch>
   </div>
 }
+
 <div class="spotlight-awards-container">
   <!-- MVP DEL MATCH 👑 -->
   @if (mvp) {
@@ -275,19 +189,3 @@
 
 <!-- FOTO DI GRUPPO DELLA PARTITA -->
 <app-match-photo></app-match-photo>
-
-<!-- BANNER CONDIVISIONE WHATSAPP -->
-<div class="report-share-cta-card">
-  <div class="cta-text-content">
-    <div class="cta-title">Condividi con il Gruppo</div>
-  </div>
-
-  <button
-    type="button"
-    class="whatsapp-full-share-btn"
-    (click)="shareClick.emit()"
-  >
-    <ion-icon name="logo-whatsapp"></ion-icon>
-    <span>Condividi su WhatsApp</span>
-  </button>
-</div>

@@ -187,7 +187,7 @@
             [title]="p.nome + (p.isGoalkeeper ? ' (Portiere)' : '')"
           >
             <!-- TOKEN AVATAR -->
-            <div class="avatar-ring-box">
+            <div class="avatar-ring-box" [class.is-mvp]="p.isMvp">
               <app-player-avatar
                 [fotoUrl]="p.fotoUrl"
                 [alt]="p.nome"
@@ -204,12 +204,32 @@
                   >🔄</span>
                 }
               }
+
+              <!-- BADGE EVENTI MATCH (MVP, GOL, ASSIST) -->
+              @if (p.isMvp) {
+                <span class="pitch-mvp-badge" title="🏆 Migliore in Campo (MVP)">👑</span>
+              }
+              @if (p.gol > 0) {
+                <span class="pitch-stat-badge goal" [title]="p.gol + (p.gol === 1 ? ' Gol segnato' : ' Gol segnati')">
+                  ⚽{{ p.gol > 1 ? p.gol : '' }}
+                </span>
+              }
+              @if (p.assist > 0) {
+                <span class="pitch-stat-badge assist" [title]="p.assist + (p.assist === 1 ? ' Assist servito' : ' Assist serviti')">
+                  👟{{ p.assist > 1 ? p.assist : '' }}
+                </span>
+              }
             </div>
 
             <!-- ETICHETTA NOME GIOCATORE SOTTO IL TOKEN -->
             <div class="player-pitch-label">
               <span class="label-name">{{ p.nome.split(' ')[0] }}</span>
-              <span class="label-role">{{ p.roleLabel }}</span>
+              <div class="label-sub-row">
+                <span class="label-role">{{ p.roleLabel }}</span>
+                @if (p.voto) {
+                  <span class="label-grade" [class.mvp-grade]="p.isMvp">{{ p.voto }}</span>
+                }
+              </div>
             </div>
           </div>
         }
@@ -255,6 +275,56 @@
           </button>
         </div>
 
+        <!-- MVP HERO BANNER NEL POPUP -->
+        @if (sp.isMvp) {
+          <div class="popup-mvp-hero">
+            <span class="mvp-star">🏆</span>
+            <span class="mvp-text">Migliore in Campo (MVP)</span>
+          </div>
+        }
+
+        <!-- GRIGLIA EVENTI E STATISTICHE PARTITA -->
+        @if (sp.gol > 0 || sp.assist > 0 || sp.autogol > 0 || sp.voto) {
+          <div class="popup-events-grid">
+            @if (sp.gol > 0) {
+              <div class="pe-card goal">
+                <span class="pe-icon">⚽</span>
+                <span class="pe-val">{{ sp.gol }}</span>
+                <span class="pe-lbl">{{ sp.gol === 1 ? 'Gol' : 'Gol' }}</span>
+              </div>
+            }
+            @if (sp.assist > 0) {
+              <div class="pe-card assist">
+                <span class="pe-icon">👟</span>
+                <span class="pe-val">{{ sp.assist }}</span>
+                <span class="pe-lbl">{{ sp.assist === 1 ? 'Assist' : 'Assist' }}</span>
+              </div>
+            }
+            @if (sp.autogol > 0) {
+              <div class="pe-card autogoal">
+                <span class="pe-icon">🤦</span>
+                <span class="pe-val">{{ sp.autogol }}</span>
+                <span class="pe-lbl">Autogol</span>
+              </div>
+            }
+            @if (sp.voto) {
+              <div class="pe-card grade" [class.mvp-grade]="sp.isMvp">
+                <span class="pe-icon">⭐</span>
+                <span class="pe-val">{{ sp.voto }}</span>
+                <span class="pe-lbl">Voto</span>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- NOTE DEL MISTER (SE PRESENTI) -->
+        @if (sp.note) {
+          <div class="popup-mister-notes">
+            <span class="pmn-lbl">Giudizio del Mister:</span>
+            <p class="pmn-quote">"{{ sp.note }}"</p>
+          </div>
+        }
+
         <!-- AZIONI ROTAZIONE PORTIERE -->
         @if (hasGkRotation(sp.team)) {
           <div class="popup-gk-actions">
@@ -278,13 +348,6 @@
                 <span>🧤 Schiera in Porta</span>
               </button>
             }
-          </div>
-        }
-
-        @if (sp.originalPlayer.voto) {
-          <div class="popup-stat-row">
-            <span class="stat-lbl">Voto Pagella:</span>
-            <span class="stat-val grade">{{ sp.originalPlayer.voto }}</span>
           </div>
         }
       </div>

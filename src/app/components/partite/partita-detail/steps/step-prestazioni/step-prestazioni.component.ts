@@ -18,6 +18,7 @@ import {
   micOutline,
   trendingUpOutline,
   shieldOutline,
+  chatbubblesOutline,
 } from 'ionicons/icons';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { Partita } from '../../../../../models/partita.model';
@@ -84,6 +85,7 @@ export class StepPrestazioniComponent {
       micOutline,
       trendingUpOutline,
       shieldOutline,
+      chatbubblesOutline,
     });
   }
 

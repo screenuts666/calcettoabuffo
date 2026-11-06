@@ -263,36 +263,34 @@ export function formatMatchForWhatsApp(
   const phase = getMatchSharePhase(partita);
   const parts: string[] = [];
 
-  // 1. INTESTAZIONE CONTESTUALE ALLO STATO
+  // 1. INTESTAZIONE CONTESTUALE ALLO STATO (MODERNA E PULITA)
   switch (phase) {
     case 'convocazioni':
-      parts.push('📢 *CONVOCAZIONI APERTE - CALCETTO* ⚽');
+      parts.push('*CONVOCAZIONI APERTE · CALCETTO ABBUFFO*');
       break;
     case 'pre_match':
-      parts.push('⚔️ *FORMAZIONI UFFICIALI - PRE-MATCH* ⚽');
+      parts.push('*FORMAZIONI UFFICIALI · CALCETTO ABBUFFO*');
       break;
     case 'in_corso':
-      parts.push('🔴 *MATCH LIVE IN CORSO* ⚡');
+      parts.push('*MATCH LIVE IN CORSO · CALCETTO ABBUFFO*');
       break;
     case 'conclusa_senza_pagelle':
-      parts.push('🏁 *RISULTATO FINALE - CALCETTO* ⚽');
+      parts.push('*RISULTATO FINALE · CALCETTO ABBUFFO*');
       break;
     case 'conclusa_con_pagelle':
-      parts.push('⚽ *REPORT MATCH & PAGELLE* 🏆');
+      parts.push('*REPORT PARTITA & PAGELLE · CALCETTO ABBUFFO*');
       break;
   }
 
   const dataFmt = formatDataItaliana(partita.dataPartita);
-  if (dataFmt) {
-    parts.push(`📅 *${dataFmt}*`);
-  }
   const luogo = (partita.luogo || '').trim();
   const orario = (partita.orario || '').trim();
-  if (luogo || orario) {
-    const dettagli: string[] = [];
-    if (luogo) dettagli.push(`📍 *${luogo}*`);
-    if (orario) dettagli.push(`⏰ *${orario}*`);
-    parts.push(dettagli.join(' | '));
+  const metaLine: string[] = [];
+  if (dataFmt) metaLine.push(`📅 ${dataFmt}`);
+  if (luogo) metaLine.push(`📍 ${luogo}`);
+  if (orario) metaLine.push(`⏰ ${orario}`);
+  if (metaLine.length > 0) {
+    parts.push(metaLine.join(' · '));
   }
 
   // =========================================================
@@ -389,28 +387,21 @@ export function formatMatchForWhatsApp(
   // =========================================================
   if (reportData?.isUpset && phase !== 'in_corso') {
     parts.push('');
-    parts.push(`🔥 *UPSET!* ${reportData.upsetDescription}`);
-  } else if (
-    reportData?.odds &&
-    (reportData.odds.probAPercent > 0 || reportData.odds.probBPercent > 0)
-  ) {
-    parts.push(
-      `⚖️ *Quote Pre-Match:* Bianchi ${reportData.odds.probAPercent}% vs ${reportData.odds.probBPercent}% Neri`,
-    );
+    parts.push(`*CLAMOROSO UPSET:* ${reportData.upsetDescription}`);
   }
 
   // Risultato e Presenze
   if (options.includeRisultato) {
     parts.push('');
     if (phase === 'in_corso') {
-      parts.push('⚡ *PARZIALE LIVE*');
+      parts.push('*PARZIALE LIVE*');
       parts.push(
-        `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
+        `⚪ *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* ⚫`,
       );
     } else {
-      parts.push('🔥 *RISULTATO FINALE*');
+      parts.push('*RISULTATO FINALE*');
       parts.push(
-        `🔵 *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* 🔴`,
+        `⚪ *Bianchi*  ${partita.scoreA ?? 0} - ${partita.scoreB ?? 0}  *Neri* ⚫`,
       );
       if (
         reportData &&
@@ -420,18 +411,18 @@ export function formatMatchForWhatsApp(
         const signA = reportData.teamAvgMmrDeltaA >= 0 ? '+' : '';
         const signB = reportData.teamAvgMmrDeltaB >= 0 ? '+' : '';
         parts.push(
-          `📈 *Spostamento MMR:* Bianchi ${signA}${reportData.teamAvgMmrDeltaA} | Neri ${signB}${reportData.teamAvgMmrDeltaB}`,
+          `📈 Spostamento MMR: Bianchi ${signA}${reportData.teamAvgMmrDeltaA} | Neri ${signB}${reportData.teamAvgMmrDeltaB}`,
         );
       }
     }
 
     parts.push('');
-    parts.push('👥 *PRESENZE E FORMAZIONI*');
+    parts.push('*FORMAZIONI E MARCATORI*');
     parts.push(
-      `*Bianchi:* ${formatTeamRoster(partita.teamA, options.includeMarcatori, partita.eventiGol)}`,
+      `⚪ *Bianchi:* ${formatTeamRoster(partita.teamA, options.includeMarcatori, partita.eventiGol)}`,
     );
     parts.push(
-      `*Neri:* ${formatTeamRoster(partita.teamB, options.includeMarcatori, partita.eventiGol)}`,
+      `⚫ *Neri:* ${formatTeamRoster(partita.teamB, options.includeMarcatori, partita.eventiGol)}`,
     );
 
     const eventiConAssist = (partita.eventiGol || []).filter(
@@ -439,7 +430,7 @@ export function formatMatchForWhatsApp(
     );
     if (options.includeMarcatori && eventiConAssist.length > 0) {
       parts.push('');
-      parts.push('👟 *ASSIST VINCENTI:*');
+      parts.push('👟 *Assist Vincenti:*');
       for (const eg of eventiConAssist) {
         parts.push(`• ⚽ ${eg.nome} _(assist di ${eg.assistNome})_`);
       }
@@ -454,24 +445,11 @@ export function formatMatchForWhatsApp(
   )?.trim();
   if (options.includeCommentoPartita !== false && commentoPartita) {
     parts.push('');
-    parts.push('📝 *NOTE A BORDOCAMPO:*');
+    parts.push('📝 *Note a Bordocampo:*');
     parts.push(`"${commentoPartita}"`);
   }
 
-  // Pronostico del Mister (Gemini AI)
-  if (
-    options.includePronosticoAi &&
-    (partita.pronosticoAi || reportData?.pronosticoAi)
-  ) {
-    const pronostico = (
-      partita.pronosticoAi || reportData?.pronosticoAi
-    )!.trim();
-    parts.push('');
-    parts.push('🔮 *IL PRONOSTICO DEL MISTER (by Gemini AI)*');
-    parts.push(`"${pronostico}"`);
-  }
-
-  // Cronaca Sportiva Ignorante (Gemini AI) - solo per partite concluse
+  // Cronaca Sportiva AI (solo per partite concluse se richiesta)
   if (
     phase !== 'in_corso' &&
     options.includeCronacaAi &&
@@ -479,11 +457,11 @@ export function formatMatchForWhatsApp(
   ) {
     const cronaca = (partita.cronacaAi || reportData?.cronacaAi)!.trim();
     parts.push('');
-    parts.push('🎙️ *CRONACA IGNORANTE DEL MATCH (by Gemini AI)*');
+    parts.push('🎙️ *Il Commento del Match (by Gemini AI):*');
     parts.push(`"${cronaca}"`);
   }
 
-  // MVP, Goliardico e Pagelle (solo quando la partita è conclusa con pagelle)
+  // MVP e Pagelle (quando la partita è conclusa con pagelle)
   if (phase === 'conclusa_con_pagelle' && options.includePagelle) {
     const tuttiGiocatori: PlayerPerformance[] = [
       ...(partita.teamA || []),
@@ -511,7 +489,7 @@ export function formatMatchForWhatsApp(
           ? ` — _"${reportData.mvp.note}"_`
           : '';
         parts.push(
-          `🏆 *MVP DELLA SERATA:* *${reportData.mvp.nome}* (${reportData.mvp.voto})${mvpNote}`,
+          `🏆 *Migliore in Campo (MVP):* *${reportData.mvp.nome}* (${reportData.mvp.voto})${mvpNote}`,
         );
       } else {
         const maxVoto = Number(giocatoriConVoto[0].voto);
@@ -520,7 +498,7 @@ export function formatMatchForWhatsApp(
         );
         if (mvpList.length === 1) {
           const nomeMvp = (mvpList[0].nome || '').trim();
-          parts.push(`🏆 *MVP:* *${nomeMvp}* (${maxVoto})`);
+          parts.push(`🏆 *Migliore in Campo (MVP):* *${nomeMvp}* (${maxVoto})`);
         } else {
           const nomiMvp = mvpList.map((m) => (m.nome || '').trim()).join(', ');
           parts.push(`🏆 *MVP (pari merito - voto ${maxVoto}):* ${nomiMvp}`);
@@ -532,23 +510,12 @@ export function formatMatchForWhatsApp(
           ? ` — _"${reportData.worst.note}"_`
           : '';
         parts.push(
-          `🩴 *Premio "Bidone d'Oro":* *${reportData.worst.nome}* (${reportData.worst.voto})${worstNote} 🍕`,
-        );
-      }
-
-      if (reportData?.onFireEntered && reportData.onFireEntered.length > 0) {
-        parts.push(
-          `🔥 *Entrati On Fire:* ${reportData.onFireEntered.map((p) => p.nome).join(', ')}`,
-        );
-      }
-      if (reportData?.onFireExited && reportData.onFireExited.length > 0) {
-        parts.push(
-          `❄️ *Striscia Interrotta:* ${reportData.onFireExited.map((p) => p.nome).join(', ')}`,
+          `🩴 *Premio Bidone della Serata:* *${reportData.worst.nome}* (${reportData.worst.voto})${worstNote}`,
         );
       }
 
       parts.push('');
-      parts.push('📊 *PAGELLE E COMMENTI*');
+      parts.push('📊 *Pagelle:*');
       for (const g of giocatoriConVoto) {
         const nome = (g.nome || 'Sconosciuto').trim();
         let riga = `• *${nome}*: *${g.voto}*`;
@@ -563,16 +530,16 @@ export function formatMatchForWhatsApp(
     parts.push('⏳ _Pagelle e voti del Mister in arrivo a breve!_');
   }
 
-  // Link diretto alla partita
+  // Link diretto alla partita (CTA principale)
   if (options.includeLink && partita.id) {
     const link = getMatchDeepLink(partita.id);
     parts.push('');
     if (phase === 'in_corso') {
-      parts.push("🔗 *Segui il match live in tempo reale sull'app:*");
+      parts.push("👉 *Segui il match in tempo reale sull'app:*");
     } else if (phase === 'conclusa_senza_pagelle') {
-      parts.push("🔗 *Vedi tabellino completo e statistiche sull'app:*");
+      parts.push("👉 *Vedi tabellino e campetto tattico sull'app:*");
     } else {
-      parts.push("🔗 *Vedi tabellino completo, foto e chimica sull'app:*");
+      parts.push("👉 *Pagelle, campetto interattivo e commenti Terzo Tempo sull'app:*");
     }
     parts.push(link);
   }

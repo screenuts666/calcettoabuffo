@@ -186,6 +186,8 @@ export type FormStatus = 'on_fire' | 'in_crisis' | 'neutral';
 
 export interface PlayerFormStreak {
   currentStreak: number; // >0 vittorie consecutive, <0 sconfitte consecutive, 0 pareggio/neutrale
+  currentDrawStreak: number; // >=0 pareggi consecutivi attivi
+  bestDrawStreak: number; // record storico pareggi consecutivi
   status: FormStatus;
   statusLabel: string;
   emoji: string;

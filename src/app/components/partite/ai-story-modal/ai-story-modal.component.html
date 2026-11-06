@@ -3,7 +3,7 @@
     <div class="modal-title-wrapper" slot="start">
       <span class="modal-emoji">{{ tipo === 'pronostico' ? '🔮' : '🎙️' }}</span>
       <div class="modal-headings">
-        <ion-title class="main-title">{{ titolo || (tipo === 'pronostico' ? 'Pronostico del Mister' : 'Telecronaca Ignorante') }}</ion-title>
+        <ion-title class="main-title">{{ titolo || (tipo === 'pronostico' ? 'Pronostico Pre-Match' : 'Commento del Match') }}</ion-title>
         @if (sottotitolo) {
           <span class="sub-title">{{ sottotitolo }}</span>
         }

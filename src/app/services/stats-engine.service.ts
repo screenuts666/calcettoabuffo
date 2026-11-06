@@ -368,6 +368,8 @@ export class StatsEngineService {
         ? playerMmr.form
         : {
           currentStreak: 0,
+          currentDrawStreak: 0,
+          bestDrawStreak: 0,
           status: 'neutral' as const,
           statusLabel: 'Costante',
           emoji: '➖',
@@ -1546,6 +1548,8 @@ export class StatsEngineService {
         const meta = playerMetadata.get(id);
         const form: PlayerFormStreak = {
           currentStreak: 0,
+          currentDrawStreak: 0,
+          bestDrawStreak: 0,
           status: 'neutral',
           statusLabel: 'Costante',
           emoji: '➖',
@@ -1923,12 +1927,18 @@ export class StatsEngineService {
     if (result === 'W') {
       if (form.currentStreak >= 0) form.currentStreak++;
       else form.currentStreak = 1;
+      form.currentDrawStreak = 0;
     } else if (result === 'L') {
       if (form.currentStreak <= 0) form.currentStreak--;
       else form.currentStreak = -1;
+      form.currentDrawStreak = 0;
     } else {
-      // Pareggio: azzera la serie attiva
+      // Pareggio: azzera la serie attiva di W/L e incrementa i pareggi consecutivi
       form.currentStreak = 0;
+      form.currentDrawStreak = (form.currentDrawStreak || 0) + 1;
+      if (form.currentDrawStreak > (form.bestDrawStreak || 0)) {
+        form.bestDrawStreak = form.currentDrawStreak;
+      }
     }
 
     // Aggiorna record massimi
@@ -1939,7 +1949,7 @@ export class StatsEngineService {
       form.worstLossStreak = form.currentStreak;
     }
 
-    // Calcola status On Fire 🔥 o In Crisi ❄️
+    // Calcola status On Fire 🔥 o In Crisi ❄️ o Pareggite 🤝
     if (form.currentStreak >= 3) {
       form.status = 'on_fire';
       form.statusLabel = 'On Fire 🔥';
@@ -1949,6 +1959,11 @@ export class StatsEngineService {
       form.status = 'in_crisis';
       form.statusLabel = 'In Crisi ❄️';
       form.emoji = '❄️';
+      form.multiplier = 1.0;
+    } else if ((form.currentDrawStreak || 0) >= 2) {
+      form.status = 'neutral';
+      form.statusLabel = `Pareggite (${form.currentDrawStreak})`;
+      form.emoji = '🤝';
       form.multiplier = 1.0;
     } else {
       form.status = 'neutral';
