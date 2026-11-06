@@ -6,31 +6,9 @@
   style="display: none"
 />
 
-<div class="photo-card-container">
-  @if (state.fotoUrl()) {
-    <!-- SELETTORE VISTA: FOTO UFFICIALE VS PIANTINA IN CAMPO -->
-    <div class="photo-view-switch-bar">
-      <button
-        type="button"
-        class="switch-btn"
-        [class.active]="vistaSelezionata() === 'foto'"
-        (click)="vistaSelezionata.set('foto')"
-      >
-        <ion-icon name="image-outline"></ion-icon>
-        <span>Foto Ufficiale</span>
-      </button>
-      <button
-        type="button"
-        class="switch-btn"
-        [class.active]="vistaSelezionata() === 'pitch'"
-        (click)="vistaSelezionata.set('pitch')"
-      >
-        <ion-icon name="football-outline"></ion-icon>
-        <span>Piantina in Campo</span>
-      </button>
-    </div>
-
-    @if (vistaSelezionata() === 'foto') {
+@if (state.fotoUrl() || isAdmin) {
+  <div class="photo-card-container">
+    @if (state.fotoUrl()) {
       <div class="photo-card">
         <div class="image-box" (click)="apriFotoViewer()">
           <img [src]="state.fotoUrl()" alt="Foto di gruppo della partita" loading="lazy" />
@@ -60,32 +38,12 @@
           </div>
         }
       </div>
-    } @else {
-      <!-- PIANTINA TATTICA IN CAMPO -->
-      <app-tactical-pitch
-        [match]="state"
-        [showUploadButton]="isAdmin"
-        [isAdmin]="isAdmin"
-        (uploadPhotoClick)="apriFilePicker()"
-      ></app-tactical-pitch>
-    }
-  } @else {
-    <!-- DEFAULT PER TUTTE LE PARTITE SENZA FOTO UFFICIALE: PIANTINA IN CAMPO CON I PORTIERI E I GIOCATORI! -->
-    <div class="default-pitch-wrap">
-      <app-tactical-pitch
-        [match]="state"
-        [showUploadButton]="isAdmin"
-        [isAdmin]="isAdmin"
-        (uploadPhotoClick)="apriFilePicker()"
-      ></app-tactical-pitch>
-    </div>
-
-    @if (isAdmin) {
+    } @else if (isAdmin) {
       <div class="empty-upload-hint-box" (click)="apriFilePicker()">
         <ion-icon name="camera-outline"></ion-icon>
         <span>Hai scattato la foto a fine partita? <b>Tocca qui per caricare la foto ufficiale di gruppo</b></span>
       </div>
     }
-  }
-</div>
+  </div>
+}
 

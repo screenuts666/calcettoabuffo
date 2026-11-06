@@ -1,7 +1,11 @@
 <!-- PIANTINA TATTICA INTERATTIVA CON EVENTI MATCH (GOL, ASSIST, VOTI, MVP) -->
 @if (match) {
   <div class="sintesi-pitch-wrapper">
-    <app-tactical-pitch [match]="match"></app-tactical-pitch>
+    <app-tactical-pitch
+      [match]="match"
+      [showUploadButton]="isAdmin"
+      (uploadPhotoClick)="matchPhoto.apriFilePicker()"
+    ></app-tactical-pitch>
   </div>
 }
 
@@ -188,4 +192,4 @@
 }
 
 <!-- FOTO DI GRUPPO DELLA PARTITA -->
-<app-match-photo></app-match-photo>
+<app-match-photo #matchPhoto></app-match-photo>

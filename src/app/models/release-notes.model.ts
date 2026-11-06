@@ -11,22 +11,34 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.12",
+    "version": "2.0.14",
     "date": "06/11/2026",
     "title": "Aggiornamento Rapido & Ottimizzazioni",
     "userChanges": [
       "Miglioramenti di stabilità, velocità e interfaccia grafica."
     ],
     "superUserChanges": [
-      "Ultimo commit: chore(release): bump v2.0.10 con sincronizzazione note e deploy prod/dev"
+      "Ultimo commit: feat: overhaul post-partita, campetto interattivo, pareggi, whatsapp moderno e bacheca commenti v2"
     ]
   },
   {
-    "version": "2.0.11",
+    "version": "2.0.13",
+    "date": "06/11/2026",
+    "title": "Aggiornamento Rapido & Ottimizzazioni",
+    "userChanges": [
+      "Miglioramenti di stabilità, velocità e interfaccia grafica."
+    ],
+    "superUserChanges": [
+      "Ultimo commit: feat: overhaul post-partita, campetto interattivo, pareggi, whatsapp moderno e bacheca commenti v2"
+    ]
+  },
+  {
+    "version": "2.0.12",
     "date": "06/11/2026",
     "title": "Overhaul Post-Partita: Campetto Interattivo, Terzo Tempo, Serie Pareggi & WhatsApp Moderno",
     "userChanges": [
       "🗺️ Campetto Tattico con Eventi: la piantina mostra ora gol (⚽), assist (👟), voti pagella e corona MVP (👑) direttamente sui segnalini dei calciatori in campo, con popup interattivo dei dettagli al tocco.",
+      "📸 Risoluzione Doppio Campetto: eliminata la piantina duplicata in Resoconto; il campetto tattico è ora unico in cima, mentre la foto ufficiale ha il suo spazio dedicato in fondo con caricamento rapido.",
       "🤝 Tracciamento Serie di Pareggi: introdotta la 'Pareggite' per tracciare i pareggi consecutivi e il record storico nelle schede giocatore, nella classifica e nel confronto testa a testa.",
       "💬 Bacheca Terzo Tempo: nuova sezione post-partita per sfottò e commenti dei giocatori (attiva in anteprima con login in DEV, in arrivo per tutti con la v2.0 Community).",
       "📲 Condivisione WhatsApp Moderna: messaggio di riepilogo elegante senza emoji ridondanti, con deep link per aprire direttamente la partita e le pagelle sull'app."
@@ -35,6 +47,17 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
       "🎙️ AI Unificata a 2 Paragrafi: eliminato il vecchio pronostico postumo a partita finita e snellita la telecronaca post-partita a 2 brevi paragrafi cinici e divertenti, evitando doppi testi.",
       "🏗️ Restyling Gerarchia Tab: riorganizzate le tab del post-partita (Resoconto con campetto in cima, Pagelle, Terzo Tempo con commenti e note, Portieri, Stats & MMR).",
       "🔒 Feature Flag Terzo Tempo su PROD: sottocollezione Firebase dei commenti gated e protetta in produzione dietro lo switch unificato v2Features."
+    ]
+  },
+  {
+    "version": "2.0.11",
+    "date": "06/11/2026",
+    "title": "Overhaul Post-Partita (Anteprima DEV)",
+    "userChanges": [
+      "Miglioramenti alla visualizzazione del post-partita e campetto interattivo."
+    ],
+    "superUserChanges": [
+      "Preparazione architettura per commenti e nuovo tactical pitch."
     ]
   },
   {

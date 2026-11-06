@@ -6,7 +6,6 @@ import {
   inject,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -34,12 +33,10 @@ import {
   imageOutline,
   cloudUploadOutline,
   sparkles,
-  footballOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../partita-detail/match-state.service';
 import { AuthService } from '../../../services/auth.service';
 import { FotoViewerModalComponent } from '../foto-viewer-modal/foto-viewer-modal.component';
-import { TacticalPitchComponent } from '../tactical-pitch/tactical-pitch.component';
 import { compressImage } from '../../../utils/image-utils';
 
 @Component({
@@ -48,7 +45,7 @@ import { compressImage } from '../../../utils/image-utils';
   styleUrls: ['./match-photo.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonIcon, TacticalPitchComponent],
+  imports: [CommonModule, IonIcon],
 })
 export class MatchPhotoComponent {
   public state = inject(MatchStateService);
@@ -64,7 +61,6 @@ export class MatchPhotoComponent {
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   isUploading = false;
-  vistaSelezionata = signal<'foto' | 'pitch'>('foto');
 
   constructor() {
     addIcons({
@@ -75,7 +71,6 @@ export class MatchPhotoComponent {
       imageOutline,
       cloudUploadOutline,
       sparkles,
-      footballOutline,
     });
   }
 
