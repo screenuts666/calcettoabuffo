@@ -1,13 +1,13 @@
 <div class="header-actions-group">
-  <!-- PILL RIASSUNTO UTENTE LOGGATO / BOTTONE ACCEDI (SOLO IN DEV CON SWITCH ACCESO, NASCOSTA SEMPRE IN PROD) -->
-  @if (authService.showAccountUi() && authService.isAccountEnabled()) {
+  <!-- PILL UTENTE LOGGATO / ACCEDI (SOLO IN DEV CON SWITCH ATTIVO, MAI IN PROD) -->
+  @if (isDevEnvironment && authService.showAccountUi() && authService.isAccountEnabled()) {
     @if (authService.isLoggedIn()) {
       <button
         type="button"
         class="user-header-pill"
         [attr.data-role]="authService.role()"
         (click)="onUserHeaderClick()"
-        [title]="authService.displayName() + ' (' + authService.roleMeta().badgeText + ') - Tocca per menu rapido'"
+        [title]="authService.displayName() + ' (' + authService.roleMeta().badgeText + ') - Menu'"
       >
         <div class="uhp-avatar">
           <app-player-avatar
@@ -35,17 +35,18 @@
     }
   }
 
-  <!-- BOTTONE IMPOSTAZIONI AUDIO, TEMA & VERSIONE -->
-  <ion-button
+  <!-- BOTTONE IMPOSTAZIONI & VERSIONE (DESIGN PULITO, ZERO BORDO PESANTE) -->
+  <button
+    type="button"
+    class="header-settings-btn"
     (click)="openThemeMenu()"
-    class="theme-toggle-btn"
-    [title]="(authService.isSuperUser() ? 'Impostazioni, Suoni Cambio Portiere & Tema' : 'Impostazioni & Tema') + ' (v' + appUpdate.version + (isDevEnvironment ? ' [DEV MODE]' : '') + ')'"
-    aria-label="Impostazioni e Tema"
+    [title]="(authService.isSuperUser() ? 'Impostazioni & Gestione Mister' : 'Impostazioni') + ' (v' + appUpdate.version + (isDevEnvironment ? ' [DEV]' : '') + ')'"
+    aria-label="Impostazioni"
   >
     @if (isDevEnvironment) {
       <span class="dev-mode-mini-pill">DEV</span>
     }
     <span class="version-mini-pill">v{{ appUpdate.version }}</span>
     <ion-icon name="settings-outline" class="gear-mini-icon"></ion-icon>
-  </ion-button>
+  </button>
 </div>

@@ -29,16 +29,16 @@
         <div class="irp-share-actions">
           <button
             type="button"
-            class="btn-share-invite"
+            class="btn-share-whatsapp"
             [disabled]="isPreparingInvite()"
             (click)="condividiLinkInvito()"
-            title="Condividi link invito partita su WhatsApp"
+            title="Invita su WhatsApp"
           >
             @if (isPreparingInvite()) {
               <ion-spinner name="dots"></ion-spinner>
             } @else {
-              <ion-icon name="share-social-outline"></ion-icon>
-              <span>Condividi Link Invito</span>
+              <ion-icon name="logo-whatsapp"></ion-icon>
+              <span>Invita su WhatsApp</span>
             }
           </button>
           <button
@@ -46,34 +46,32 @@
             class="btn-copy-invite"
             [disabled]="isPreparingInvite()"
             (click)="copiaLinkInvito()"
-            title="Copia link invito negli appunti"
+            title="Copia link negli appunti"
           >
             <ion-icon name="copy-outline"></ion-icon>
           </button>
+
+          <!-- INVIO CONVOCAZIONI GMAIL (ATTIVO DI DEFAULT IN DEV, SWITCHABILE NELLE IMPOSTAZIONI, MAI IN PROD) -->
+          @if (isDev && gmail.showUiToggle() && gmail.isFeatureEnabled()) {
+            <button
+              type="button"
+              class="btn-share-gmail"
+              [disabled]="isPreparingInvite()"
+              (click)="inviaInvitoGmail()"
+              title="Invia convocazione via Gmail"
+            >
+              <ion-icon name="mail-outline"></ion-icon>
+              <span>Gmail</span>
+            </button>
+          }
         </div>
       </div>
 
-      <!-- INVIO CONVOCAZIONI GMAIL (ATTIVO DI DEFAULT IN DEV, SWITCHABILE NELLE IMPOSTAZIONI, NASCOSTO SEMPRE IN PROD) -->
-      @if (gmail.showUiToggle() && gmail.isFeatureEnabled()) {
-        <div class="gmail-action-bar">
-          <button
-            type="button"
-            class="btn-gmail-compose"
-            [disabled]="isPreparingInvite()"
-            (click)="inviaInvitoGmail()"
-            title="Componi e invia l'email di convocazione tramite Gmail (gestibile da Impostazioni DEV)"
-          >
-            <ion-icon name="mail-outline"></ion-icon>
-            <span>Invia Email Convocati (Gmail)</span>
-          </button>
-        </div>
-      }
-
-      <!-- SCELTA RSVP MODIFICABILE (3 STATI: Partecipo / Forse / Non partecipo) -->
+      <!-- SCELTA RSVP MODIFICABILE -->
       @if (auth.hasLinkedPlayer()) {
         <div class="irp-rsvp-box">
           <div class="irp-rsvp-prompt">
-            <span>La tua risposta (modificabile finché le convocazioni sono aperte):</span>
+            <span>La tua risposta:</span>
             @if (myRsvpStatus(); as mySt) {
               <span class="my-current-status" [attr.data-status]="mySt">
                 @if (mySt === 'yes') {
@@ -96,7 +94,6 @@
               (click)="impostaMioRsvp('yes')"
             >
               <span>✅ Partecipo</span>
-              <small>Presente</small>
             </button>
 
             <button
@@ -107,7 +104,6 @@
               (click)="impostaMioRsvp('maybe')"
             >
               <span>🤔 Forse</span>
-              <small>In dubbio</small>
             </button>
 
             <button
@@ -117,8 +113,7 @@
               [disabled]="isSavingRsvp()"
               (click)="impostaMioRsvp('no')"
             >
-              <span>❌ Non partecipo</span>
-              <small>Assente</small>
+              <span>❌ Assente</span>
             </button>
           </div>
         </div>
@@ -131,8 +126,8 @@
           <span>
             {{
               auth.isLoggedIn()
-                ? '🙋‍♂️ Associa o Crea la tua Scheda Giocatore per rispondere all\'invito'
-                : '🔐 Accedi o Registrati per rispondere all\'invito (Partecipo / Forse / Non partecipo)'
+                ? 'Associa la tua scheda giocatore per rispondere'
+                : 'Accedi per rispondere all\'invito'
             }}
           </span>
         </button>
@@ -212,10 +207,10 @@
             @if (g.selfRegistered) {
               <span
                 class="rsvp-inline-badge self-confirmed"
-                title="Confermato dal giocatore (Auto-inserito tramite link invito)"
+                title="Confermato tramite link invito"
               >
                 <ion-icon name="checkmark-done-circle"></ion-icon>
-                <span>Confermato dal giocatore</span>
+                <span>Confermato</span>
               </span>
             } @else if (g.rsvpStatus === 'maybe') {
               <span

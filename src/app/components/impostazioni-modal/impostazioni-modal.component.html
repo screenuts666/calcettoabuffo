@@ -6,31 +6,27 @@
       </div>
       <div class="mtb-title-text">
         <span class="mtb-title">Impostazioni</span>
-        <span class="mtb-subtitle">{{ authService.isSuperUser() ? 'Suoni, Partite & App' : 'Tema & Informazioni App' }}</span>
       </div>
       @if (authService.isSuperUser()) {
         <span class="su-pill">👑 Mister</span>
+        <span
+          class="cloud-status-icon"
+          [class.saving]="soundSettings.isSavingCloud()"
+          [title]="soundSettings.isSavingCloud() ? 'Salvataggio in corso...' : (soundSettings.lastSavedAt() ? 'Sincronizzato: ' + soundSettings.lastSavedAt() : 'Sincronizzato')"
+        >
+          <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
+        </span>
       }
     </div>
 
     <div class="mtb-actions">
-      <!-- Tasto rapido cambio tema 1-tap nel header -->
-      <button
-        type="button"
-        class="mtb-theme-btn"
-        (click)="cycleTheme()"
-        [title]="'Tema: ' + themeService.mode() + ' (tocca per alternare)'"
-        aria-label="Cambia tema rapido"
-      >
-        <span class="theme-emoji">{{ themeService.mode() === 'dark' ? '🌙' : themeService.mode() === 'light' ? '☀️' : '⚙️' }}</span>
-      </button>
-
       <!-- Bottone Chiudi X -->
       <button
         type="button"
         class="mtb-close-btn"
         (click)="chiudi()"
         aria-label="Chiudi"
+        title="Chiudi"
       >
         <ion-icon name="close-outline"></ion-icon>
       </button>
@@ -38,23 +34,7 @@
   </div>
 
   @if (authService.isSuperUser()) {
-    <!-- BANNER STATO SINCRONIZZAZIONE CLOUD (SOLO SUPER USER) -->
-    <div class="cloud-sync-banner" [class.saving]="soundSettings.isSavingCloud()">
-      <div class="csb-content">
-        <ion-icon [name]="soundSettings.isSavingCloud() ? 'sync-outline' : 'cloud-done-outline'" [class.spin]="soundSettings.isSavingCloud()"></ion-icon>
-        <span>
-          @if (soundSettings.isSavingCloud()) {
-            Salvataggio impostazioni sul cloud in corso...
-          } @else if (soundSettings.lastSavedAt()) {
-            Sincronizzato sul cloud alle {{ soundSettings.lastSavedAt() }}
-          } @else {
-            Sincronizzazione cloud attiva (Firebase)
-          }
-        </span>
-      </div>
-    </div>
-
-    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE (SOLO SUPER USER) -->
+    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
     <div class="settings-tabs-bar">
       <button
         type="button"
@@ -97,46 +77,31 @@
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     @if (authService.isSuperUser() && activeTab() === 'portiere') {
 
-      <!-- HERO CARD: SEGNALE ATTUALMENTE SELEZIONATO -->
+      <!-- RIGA AUDIO CAMBIO SELEZIONATO (COMPATTA & PULITA) -->
       <div
-        class="active-sound-hero"
+        class="active-sound-row"
         [class.is-playing]="soundSettings.previewingSoundId() === activePreset.id"
       >
-        <div class="ash-top">
-          <div class="ash-badge-row">
-            <span class="ash-status-pill">🧤 SEGNALE UFFICIALE ATTIVO</span>
-            <span class="ash-intensity-tag">
-              🔊 {{ activePreset.intensity }}
-            </span>
-          </div>
-          <div class="ash-main">
-            <span class="ash-emoji">{{ activePreset.emoji }}</span>
-            <div class="ash-info">
-              <h3>{{ activePreset.name }}</h3>
-              <p>{{ activePreset.description }}</p>
-            </div>
+        <div class="asr-left">
+          <span class="asr-emoji">{{ activePreset.emoji }}</span>
+          <div class="asr-info">
+            <span class="asr-label">Audio Cambio</span>
+            <strong class="asr-name">{{ activePreset.name }}</strong>
           </div>
         </div>
 
-        <div class="ash-actions">
-          <button
-            type="button"
-            class="ash-test-btn"
-            [class.playing]="soundSettings.previewingSoundId() === activePreset.id"
-            (click)="toggleAnteprimaSuono(activePreset.id)"
-          >
-            <ion-icon
-              [name]="soundSettings.previewingSoundId() === activePreset.id ? 'stop' : 'play'"
-            ></ion-icon>
-            <span>
-              {{
-                soundSettings.previewingSoundId() === activePreset.id
-                  ? 'FERMA ANTEPRIMA'
-                  : 'ASCOLTA ORA A PIENO VOLUME'
-              }}
-            </span>
-          </button>
-        </div>
+        <button
+          type="button"
+          class="asr-test-btn"
+          [class.playing]="soundSettings.previewingSoundId() === activePreset.id"
+          (click)="toggleAnteprimaSuono(activePreset.id)"
+          title="Ascolta anteprima audio"
+        >
+          <ion-icon
+            [name]="soundSettings.previewingSoundId() === activePreset.id ? 'stop' : 'play'"
+          ></ion-icon>
+          <span>{{ soundSettings.previewingSoundId() === activePreset.id ? 'Stop' : 'Testa' }}</span>
+        </button>
       </div>
 
       <!-- OPZIONI CAMBIO PORTIERE & TURNI -->
@@ -145,7 +110,6 @@
           <span class="ssc-icon">📢</span>
           <div>
             <h4>Opzioni Avviso & Turni</h4>
-            <p>Configura speaker vocale, vibrazione e durata turnover</p>
           </div>
         </div>
 
@@ -159,10 +123,7 @@
             <div class="tr-left">
               <span class="tr-emoji">🗣️</span>
               <div class="tr-text">
-                <strong>Speaker Vocale Nomi Portieri</strong>
-                <small>
-                  Annuncia "Cambio Portiere!" chiamando per nome chi entra in porta per Bianchi e Neri
-                </small>
+                <strong>Annuncio vocale portieri</strong>
               </div>
             </div>
             <button
@@ -184,8 +145,7 @@
             <div class="tr-left">
               <span class="tr-emoji">📳</span>
               <div class="tr-text">
-                <strong>Vibrazione Emergenza Ripetuta</strong>
-                <small>Fa vibrare il telefono a impulsi finché non viene confermato il cambio</small>
+                <strong>Vibrazione continua al cambio</strong>
               </div>
             </div>
             <button
@@ -202,7 +162,7 @@
         <!-- Selettore Durata Turno in Porta -->
         <div class="turn-duration-box">
           <div class="tdb-top">
-            <span>⏱️ <strong>Durata Turno Portieri a Rotazione:</strong></span>
+            <span>⏱️ <strong>Durata turno:</strong></span>
             <span class="tdb-val">{{ cfg.gkTurnMinutes }} min</span>
           </div>
           <div class="tdb-chips">
@@ -223,8 +183,7 @@
 
       <!-- CATALOGO SEGNALI CAMBIO PORTIERE -->
       <div class="sounds-catalog-header">
-        <h4>🔊 Scegli il Segnale di Cambio</h4>
-        <p>Tocca una scheda per renderlo il segnale ufficiale o premi <strong>PROVA</strong> per ascoltarlo</p>
+        <h4>Segnali Cambio Portiere</h4>
       </div>
 
       <div class="sounds-grid">
@@ -284,15 +243,6 @@
     <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO (ESCLUSIVO SUPER USER)   -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     @if (authService.isSuperUser() && activeTab() === 'match') {
-      <!-- INTRO HERO EFFETTI PARTITA -->
-      <div class="match-hero-card">
-        <div class="mhc-icon-ring">⚽</div>
-        <div class="mhc-content">
-          <h3>Effetti Stadio & Arbitro Live</h3>
-          <p>Suoni realistici ad alta intensità per far vivere l'atmosfera della Champions direttamente al campetto.</p>
-        </div>
-      </div>
-
       <!-- CARD 1: FISCHIETTO ARBITRO (CALCIO D'INIZIO & FINE PARTITA) -->
       <div class="effect-card" [class.enabled]="cfg.matchWhistleEffects">
         <div class="ec-header" (click)="toggleMatchWhistleEffects()">
@@ -304,7 +254,6 @@
                 {{ cfg.matchWhistleEffects ? 'ATTIVO' : 'DISATTIVATO' }}
               </span>
             </div>
-            <p>Fischio squillante all'avvio del cronometro e triplice fischio finale alla conclusione.</p>
           </div>
           <button
             type="button"
@@ -317,7 +266,6 @@
         </div>
 
         <div class="ec-actions-row">
-          <span class="ec-test-label">Ascolta anteprime:</span>
           <div class="ec-buttons-grid">
             <button
               type="button"
@@ -326,7 +274,7 @@
               (click)="testaEffetto('whistle_kickoff')"
             >
               <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_kickoff' ? 'stop' : 'play'"></ion-icon>
-              <span>Fischio Inizio (Singolo)</span>
+              <span>Fischio Inizio</span>
             </button>
             <button
               type="button"
@@ -335,24 +283,23 @@
               (click)="testaEffetto('whistle_final')"
             >
               <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_final' ? 'stop' : 'play'"></ion-icon>
-              <span>Triplice Fischio Finale</span>
+              <span>Triplice Fischio</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- CARD 2: CELEBRAZIONE GOL (TROMBA DA CURVA) -->
+      <!-- CARD 2: CELEBRAZIONE GOL -->
       <div class="effect-card" [class.enabled]="cfg.goalSoundEffects">
         <div class="ec-header" (click)="toggleGoalSoundEffects()">
           <div class="ec-icon-box goal">🎺</div>
           <div class="ec-info">
             <div class="ec-title-row">
-              <h4>Celebrazione Gol (Tromba da Curva)</h4>
+              <h4>Celebrazione Gol</h4>
               <span class="ec-badge" [class.on]="cfg.goalSoundEffects">
                 {{ cfg.goalSoundEffects ? 'ATTIVO' : 'DISATTIVATO' }}
               </span>
             </div>
-            <p>Fanfara festosa d'ottoni multi-tono in stile stadio quando viene registrato un gol valido.</p>
           </div>
           <button
             type="button"
@@ -365,7 +312,6 @@
         </div>
 
         <div class="ec-actions-row">
-          <span class="ec-test-label">Ascolta anteprima:</span>
           <button
             type="button"
             class="ec-btn highlight"
@@ -373,23 +319,22 @@
             (click)="testaEffetto('goal_celebration')"
           >
             <ion-icon [name]="soundSettings.previewingEffectId() === 'goal_celebration' ? 'stop' : 'play'"></ion-icon>
-            <span>Suona Fanfara Gol (PA-PA-PAAAA!)</span>
+            <span>Fanfara Gol</span>
           </button>
         </div>
       </div>
 
-      <!-- CARD 3: TROMBONE AUTOGOL (GAFFE COMICA) -->
+      <!-- CARD 3: TROMBONE AUTOGOL -->
       <div class="effect-card" [class.enabled]="cfg.autogoalSoundEffects">
         <div class="ec-header" (click)="toggleAutogoalSoundEffects()">
           <div class="ec-icon-box autogoal">🎷</div>
           <div class="ec-info">
             <div class="ec-title-row">
-              <h4>Gaffe Autogol (Trombone Comico)</h4>
+              <h4>Gaffe Autogol</h4>
               <span class="ec-badge" [class.on]="cfg.autogoalSoundEffects">
                 {{ cfg.autogoalSoundEffects ? 'ATTIVO' : 'DISATTIVATO' }}
               </span>
             </div>
-            <p>Glissando discendente comico stile "Wah-wah-waaah" per strappare un sorriso dopo un autogol.</p>
           </div>
           <button
             type="button"
@@ -402,7 +347,6 @@
         </div>
 
         <div class="ec-actions-row">
-          <span class="ec-test-label">Ascolta anteprima:</span>
           <button
             type="button"
             class="ec-btn warning"
@@ -410,70 +354,65 @@
             (click)="testaEffetto('sad_trombone')"
           >
             <ion-icon [name]="soundSettings.previewingEffectId() === 'sad_trombone' ? 'stop' : 'play'"></ion-icon>
-            <span>Suona Trombone Autogol (Wah-Wah-Waaah)</span>
+            <span>Trombone Autogol</span>
           </button>
         </div>
       </div>
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 3: TEMA, VERSIONE APP & CONTROLLI SUPER USER                    -->
+    <!-- TAB 3: TEMA, VERSIONE APP & GESTIONE MISTER                         -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     @if (!authService.isSuperUser() || activeTab() === 'sistema') {
-      <!-- SEZIONE TEMA VISUALE -->
+      <!-- SEZIONE TEMA VISUALE (COMPATTA) -->
       <div class="settings-section-card">
         <div class="ssc-header">
           <span class="ssc-icon">🎨</span>
           <div>
-            <h4>Aspetto & Tema Applicazione</h4>
-            <p>Scegli la palette colori preferita per il tuo dispositivo</p>
+            <h4>Aspetto & Tema</h4>
           </div>
         </div>
 
-        <div class="theme-cards-grid">
+        <div class="theme-compact-selector">
           <button
             type="button"
-            class="theme-option-card"
+            class="theme-segment-btn"
             [class.active]="themeService.mode() === 'light'"
             (click)="setTheme('light')"
           >
-            <span class="toc-icon">☀️</span>
-            <strong>Chiaro</strong>
-            <small>Alta leggibilità al sole</small>
+            <span class="ts-icon">☀️</span>
+            <span>Chiaro</span>
           </button>
 
           <button
             type="button"
-            class="theme-option-card"
+            class="theme-segment-btn"
             [class.active]="themeService.mode() === 'dark'"
             (click)="setTheme('dark')"
           >
-            <span class="toc-icon">🌙</span>
-            <strong>Scuro</strong>
-            <small>Stile Champions League</small>
+            <span class="ts-icon">🌙</span>
+            <span>Scuro</span>
           </button>
 
           <button
             type="button"
-            class="theme-option-card"
+            class="theme-segment-btn"
             [class.active]="themeService.mode() === 'auto'"
             (click)="setTheme('auto')"
           >
-            <span class="toc-icon">⚙️</span>
-            <strong>Automatico</strong>
-            <small>Segue le impostazioni di sistema</small>
+            <span class="ts-icon">⚙️</span>
+            <span>Auto</span>
           </button>
         </div>
       </div>
 
-      <!-- SEZIONE PANNELLO SUPER USER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
+      <!-- SEZIONE GESTIONE MISTER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
       @if (authService.isSuperUser()) {
         <div class="settings-section-card su-card">
           <div class="ssc-header">
             <span class="ssc-icon">👑</span>
             <div>
-              <h4>Pannello di Controllo Super User</h4>
-              <p>Sessione Mister attiva · Accesso completo a suoni, match e Area Segreta</p>
+              <h4>Gestione Mister</h4>
             </div>
           </div>
 
@@ -485,8 +424,7 @@
             >
               <ion-icon name="shield-checkmark"></ion-icon>
               <div class="sab-text">
-                <strong>🔬 Apri Area Segreta (Motore MMR & Raggi X)</strong>
-                <small>Formule ELO, parametri stagionali Firebase e simulatore</small>
+                <strong>🔬 Area Segreta (Motore MMR)</strong>
               </div>
             </button>
 
@@ -497,8 +435,7 @@
             >
               <ion-icon name="refresh-outline"></ion-icon>
               <div class="sab-text">
-                <strong>🔄 Ripristina Impostazioni Audio Predefinite</strong>
-                <small>Riporta tutti i suoni e i turni portiere ai valori di fabbrica</small>
+                <strong>🔄 Ripristina audio predefinito</strong>
               </div>
             </button>
 
@@ -509,20 +446,18 @@
             >
               <ion-icon name="log-out-outline"></ion-icon>
               <div class="sab-text">
-                <strong>🚪 Esci dalla modalità Super User (Logout)</strong>
-                <small>Torna alla visualizzazione standard giocatore</small>
+                <strong>🚪 Esci da Super User</strong>
               </div>
             </button>
           </div>
         </div>
       } @else {
-        <!-- ACCESSO SUPER USER DIRETTO DALLE IMPOSTAZIONI (QUANDO L'HEADER È SENZA ACCEDI) -->
+        <!-- ACCESSO MISTER DIRETTO -->
         <div class="settings-section-card">
           <div class="ssc-header">
             <span class="ssc-icon">👑</span>
             <div>
-              <h4>Accesso Riservato Super User</h4>
-              <p>Area Mister per sbloccare la gestione live delle gare e l'Area Segreta</p>
+              <h4>Accesso Riservato</h4>
             </div>
           </div>
           <div class="system-actions-list">
@@ -533,77 +468,43 @@
             >
               <ion-icon name="lock-closed-outline"></ion-icon>
               <div class="sab-text">
-                <strong>👑 Accedi come Mister (Super User)</strong>
-                <small>Inserisci credenziali per abilitare tutti i controlli di gara</small>
+                <strong>👑 Accedi come Mister</strong>
               </div>
             </button>
           </div>
         </div>
       }
 
-      <!-- SEZIONE DEV: FUNZIONI SPERIMENTALI, ACCOUNT & GMAIL (SOLO IN DEV, NASCOSTA SEMPRE IN PROD) -->
-      @if (isDevEnvironment && (authService.showAccountUi() || gmail.showUiToggle())) {
+      <!-- SEZIONE DEV: FUNZIONI v2.0 (SOLO IN DEV, MAI NEL DOM DI PROD) -->
+      @if (isDevEnvironment && v2Features.showUiToggle()) {
         <div class="settings-section-card">
           <div class="ssc-header">
             <span class="ssc-icon">🛠️</span>
             <div>
-              <h4>Funzioni DEV & Test v2.0</h4>
-              <p>Switch di collaudo per l'ambiente di sviluppo</p>
+              <h4>Funzioni DEV v2.0</h4>
             </div>
           </div>
 
           <div class="toggles-list">
-            <!-- SWITCH ACCOUNT NELL'HEADER -->
-            @if (authService.showAccountUi()) {
-              <div
-                class="toggle-row"
-                [class.active]="authService.isAccountEnabled()"
-                (click)="toggleAccountSetting()"
-              >
-                <div class="tr-left">
-                  <span class="tr-emoji">👤</span>
-                  <div class="tr-text">
-                    <strong>Pulsante Account nell'Header (v2.0)</strong>
-                    <small>
-                      Mostra la pill Accedi / Profilo utente nell'intestazione (Default: ON in DEV)
-                    </small>
-                  </div>
+            <div
+              class="toggle-row"
+              [class.active]="v2Features.isEnabled()"
+              (click)="toggleV2Features()"
+            >
+              <div class="tr-left">
+                <span class="tr-emoji">✨</span>
+                <div class="tr-text">
+                  <strong>Funzioni v2.0 (Account & Gmail)</strong>
                 </div>
-                <button
-                  type="button"
-                  class="pill-switch"
-                  [class.on]="authService.isAccountEnabled()"
-                >
-                  <span class="knob"></span>
-                </button>
               </div>
-            }
-
-            <!-- SWITCH GMAIL -->
-            @if (gmail.showUiToggle()) {
-              <div
-                class="toggle-row"
-                [class.active]="gmail.isFeatureEnabled()"
-                (click)="toggleGmailSetting()"
+              <button
+                type="button"
+                class="pill-switch"
+                [class.on]="v2Features.isEnabled()"
               >
-                <div class="tr-left">
-                  <span class="tr-emoji">✉️</span>
-                  <div class="tr-text">
-                    <strong>Integrazione Convocazioni Gmail</strong>
-                    <small>
-                      Mostra il pulsante di invio/composizione email nello step Convocati
-                    </small>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  class="pill-switch"
-                  [class.on]="gmail.isFeatureEnabled()"
-                >
-                  <span class="knob"></span>
-                </button>
-              </div>
-            }
+                <span class="knob"></span>
+              </button>
+            </div>
           </div>
         </div>
       }
@@ -616,10 +517,9 @@
             <h4>
               Versione App v{{ appUpdate.version }}
               @if (isDevEnvironment) {
-                <span class="dev-pill">DEV MODE</span>
+                <span class="dev-pill">DEV</span>
               }
             </h4>
-            <p>Build: {{ appUpdate.buildDate }}</p>
           </div>
         </div>
 
@@ -631,8 +531,7 @@
           >
             <ion-icon name="sparkles-outline"></ion-icon>
             <div class="sab-text">
-              <strong>✨ Note di Rilascio & Novità (v{{ appUpdate.version }})</strong>
-              <small>Scopri tutte le ultime funzioni aggiunte all'app</small>
+              <strong>✨ Note di Rilascio</strong>
             </div>
           </button>
 
@@ -643,8 +542,7 @@
           >
             <ion-icon name="refresh-outline"></ion-icon>
             <div class="sab-text">
-              <strong>🔄 Forza Aggiornamento & Svuota Cache</strong>
-              <small>Verifica nuove versioni e ricarica i file più recenti</small>
+              <strong>🔄 Aggiorna e svuota cache</strong>
             </div>
           </button>
         </div>

@@ -6,8 +6,8 @@
       <div class="cta-left">
         <span class="cta-emoji">⚡</span>
         <div class="cta-text">
-          <span class="cta-title">⚖️ Bilancia Squadre (AI / MMR + Chimica)</span>
-          <span class="cta-sub">75% MMR + 25% Chimica & Sinergie · Analisi Tattica</span>
+          <span class="cta-title">⚖️ Bilancia Squadre</span>
+          <span class="cta-sub">Algoritmo MMR e chimica di squadra</span>
         </div>
       </div>
       <div class="cta-right">
@@ -330,7 +330,7 @@
         </div>
       } @else {
         <div class="ai-empty-prompt">
-          <p>Scopri cosa ne pensa il Mister prima di scendere in campo!</p>
+          <p>Pronostico e analisi tattica pre-partita</p>
           <button
             type="button"
             class="ai-generate-main-btn"
@@ -339,10 +339,10 @@
           >
             @if (isGeneratingPronostico()) {
               <ion-spinner name="crescent"></ion-spinner>
-              <span>Il Mister sta studiando le formazioni...</span>
+              <span>Elaborazione formazioni in corso...</span>
             } @else {
               <ion-icon name="sparkles"></ion-icon>
-              <span>🔮 Chiedi il Pronostico al Mister</span>
+              <span>🔮 Pronostico del Mister</span>
             }
           </button>
         </div>

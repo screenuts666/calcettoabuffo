@@ -1,4 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
+import { V2FeaturesService } from './v2-features.service';
 import {
   ActivatedRouteSnapshot,
   CanActivateFn,
@@ -59,45 +60,17 @@ export class AuthService {
   readonly userProfile = signal<AppUserProfile | null>(null);
   readonly authInitialized = signal<boolean>(false);
 
-  // ─── FEATURE FLAG VISIBILITÀ ACCOUNT NELL'HEADER (v2.0) ───────────────────
-  private readonly userAccountConfig = (environment as any).features?.userAccount || {
-    enabled: false,
-    showUiToggle: false,
-  };
+  // ─── FEATURE FLAG UNIFICATA v2.0 (ACCOUNT + GMAIL) ─────────────────────────
+  private readonly v2Features = inject(V2FeaturesService);
 
-  /** In PROD showAccountUi è SEMPRE false, in DEV è true */
-  readonly showAccountUi = signal<boolean>(Boolean(this.userAccountConfig.showUiToggle));
+  /** In PROD showAccountUi è SEMPRE false, in DEV è true se showUiToggle è attivo */
+  readonly showAccountUi = computed<boolean>(() => this.v2Features.showUiToggle());
 
-  /** In PROD isAccountEnabled è SEMPRE false, in DEV default true ma switchabile da Impostazioni */
-  readonly isAccountEnabled = signal<boolean>(
-    this.initAccountEnabledState(Boolean(this.userAccountConfig.enabled))
-  );
-
-  private initAccountEnabledState(defaultVal: boolean): boolean {
-    if (!this.userAccountConfig.showUiToggle) {
-      return false; // In PROD sempre disabilitato al 100%
-    }
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('calcetto_user_account_header_enabled');
-        if (stored !== null) {
-          return stored === 'true';
-        }
-      } catch {}
-    }
-    return defaultVal;
-  }
+  /** In PROD isAccountEnabled è TASSATIVAMENTE false; in DEV segue lo switch unico v2.0 */
+  readonly isAccountEnabled = computed<boolean>(() => this.v2Features.isEnabled());
 
   toggleAccountFeature(forcedValue?: boolean): boolean {
-    if (!this.showAccountUi()) return false;
-    const nextVal = forcedValue !== undefined ? forcedValue : !this.isAccountEnabled();
-    this.isAccountEnabled.set(nextVal);
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem('calcetto_user_account_header_enabled', String(nextVal));
-      } catch {}
-    }
-    return nextVal;
+    return this.v2Features.toggle(forcedValue);
   }
 
   // ─── STATO REATTIVO RBAC A 3 RUOLI (Tifoso, Atleta, Mister) ──────────────

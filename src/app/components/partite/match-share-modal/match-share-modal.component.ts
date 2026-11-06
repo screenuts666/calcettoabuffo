@@ -64,6 +64,7 @@ import { StatsEngineService } from '../../../services/stats-engine.service';
 import { GeminiService } from '../../../services/gemini.service';
 import { TtsService } from '../../../services/tts.service';
 import { AuthService } from '../../../services/auth.service';
+import { environment } from 'src/environments/environment';
 import { GmailIntegrationService } from '../../../services/gmail-integration.service';
 
 @Component({
@@ -97,6 +98,7 @@ export class MatchShareModalComponent implements OnInit {
   public ttsService = inject(TtsService);
   public auth = inject(AuthService);
   public gmail = inject(GmailIntegrationService);
+  readonly isDev = !environment.production;
 
   get isSuperUser(): boolean {
     return this.auth.isSuperUser();

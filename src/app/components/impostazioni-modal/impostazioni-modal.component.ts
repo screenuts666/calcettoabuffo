@@ -53,6 +53,7 @@ import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
 import { GmailIntegrationService } from '../../services/gmail-integration.service';
+import { V2FeaturesService } from '../../services/v2-features.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
 
 export type SettingsTab = 'portiere' | 'match' | 'sistema';
@@ -76,6 +77,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   public authService = inject(AuthService);
   public soundSettings = inject(SoundSettingsService);
   public gmail = inject(GmailIntegrationService);
+  public v2Features = inject(V2FeaturesService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -295,18 +297,10 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     await this.mostraToast('Logout Super User effettuato', 'medium');
   }
 
-  toggleGmailSetting() {
-    const next = this.gmail.toggleFeature();
+  toggleV2Features() {
+    const next = this.v2Features.toggle();
     this.mostraToast(
-      next ? '📧 Integrazione Gmail: ATTIVATA (DEV)' : '📧 Integrazione Gmail: DISATTIVATA',
-      next ? 'success' : 'medium'
-    );
-  }
-
-  toggleAccountSetting() {
-    const next = this.authService.toggleAccountFeature();
-    this.mostraToast(
-      next ? '👤 Account nell\'Header: ATTIVATO (DEV)' : '👤 Account nell\'Header: DISATTIVATO',
+      next ? '✨ Funzioni v2.0 (Account & Gmail): ATTIVATE' : '✨ Funzioni v2.0: DISATTIVATE',
       next ? 'success' : 'medium'
     );
   }

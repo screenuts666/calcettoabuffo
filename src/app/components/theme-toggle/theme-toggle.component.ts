@@ -7,7 +7,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
-  IonButton,
   IonIcon,
   ModalController,
   ToastController,
@@ -49,7 +48,7 @@ import {
   styleUrls: ['./theme-toggle.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IonButton, IonIcon, PlayerAvatarComponent],
+  imports: [CommonModule, IonIcon, PlayerAvatarComponent],
 })
 export class ThemeToggleComponent {
   public themeService = inject(ThemeService);

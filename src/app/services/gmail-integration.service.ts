@@ -1,5 +1,6 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { environment } from 'src/environments/environment';
+import { V2FeaturesService } from './v2-features.service';
 
 export interface GmailInviteOptions {
   matchId: string;
@@ -36,57 +37,24 @@ export class GmailIntegrationService {
   /** Scope OAuth minimo indispensabile (Principio del Least Privilege) */
   readonly GMAIL_OAUTH_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
 
-  /** Configurazione della feature flag dall'environment corrente */
-  private readonly config = (environment as any).features?.gmailIntegration || {
-    enabled: false,
-    showUiToggle: false,
-  };
+  private readonly v2Features = inject(V2FeaturesService);
 
   /**
    * Flag di visibilità del toggle/pulsante nella UI (controllato dalla build: true in dev, false in prod).
    * Su prod questo valore è false e la direttiva `@if` non renderizza l'elemento nel DOM.
    */
-  readonly showUiToggle = signal<boolean>(Boolean(this.config.showUiToggle));
+  readonly showUiToggle = computed<boolean>(() => this.v2Features.showUiToggle());
 
   /**
-   * Stato attivo/disattivo dell'integrazione Gmail (default true in dev, default false in prod).
+   * Stato attivo/disattivo dell'integrazione unificata v2.0 (default true in dev, false in prod).
    */
-  readonly isFeatureEnabled = signal<boolean>(
-    this.initEnabledState(Boolean(this.config.enabled))
-  );
-
-  private initEnabledState(defaultVal: boolean): boolean {
-    // In produzione showUiToggle è false: la feature e la UI sono disabilitate e nascoste SEMPRE.
-    if (!this.config.showUiToggle) {
-      return false;
-    }
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('calcetto_gmail_integration_enabled');
-        if (stored !== null) {
-          return stored === 'true';
-        }
-      } catch {
-        // Fallback su default
-      }
-    }
-    return defaultVal;
-  }
+  readonly isFeatureEnabled = computed<boolean>(() => this.v2Features.isEnabled());
 
   /**
-   * Abilita o disabilita la funzionalità Gmail con persistenza locale.
+   * Abilita o disabilita le funzionalità v2.0 (Account + Gmail).
    */
   toggleFeature(forcedValue?: boolean): boolean {
-    const nextVal = forcedValue !== undefined ? forcedValue : !this.isFeatureEnabled();
-    this.isFeatureEnabled.set(nextVal);
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem('calcetto_gmail_integration_enabled', String(nextVal));
-      } catch {
-        // Storage non disponibile
-      }
-    }
-    return nextVal;
+    return this.v2Features.toggle(forcedValue);
   }
 
   /**

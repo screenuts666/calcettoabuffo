@@ -192,7 +192,7 @@
     </ion-button>
     }
 
-    @if (gmail.showUiToggle() && gmail.isFeatureEnabled()) {
+    @if (isDev && gmail.showUiToggle() && gmail.isFeatureEnabled()) {
       <ion-button expand="block" fill="solid" color="danger" class="gmail-action-btn"
         (click)="condividiViaGmail()">
         <ion-icon name="mail-outline" slot="start"></ion-icon>

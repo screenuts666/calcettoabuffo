@@ -11,6 +11,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.8",
+    "date": "06/11/2026",
+    "title": "Refactoring UI/UX Globale, Zero-Fluff Microcopy e Switch Unificato v2.0",
+    "userChanges": [
+      "✨ Interfaccia Pulita & Minimale: eliminati sottotitoli prolissi, banner ridondanti e badge decorativi superflui in tutte le schermate dell'app (Coordinate, Convocati, Formazioni, Live Match e Report).",
+      "🎨 Top Bar & Icone Armonizzate: rimosso il bordo disallineato sull'icona ingranaggio, pulsanti dell'header uniformati per dimensioni, padding e allineamento perfetto.",
+      "📲 Condivisione Intelligente: pulsanti di condivisione WhatsApp posizionati esclusivamente nel flusso contestuale corretto, eliminando i tasti duplicati o fluttuanti nell'header.",
+      "🧤 Gestione Audio & Suoni Snella: scheda del suono di cambio portiere compatta con pulsante di test sobrio, senza elementi ingombranti, e selettore tema compatto a 3 opzioni."
+    ],
+    "superUserChanges": [
+      "Switch Unificato Funzioni v2.0 (Account & Gmail): unificati i controlli DEV in un singolo toggle nelle Impostazioni che governa contemporaneamente pulsante header e integrazione email, completamente inibito e rimosso dal DOM in produzione.",
+      "Sincronizzazione Cloud Discreta: rimosso il banner testuale sul backend Firebase, sostituito da una piccola icona di stato non invasiva nella status bar.",
+      "Snellimento Etichette Tecniche: denominazioni sintetiche per l'annuncio vocale portieri, la vibrazione continua al cambio e la gestione Mister, mantenendo intatta tutta la logica di business e gli algoritmi."
+    ]
+  },
+  {
     "version": "2.0.7",
     "date": "06/11/2026",
     "title": "Esclusione Account Header su Prod, Feature Flag Switchabile in Dev & Hardening",

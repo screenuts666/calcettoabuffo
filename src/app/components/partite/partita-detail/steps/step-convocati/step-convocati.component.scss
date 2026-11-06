@@ -92,20 +92,22 @@
         display: flex;
         align-items: center;
         gap: 6px;
+        flex-wrap: wrap;
 
-        .btn-share-invite {
+        .btn-share-whatsapp {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 8px 12px;
+          height: 34px;
+          padding: 0 12px;
           border-radius: 10px;
           border: none;
-          background: linear-gradient(135deg, #10b981, #059669);
-          color: #04130b;
+          background: linear-gradient(135deg, #25d366, #128c7e);
+          color: #ffffff;
           font-size: 0.76rem;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+          box-shadow: 0 3px 10px rgba(37, 211, 102, 0.3);
           transition: transform 0.15s ease;
 
           &:active {
@@ -113,13 +115,13 @@
           }
 
           ion-icon {
-            font-size: 1rem;
+            font-size: 1.05rem;
           }
 
           ion-spinner {
             width: 16px;
             height: 16px;
-            --color: #04130b;
+            --color: #ffffff;
           }
         }
 
@@ -130,47 +132,40 @@
           width: 34px;
           height: 34px;
           border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.18);
-          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid var(--app-card-border);
+          background: var(--app-surface-subtle);
           color: var(--app-text-primary);
           cursor: pointer;
+          transition: all 0.15s ease;
 
           &:active {
             transform: scale(0.94);
           }
         }
-      }
-    }
 
-    .gmail-action-bar {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px dashed rgba(234, 67, 53, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
+        .btn-share-gmail {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          height: 34px;
+          padding: 0 10px;
+          border-radius: 10px;
+          border: none;
+          background: linear-gradient(135deg, #ea4335, #c5221f);
+          color: #ffffff;
+          font-size: 0.74rem;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 3px 10px rgba(234, 67, 53, 0.3);
+          transition: transform 0.15s ease;
 
-      .btn-gmail-compose {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 12px;
-        border-radius: 10px;
-        border: none;
-        background: linear-gradient(135deg, #ea4335, #c5221f);
-        color: #ffffff;
-        font-size: 0.74rem;
-        font-weight: 800;
-        cursor: pointer;
-        box-shadow: 0 3px 10px rgba(234, 67, 53, 0.35);
-        transition: transform 0.15s ease;
+          &:active {
+            transform: scale(0.96);
+          }
 
-        &:active {
-          transform: scale(0.96);
-        }
-
-        ion-icon {
-          font-size: 0.95rem;
+          ion-icon {
+            font-size: 0.95rem;
+          }
         }
       }
     }
