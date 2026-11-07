@@ -1,6 +1,15 @@
 <ion-header class="ion-no-border settings-header">
   <div class="modal-top-bar">
     <div class="mtb-title-group">
+      <button
+        type="button"
+        class="mtb-back-arrow-btn"
+        (click)="chiudi()"
+        title="Torna indietro"
+        aria-label="Torna indietro"
+      >
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
       <div class="gear-badge">
         <ion-icon name="settings-outline"></ion-icon>
       </div>
@@ -82,7 +91,7 @@
   }
 </ion-header>
 
-<ion-content class="settings-content">
+<ion-content class="settings-content" [scrollY]="true">
   <div class="settings-container">
     @let cfg = soundSettings.config();
     @let activePreset = soundSettings.selectedGkPreset();
@@ -96,7 +105,7 @@
         <div class="ssc-header">
           <span class="ssc-icon">✉️</span>
           <div>
-            <h4>Autorizza via Email</h4>
+            <h4>Autorizza Email</h4>
           </div>
         </div>
 
@@ -104,7 +113,7 @@
           <input
             type="email"
             class="role-input"
-            placeholder="nome@gmail.com"
+            placeholder="nome@email.com"
             [value]="newPreAuthEmail()"
             (input)="newPreAuthEmail.set($any($event.target).value)"
           />
@@ -133,7 +142,7 @@
         @if ((authorizedRoles$ | async); as authList) {
           @if (authList.length > 0) {
             <div class="preauth-list-section">
-              <span class="sub-label">Email autorizzate ({{ authList.length }})</span>
+              <span class="sub-label">In attesa di primo accesso ({{ authList.length }})</span>
               <div class="preauth-chips-wrap">
                 @for (item of authList; track item.id || item.email) {
                   <div class="preauth-chip">
@@ -171,7 +180,7 @@
           <ion-icon name="search-outline"></ion-icon>
           <input
             type="text"
-            placeholder="Cerca utente o email..."
+            placeholder="Cerca membro o email..."
             [value]="memberSearchQuery()"
             (input)="memberSearchQuery.set($any($event.target).value)"
           />
@@ -207,14 +216,14 @@
                   <!-- SCHEDA GIOCATORE COLLEGATA -->
                   <div class="member-player-association">
                     @if (u.playerId) {
-                      <span class="player-linked-chip" (click)="onModificaSchedaAtleta(u)" title="Clicca per cambiare scheda atleta">
+                      <span class="player-linked-chip" (click)="onModificaSchedaAtleta(u)" title="Cambia scheda atleta">
                         <ion-icon name="football-outline"></ion-icon>
                         <span>Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong></span>
                       </span>
                     } @else {
-                      <span class="player-unlinked-chip" (click)="onModificaSchedaAtleta(u)" title="Clicca per associare una scheda atleta">
+                      <span class="player-unlinked-chip" (click)="onModificaSchedaAtleta(u)" title="Associa scheda atleta">
                         <ion-icon name="alert-circle-outline"></ion-icon>
-                        <span>Nessuna scheda atleta associata</span>
+                        <span>Nessuna scheda associata</span>
                       </span>
                     }
                   </div>
@@ -226,10 +235,10 @@
                     type="button"
                     class="btn-subtle-action"
                     (click)="onModificaSchedaAtleta(u)"
-                    [title]="u.playerId ? 'Cambia scheda atleta associata' : 'Associa scheda atleta'"
+                    [title]="u.playerId ? 'Cambia scheda atleta' : 'Associa scheda atleta'"
                   >
                     <ion-icon [name]="u.playerId ? 'create-outline' : 'link-outline'"></ion-icon>
-                    <span>{{ u.playerId ? 'Cambia Scheda' : 'Associa' }}</span>
+                    <span>{{ u.playerId ? 'Cambia' : 'Associa' }}</span>
                   </button>
 
                   <!-- SCOLLEGA SCHEDA -->
@@ -238,7 +247,7 @@
                       type="button"
                       class="btn-subtle-action unlink"
                       (click)="onScollegaSchedaAtleta(u)"
-                      title="Scollega la scheda atleta da questo account"
+                      title="Scollega scheda atleta"
                     >
                       <ion-icon name="unlink-outline"></ion-icon>
                       <span>Scollega</span>
@@ -255,7 +264,7 @@
                       type="button"
                       class="btn-role-action demote"
                       (click)="onDemoteFromMister(u)"
-                      title="Rimuovi ruolo di Mister"
+                      title="Revoca Mister"
                     >
                       <ion-icon name="person-remove-outline"></ion-icon>
                       <span>Revoca Mister</span>
@@ -278,7 +287,7 @@
                       type="button"
                       class="btn-delete-account"
                       (click)="onEliminaAccount(u)"
-                      title="Elimina questo account (la scheda atleta NON verrà cancellata)"
+                      title="Elimina questo account (la scheda atleta non viene cancellata)"
                     >
                       <ion-icon name="trash-outline"></ion-icon>
                       <span>Elimina</span>
@@ -333,7 +342,7 @@
         <div class="ssc-header">
           <span class="ssc-icon">📢</span>
           <div>
-            <h4>Opzioni Avviso & Turni</h4>
+            <h4>Avvisi & Turni</h4>
           </div>
         </div>
 
@@ -347,7 +356,7 @@
             <div class="tr-left">
               <span class="tr-emoji">🗣️</span>
               <div class="tr-text">
-                <strong>Annuncio vocale portieri</strong>
+                <strong>Annuncio vocale</strong>
               </div>
             </div>
             <button
@@ -369,7 +378,7 @@
             <div class="tr-left">
               <span class="tr-emoji">📳</span>
               <div class="tr-text">
-                <strong>Vibrazione continua al cambio</strong>
+                <strong>Vibrazione al cambio</strong>
               </div>
             </div>
             <button
@@ -407,7 +416,7 @@
 
       <!-- CATALOGO SEGNALI CAMBIO PORTIERE -->
       <div class="sounds-catalog-header">
-        <h4>Segnali Cambio Portiere</h4>
+        <h4>Suoni Portiere</h4>
       </div>
 
       <div class="sounds-grid">
@@ -473,7 +482,7 @@
           <div class="ec-icon-box whistle">🏁</div>
           <div class="ec-info">
             <div class="ec-title-row">
-              <h4>Fischi Arbitro (Inizio & Fine)</h4>
+              <h4>Fischietto Arbitro</h4>
               <span class="ec-badge" [class.on]="cfg.matchWhistleEffects">
                 {{ cfg.matchWhistleEffects ? 'ATTIVO' : 'DISATTIVATO' }}
               </span>
@@ -593,7 +602,7 @@
         <div class="ssc-header">
           <span class="ssc-icon">🎨</span>
           <div>
-            <h4>Aspetto & Tema</h4>
+            <h4>Tema</h4>
           </div>
         </div>
 
@@ -643,7 +652,7 @@
           @if (authService.hasLinkedPlayer()) {
             <div class="linked-athlete-row">
               <div class="lar-left">
-                <span class="lar-badge">Collegata</span>
+                <span class="lar-badge">Collegato</span>
                 <strong class="lar-name">{{ currentLinkedPlayerName() }}</strong>
               </div>
               <button
@@ -658,14 +667,14 @@
             </div>
           } @else {
             <div class="unlinked-athlete-block">
-              <p class="uab-hint">Opzionale: se giochi anche in campo, collega il tuo atleta.</p>
+              <p class="uab-hint">Opzionale: collega la tua scheda se scendi in campo.</p>
               <div class="uab-form-row">
                 <select
                   class="uab-select"
                   [value]="selectedPlayerToLink()"
                   (change)="selectedPlayerToLink.set($any($event.target).value)"
                 >
-                  <option value="">-- Scegli dalla rosa --</option>
+                  <option value="">-- Seleziona Atleta --</option>
                   @for (p of availablePlayersToLink(); track p.id) {
                     <option [value]="p.id">{{ p.nome }}{{ p.soprannome ? ' ("' + p.soprannome + '")' : '' }}</option>
                   }
@@ -685,13 +694,13 @@
         </div>
       }
 
-      <!-- SEZIONE GESTIONE MISTER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
+      <!-- SEZIONE AMMINISTRAZIONE / MISTER -->
       @if (authService.isSuperUser()) {
         <div class="settings-section-card su-card">
           <div class="ssc-header">
-            <span class="ssc-icon">👑</span>
+            <span class="ssc-icon">{{ authService.isPresidente() ? '🎩' : '👔' }}</span>
             <div>
-              <h4>Gestione Mister</h4>
+              <h4>{{ authService.isPresidente() ? 'Amministrazione' : 'Gestione Mister' }}</h4>
             </div>
           </div>
 
@@ -703,11 +712,11 @@
             >
               <ion-icon name="shield-checkmark"></ion-icon>
               <div class="sab-text">
-                <strong>🔬 Area Segreta (Motore MMR)</strong>
+                <strong>🔬 Area Segreta</strong>
               </div>
             </button>
 
-            <!-- SALVA SU GOOGLE DRIVE (DIRETTO SULL'ACCOUNT) -->
+            <!-- SALVA SU GOOGLE DRIVE -->
             <button
               type="button"
               class="sys-action-btn drive"
@@ -716,8 +725,8 @@
             >
               <ion-icon name="logo-google"></ion-icon>
               <div class="sab-text">
-                <strong>☁️ {{ isSavingToDrive() ? 'Salvataggio su Google Drive...' : 'Salva Backup su Google Drive' }}</strong>
-                <small>Cartella "Calcetto Abbuffo - Backup" sul tuo Drive</small>
+                <strong>☁️ {{ isSavingToDrive() ? 'Salvataggio Drive...' : 'Backup su Google Drive' }}</strong>
+                <small>Cartella "Calcetto Abbuffo - Backup"</small>
               </div>
             </button>
 
@@ -730,7 +739,7 @@
             >
               <ion-icon name="cloud-download-outline"></ion-icon>
               <div class="sab-text">
-                <strong>💾 {{ isExportingBackup() ? 'Generazione...' : 'Scarica File Locale (.json)' }}</strong>
+                <strong>💾 {{ isExportingBackup() ? 'Download...' : 'Scarica Backup (.json)' }}</strong>
               </div>
             </button>
 
@@ -741,7 +750,7 @@
             >
               <ion-icon name="refresh-outline"></ion-icon>
               <div class="sab-text">
-                <strong>🔄 Ripristina audio predefinito</strong>
+                <strong>🔄 Ripristina suoni</strong>
               </div>
             </button>
 
@@ -752,16 +761,16 @@
             >
               <ion-icon name="log-out-outline"></ion-icon>
               <div class="sab-text">
-                <strong>🚪 Esci dall'account</strong>
+                <strong>🚪 Esci</strong>
               </div>
             </button>
           </div>
         </div>
       } @else {
-        <!-- ACCESSO MISTER DIRETTO -->
+        <!-- ACCESSO DIRETTO -->
         <div class="settings-section-card">
           <div class="ssc-header">
-            <span class="ssc-icon">👑</span>
+            <span class="ssc-icon">🔐</span>
             <div>
               <h4>Accesso Riservato</h4>
             </div>
@@ -774,7 +783,7 @@
             >
               <ion-icon name="lock-closed-outline"></ion-icon>
               <div class="sab-text">
-                <strong>👑 Accedi come Mister</strong>
+                <strong>Accedi</strong>
               </div>
             </button>
           </div>
@@ -787,7 +796,7 @@
           <span class="ssc-icon">🚀</span>
           <div>
             <h4>
-              Versione App v{{ appUpdate.version }}
+              Versione v{{ appUpdate.version }}
               @if (isDevEnvironment) {
                 <span class="dev-pill">DEV</span>
               }
@@ -814,7 +823,7 @@
           >
             <ion-icon name="refresh-outline"></ion-icon>
             <div class="sab-text">
-              <strong>🔄 Aggiorna e svuota cache</strong>
+              <strong>🔄 Aggiorna App & Cache</strong>
             </div>
           </button>
         </div>

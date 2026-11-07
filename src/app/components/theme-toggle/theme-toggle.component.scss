@@ -42,6 +42,7 @@
     overflow: hidden;
     flex-shrink: 0;
     border: 1px solid rgba(255, 255, 255, 0.15);
+    pointer-events: none;
   }
 
   .uhp-info {
@@ -50,6 +51,7 @@
     align-items: flex-start;
     min-width: 0;
     line-height: 1.05;
+    pointer-events: none;
 
     .uhp-name {
       font-size: 0.68rem;
@@ -205,25 +207,26 @@
 
 // ─── DESKTOP DROPDOWN NATIVO (ZERO MODALI SU DESKTOP!) ─────────────────────
 .desktop-menu-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 999;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99998 !important;
   background: transparent;
 }
 
 .desktop-profile-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 310px;
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  border-radius: 18px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  z-index: 1000;
+  position: fixed !important;
+  top: 54px !important;
+  right: 12px !important;
+  width: 310px !important;
+  max-width: calc(100vw - 24px) !important;
+  background: var(--app-card-bg) !important;
+  border: 1px solid var(--app-card-border) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  z-index: 99999 !important;
   overflow: hidden;
   display: flex;
   flex-direction: column;

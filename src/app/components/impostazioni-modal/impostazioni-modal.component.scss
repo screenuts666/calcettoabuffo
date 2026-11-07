@@ -1,6 +1,21 @@
 @use 'mixins' as *;
 
+:host {
+  display: flex !important;
+  flex-direction: column !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
 .settings-header {
+  flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
   background: var(--app-card-bg);
   border-bottom: 1px solid var(--app-card-border);
 }
@@ -19,6 +34,31 @@
     gap: 9px;
     flex: 1;
     min-width: 0;
+
+    .mtb-back-arrow-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--app-text-primary);
+      font-size: 1.15rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.1s ease;
+
+      &:hover {
+        background: var(--app-surface-hover);
+        color: var(--app-primary);
+      }
+
+      &:active {
+        transform: scale(0.92);
+      }
+    }
 
     .gear-badge {
       width: 32px;
@@ -194,14 +234,26 @@
 }
 
 .settings-content {
+  flex: 1 1 0px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  width: 100% !important;
+  --overflow: auto !important;
   --background: var(--app-bg, var(--ion-background-color));
+
+  &::part(scroll) {
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 90px !important;
+  }
 }
 
 .settings-container {
-  padding: 12px 14px 32px;
+  padding: 12px 14px 120px !important;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 // ─── AVVISO MODALITÀ SOLA LETTURA SE NON ADMIN ───────────────────────────────
@@ -1658,14 +1710,34 @@
 // ─── RESPONSIVE DESKTOP ENHANCEMENTS (>= 768px) ──────────────────────────
 @media (min-width: 768px) {
   :host {
-    display: block;
-    height: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    position: absolute !important;
+    inset: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .settings-content {
+    flex: 1 1 0px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    --overflow: auto !important;
+
+    &::part(scroll) {
+      overflow-y: auto !important;
+      overscroll-behavior-y: contain !important;
+      -webkit-overflow-scrolling: touch !important;
+      padding-bottom: 140px !important;
+    }
   }
 
   .settings-container {
     max-width: 960px;
     margin: 0 auto;
-    padding: 24px 24px 64px;
+    padding: 24px 24px 140px !important;
     gap: 20px;
   }
 

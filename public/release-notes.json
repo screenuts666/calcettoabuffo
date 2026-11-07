@@ -1,19 +1,20 @@
 [
   {
-    "version": "2.0.28",
+    "version": "2.0.29",
     "date": "07/11/2026",
-    "title": "Menu Desktop Nativo senza Modali & Fix Collasso Contenuti",
+    "title": "Scroll Sbloccato su Desktop, Snellezza Label & Nuova Gerarchia Ruoli",
     "userChanges": [
-      "🖥️ Dropdown Desktop Nativo: cliccando sull'avatar in alto a destra su Desktop ora si apre un menu a discesa contestuale pulito, senza oscurare lo schermo con modali fluttuanti.",
-      "⚡ Fix Visualizzazione Profilo: risolto il collasso visivo che mostrava la finestra del profilo vuota su Desktop."
+      "🖱️ Scroll Desktop Riattivato: scorrimento completo sbloccato a fondo pagina nelle Impostazioni con ampio margine inferiore per non tagliare alcun membro.",
+      "🏷️ Label Più Chiare e Snelle: testi, bottoni e sezioni semplificati ed essenziali per un'interfaccia rapida e leggibile.",
+      "👁️ Dropdown Profilo Immediato: il menu profilo dell'avatar su Desktop risponde istantaneamente senza modali."
     ],
     "superUserChanges": [
-      "🚀 Accesso Rapido da Dropdown: scorciatoie dirette per Area Segreta, Gestione Membri & Ruoli e Impostazioni senza alcun passaggio intermedio.",
-      "📐 Altezza Modali Robusta: corretto il dimensionamento CSS per garantire che `ion-content` mantenga sempre altezza completa in ogni viewport."
+      "📐 Flex Layout a Tutta Altezza: eliminato il blocco di overflow e garantito scroll nativo su ion-content e ::part(scroll).",
+      "👔 Ruoli e Amministrazione: separazione netta tra Presidente (gestione membri, autorizzazioni, ruoli, backup Drive) e Mister (gestione gare, voti, audio)."
     ]
   },
   {
-    "version": "NEXT",
+    "version": "2.0.28",
     "date": "07/11/2026",
     "title": "Menu Desktop Nativo senza Modali & Fix Collasso Contenuti",
     "userChanges": [

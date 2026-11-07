@@ -1,8 +1,8 @@
 // FILE GENERATO AUTOMATICAMENTE DA scripts/bump-version.mjs
 // NON MODIFICARE MANUALMENTE
 export const APP_VERSION_INFO = {
-  version: '2.0.28',
-  buildId: '2.0.28-1794063710950',
-  timestamp: 1794063710950,
-  buildDate: '07/11/2026, 16:01:50',
+  version: '2.0.29',
+  buildId: '2.0.29-1794064895769',
+  timestamp: 1794064895769,
+  buildDate: '07/11/2026, 16:21:35',
 } as const;

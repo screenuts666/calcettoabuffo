@@ -203,15 +203,15 @@
           <span class="sc-emoji">⚽</span>
           <div>
             <h4>
-              {{ myPlayer ? 'La Tua Scheda Giocatore' : 'Associa il Tuo Giocatore' }}
+              {{ myPlayer ? 'Scheda Atleta' : 'Collega Scheda Atleta' }}
             </h4>
             <p>
               @if (myPlayer) {
-                Profilo collegato a <strong>{{ myPlayer.nome }}</strong>
+                Collegato a <strong>{{ myPlayer.nome }}</strong>
               } @else if (authService.isSuperUser()) {
-                Opzionale per il Mister: se giochi anche in campo, collega la tua scheda!
+                Opzionale: collega la tua scheda se scendi in campo
               } @else {
-                Reclama il tuo nome dalla rosa per diventare <strong>⚽ Atleta</strong>
+                Associa la tua scheda in rosa per diventare <strong>⚽ Atleta</strong>
               }
             </p>
           </div>
@@ -288,7 +288,7 @@
               (click)="showPlayerPicker.set(true)"
             >
               <ion-icon name="football-outline"></ion-icon>
-              <span>🙋‍♂️ Sono già in Rosa: Scegli il tuo Giocatore</span>
+              <span>🙋‍♂️ Scegli dalla Rosa</span>
             </button>
             <button
               type="button"
@@ -302,7 +302,7 @@
               (click)="creaMioGiocatoreInRosa()"
             >
               <ion-icon name="person-add-outline"></ion-icon>
-              <span>➕ Non sei ancora in Rosa? Crea la tua Scheda</span>
+              <span>➕ Nuova Scheda in Rosa</span>
             </button>
           } @else {
             <div class="claim-picker-box">
@@ -398,14 +398,13 @@
         }
       </div>
 
-      <!-- SEZIONE ESCLUSIVA MISTER: AREA SEGRETA & GESTIONE RUOLI UTENTI -->
+      <!-- SEZIONE ESCLUSIVA MISTER / PRESIDENTE: AREA SEGRETA & GESTIONE RUOLI -->
       @if (authService.isSuperUser()) {
         <div class="section-card mister-card">
           <div class="sc-header">
-            <span class="sc-emoji">👑</span>
+            <span class="sc-emoji">{{ authService.isPresidente() ? '🎩' : '👔' }}</span>
             <div>
-              <h4>Pannello Mister (Superuser)</h4>
-              <p>Accesso esclusivo ad Area Segreta e gestione ruoli utenti</p>
+              <h4>{{ authService.isPresidente() ? 'Presidente' : 'Mister' }}</h4>
             </div>
           </div>
 
@@ -417,22 +416,24 @@
             >
               <ion-icon name="shield-checkmark"></ion-icon>
               <div class="qa-text">
-                <strong>🔬 Apri Area Segreta (Motore MMR & Raggi X)</strong>
-                <small>Parametri stagionali, formule ELO e simulatore</small>
+                <strong>🔬 Area Segreta</strong>
+                <small>Parametri stagionali e formule</small>
               </div>
             </button>
 
-            <button
-              type="button"
-              class="qa-btn"
-              (click)="toggleUsersManager()"
-            >
-              <ion-icon name="people-outline"></ion-icon>
-              <div class="qa-text">
-                <strong>👥 Gestione Utenti & Ruoli ({{ allUsers().length || '...' }})</strong>
-                <small>Visualizza iscritti, promuovi Mister o verifica giocatori</small>
-              </div>
-            </button>
+            @if (authService.isPresidente()) {
+              <button
+                type="button"
+                class="qa-btn"
+                (click)="toggleUsersManager()"
+              >
+                <ion-icon name="people-outline"></ion-icon>
+                <div class="qa-text">
+                  <strong>👥 Membri & Ruoli ({{ allUsers().length || '...' }})</strong>
+                  <small>Gestione atleti e ruoli</small>
+                </div>
+              </button>
+            }
           </div>
 
           @if (showUsersManager()) {
@@ -444,7 +445,7 @@
                   (click)="apriGestioneImpostazioni()"
                 >
                   <ion-icon name="open-outline"></ion-icon>
-                  <span>Apri Gestione Ruoli & Membri Completa</span>
+                  <span>Apri nelle Impostazioni</span>
                 </button>
               </div>
 
@@ -508,7 +509,7 @@
                           [class.promote]="u.role !== 'superuser'"
                           (click)="promuoviORevocaMister(u)"
                         >
-                          {{ u.role === 'superuser' ? 'Revoca Mister' : '👑 Fai Mister' }}
+                          {{ u.role === 'superuser' ? 'Revoca Mister' : 'Fai Mister' }}
                         </button>
                       } @else {
                         <span class="um-founder-badge">👑 Fondatore</span>
@@ -520,7 +521,7 @@
                           type="button"
                           class="um-icon-action-btn danger"
                           (click)="eliminaAccount(u)"
-                          title="Elimina questo account (la scheda atleta NON verrà cancellata)"
+                          title="Elimina account (la scheda atleta non viene toccata)"
                         >
                           <ion-icon name="trash-outline"></ion-icon>
                         </button>
@@ -544,8 +545,8 @@
           >
             <ion-icon name="settings-outline"></ion-icon>
             <div class="qa-text">
-              <strong>⚙️ Impostazioni Audio, Portieri & Tema</strong>
-              <small>Personalizza tema chiaro/scuro e suoni partita</small>
+              <strong>⚙️ Impostazioni</strong>
+              <small>Audio, tema e cache</small>
             </div>
           </button>
 
@@ -556,8 +557,8 @@
           >
             <ion-icon name="log-out-outline"></ion-icon>
             <div class="qa-text">
-              <strong>🚪 Esci dall'Account (Logout)</strong>
-              <small>Torna alla modalità ospite (Tifoso)</small>
+              <strong>🚪 Esci</strong>
+              <small>Disconnetti la sessione</small>
             </div>
           </button>
         </div>

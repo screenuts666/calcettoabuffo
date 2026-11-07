@@ -148,10 +148,10 @@
       </div>
     </div>
 
-    <!-- SEZIONE 2: GESTIONE & MISTER (Solo SuperUser) -->
+    <!-- SEZIONE 2: GESTIONE & MISTER -->
     @if (authService.isSuperUser()) {
       <div class="menu-section">
-        <div class="section-label">Mister & Amministrazione</div>
+        <div class="section-label">{{ authService.isPresidente() ? 'Amministrazione' : 'Mister' }}</div>
         <div class="section-card">
           <button
             type="button"
@@ -162,8 +162,8 @@
               <ion-icon name="shield-checkmark-outline"></ion-icon>
             </div>
             <div class="item-text">
-              <span class="item-title">Area Segreta (Motore MMR)</span>
-              <span class="item-desc">Formule ELO, parametri e simulatore</span>
+              <span class="item-title">Area Segreta</span>
+              <span class="item-desc">Parametri, formule e simulatore</span>
             </div>
             <ion-icon
               name="chevron-forward-outline"
@@ -171,21 +171,23 @@
             ></ion-icon>
           </button>
 
-          <div class="item-divider"></div>
+          @if (authService.isPresidente()) {
+            <div class="item-divider"></div>
 
-          <button type="button" class="menu-item-row" (click)="apriGestioneRuoli()">
-            <div class="item-icon-box accent-gold">
-              <ion-icon name="people-outline"></ion-icon>
-            </div>
-            <div class="item-text">
-              <span class="item-title">Gestione Utenti & Ruoli</span>
-              <span class="item-desc">Assegna ruoli, atleti e permessi</span>
-            </div>
-            <ion-icon
-              name="chevron-forward-outline"
-              class="item-chevron"
-            ></ion-icon>
-          </button>
+            <button type="button" class="menu-item-row" (click)="apriGestioneRuoli()">
+              <div class="item-icon-box accent-gold">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+              <div class="item-text">
+                <span class="item-title">Membri & Ruoli</span>
+                <span class="item-desc">Gestione atleti e ruoli del club</span>
+              </div>
+              <ion-icon
+                name="chevron-forward-outline"
+                class="item-chevron"
+              ></ion-icon>
+            </button>
+          }
         </div>
       </div>
     }
@@ -242,7 +244,7 @@
             <ion-icon name="log-out-outline"></ion-icon>
           </div>
           <div class="item-text">
-            <span class="item-title">Esci (Logout)</span>
+            <span class="item-title">Esci</span>
             <span class="item-desc">Disconnetti la sessione corrente</span>
           </div>
           <ion-icon

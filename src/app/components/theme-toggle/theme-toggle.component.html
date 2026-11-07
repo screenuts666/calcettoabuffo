@@ -58,20 +58,20 @@
             @if (linkedPlayer(); as lp) {
               <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', lp.id])">
                 <ion-icon name="person-outline"></ion-icon>
-                <span>La mia scheda atleta</span>
+                <span>Scheda Atleta</span>
               </button>
               <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', lp.id, 'modifica'])">
                 <ion-icon name="create-outline"></ion-icon>
-                <span>Modifica profilo atleta</span>
+                <span>Modifica Scheda</span>
               </button>
             } @else {
               <button type="button" class="dpd-item highlight" (click)="apriClaimDaDropdown()">
                 <ion-icon name="football-outline"></ion-icon>
-                <span>Collega il tuo Giocatore</span>
+                <span>Collega Scheda</span>
               </button>
               <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', 'nuovo'], { selfClaim: '1' })">
                 <ion-icon name="person-add-outline"></ion-icon>
-                <span>Crea Scheda Atleta</span>
+                <span>Nuova Scheda</span>
               </button>
             }
           </div>
@@ -82,12 +82,14 @@
             <div class="dpd-section">
               <button type="button" class="dpd-item accent-purple" (click)="navigaDaDropdown(['/area-segreta'])">
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
-                <span>🔬 Area Segreta (Motore MMR)</span>
+                <span>Area Segreta</span>
               </button>
-              <button type="button" class="dpd-item accent-gold" (click)="navigaDaDropdown(['/impostazioni'], { tab: 'ruoli' })">
-                <ion-icon name="people-outline"></ion-icon>
-                <span>👥 Gestione Membri & Ruoli</span>
-              </button>
+              @if (authService.isPresidente()) {
+                <button type="button" class="dpd-item accent-gold" (click)="navigaDaDropdown(['/impostazioni'], { tab: 'ruoli' })">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <span>Membri & Ruoli</span>
+                </button>
+              }
             </div>
           }
 
@@ -97,11 +99,11 @@
           <div class="dpd-section">
             <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/impostazioni'])">
               <ion-icon name="settings-outline"></ion-icon>
-              <span>⚙️ Impostazioni</span>
+              <span>Impostazioni</span>
             </button>
             <button type="button" class="dpd-item danger" (click)="eseguiLogoutDaDropdown()">
               <ion-icon name="log-out-outline"></ion-icon>
-              <span>🚪 Esci (Logout)</span>
+              <span>Esci</span>
             </button>
           </div>
         </div>
@@ -124,7 +126,7 @@
     type="button"
     class="header-settings-btn"
     (click)="openThemeMenu()"
-    [title]="(authService.isSuperUser() ? 'Impostazioni & Gestione Mister' : 'Impostazioni') + ' (v' + appUpdate.version + (isDevEnvironment ? ' [DEV]' : '') + ')'"
+    [title]="'Impostazioni (v' + appUpdate.version + (isDevEnvironment ? ' [DEV]' : '') + ')'"
     aria-label="Impostazioni"
   >
     @if (isDevEnvironment) {
