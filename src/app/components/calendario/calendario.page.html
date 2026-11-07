@@ -203,6 +203,11 @@
                   <ion-icon name="people-outline"></ion-icon>
                   <strong>{{ day.count }}</strong>
                   <span class="quorum-target">/ 10</span>
+                  @if (day.maybeCount > 0) {
+                    <span class="maybe-count-pill" [title]="day.maybeCount + ' in forse'">
+                      +{{ day.maybeCount }} 🤔
+                    </span>
+                  }
                 </div>
 
                 <!-- BADGE FORMATO DINAMICO -->
@@ -218,30 +223,49 @@
                 }
               </div>
 
-              <!-- AVATAR DEI GIOCATORI DISPONIBILI -->
+              <!-- AVATAR DEI GIOCATORI DISPONIBILI & IN FORSE -->
               <div class="voters-avatars-tray">
-                @for (p of day.players.slice(0, 5); track p.id) {
-                  <div class="voter-mini-avatar" [title]="p.nome">
+                @for (p of day.players.slice(0, 4); track p.id) {
+                  <div class="voter-mini-avatar confirmed" [title]="p.nome + ' (Ci sono)'">
                     <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                   </div>
                 }
-                @if (day.players.length > 5) {
+                @for (p of day.maybePlayers.slice(0, 2); track p.id) {
+                  <div class="voter-mini-avatar maybe" [title]="p.nome + ' (In forse)'">
+                    <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                  </div>
+                }
+                @if (day.players.length + day.maybePlayers.length > 6) {
                   <div class="voters-overflow-pill" [title]="getExtraPlayersTitle(day.players)">
-                    +{{ day.players.length - 5 }}
+                    +{{ day.players.length + day.maybePlayers.length - 6 }}
                   </div>
                 }
               </div>
 
-              <!-- AZIONE DI VOTO ATLETA -->
-              <button
-                type="button"
-                class="btn-vote-toggle"
-                [class.active]="day.isVotedByMe"
-                (click)="toggleVotoGiorno(day.dateStr)"
-              >
-                <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-                <span>{{ day.isVotedByMe ? 'Disponibile' : 'Ci sono' }}</span>
-              </button>
+              <!-- AZIONI DI VOTO ATLETA UNIFICATE CON STILE RSVP -->
+              <div class="day-vote-actions-group">
+                <button
+                  type="button"
+                  class="btn-vote-toggle yes"
+                  [class.active]="day.isVotedByMe"
+                  (click)="toggleVotoGiorno(day.dateStr, 'yes')"
+                  title="Conferma la tua presenza (Ci sono)"
+                >
+                  <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+                  <span>Ci sono</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn-vote-toggle maybe"
+                  [class.active]="day.isMaybeByMe"
+                  (click)="toggleVotoGiorno(day.dateStr, 'maybe')"
+                  title="Sei in dubbio per questo giorno (Forse)"
+                >
+                  <ion-icon [name]="day.isMaybeByMe ? 'help-circle' : 'help-circle-outline'"></ion-icon>
+                  <span>Forse</span>
+                </button>
+              </div>
 
               <!-- AZIONE CREA/FISSA PARTITA PER SUPERUSER (MISTER / PRESIDENTE) -->
               @if (auth.isSuperUser()) {
@@ -499,15 +523,21 @@
         <div class="detail-availability-section">
           <h4 class="sub-section-title">
             <ion-icon name="people-outline"></ion-icon>
-            Disponibilità Giocatori ({{ sel.availablePlayers.length }})
+            Disponibilità Giocatori ({{ sel.availablePlayers.length }} confermati@if (sel.maybePlayers.length > 0) {, {{ sel.maybePlayers.length }} in forse})
           </h4>
 
-          @if (sel.availablePlayers.length > 0) {
+          @if (sel.availablePlayers.length > 0 || sel.maybePlayers.length > 0) {
             <div class="players-chips-list">
               @for (p of sel.availablePlayers; track p.id) {
-                <div class="player-chip">
+                <div class="player-chip confirmed" title="Confermato (Ci sono)">
                   <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                  <span>{{ p.nome }}</span>
+                  <span>⚽ {{ p.nome }}</span>
+                </div>
+              }
+              @for (p of sel.maybePlayers; track p.id) {
+                <div class="player-chip maybe" title="In forse">
+                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                  <span>🤔 {{ p.nome }}</span>
                 </div>
               }
             </div>
@@ -518,12 +548,21 @@
           <div class="detail-vote-action-bar">
             <button
               type="button"
-              class="btn-detail-vote"
+              class="btn-detail-vote yes"
               [class.active]="sel.isAvailableForMe"
-              (click)="toggleVotoGiorno(sel.dateStr)"
+              (click)="toggleVotoGiorno(sel.dateStr, 'yes')"
             >
               <ion-icon [name]="sel.isAvailableForMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-              <span>{{ sel.isAvailableForMe ? 'Sei tra i disponibili (Tocca per rimuovere)' : 'Dai la tua disponibilità per questo giorno' }}</span>
+              <span>{{ sel.isAvailableForMe ? '✅ Ci sei (Tocca per togliere)' : '⚽ Ci sono' }}</span>
+            </button>
+            <button
+              type="button"
+              class="btn-detail-vote maybe"
+              [class.active]="sel.isMaybeForMe"
+              (click)="toggleVotoGiorno(sel.dateStr, 'maybe')"
+            >
+              <ion-icon [name]="sel.isMaybeForMe ? 'help-circle' : 'help-circle-outline'"></ion-icon>
+              <span>{{ sel.isMaybeForMe ? '🤔 Sei in forse (Tocca per togliere)' : '🤔 In forse' }}</span>
             </button>
           </div>
         </div>

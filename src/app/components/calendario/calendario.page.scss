@@ -493,6 +493,17 @@
             color: #64748b;
             font-size: 0.75rem;
           }
+
+          .maybe-count-pill {
+            background: rgba(245, 158, 11, 0.18);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 8px;
+            margin-left: 3px;
+          }
         }
 
         .quorum-badge-success {
@@ -528,6 +539,16 @@
           border: 1.5px solid #1e293b;
           margin-left: -6px;
 
+          &.confirmed {
+            border-color: #10b981;
+          }
+
+          &.maybe {
+            border-color: #f59e0b;
+            border-style: dashed;
+            opacity: 0.9;
+          }
+
           &:first-child {
             margin-left: 0;
           }
@@ -549,30 +570,55 @@
         }
       }
 
-      .btn-vote-toggle {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
-        padding: 6px 8px;
-        border-radius: 8px;
-        font-size: 0.78rem;
-        font-weight: 700;
+      .day-vote-actions-group {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 5px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+        gap: 4px;
         margin-top: auto;
+        width: 100%;
 
-        &.active {
-          background: #10b981;
-          color: #022c22;
-          border-color: #10b981;
-        }
+        .btn-vote-toggle {
+          flex: 1;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #e2e8f0;
+          padding: 6px 4px;
+          border-radius: 8px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          cursor: pointer;
+          transition: all 0.2s ease;
 
-        &:active {
-          transform: scale(0.95);
+          ion-icon {
+            font-size: 0.85rem;
+          }
+
+          &.yes.active {
+            background: #10b981;
+            color: #022c22;
+            border-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+          }
+
+          &.maybe {
+            flex: 0 0 auto;
+            min-width: 44px;
+
+            &.active {
+              background: rgba(245, 158, 11, 0.25);
+              border-color: #f59e0b;
+              color: #fbbf24;
+              box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+            }
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
         }
       }
 
@@ -1164,6 +1210,18 @@
         font-weight: 600;
         color: #f8fafc;
 
+        &.confirmed {
+          border-color: rgba(16, 185, 129, 0.4);
+          background: rgba(16, 185, 129, 0.12);
+          color: #34d399;
+        }
+
+        &.maybe {
+          border-color: rgba(245, 158, 11, 0.4);
+          background: rgba(245, 158, 11, 0.12);
+          color: #fbbf24;
+        }
+
         app-player-avatar {
           width: 18px;
           height: 18px;
@@ -1179,14 +1237,17 @@
     }
 
     .detail-vote-action-bar {
+      display: flex;
+      gap: 8px;
+
       .btn-detail-vote {
-        width: 100%;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid rgba(16, 185, 129, 0.4);
-        color: #34d399;
+        flex: 1;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
         padding: 10px;
         border-radius: 12px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 700;
         display: flex;
         align-items: center;
@@ -1195,9 +1256,16 @@
         cursor: pointer;
         transition: all 0.2s ease;
 
-        &.active {
+        &.yes.active {
           background: #10b981;
           color: #022c22;
+          border-color: #10b981;
+        }
+
+        &.maybe.active {
+          background: rgba(245, 158, 11, 0.25);
+          border-color: #f59e0b;
+          color: #fbbf24;
         }
 
         &:active {

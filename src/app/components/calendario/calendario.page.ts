@@ -47,6 +47,9 @@ import {
   sparklesOutline,
   refreshOutline,
   flame,
+  helpCircle,
+  helpCircleOutline,
+  shieldCheckmark,
 } from 'ionicons/icons';
 
 import { AuthService } from '../../services/auth.service';
@@ -59,6 +62,7 @@ import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { Giocatore } from '../../models/giocatore.model';
 import { Partita, getMatchFormatByPlayerCount } from '../../models/partita.model';
+import { DaySummary } from '../../models/weekly-availability.model';
 import { formatWeeklyAvailabilityForWhatsApp } from '../../utils/whatsapp-formatter';
 
 export interface CalendarDayCell {
@@ -162,6 +166,9 @@ export class CalendarioPage implements OnInit {
       sparklesOutline,
       refreshOutline,
       flame,
+      helpCircle,
+      helpCircleOutline,
+      shieldCheckmark,
     });
   }
 
@@ -391,6 +398,16 @@ export class CalendarioPage implements OnInit {
       .filter((g): g is Giocatore => !!g);
 
     const isAvailableForMe = this.availabilityService.myVotedDates().includes(dateStr);
+    const isMaybeForMe = this.availabilityService.myMaybeDates().includes(dateStr);
+    const maybePlayers = (daySummary?.maybeVoters || [])
+      .map((v) =>
+        allPlayers.find(
+          (g) =>
+            (v.playerId && g.id === v.playerId) ||
+            (g.linkedUid && g.linkedUid === v.uid)
+        )
+      )
+      .filter((g): g is Giocatore => !!g);
 
     return {
       date: d,
@@ -405,7 +422,9 @@ export class CalendarioPage implements OnInit {
       lunar,
       daySummary,
       availablePlayers,
+      maybePlayers,
       isAvailableForMe,
+      isMaybeForMe,
       isInActiveWeek: !!daySummary,
     };
   });
@@ -414,6 +433,7 @@ export class CalendarioPage implements OnInit {
   readonly activeWeekDaysList = computed(() => {
     const summaries = this.availabilityService.daySummaries();
     const myVoted = this.availabilityService.myVotedDates();
+    const myMaybe = this.availabilityService.myMaybeDates();
     const allPlayers = this.statsEngine.giocatoriRaw();
     const todayStr = getLocalIsoDate();
 
@@ -442,6 +462,16 @@ export class CalendarioPage implements OnInit {
         )
         .filter((g): g is Giocatore => !!g);
 
+      const maybePlayers = s.maybeVoters
+        .map((v) =>
+          allPlayers.find(
+            (g) =>
+              (v.playerId && g.id === v.playerId) ||
+              (g.linkedUid && g.linkedUid === v.uid)
+          )
+        )
+        .filter((g): g is Giocatore => !!g);
+
       const isTopVoted = hasFavorite && s.voterCount === maxVotes;
 
       return {
@@ -449,14 +479,17 @@ export class CalendarioPage implements OnInit {
         dayLabel: `${s.dayName} ${s.dayNumber}`,
         summary: s,
         count: s.voterCount,
+        maybeCount: s.maybeCount,
         isQuorumReached: s.hasQuorum,
         missingToQuorum: s.missingForQuorum,
         formatInfo: s.formatInfo,
         weather,
         lunar,
         isVotedByMe: myVoted.includes(s.date),
+        isMaybeByMe: myMaybe.includes(s.date),
         isTopVoted,
         players,
+        maybePlayers,
       };
     });
   });
@@ -480,8 +513,8 @@ export class CalendarioPage implements OnInit {
     };
   });
 
-  // Toggle voto atleta per un giorno specifico
-  async toggleVotoGiorno(dateStr: string) {
+  // Toggle voto atleta per un giorno specifico ('yes' = Ci sono, 'maybe' = Forse)
+  async toggleVotoGiorno(dateStr: string, type: 'yes' | 'maybe' = 'yes') {
     if (!this.auth.isLoggedIn()) {
       const t = await this.toastCtrl.create({
         message: 'Accedi per esprimere le tue disponibilità.',
@@ -494,7 +527,7 @@ export class CalendarioPage implements OnInit {
     }
 
     try {
-      await this.availabilityService.toggleDayVote(dateStr);
+      await this.availabilityService.toggleDayVote(dateStr, type);
     } catch (e: any) {
       const t = await this.toastCtrl.create({
         message: e.message || 'Errore durante il salvataggio della disponibilità',
@@ -511,31 +544,22 @@ export class CalendarioPage implements OnInit {
     if (!this.auth.isSuperUser()) return;
 
     const activeSummaries = this.availabilityService.daySummaries();
-    let day = activeSummaries.find((d) => d.date === dateStr);
-
-    if (!day) {
-      const parts = dateStr.split('-');
-      const d =
-        parts.length === 3
-          ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
-          : new Date();
-      const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'] as const;
-      const dayName = dayNames[d.getDay()] as any;
-      day = {
-        date: dateStr,
-        dayName: dayName || 'Lun',
-        dayNumber: d.getDate(),
-        voters: [],
-        voterCount: 0,
-        formatInfo: {
-          format: 'calcetto',
-          label: 'Calcetto (5v5)',
-          perTeam: 5,
-        },
-        hasQuorum: false,
-        missingForQuorum: 10,
-      };
-    }
+    let day: DaySummary = activeSummaries.find((d) => d.date === dateStr) || {
+      date: dateStr,
+      dayName: 'Lun',
+      dayNumber: new Date(dateStr).getDate(),
+      voters: [],
+      voterCount: 0,
+      maybeVoters: [],
+      maybeCount: 0,
+      formatInfo: {
+        format: 'calcetto',
+        label: 'Calcetto (5v5)',
+        perTeam: 5,
+      },
+      hasQuorum: false,
+      missingForQuorum: 10,
+    };
 
     const count = day.voterCount || 0;
     const subHeader =

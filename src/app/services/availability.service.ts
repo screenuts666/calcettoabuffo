@@ -46,12 +46,20 @@ export class AvailabilityService {
     return this.generateWeekDays(this.activeWeekKey());
   });
 
-  /** Date che l'utente loggato ha votato per la settimana corrente */
+  /** Date che l'utente loggato ha votato con certezza ("Ci sono") per la settimana corrente */
   readonly myVotedDates = computed<string[]>(() => {
     const doc = this.activeWeekDoc();
     const uid = this.auth.firebaseUser()?.uid;
     if (!doc || !uid || !doc.votes?.[uid]) return [];
     return doc.votes[uid].availableDates || [];
+  });
+
+  /** Date che l'utente loggato ha votato in dubbio ("Forse") per la settimana corrente */
+  readonly myMaybeDates = computed<string[]>(() => {
+    const doc = this.activeWeekDoc();
+    const uid = this.auth.firebaseUser()?.uid;
+    if (!doc || !uid || !doc.votes?.[uid]) return [];
+    return doc.votes[uid].maybeDates || [];
   });
 
   /** Riepilogo dei 7 giorni della settimana con contatori e atleti disponibili */
@@ -61,8 +69,10 @@ export class AvailabilityService {
     const allVotes = Object.values(doc?.votes || {});
 
     return days.map((d) => {
-      const voters = allVotes.filter((v) => v.availableDates.includes(d.date));
+      const voters = allVotes.filter((v) => (v.availableDates || []).includes(d.date));
+      const maybeVoters = allVotes.filter((v) => (v.maybeDates || []).includes(d.date));
       const count = voters.length;
+      const maybeCount = maybeVoters.length;
       const formatInfo = getMatchFormatByPlayerCount(count);
       const hasQuorum = count >= 10;
       const missingForQuorum = count >= 10 ? 0 : 10 - count;
@@ -73,6 +83,8 @@ export class AvailabilityService {
         dayNumber: d.dayNumber,
         voters,
         voterCount: count,
+        maybeVoters,
+        maybeCount,
         formatInfo,
         hasQuorum,
         missingForQuorum,
@@ -208,28 +220,38 @@ export class AvailabilityService {
   }
 
   /**
-   * Toggle rapido di un giorno per l'atleta loggato (Multi-Giorno).
+   * Toggle scelta giorno atleta: 'yes' (Ci sono) oppure 'maybe' (Forse).
    */
-  async toggleDayVote(date: string): Promise<void> {
+  async toggleDayVote(date: string, type: 'yes' | 'maybe' = 'yes'): Promise<void> {
     const user = this.auth.firebaseUser();
     if (!user) return;
 
-    const currentDates = this.myVotedDates();
-    let nextDates: string[];
+    let currentYes = [...this.myVotedDates()];
+    let currentMaybe = [...this.myMaybeDates()];
 
-    if (currentDates.includes(date)) {
-      nextDates = currentDates.filter((d) => d !== date);
-    } else {
-      nextDates = [...currentDates, date];
+    if (type === 'yes') {
+      if (currentYes.includes(date)) {
+        currentYes = currentYes.filter((d) => d !== date);
+      } else {
+        currentYes.push(date);
+        currentMaybe = currentMaybe.filter((d) => d !== date);
+      }
+    } else if (type === 'maybe') {
+      if (currentMaybe.includes(date)) {
+        currentMaybe = currentMaybe.filter((d) => d !== date);
+      } else {
+        currentMaybe.push(date);
+        currentYes = currentYes.filter((d) => d !== date);
+      }
     }
 
-    await this.saveMyVotes(nextDates);
+    await this.saveMyVotes(currentYes, currentMaybe);
   }
 
   /**
-   * Salva l'array delle date selezionate dall'atleta loggato su Firestore.
+   * Salva l'array delle date 'Ci sono' e 'Forse' dell'atleta su Firestore.
    */
-  async saveMyVotes(availableDates: string[], note?: string): Promise<void> {
+  async saveMyVotes(availableDates: string[], maybeDates: string[] = [], note?: string): Promise<void> {
     if (!this.firestore) return;
     const user = this.auth.firebaseUser();
     if (!user) return;
@@ -244,6 +266,7 @@ export class AvailabilityService {
       displayName: this.auth.displayName() || user.email?.split('@')[0] || 'Atleta',
       photoURL: this.auth.photoURL() || null,
       availableDates: availableDates || [],
+      maybeDates: maybeDates || [],
       updatedAt: new Date().toISOString(),
     };
     if (note && note.trim()) {
@@ -300,6 +323,16 @@ export class AvailabilityService {
         uid: v.uid,
         playerId: p?.id || null,
         status: 'confirmed',
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    for (const v of day.maybeVoters || []) {
+      const p = allPlayers.find((g) => (v.playerId && g.id === v.playerId) || (g.linkedUid && g.linkedUid === v.uid));
+      rsvpMap[v.uid] = {
+        uid: v.uid,
+        playerId: p?.id || null,
+        status: 'maybe',
         updatedAt: new Date().toISOString(),
       };
     }

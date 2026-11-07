@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.37",
+    "date": "07/11/2026",
+    "title": "Pulsante 'Forse' nel Calendario & Grafiche Unificate Stile Partita",
+    "userChanges": [
+      "🤔 Opzione 'Forse' nel Calendario: ogni atleta può ora indicare se è in dubbio per un giorno ('Forse') oppure confermare la presenza certa ('Ci sono').",
+      "🎨 Grafica Unificata con la Partita: doppio pulsante compatto 'Ci sono' (verde) e 'Forse' (ambra) su ogni card del carosello e nel dettaglio del giorno.",
+      "📊 Quorum Chiaro & Rigoroso: il quorum dei 10 conta esclusivamente i 'Ci sono', mentre i 'Forse' appaiono come badge aggiuntivo (+N 🤔).",
+      "⚽ Passaggio Diretto a Match: quando il Mister crea la partita, i 'Ci sono' diventano convocati confermati e i 'Forse' vengono inseriti nell'RSVP come in dubbio!"
+    ],
+    "superUserChanges": [
+      "⚡ Estesa interfaccia AthleteWeeklyVote e DaySummary con maybeDates, maybeVoters e maybeCount.",
+      "📱 Messaggio WhatsApp aggiornato con conteggio separato confermati e in forse."
+    ]
+  },
+  {
     "version": "2.0.36",
     "date": "07/11/2026",
     "title": "Creazione Partita Diretta da Calendario & Convocazione Automatica",

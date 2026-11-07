@@ -552,7 +552,7 @@ export function formatMatchForWhatsApp(
  * professionale e senza emoji ridondanti.
  */
 export function formatWeeklyAvailabilityForWhatsApp(
-  daySummaries: { dayName: string; voterCount: number; hasQuorum: boolean }[],
+  daySummaries: { dayName: string; voterCount: number; maybeCount?: number; hasQuorum: boolean }[],
   missingAthletes: string[]
 ): string {
   const parts: string[] = [];
@@ -578,7 +578,8 @@ export function formatWeeklyAvailabilityForWhatsApp(
       : d.voterCount >= 8
         ? ' (quorum quasi raggiunto)'
         : '';
-    parts.push(`• ${nome}: ${d.voterCount} atleti${nota}`);
+    const forseStr = d.maybeCount ? ` (+${d.maybeCount} in forse)` : '';
+    parts.push(`• ${nome}: ${d.voterCount} confermati${forseStr}${nota}`);
   }
 
   parts.push('');
