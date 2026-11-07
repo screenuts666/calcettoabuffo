@@ -46,36 +46,33 @@ service cloud.firestore {
       );
     }
 
-    // Verifica "Atleta" (User standard associato a un playerId valido)
-    function isAtleta() {
-      return isAuthenticated() &&
-        userDocExists() &&
-        getUserData().role == 'user' &&
-        getUserData().get('playerId', null) != null;
-    }
-
     // Verifica se l'utente (Atleta o Mister-Giocatore) ha un profilo giocatore associato
     function hasLinkedPlayer() {
       return isAuthenticated() &&
         userDocExists() &&
-        (getUserData().role == 'user' || getUserData().role == 'superuser') &&
+        (getUserData().role == 'user' || getUserData().role == 'superuser' || getUserData().role == 'presidente') &&
         getUserData().get('playerId', null) != null;
     }
 
     // =========================================================================
-    // 1. COLLEZIONE USERS: Prevenzione Privilege Escalation
+    // 1. COLLEZIONE USERS: Prevenzione Privilege Escalation & Protezione Presidente
     // =========================================================================
     match /users/{uid} {
       // Ogni utente autenticato può leggere il proprio profilo;
-      // il Mister può leggere tutti gli utenti per gestire ruoli e associazioni.
+      // il Mister e Presidente possono leggere tutti gli utenti per gestire ruoli e convocazioni.
       allow read: if isAuthenticated() && (request.auth.uid == uid || isSuperUser());
 
       // Creazione al Sign-Up / Primo Login:
       // - L'utente può creare SOLO il proprio documento (request.auth.uid == uid)
-      // - Il ruolo iniziale DEVE essere 'guest' con playerId == null
-      //   (salvo il Mister / Legacy Admin che nasce già 'superuser')
+      // - Il ruolo 'presidente' può essere assegnato SOLO se isPresidente()
+      // - Un Mister non può assegnare 'presidente'
+      // - Un utente ordinario nasce tassativamente 'guest' con playerId == null
       allow create: if isAuthenticated() && request.auth.uid == uid && (
-        isSuperUser() ||
+        (isPresidente()) ||
+        (
+          isSuperUser() &&
+          request.resource.data.role != 'presidente'
+        ) ||
         (
           request.resource.data.uid == uid &&
           request.resource.data.role == 'guest' &&
@@ -84,45 +81,64 @@ service cloud.firestore {
       );
 
       // Aggiornamento profilo utente:
-      // - Il Mister (`isSuperUser()`) può aggiornare qualsiasi utente (incluso promuovere un altro Mister,
-      //   assegnare/scollegare il proprio `playerId` senza perdere il ruolo `superuser`, o associare giocatori).
-      // - L'utente non-Mister può aggiornare solo il proprio doc e SOLO in due casi:
-      //   Caso A: modifica anagrafica account senza toccare `role` né `playerId`
-      //   Caso B: transizione controllata `guest` -> `user` reclamando un giocatore libero (`linkedUid == request.auth.uid` su getAfter)
-      allow update: if isSuperUser() || (
-        isAuthenticated() && request.auth.uid == uid && (
-          // Caso A: aggiornamento dati base profilo (nessuna modifica a role o playerId)
-          (
-            request.resource.data.role == resource.data.role &&
-            request.resource.data.get('playerId', null) == resource.data.get('playerId', null) &&
-            request.resource.data.uid == resource.data.uid &&
-            request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt', 'authProvider'])
+      // - BLINDATURA ASSOLUTA PRESIDENTE: nessun utente (nemmeno un altro Mister) può
+      //   modificare l'account del Presidente, declassarlo o toccarne i dati. Solo il Presidente stesso.
+      // - NESSUN MISTER PUÒ ASSEGNARE IL RUOLO 'presidente'. Solo il Presidente può farlo.
+      // - Un utente ordinario può modificare SOLO il proprio doc e SOLO per anagrafica o claiming atleta libero.
+      allow update: if (
+        (resource.data.get('role', '') == 'presidente' || resource.data.get('email', '').lower() == 'giradischi666@gmail.com')
+          ? isPresidente()
+          : (
+            isPresidente()
+            ||
+            (
+              isSuperUser() &&
+              request.resource.data.get('role', '') != 'presidente'
+            )
+            ||
+            (isAuthenticated() && request.auth.uid == uid && (
+              // Caso A: aggiornamento dati base profilo (nessuna modifica a role o playerId)
+              (
+                request.resource.data.role == resource.data.role &&
+                request.resource.data.get('playerId', null) == resource.data.get('playerId', null) &&
+                request.resource.data.uid == resource.data.uid &&
+                request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['displayName', 'photoURL', 'email', 'lastLoginAt', 'updatedAt', 'authProvider'])
+              )
+              ||
+              // Caso B: reclamo iniziale di un giocatore libero (Tifoso -> Atleta)
+              (
+                resource.data.role == 'guest' &&
+                resource.data.get('playerId', null) == null &&
+                request.resource.data.role == 'user' &&
+                request.resource.data.playerId is string &&
+                request.resource.data.diff(resource.data).affectedKeys()
+                  .hasOnly(['role', 'playerId', 'updatedAt', 'lastLoginAt']) &&
+                getAfter(/databases/$(database)/documents/giocatori/$(request.resource.data.playerId)).data.linkedUid == request.auth.uid
+              )
+            ))
           )
-          ||
-          // Caso B: reclamo iniziale di un giocatore libero (Tifoso -> Atleta)
-          (
-            resource.data.role == 'guest' &&
-            resource.data.get('playerId', null) == null &&
-            request.resource.data.role == 'user' &&
-            request.resource.data.playerId is string &&
-            request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['role', 'playerId', 'updatedAt', 'lastLoginAt']) &&
-            getAfter(/databases/$(database)/documents/giocatori/$(request.resource.data.playerId)).data.linkedUid == request.auth.uid
-          )
-        )
       );
 
-      allow delete: if isSuperUser();
+      // Eliminazione profilo: solo Presidente per account protetti, SuperUser per utenti normali
+      allow delete: if (
+        (resource.data.get('role', '') == 'presidente' || resource.data.get('email', '').lower() == 'giradischi666@gmail.com')
+          ? isPresidente()
+          : isSuperUser()
+      );
     }
 
     // =========================================================================
     // 1b. COLLEZIONE AUTHORIZED_ROLES: Pre-autorizzazione Ruoli via Email
-    // Permette al Presidente di pre-assegnare ruoli prima del primo login
+    // Solo il Presidente può pre-autorizzare o revocare ruoli!
     // =========================================================================
     match /authorized_roles/{emailDoc} {
-      allow read: if isAuthenticated();
-      allow write: if isSuperUser();
+      allow write: if isPresidente();
+      allow read: if isSuperUser() || (
+        isAuthenticated() &&
+        request.auth.token.email != null &&
+        request.auth.token.email.lower() == emailDoc.lower()
+      );
     }
 
     // =========================================================================

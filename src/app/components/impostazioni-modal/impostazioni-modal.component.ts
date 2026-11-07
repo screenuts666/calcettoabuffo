@@ -55,6 +55,8 @@ import {
   searchOutline,
   linkOutline,
   unlinkOutline,
+  cloudDownloadOutline,
+  cloudUploadOutline,
 } from 'ionicons/icons';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -64,6 +66,7 @@ import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
 import { GmailIntegrationService } from '../../services/gmail-integration.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
+import { BackupRestoreService } from '../../services/backup-restore.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
 import {
   AppUserProfile,
@@ -94,6 +97,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   public soundSettings = inject(SoundSettingsService);
   public gmail = inject(GmailIntegrationService);
   public statsEngine = inject(StatsEngineService);
+  public backupRestore = inject(BackupRestoreService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -114,6 +118,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   // ─── STATO ASSOCIAZIONE SCHEDA ATLETA ──────────────────────────────────────
   selectedPlayerToLink = signal<string>('');
   isLinkingAthlete = signal<boolean>(false);
+  isExportingBackup = signal<boolean>(false);
 
   // Streams reattivi da Firestore
   users$: Observable<AppUserProfile[]> = this.authService.getAllUsers$();
@@ -173,6 +178,8 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       searchOutline,
       linkOutline,
       unlinkOutline,
+      cloudDownloadOutline,
+      cloudUploadOutline,
     });
   }
 
@@ -514,6 +521,18 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   async logoutSuperUser() {
     await this.authService.logoutAdmin();
     await this.mostraToast('Logout effettuato', 'medium');
+  }
+
+  async scaricaBackupDatabase() {
+    this.isExportingBackup.set(true);
+    try {
+      const res = await this.backupRestore.exportDatabaseSnapshot();
+      await this.mostraToast(`💾 Backup salvato: ${res.filename}`, 'success');
+    } catch (err: any) {
+      await this.mostraToast(err?.message || 'Errore durante il backup', 'danger');
+    } finally {
+      this.isExportingBackup.set(false);
+    }
   }
 
   private async mostraToast(

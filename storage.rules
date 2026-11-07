@@ -1,18 +1,48 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // Avatar giocatori: lettura pubblica, upload solo per utenti autenticati (max 5MB, solo immagini)
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isPrivilegedEmail() {
+      return isAuthenticated() &&
+        request.auth.token.email != null &&
+        request.auth.token.email.lower() in [
+          'giradischi666@gmail.com',
+          'lucais1991@gmail.com'
+        ];
+    }
+
+    // 1. Avatar giocatori e profili utente: max 5MB, esclusivamente immagini
     match /avatars/{fileName} {
       allow read: if true;
-      allow write: if request.auth != null
+      allow write: if isAuthenticated()
                    && request.resource.size < 5 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
     }
 
-    // Foto partite e cache audio TTS: lettura pubblica, scrittura solo utenti autenticati
+    // 2. Foto partite e collage: max 15MB, esclusivamente immagini
+    match /partite/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated()
+                   && request.resource.size < 15 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // 3. Audio telecronaca e pronostici TTS: solo audio mp3/ogg max 20MB
+    match /tts/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAuthenticated()
+                   && request.resource.size < 20 * 1024 * 1024
+                   && request.resource.contentType.matches('audio/.*');
+    }
+
+    // 4. Default: lettura consentita per asset pubblici, scrittura BLOCCATA a utenti non privilegiati
     match /{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isPrivilegedEmail();
     }
   }
 }

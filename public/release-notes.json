@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.25",
+    "date": "07/11/2026",
+    "title": "Blindatura Sicurezza Totale & Backup Snapshot Database",
+    "userChanges": [
+      "🛡️ Blindatura di Sicurezza: rafforzate le regole di sicurezza di Firestore e Storage su tutti i profili, partite e caricamento file.",
+      "💾 Backup Database Completo: aggiunto in Impostazioni il download istantaneo con 1 click dello snapshot completo del database in JSON."
+    ],
+    "superUserChanges": [
+      "🔒 Isolamento Presidente Anti-Escalation: protetto a livello di Firestore rules l'account del Presidente, impedendo a chiunque altro di modificare o declassare il ruolo.",
+      "🛡️ Storage Hardening: eliminato l'accesso arbitrario in scrittura; upload rigorosamente controllati per formato immagine/audio e limitati a 5MB/15MB/20MB.",
+      "📦 Backup & Disaster Recovery Service: introdotto `BackupRestoreService` per l'esportazione e il ripristino sicuro batch di tutte le collezioni critiche."
+    ]
+  },
+  {
     "version": "2.0.24",
     "date": "07/11/2026",
     "title": "Ruolo Supremo Presidente, Gestione Ruoli WhatsApp & Impostazioni Rinnovate",

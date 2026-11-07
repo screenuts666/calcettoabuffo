@@ -657,6 +657,18 @@
             <button
               type="button"
               class="sys-action-btn"
+              [disabled]="isExportingBackup()"
+              (click)="scaricaBackupDatabase()"
+            >
+              <ion-icon name="cloud-download-outline"></ion-icon>
+              <div class="sab-text">
+                <strong>💾 {{ isExportingBackup() ? 'Generazione Backup...' : 'Scarica Backup Database (.json)' }}</strong>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              class="sys-action-btn"
               (click)="ripristinaDefaultAudio()"
             >
               <ion-icon name="refresh-outline"></ion-icon>
