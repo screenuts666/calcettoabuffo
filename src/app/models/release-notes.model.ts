@@ -11,6 +11,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.31",
+    "date": "07/11/2026",
+    "title": "Fix Menu Profilo Desktop, Layout Ruoli & Votazioni Calendario",
+    "userChanges": [
+      "🖥️ Menu Profilo Attivo su Desktop: cliccando sul proprio account nell'header su Desktop ora si apre regolarmente il pannello profilo completo 'Il Mio Profilo'.",
+      "🙋 Fix Votazione Calendario: risolto l'errore di salvataggio durante la selezione delle disponibilità nei giorni della settimana.",
+      "👥 Grafica Schede Membri Risolta: niente più scritte o pulsanti sovrapposti in Gestione Membri; ogni utente ha ora uno spazio ordinato e leggibile sia su mobile che su desktop."
+    ],
+    "superUserChanges": [
+      "🛡️ Sanitizzazione Payload Firestore: eliminati i campi undefined in setDoc per le votazioni di disponibilità settimanali.",
+      "📐 Layout Responsive Membri & Ruoli: separazione strutturata tra dati anagrafici e barra azioni (Cambia, Scollega, Fai Mister, Elimina) con adattamento fluido."
+    ]
+  },
+  {
     "version": "2.0.30",
     "date": "07/11/2026",
     "title": "Nuovo Calendario Interattivo, Disponibilità Settimanali, Meteo & Mappe Campi",

@@ -148,17 +148,12 @@ export class ThemeToggleComponent {
       return;
     }
 
-    if (window.innerWidth >= 768) {
-      this.isDesktopMenuOpen.update((v) => !v);
-      return;
-    }
-
-    // Su mobile: apri bottom sheet modal
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
     const modal = await this.modalCtrl.create({
       component: UserMenuModalComponent,
-      breakpoints: [0, 0.78, 1],
-      initialBreakpoint: 0.78,
-      handle: true,
+      breakpoints: isDesktop ? undefined : [0, 0.78, 1],
+      initialBreakpoint: isDesktop ? undefined : 0.78,
+      handle: !isDesktop,
       mode: 'ios',
       cssClass: 'user-menu-sheet-modal',
     });

@@ -146,15 +146,17 @@ export class AvailabilityService {
     const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
     const days = this.activeWeekDays();
 
-    const athleteVote: AthleteWeeklyVote = {
+    const athleteVote: any = {
       uid: user.uid,
-      playerId: this.auth.linkedPlayerId(),
+      playerId: this.auth.linkedPlayerId() || null,
       displayName: this.auth.displayName() || user.email?.split('@')[0] || 'Atleta',
-      photoURL: this.auth.photoURL(),
-      availableDates,
+      photoURL: this.auth.photoURL() || null,
+      availableDates: availableDates || [],
       updatedAt: new Date().toISOString(),
-      note: note || undefined,
     };
+    if (note && note.trim()) {
+      athleteVote.note = note.trim();
+    }
 
     const payload: Partial<WeeklyAvailabilityDoc> = {
       weekKey,
@@ -212,10 +214,10 @@ export class AvailabilityService {
 
     const nuovaPartita: Partial<Partita> = {
       dataPartita: day.date,
-      orario,
-      luogo: campoNome,
-      campoGoogleMapsUrl: campoMapsUrl,
-      formato: day.formatInfo.format,
+      orario: orario || '21:00',
+      luogo: campoNome || 'Roma 6',
+      campoGoogleMapsUrl: campoMapsUrl || null,
+      formato: day.formatInfo.format || 'calcetto',
       convocati: convocatiIds,
       teamA: [],
       teamB: [],

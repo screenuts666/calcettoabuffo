@@ -80,8 +80,8 @@ export interface Partita {
   dataPartita: string;
   orario: string;
   luogo: string;
-  campoGoogleMapsUrl?: string;
-  formato?: MatchFormat;
+  campoGoogleMapsUrl?: string | null;
+  formato?: MatchFormat | string | null;
   dataOra?: any;
   convocati: any[];
   teamA: PlayerPerformance[];

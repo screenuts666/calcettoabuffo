@@ -1314,10 +1314,10 @@
 
   .member-row {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 12px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 14px;
     background: var(--app-surface-subtle);
     border: 1px solid var(--app-card-border);
     transition: background 0.15s ease, border-color 0.15s ease;
@@ -1327,141 +1327,170 @@
       background: rgba(168, 85, 247, 0.06);
     }
 
-    .member-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      overflow: hidden;
-      flex-shrink: 0;
-      border: 1px solid var(--app-card-border);
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .avatar-fallback {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--app-card-bg);
-        color: var(--app-text-primary);
-        font-size: 0.8rem;
-        font-weight: 800;
-      }
-    }
-
-    .member-details {
-      flex: 1;
-      min-width: 0;
+    .member-header-row {
       display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: flex-start;
+      gap: 12px;
+      width: 100%;
 
-      .member-name-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
+      .member-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid var(--app-card-border);
 
-        .member-name {
-          font-size: 0.88rem;
-          font-weight: 800;
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .avatar-fallback {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--app-card-bg);
           color: var(--app-text-primary);
-          white-space: nowrap;
+          font-size: 0.8rem;
+          font-weight: 800;
+        }
+      }
+
+      .member-details {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .member-name-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+
+          .member-name {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--app-text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .role-tag {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 6px;
+            white-space: nowrap;
+
+            &.role-presidente {
+              background: rgba(168, 85, 247, 0.18);
+              color: #c084fc;
+            }
+
+            &.role-superuser {
+              background: rgba(251, 191, 36, 0.16);
+              color: #fbbf24;
+            }
+
+            &.role-user {
+              background: rgba(59, 130, 246, 0.15);
+              color: #60a5fa;
+            }
+
+            &.role-guest {
+              background: rgba(148, 163, 184, 0.16);
+              color: #94a3b8;
+            }
+          }
+        }
+
+        .member-email {
+          font-size: 0.74rem;
+          color: var(--app-text-secondary);
           overflow: hidden;
           text-overflow: ellipsis;
-        }
-
-        .role-tag {
-          font-size: 0.65rem;
-          font-weight: 800;
-          padding: 1px 6px;
-          border-radius: 6px;
           white-space: nowrap;
+        }
 
-          &.role-presidente {
-            background: rgba(168, 85, 247, 0.18);
-            color: #c084fc;
-          }
+        .member-player-association {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 2px;
 
-          &.role-superuser {
-            background: rgba(251, 191, 36, 0.16);
-            color: #fbbf24;
-          }
-
-          &.role-user {
-            background: rgba(59, 130, 246, 0.15);
+          .player-linked-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
             color: #60a5fa;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+
+            &:hover {
+              background: rgba(59, 130, 246, 0.22);
+            }
+
+            ion-icon {
+              font-size: 0.8rem;
+              flex-shrink: 0;
+            }
+
+            span {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
           }
 
-          &.role-guest {
-            background: rgba(148, 163, 184, 0.16);
-            color: #94a3b8;
-          }
-        }
-      }
+          .player-unlinked-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px dashed rgba(245, 158, 11, 0.35);
+            color: #fbbf24;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
 
-      .member-email {
-        font-size: 0.74rem;
-        color: var(--app-text-secondary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+            &:hover {
+              background: rgba(245, 158, 11, 0.2);
+            }
 
-      .member-player-association {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 2px;
+            ion-icon {
+              font-size: 0.8rem;
+              flex-shrink: 0;
+            }
 
-        .player-linked-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 2px 8px;
-          border-radius: 6px;
-          background: rgba(59, 130, 246, 0.12);
-          border: 1px solid rgba(59, 130, 246, 0.3);
-          color: #60a5fa;
-          font-size: 0.72rem;
-          font-weight: 700;
-          cursor: pointer;
-          transition: background 0.15s ease;
-
-          &:hover {
-            background: rgba(59, 130, 246, 0.22);
-          }
-
-          ion-icon {
-            font-size: 0.8rem;
-          }
-        }
-
-        .player-unlinked-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 2px 8px;
-          border-radius: 6px;
-          background: rgba(245, 158, 11, 0.1);
-          border: 1px dashed rgba(245, 158, 11, 0.35);
-          color: #fbbf24;
-          font-size: 0.7rem;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.15s ease;
-
-          &:hover {
-            background: rgba(245, 158, 11, 0.2);
-          }
-
-          ion-icon {
-            font-size: 0.8rem;
+            span {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
           }
         }
       }
@@ -1473,7 +1502,10 @@
       gap: 6px;
       flex-wrap: wrap;
       justify-content: flex-end;
-      flex-shrink: 0;
+      width: 100%;
+      margin-top: 4px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
 
       .locked-badge {
         font-size: 0.72rem;
@@ -1768,21 +1800,34 @@
   }
 
   .member-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     padding: 14px 18px;
     gap: 14px;
 
-    .member-avatar {
-      width: 44px;
-      height: 44px;
-    }
+    .member-header-row {
+      flex: 1;
+      width: auto;
+      align-items: center;
 
-    .member-details {
-      .member-name-row .member-name {
-        font-size: 0.98rem;
+      .member-avatar {
+        width: 44px;
+        height: 44px;
+      }
+
+      .member-details {
+        .member-name-row .member-name {
+          font-size: 0.98rem;
+        }
       }
     }
 
     .member-actions-cluster {
+      width: auto;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
       gap: 8px;
 
       .btn-subtle-action,

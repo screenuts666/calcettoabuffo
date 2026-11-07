@@ -196,36 +196,38 @@
           <div class="members-list">
             @for (u of filteredUsers(users); track u.uid) {
               <div class="member-row" [class.is-presidente]="u.role === 'presidente'">
-                <div class="member-avatar">
-                  @if (u.photoURL) {
-                    <img [src]="u.photoURL" [alt]="u.displayName" />
-                  } @else {
-                    <div class="avatar-fallback">{{ getInitials(u.displayName || u.email) }}</div>
-                  }
-                </div>
-
-                <div class="member-details">
-                  <div class="member-name-row">
-                    <strong class="member-name">{{ u.displayName || 'Utente' }}</strong>
-                    <span class="role-tag" [ngClass]="'role-' + u.role">
-                      {{ getRoleBadgeText(u.role) }}
-                    </span>
-                  </div>
-                  <span class="member-email">{{ u.email }}</span>
-
-                  <!-- SCHEDA GIOCATORE COLLEGATA -->
-                  <div class="member-player-association">
-                    @if (u.playerId) {
-                      <span class="player-linked-chip" (click)="onModificaSchedaAtleta(u)" title="Cambia scheda atleta">
-                        <ion-icon name="football-outline"></ion-icon>
-                        <span>Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong></span>
-                      </span>
+                <div class="member-header-row">
+                  <div class="member-avatar">
+                    @if (u.photoURL) {
+                      <img [src]="u.photoURL" [alt]="u.displayName" />
                     } @else {
-                      <span class="player-unlinked-chip" (click)="onModificaSchedaAtleta(u)" title="Associa scheda atleta">
-                        <ion-icon name="alert-circle-outline"></ion-icon>
-                        <span>Nessuna scheda associata</span>
-                      </span>
+                      <div class="avatar-fallback">{{ getInitials(u.displayName || u.email) }}</div>
                     }
+                  </div>
+
+                  <div class="member-details">
+                    <div class="member-name-row">
+                      <strong class="member-name">{{ u.displayName || 'Utente' }}</strong>
+                      <span class="role-tag" [ngClass]="'role-' + u.role">
+                        {{ getRoleBadgeText(u.role) }}
+                      </span>
+                    </div>
+                    <span class="member-email">{{ u.email }}</span>
+
+                    <!-- SCHEDA GIOCATORE COLLEGATA -->
+                    <div class="member-player-association">
+                      @if (u.playerId) {
+                        <span class="player-linked-chip" (click)="onModificaSchedaAtleta(u)" title="Cambia scheda atleta">
+                          <ion-icon name="football-outline"></ion-icon>
+                          <span>Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong></span>
+                        </span>
+                      } @else {
+                        <span class="player-unlinked-chip" (click)="onModificaSchedaAtleta(u)" title="Associa scheda atleta">
+                          <ion-icon name="alert-circle-outline"></ion-icon>
+                          <span>Nessuna scheda associata</span>
+                        </span>
+                      }
+                    </div>
                   </div>
                 </div>
 
