@@ -65,11 +65,23 @@ export interface RotazionePortieri {
   durataTurnoMinuti?: number; // default 5 minuti
 }
 
+export type MatchFormat = 'calcetto' | 'calcio_a_6' | 'calcio_a_7' | 'calcio_a_8' | 'calcio_a_11';
+
+export function getMatchFormatByPlayerCount(count: number): { format: MatchFormat; label: string; perTeam: number } {
+  if (count >= 22) return { format: 'calcio_a_11', label: 'Calcio a 11', perTeam: 11 };
+  if (count >= 16) return { format: 'calcio_a_8', label: 'Calcio a 8', perTeam: 8 };
+  if (count >= 14) return { format: 'calcio_a_7', label: 'Calcio a 7', perTeam: 7 };
+  if (count >= 12) return { format: 'calcio_a_6', label: 'Calcio a 6', perTeam: 6 };
+  return { format: 'calcetto', label: 'Calcio a 5', perTeam: 5 };
+}
+
 export interface Partita {
   id?: string;
   dataPartita: string;
   orario: string;
   luogo: string;
+  campoGoogleMapsUrl?: string;
+  formato?: MatchFormat;
   dataOra?: any;
   convocati: any[];
   teamA: PlayerPerformance[];

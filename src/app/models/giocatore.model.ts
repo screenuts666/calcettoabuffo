@@ -11,6 +11,10 @@ export interface Giocatore {
   id: string;
   nome: string;
   soprannome?: string; // Soprannome ufficiale/manuale (MAI sovrascritto dall'AI)
+  /** Data di nascita in formato italiano GG/MM/AAAA o GG/MM per compleanni sul Calendario */
+  dataNascita?: string;
+  /** Se true, nasconde l'anno/età sul profilo mostrando solo giorno e mese */
+  nascondiAnnoNascita?: boolean;
   annoNascita?: string;
   piedePreferito?: PiedePreferito;
   ruoloPreferito?: RuoloPreferito;

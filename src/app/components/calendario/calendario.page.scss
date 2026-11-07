@@ -1,0 +1,1038 @@
+.cal-main-toolbar {
+  --background: var(--ion-color-step-50, #0f172a);
+  --color: #f8fafc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  ion-title {
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+  }
+}
+
+.share-wa-header-btn {
+  font-size: 0.85rem;
+  font-weight: 700;
+  --color: #10b981;
+
+  .share-btn-text {
+    margin-left: 4px;
+    display: inline;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BARRA 1: CONTROLLI NAVIGAZIONE MESE
+   ───────────────────────────────────────────────────────────── */
+.month-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: var(--ion-color-step-100, #1e293b);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  .nav-month-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: #f8fafc;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+
+    &:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.15);
+    }
+  }
+
+  .current-month-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .month-icon {
+      font-size: 1.2rem;
+      color: #10b981;
+    }
+
+    .month-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .btn-today {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    color: #34d399;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      background: rgba(16, 185, 129, 0.25);
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BARRA 2: FILTRI TOGGLE (PARTITE, METEO, LUNA, COMPLEANNI)
+   ───────────────────────────────────────────────────────────── */
+.filters-pills-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--ion-color-step-150, #0f172a);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-pill {
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    color: #94a3b8;
+    padding: 5px 11px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+
+    &.active {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #34d399;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.cal-content {
+  --background: var(--ion-background-color, #0b1120);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BANNER PAUSA ESTIVA
+   ───────────────────────────────────────────────────────────── */
+.summer-break-banner {
+  margin: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .summer-break-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    .summer-icon {
+      font-size: 1.6rem;
+      color: #f59e0b;
+      margin-top: 2px;
+    }
+
+    .summer-text {
+      strong {
+        color: #f59e0b;
+        font-size: 0.95rem;
+        display: block;
+        margin-bottom: 2px;
+      }
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+      }
+      small {
+        color: #94a3b8;
+        font-size: 0.75rem;
+        display: block;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .btn-manage-break {
+    align-self: flex-end;
+    background: rgba(245, 158, 11, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fbbf24;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   HERO WIDGET: DISPONIBILITÀ SETTIMANALE ("QUANDO GIOCHIAMO?")
+   ───────────────────────────────────────────────────────────── */
+.weekly-availability-section {
+  margin: 14px;
+  padding: 16px;
+  background: var(--ion-color-step-50, #131c31);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+
+  .section-top-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    .section-titles {
+      .availability-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        color: #34d399;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 8px;
+        border-radius: 20px;
+        margin-bottom: 6px;
+
+        .live-pulse-dot {
+          width: 7px;
+          height: 7px;
+          background: #10b981;
+          border-radius: 50%;
+          animation: pulseDot 1.6s infinite ease-in-out;
+        }
+      }
+
+      .section-week-label {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: #f8fafc;
+        margin: 0 0 4px 0;
+        letter-spacing: -0.01em;
+      }
+
+      .section-subtitle {
+        font-size: 0.8rem;
+        color: #94a3b8;
+        margin: 0;
+      }
+    }
+
+    .btn-wa-sollecita {
+      background: #10b981;
+      color: #022c22;
+      border: none;
+      padding: 7px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 1.05rem;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+
+  /* CAROUSEL DEI GIORNI */
+  .days-vote-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin: 0 -4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .day-vote-card {
+      flex: 0 0 148px;
+      background: var(--ion-color-step-100, #1e293b);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      transition: all 0.25s ease;
+
+      &.is-my-choice {
+        border-color: rgba(16, 185, 129, 0.55);
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.1), var(--ion-color-step-100, #1e293b));
+      }
+
+      &.quorum-reached {
+        border-color: #10b981;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+      }
+
+      .card-day-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+
+        .day-name {
+          font-size: 0.88rem;
+          font-weight: 800;
+          color: #f8fafc;
+        }
+
+        .weather-mini-chip {
+          display: flex;
+          align-items: center;
+          gap: 2px;
+          font-size: 0.72rem;
+          color: #cbd5e1;
+
+          .rain-chance {
+            color: #38bdf8;
+            font-size: 0.68rem;
+            font-weight: 700;
+          }
+        }
+
+        .lunar-mini {
+          font-size: 0.85rem;
+        }
+      }
+
+      .card-quorum-status {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        .voters-count-row {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          color: #cbd5e1;
+          font-size: 0.82rem;
+
+          ion-icon {
+            color: #94a3b8;
+          }
+
+          strong {
+            color: #f8fafc;
+            font-size: 0.95rem;
+          }
+
+          .quorum-target {
+            color: #64748b;
+            font-size: 0.75rem;
+          }
+        }
+
+        .quorum-badge-success {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 6px;
+          border-radius: 6px;
+          width: fit-content;
+        }
+
+        .quorum-badge-missing {
+          font-size: 0.7rem;
+          color: #f59e0b;
+          font-weight: 600;
+        }
+      }
+
+      .voters-avatars-tray {
+        display: flex;
+        align-items: center;
+        min-height: 26px;
+        margin-top: 2px;
+
+        .voter-mini-avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 1.5px solid #1e293b;
+          margin-left: -6px;
+
+          &:first-child {
+            margin-left: 0;
+          }
+
+          app-player-avatar {
+            width: 100%;
+            height: 100%;
+          }
+        }
+
+        .voters-overflow-pill {
+          background: rgba(255, 255, 255, 0.15);
+          color: #f8fafc;
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 2px 5px;
+          border-radius: 10px;
+          margin-left: 4px;
+        }
+      }
+
+      .btn-vote-toggle {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
+        padding: 6px 8px;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: auto;
+
+        &.active {
+          background: #10b981;
+          color: #022c22;
+          border-color: #10b981;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
+
+      .btn-fissa-partita {
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.5);
+        color: #60a5fa;
+        padding: 5px 6px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        cursor: pointer;
+        margin-top: 4px;
+
+        &:active {
+          background: rgba(59, 130, 246, 0.35);
+        }
+      }
+    }
+  }
+
+  .missing-voters-bar {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .missing-label {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .missing-names {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+
+      .missing-name-chip {
+        background: rgba(239, 68, 68, 0.12);
+        color: #fca5a5;
+        font-size: 0.72rem;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 12px;
+      }
+
+      .missing-more-chip {
+        color: #94a3b8;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   GRIGLIA MENSILE INTERATTIVA
+   ───────────────────────────────────────────────────────────── */
+.monthly-calendar-container {
+  margin: 0 14px 14px;
+
+  .calendar-card {
+    background: var(--ion-color-step-50, #131c31);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+    .weekdays-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--ion-color-step-100, #1e293b);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      text-align: center;
+      padding: 8px 0;
+
+      .weekday-header {
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+
+        &.weekend {
+          color: #f59e0b;
+        }
+      }
+    }
+
+    .days-matrix-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: rgba(255, 255, 255, 0.04);
+
+      .calendar-day-cell {
+        background: var(--ion-color-step-50, #131c31);
+        min-height: 72px;
+        padding: 4px;
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        position: relative;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        &.other-month {
+          opacity: 0.35;
+        }
+
+        &.today {
+          background: rgba(16, 185, 129, 0.07);
+
+          .day-number {
+            background: #10b981;
+            color: #022c22;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+          }
+        }
+
+        &.selected {
+          outline: 2px solid #38bdf8;
+          outline-offset: -2px;
+          background: rgba(56, 189, 248, 0.1);
+        }
+
+        .day-cell-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          font-size: 0.78rem;
+          font-weight: 700;
+          color: #cbd5e1;
+          margin-bottom: 3px;
+
+          .day-number {
+            font-size: 0.78rem;
+          }
+
+          .cell-weather-icon {
+            font-size: 0.75rem;
+          }
+
+          .cell-lunar-icon {
+            font-size: 0.72rem;
+          }
+        }
+
+        .cell-indicators {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          margin-top: auto;
+
+          .cell-match-badge {
+            background: rgba(16, 185, 129, 0.25);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            color: #34d399;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 1px 3px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+
+            &.in-programma {
+              background: rgba(59, 130, 246, 0.25);
+              border-color: rgba(59, 130, 246, 0.45);
+              color: #60a5fa;
+            }
+
+            .badge-ball {
+              font-size: 0.6rem;
+            }
+          }
+
+          .cell-bday-badge {
+            background: rgba(236, 72, 153, 0.2);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            color: #f472b6;
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 1px 3px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            overflow: hidden;
+
+            .bday-name {
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+          }
+
+          .cell-quorum-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.62rem;
+            font-weight: 800;
+            margin-top: 1px;
+
+            &.ready {
+              background: #10b981;
+              color: #022c22;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DETTAGLIO DEL GIORNO SELEZIONATO
+   ───────────────────────────────────────────────────────────── */
+.day-detail-panel {
+  margin: 0 14px 20px;
+  padding: 16px;
+  background: var(--ion-color-step-50, #131c31);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+
+  .detail-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 14px;
+
+    .detail-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .detail-header-icon {
+        font-size: 1.5rem;
+        color: #38bdf8;
+      }
+
+      .detail-date-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #f8fafc;
+        margin: 0;
+      }
+
+      .today-tag {
+        background: #10b981;
+        color: #022c22;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 2px 6px;
+        border-radius: 6px;
+        margin-top: 3px;
+        display: inline-block;
+      }
+    }
+
+    .detail-header-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .weather-box-detail {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 0.78rem;
+
+        .w-emoji {
+          font-size: 1.1rem;
+        }
+
+        .w-temps {
+          color: #f8fafc;
+        }
+
+        .w-rain {
+          color: #38bdf8;
+          font-weight: 700;
+          font-size: 0.72rem;
+        }
+      }
+
+      .lunar-box-detail {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 8px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        color: #cbd5e1;
+
+        .l-emoji {
+          font-size: 0.95rem;
+        }
+      }
+    }
+  }
+
+  .sub-section-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #cbd5e1;
+    margin: 12px 0 8px 0;
+
+    ion-icon {
+      color: #10b981;
+    }
+  }
+
+  /* COMPLEANNI */
+  .detail-birthdays-section {
+    margin-bottom: 14px;
+
+    .birthday-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.05));
+      border: 1px solid rgba(236, 72, 153, 0.35);
+      border-radius: 12px;
+
+      .bday-big-icon {
+        font-size: 1.8rem;
+      }
+
+      .bday-info {
+        strong {
+          color: #f472b6;
+          font-size: 0.95rem;
+          display: block;
+        }
+        p {
+          margin: 2px 0 0;
+          font-size: 0.8rem;
+          color: #cbd5e1;
+        }
+      }
+    }
+  }
+
+  /* PARTITE */
+  .detail-matches-section {
+    margin-bottom: 14px;
+
+    .detail-match-card {
+      background: var(--ion-color-step-100, #1e293b);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+
+      .match-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+
+        .match-status-badge {
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
+          font-size: 0.72rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 6px;
+
+          &.done {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+          }
+        }
+
+        .match-time-slot {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 0.78rem;
+          color: #94a3b8;
+          font-weight: 600;
+        }
+      }
+
+      .match-middle-info {
+        margin-bottom: 10px;
+
+        .score-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          font-size: 1.1rem;
+          color: #f8fafc;
+
+          strong {
+            font-size: 1.35rem;
+            color: #34d399;
+          }
+
+          .score-separator {
+            color: #64748b;
+          }
+        }
+
+        .upcoming-place {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: #f8fafc;
+          font-size: 0.95rem;
+
+          ion-icon {
+            color: #ef4444;
+          }
+        }
+      }
+
+      .match-actions-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+        .btn-maps-action {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          background: rgba(239, 68, 68, 0.15);
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          color: #f87171;
+          padding: 5px 9px;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-decoration: none;
+
+          &:active {
+            background: rgba(239, 68, 68, 0.25);
+          }
+        }
+
+        .btn-open-match {
+          background: transparent;
+          border: none;
+          color: #38bdf8;
+          font-size: 0.78rem;
+          font-weight: 700;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+        }
+      }
+    }
+  }
+
+  /* DISPONIBILITÀ GIOCATORI */
+  .detail-availability-section {
+    .players-chips-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+
+      .player-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--ion-color-step-100, #1e293b);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #f8fafc;
+
+        app-player-avatar {
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+
+    .empty-players-msg {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-style: italic;
+      margin: 4px 0 12px;
+    }
+
+    .detail-vote-action-bar {
+      .btn-detail-vote {
+        width: 100%;
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #34d399;
+        padding: 10px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &.active {
+          background: #10b981;
+          color: #022c22;
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+    }
+  }
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.6;
+  }
+}
+

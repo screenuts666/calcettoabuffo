@@ -41,17 +41,72 @@
     </div>
 
     <div class="section-card-body">
-      <!-- LUOGO -->
-      <ion-item lines="none" class="elegant-input-item ion-margin-bottom">
-        <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-        <ion-input
-          label="Luogo Partita *"
-          labelPlacement="stacked"
-          placeholder="Es. Campetto dei Pioppi"
-          [value]="state.luogo()"
-          (ionInput)="aggiornaLuogo($event.detail.value || '')"
-        ></ion-input>
-      </ion-item>
+      <!-- LUOGO CON AUTOCOMPLETE & MAPS -->
+      <div class="campo-input-group ion-margin-bottom">
+        <ion-item lines="none" class="elegant-input-item">
+          <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+          <ion-input
+            label="Luogo Partita *"
+            labelPlacement="stacked"
+            placeholder="Es. Roma 6, Vigor..."
+            [value]="state.luogo()"
+            (ionInput)="onLuogoInput($event.detail.value || '')"
+          ></ion-input>
+          @if (isSearchingCampi()) {
+            <ion-spinner name="dots" slot="end" class="campo-spinner"></ion-spinner>
+          }
+        </ion-item>
+
+        <!-- CHIP CAMPI STORICI RAPIDI -->
+        <div class="campi-chips-row">
+          @for (c of campiService.campiStorici(); track c.nome) {
+            <button
+              type="button"
+              class="quick-campo-chip"
+              [class.active]="state.luogo() === c.nome"
+              (click)="selezionaCampo(c)"
+            >
+              {{ c.nome }}
+            </button>
+          }
+        </div>
+
+        <!-- DROPDOWN SUGGERIMENTI RICERCA ONLINE -->
+        @if (suggerimentiCampi().length > 0) {
+          <div class="campi-autocomplete-list">
+            @for (sugg of suggerimentiCampi(); track sugg.nome) {
+              <div class="autocomplete-item" (click)="selezionaCampo(sugg)">
+                <div class="sugg-info">
+                  <ion-icon name="location-outline"></ion-icon>
+                  <div>
+                    <strong>{{ sugg.nome }}</strong>
+                    @if (sugg.indirizzo) {
+                      <small>{{ sugg.indirizzo }}</small>
+                    }
+                  </div>
+                </div>
+                <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ANTEPRIMA GOOGLE MAPS SE LUOGO INSERITO -->
+        @if (state.luogo().trim()) {
+          <div class="campo-maps-preview-row">
+            <a
+              [href]="getGoogleMapsUrl()"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="maps-preview-link"
+              title="Apri le indicazioni stradali su Google Maps"
+            >
+              <ion-icon name="navigate-outline"></ion-icon>
+              <span>📍 Vai qui (Google Maps)</span>
+            </a>
+          </div>
+        }
+      </div>
 
       <!-- DATA E ORARIO AFFIANCATI SU 2 COLONNE -->
       <div class="datetime-grid ion-margin-bottom">

@@ -678,6 +678,41 @@
   }
 }
 
+.format-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  letter-spacing: 0.2px;
+}
+
+.maps-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 0.76rem;
+  }
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.25);
+  }
+}
+
 .match-meta-right {
   display: flex;
   align-items: center;

@@ -24,6 +24,7 @@ import {
   IonSelect,
   IonSelectOption,
   IonAvatar,
+  IonCheckbox,
   IonBackButton,
   IonIcon,
   LoadingController,
@@ -87,6 +88,7 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonSelect,
     IonSelectOption,
     IonAvatar,
+    IonCheckbox,
     PlayerAvatarComponent,
     IonIcon,
   ],
@@ -112,6 +114,8 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   numeroMaglia = signal<string>('');
   bio = signal<string>('');
   annoNascita = signal('');
+  dataNascita = signal('');
+  nascondiAnnoNascita = signal<boolean>(false);
   piedePreferito = signal<PiedePreferito>(PiedePreferito.Destro);
   ruoloPreferito = signal<RuoloPreferito | null>(null);
   altezza = signal('');
@@ -235,6 +239,8 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
     );
     this.bio.set(g.bio || '');
     this.annoNascita.set(g.annoNascita || '');
+    this.dataNascita.set(g.dataNascita || g.annoNascita || '');
+    this.nascondiAnnoNascita.set(!!g.nascondiAnnoNascita);
     this.piedePreferito.set(g.piedePreferito ?? PiedePreferito.Destro);
     this.ruoloPreferito.set(g.ruoloPreferito ?? null);
     this.altezza.set(g.altezza || '');
@@ -336,6 +342,13 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
       const rawMaglia = this.numeroMaglia().toString().trim();
       const parsedMaglia = rawMaglia !== '' ? Number(rawMaglia) : null;
 
+      const rawDate = this.dataNascita().trim();
+      let derivedYear = this.annoNascita().toString().trim();
+      const yearMatch = rawDate.match(/\b(19\d{2}|20\d{2})\b/);
+      if (yearMatch) {
+        derivedYear = yearMatch[1];
+      }
+
       // Payload rigorosamente allineato alle Field-Level Security Rules di `firestore.rules`
       const payload: Record<string, any> = {
         nome: this.nome().trim(),
@@ -345,7 +358,9 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
             ? parsedMaglia
             : rawMaglia || null,
         bio: this.bio().trim(),
-        annoNascita: this.annoNascita().toString().trim(),
+        dataNascita: rawDate,
+        nascondiAnnoNascita: this.nascondiAnnoNascita(),
+        annoNascita: derivedYear,
         piedePreferito: this.piedePreferito(),
         ruoloPreferito: this.ruoloPreferito() ?? null,
         altezza: this.altezza().toString().trim(),

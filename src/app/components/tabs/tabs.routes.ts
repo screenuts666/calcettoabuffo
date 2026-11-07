@@ -12,6 +12,11 @@ export const routes: Routes = [
         component: PartitePage,
       },
       {
+        path: 'calendario',
+        loadComponent: () =>
+          import('../calendario/calendario.page').then((m) => m.CalendarioPage),
+      },
+      {
         path: 'classifica',
         loadComponent: () =>
           import('../classifica/classifica.page').then((m) => m.ClassificaPage),

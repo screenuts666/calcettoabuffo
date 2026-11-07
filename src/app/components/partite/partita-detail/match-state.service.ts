@@ -25,6 +25,7 @@ import {
   ModalitaPortiere,
   MatchRsvpEntry,
   normalizeRsvpStatus,
+  getMatchFormatByPlayerCount,
 } from '../../../models/partita.model';
 import { Giocatore } from '../../../models/giocatore.model';
 import { RuoloPreferito } from '../../../models/ruolo-preferito.enum';
@@ -85,6 +86,8 @@ export class MatchStateService {
   status = signal<TMatchStatus>('da_definire');
   filtro = signal<string>('');
   luogo = signal<string>('');
+  campoGoogleMapsUrl = signal<string | null>(null);
+  formato = signal<string | null>(null);
   dataPartita = signal<string>('');
   orario = signal<string>('');
   tutti = signal<ConvocatoState[]>([]);
@@ -828,6 +831,12 @@ export class MatchStateService {
           this.commentoPartita.set(
             data.commentoPartita || data.commento || ''
           );
+          if (data.campoGoogleMapsUrl) {
+            this.campoGoogleMapsUrl.set(data.campoGoogleMapsUrl);
+          }
+          if (data.formato) {
+            this.formato.set(data.formato);
+          }
           if (data.rsvp) {
             this.rsvp.set(data.rsvp);
           }
@@ -1032,8 +1041,10 @@ export class MatchStateService {
         matchConcluso: this.matchConcluso(),
         pagelleInserite: this.pagelleInserite(),
         commentoPartita: this.commentoPartita(),
-      notePortieri: this.notePortieri(),
-      parateIncredibili: this.parateIncredibili(),
+        notePortieri: this.notePortieri(),
+        parateIncredibili: this.parateIncredibili(),
+        campoGoogleMapsUrl: this.campoGoogleMapsUrl(),
+        formato: this.formato(),
       };
       localStorage.setItem(LOCAL_STORAGE_MATCH_KEY, JSON.stringify(snapshot));
       this.syncStatus.notifyLocalSave();
@@ -1067,6 +1078,8 @@ export class MatchStateService {
 
       if (isMatchingId && isRecent && !snap.matchConcluso) {
         if (snap.luogo) this.luogo.set(snap.luogo);
+        if (snap.campoGoogleMapsUrl) this.campoGoogleMapsUrl.set(snap.campoGoogleMapsUrl);
+        if (snap.formato) this.formato.set(snap.formato);
         if (snap.orario) this.orario.set(snap.orario);
         if (snap.dataPartita) this.dataPartita.set(snap.dataPartita);
         if (Array.isArray(snap.tutti) && snap.tutti.length > 0) this.tutti.set(snap.tutti);
@@ -1214,6 +1227,14 @@ export class MatchStateService {
       dataPartita: this.dataPartita(),
       orario: this.orario(),
       luogo: this.luogo(),
+      campoGoogleMapsUrl:
+        this.campoGoogleMapsUrl() ||
+        (this.luogo()
+          ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              this.luogo()
+            )}`
+          : null),
+      formato: getMatchFormatByPlayerCount(this.convocati().length).label,
       convocati: this.convocati(),
       teamA: this.teamA(),
       teamB: this.teamB(),

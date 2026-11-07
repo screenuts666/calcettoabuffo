@@ -546,3 +546,51 @@ export function formatMatchForWhatsApp(
 
   return parts.join('\n');
 }
+
+/**
+ * Formatta il messaggio WhatsApp di disponibilità settimanale in modo sobrio,
+ * professionale e senza emoji ridondanti.
+ */
+export function formatWeeklyAvailabilityForWhatsApp(
+  daySummaries: { dayName: string; voterCount: number; hasQuorum: boolean }[],
+  missingAthletes: string[]
+): string {
+  const parts: string[] = [];
+  const fullDayNames: Record<string, string> = {
+    Lun: 'Lunedì',
+    Mar: 'Martedì',
+    Mer: 'Mercoledì',
+    Gio: 'Giovedì',
+    Ven: 'Venerdì',
+    Sab: 'Sabato',
+    Dom: 'Domenica',
+  };
+
+  parts.push('*CALCETTO ABBUFFO — DISPONIBILITÀ SETTIMANA*');
+  parts.push('');
+  parts.push('Ragazzi, votate i giorni in cui potete giocare:');
+  parts.push('');
+
+  for (const d of daySummaries) {
+    const nome = fullDayNames[d.dayName] || d.dayName;
+    const nota = d.hasQuorum
+      ? ' (quorum raggiunto)'
+      : d.voterCount >= 8
+        ? ' (quorum quasi raggiunto)'
+        : '';
+    parts.push(`• ${nome}: ${d.voterCount} atleti${nota}`);
+  }
+
+  parts.push('');
+  parts.push('Vota qui le tue date (puoi sceglierne più di una):');
+  parts.push(`${getAppBaseUrl()}/calendario`);
+
+  if (missingAthletes.length > 0) {
+    parts.push('');
+    const preview = missingAthletes.slice(0, 5).join(', ');
+    const extra = missingAthletes.length > 5 ? ` e altri ${missingAthletes.length - 5}` : '';
+    parts.push(`Mancano all'appello: ${preview}${extra}`);
+  }
+
+  return parts.join('\n');
+}

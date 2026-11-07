@@ -79,7 +79,9 @@ import {
   swapVerticalOutline,
   shieldCheckmark,
   constructOutline,
+  navigateOutline,
 } from 'ionicons/icons';
+import { getMatchFormatByPlayerCount } from 'src/app/models/partita.model';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
 import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
@@ -233,6 +235,25 @@ export class PartitePage {
       return `${half} vs ${tot - half}`;
     }
     return 'Schieramento';
+  }
+
+  getFormatoLabel(m: any): string {
+    if (m?.formato) return m.formato;
+    const count =
+      (Array.isArray(m?.convocati) ? m.convocati.length : 0) ||
+      (Array.isArray(m?.teamA) ? m.teamA.length : 0) +
+        (Array.isArray(m?.teamB) ? m.teamB.length : 0);
+    return getMatchFormatByPlayerCount(count).label;
+  }
+
+  getGoogleMapsUrl(m: any): string {
+    if (m?.campoGoogleMapsUrl) return m.campoGoogleMapsUrl;
+    if (m?.luogo) {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+        m.luogo + ' Roma'
+      )}`;
+    }
+    return 'https://www.google.com/maps';
   }
 
   partite = toSignal<any[]>(
@@ -593,6 +614,7 @@ export class PartitePage {
       swapVerticalOutline,
       shieldCheckmark,
       constructOutline,
+      navigateOutline,
     });
 
     this.route.queryParams.subscribe((params) => {

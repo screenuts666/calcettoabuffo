@@ -148,6 +148,18 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
     return this.auth.canViewPlayerPhone(this.prof);
   }
 
+  getDataNascitaDisplay(prof?: any): string {
+    if (!prof) return '--';
+    if (prof.dataNascita) {
+      if (prof.nascondiAnnoNascita) {
+        const parts = prof.dataNascita.split('/');
+        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : prof.dataNascita;
+      }
+      return prof.dataNascita;
+    }
+    return prof.annoNascita || '--';
+  }
+
   getTelUrl(phone?: string | null): string {
     return formatPhoneForTel(phone);
   }

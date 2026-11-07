@@ -1,0 +1,476 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="cal-main-toolbar">
+    <ion-title>Calendario</ion-title>
+    <ion-buttons slot="end">
+      <!-- Condividi Disponibilità su WhatsApp -->
+      <ion-button
+        fill="clear"
+        class="share-wa-header-btn"
+        (click)="condividiSuWhatsApp()"
+        title="Condividi disponibilità su WhatsApp con i compagni"
+      >
+        <ion-icon name="logo-whatsapp" slot="start" color="success"></ion-icon>
+        <span class="share-btn-text">Condividi</span>
+      </ion-button>
+      <app-theme-toggle></app-theme-toggle>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- BARRA 1: CONTROLLI NAVIGAZIONE MESE -->
+  <div class="month-nav-bar">
+    <button type="button" class="nav-month-btn" (click)="mesePrecedente()" title="Mese precedente">
+      <ion-icon name="chevron-back"></ion-icon>
+    </button>
+    <div class="current-month-display">
+      <ion-icon name="calendar-outline" class="month-icon"></ion-icon>
+      <span class="month-title">{{ meseAnnoLabel() }}</span>
+    </div>
+    <button type="button" class="nav-month-btn" (click)="meseSuccessivo()" title="Mese successivo">
+      <ion-icon name="chevron-forward"></ion-icon>
+    </button>
+    <button type="button" class="btn-today" (click)="vaiAOggi()" title="Torna a oggi">
+      <ion-icon name="today-outline"></ion-icon>
+      <span>Oggi</span>
+    </button>
+  </div>
+
+  <!-- BARRA 2: FILTRI TOGGLE (PARTITE, METEO, LUNA, COMPLEANNI) -->
+  <div class="filters-pills-bar">
+    <button
+      type="button"
+      class="filter-pill"
+      [class.active]="mostraPartitePassate()"
+      (click)="toggleFiltro('partite')"
+    >
+      <ion-icon name="football-outline"></ion-icon>
+      <span>Partite</span>
+    </button>
+
+    <button
+      type="button"
+      class="filter-pill"
+      [class.active]="mostraMeteo()"
+      (click)="toggleFiltro('meteo')"
+    >
+      <ion-icon name="sunny-outline"></ion-icon>
+      <span>Meteo</span>
+    </button>
+
+    <button
+      type="button"
+      class="filter-pill"
+      [class.active]="mostraFasiLunari()"
+      (click)="toggleFiltro('luna')"
+    >
+      <ion-icon name="moon-outline"></ion-icon>
+      <span>Fasi Lunari</span>
+    </button>
+
+    <button
+      type="button"
+      class="filter-pill"
+      [class.active]="mostraCompleanni()"
+      (click)="toggleFiltro('compleanni')"
+    >
+      <ion-icon name="gift-outline"></ion-icon>
+      <span>Compleanni</span>
+    </button>
+  </div>
+</ion-header>
+
+<ion-content class="cal-content ion-padding-bottom">
+  <!-- BANNER PAUSA ESTIVA (SE ATTIVA) -->
+  @if (availabilityService.isSummerBreakActive()) {
+    <div class="summer-break-banner">
+      <div class="summer-break-content">
+        <ion-icon name="pause-circle-outline" class="summer-icon"></ion-icon>
+        <div class="summer-text">
+          <strong>Pausa Estiva Calcetto Abbuffo</strong>
+          <p>Le attività e le disponibilità riprenderanno a settembre!</p>
+        </div>
+      </div>
+      @if (auth.isSuperUser()) {
+        <button type="button" class="btn-manage-break" (click)="togglePausaEstiva()">
+          Termina Pausa
+        </button>
+      }
+    </div>
+  }
+
+  <!-- ======================================================== -->
+  <!-- HERO WIDGET: DISPONIBILITÀ SETTIMANA ("QUANDO GIOCHIAMO?") -->
+  <!-- ======================================================== -->
+  @if (!availabilityService.isSummerBreakActive()) {
+    <div class="weekly-availability-section">
+      <div class="section-top-header">
+        <div class="section-titles">
+          <div class="availability-badge">
+            <span class="live-pulse-dot"></span>
+            <span>Quando Giochiamo?</span>
+          </div>
+          <h2 class="section-week-label">
+            Disponibilità Settimanale
+          </h2>
+          <p class="section-subtitle">
+            Seleziona i giorni in cui puoi giocare (puoi sceglierne più di uno):
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn-wa-sollecita"
+          (click)="condividiSuWhatsApp()"
+          title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
+        >
+          <ion-icon name="logo-whatsapp"></ion-icon>
+          <span>Sollecita</span>
+        </button>
+      </div>
+
+      <!-- CAROUSEL DEI 7 GIORNI DELLA SETTIMANA ATTIVA -->
+      <div class="days-vote-scroll">
+        @for (day of activeWeekDaysList(); track day.dateStr) {
+          <div
+            class="day-vote-card"
+            [class.quorum-reached]="day.isQuorumReached"
+            [class.is-my-choice]="day.isVotedByMe"
+          >
+            <!-- INTESTAZIONE GIORNO -->
+            <div class="card-day-header">
+              <span class="day-name">{{ day.dayLabel }}</span>
+              @if (mostraMeteo() && day.weather) {
+                <span class="weather-mini-chip" [title]="day.weather.conditionDescription + ' (' + day.weather.tempMin + '° / ' + day.weather.tempMax + '°)'">
+                  <span>{{ day.weather.iconEmoji }}</span>
+                  <small>{{ day.weather.tempMax }}°</small>
+                  @if (day.weather.rainProbability > 30) {
+                    <span class="rain-chance">💧{{ day.weather.rainProbability }}%</span>
+                  }
+                </span>
+              }
+              @if (mostraFasiLunari() && day.lunar) {
+                <span class="lunar-mini" [title]="day.lunar.name + ' (' + day.lunar.illuminationPercent + '%)'">
+                  {{ day.lunar.emoji }}
+                </span>
+              }
+            </div>
+
+            <!-- CONTATORE & FORMATO DINAMICO -->
+            <div class="card-quorum-status">
+              <div class="voters-count-row">
+                <ion-icon name="people-outline"></ion-icon>
+                <strong>{{ day.count }}</strong>
+                <span class="quorum-target">/ 10</span>
+              </div>
+
+              <!-- BADGE FORMATO DINAMICO -->
+              @if (day.isQuorumReached) {
+                <div class="quorum-badge-success">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>{{ day.formatInfo.label }}</span>
+                </div>
+              } @else {
+                <div class="quorum-badge-missing">
+                  <span>Mancano {{ day.missingToQuorum }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- AVATAR DEI GIOCATORI DISPONIBILI -->
+            <div class="voters-avatars-tray">
+              @for (p of day.players.slice(0, 5); track p.id) {
+                <div class="voter-mini-avatar" [title]="p.nome">
+                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                </div>
+              }
+              @if (day.players.length > 5) {
+                <div class="voters-overflow-pill" [title]="getExtraPlayersTitle(day.players)">
+                  +{{ day.players.length - 5 }}
+                </div>
+              }
+            </div>
+
+            <!-- AZIONE DI VOTO ATLETA -->
+            <button
+              type="button"
+              class="btn-vote-toggle"
+              [class.active]="day.isVotedByMe"
+              (click)="toggleVotoGiorno(day.dateStr)"
+            >
+              <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+              <span>{{ day.isVotedByMe ? 'Disponibile' : 'Ci sono' }}</span>
+            </button>
+
+            <!-- AZIONE FISSA PARTITA PER SUPERUSER SE QUORUM RAGGIUNTO -->
+            @if (auth.isSuperUser() && day.isQuorumReached) {
+              <button
+                type="button"
+                class="btn-fissa-partita"
+                (click)="fissaPartitaSlot(day.dateStr)"
+                title="Crea partita con i convocati già confermati"
+              >
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <span>Fissa Partita</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- RIEPILOGO CHI MANCA ALL'APPELLO -->
+      @if (availabilityService.missingAthletes().length > 0) {
+        <div class="missing-voters-bar">
+          <span class="missing-label">Mancano all'appello:</span>
+          <div class="missing-names">
+            @for (name of availabilityService.missingAthletes().slice(0, 6); track name) {
+              <span class="missing-name-chip">{{ name }}</span>
+            }
+            @if (availabilityService.missingAthletes().length > 6) {
+              <span class="missing-more-chip">+{{ availabilityService.missingAthletes().length - 6 }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ======================================================== -->
+  <!-- GRIGLIA MENSILE INTERATTIVA                              -->
+  <!-- ======================================================== -->
+  <div class="monthly-calendar-container">
+    <div class="calendar-card">
+      <!-- INTESTAZIONE GIORNI DELLA SETTIMANA -->
+      <div class="weekdays-grid">
+        <div class="weekday-header">Lun</div>
+        <div class="weekday-header">Mar</div>
+        <div class="weekday-header">Mer</div>
+        <div class="weekday-header">Gio</div>
+        <div class="weekday-header">Ven</div>
+        <div class="weekday-header weekend">Sab</div>
+        <div class="weekday-header weekend">Dom</div>
+      </div>
+
+      <!-- CELLE DEI GIORNI -->
+      <div class="days-matrix-grid">
+        @for (cell of calendarGrid(); track cell.dateStr) {
+          <div
+            class="calendar-day-cell"
+            [class.other-month]="!cell.isCurrentMonth"
+            [class.today]="cell.isToday"
+            [class.selected]="cell.isSelected"
+            [class.has-match]="cell.matches.length > 0"
+            [class.has-birthday]="cell.birthdays.length > 0"
+            (click)="selezionaGiorno(cell)"
+          >
+            <!-- RIGA NUMERO GIORNO + PICCOLO METEO -->
+            <div class="day-cell-top">
+              <span class="day-number">{{ cell.dayNumber }}</span>
+              @if (mostraMeteo() && cell.weather) {
+                <span class="cell-weather-icon" [title]="cell.weather.conditionDescription + ' ' + cell.weather.tempMax + '°'">
+                  {{ cell.weather.iconEmoji }}
+                </span>
+              }
+              @if (mostraFasiLunari() && cell.lunar) {
+                <span class="cell-lunar-icon" [title]="cell.lunar.name">
+                  {{ cell.lunar.emoji }}
+                </span>
+              }
+            </div>
+
+            <!-- INDICATORI CONTENUTO NELLA CELLA -->
+            <div class="cell-indicators">
+              <!-- PARTITE -->
+              @if (cell.matches.length > 0 && (mostraPartitePassate() || !cell.isPast)) {
+                @for (m of cell.matches; track m.id) {
+                  <div
+                    class="cell-match-badge"
+                    [class.conclusa]="m.matchConcluso"
+                    [class.in-programma]="!m.matchConcluso"
+                    [title]="(m.luogo || 'Partita') + (m.matchConcluso ? ' (' + m.scoreA + '-' + m.scoreB + ')' : '')"
+                  >
+                    <span class="badge-ball">⚽</span>
+                    @if (m.matchConcluso) {
+                      <span class="badge-score">{{ m.scoreA }}-{{ m.scoreB }}</span>
+                    } @else {
+                      <span class="badge-time">{{ m.orario || 'Gara' }}</span>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- COMPLEANNI -->
+              @if (mostraCompleanni() && cell.birthdays.length > 0) {
+                @for (b of cell.birthdays.slice(0, 1); track b.id) {
+                  <div class="cell-bday-badge" [title]="'Compleanno di ' + b.nome">
+                    <span>🎂</span>
+                    <span class="bday-name">{{ b.nome }}</span>
+                  </div>
+                }
+              }
+
+              <!-- DISPONIBILITÀ QUORUM -->
+              @if (cell.voteCount && cell.voteCount > 0 && cell.matches.length === 0) {
+                <div
+                  class="cell-quorum-dot"
+                  [class.ready]="cell.isQuorumReached"
+                  [title]="cell.voteCount + ' giocatori disponibili'"
+                >
+                  <span class="dot-count">{{ cell.voteCount }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- DETTAGLIO DEL GIORNO SELEZIONATO                         -->
+  <!-- ======================================================== -->
+  @if (selectedDayDetail(); as sel) {
+    <div class="day-detail-panel">
+      <div class="detail-panel-header">
+        <div class="detail-header-left">
+          <ion-icon name="calendar-outline" class="detail-header-icon"></ion-icon>
+          <div>
+            <h3 class="detail-date-title">{{ sel.dateFormatted }}</h3>
+            @if (sel.isToday) {
+              <span class="today-tag">OGGI</span>
+            }
+          </div>
+        </div>
+
+        <!-- METEO & LUNA IN HEADER DETTAGLIO -->
+        <div class="detail-header-meta">
+          @if (sel.weather) {
+            <div class="weather-box-detail">
+              <span class="w-emoji">{{ sel.weather.iconEmoji }}</span>
+              <div class="w-temps">
+                <strong>{{ sel.weather.tempMax }}°</strong>
+                <small>/ {{ sel.weather.tempMin }}°</small>
+              </div>
+              @if (sel.weather.rainProbability > 20) {
+                <span class="w-rain">💧{{ sel.weather.rainProbability }}%</span>
+              }
+            </div>
+          }
+          @if (sel.lunar && mostraFasiLunari()) {
+            <div class="lunar-box-detail" [title]="sel.lunar.name">
+              <span class="l-emoji">{{ sel.lunar.emoji }}</span>
+              <span class="l-name">{{ sel.lunar.name }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- COMPLEANNI DEL GIORNO -->
+      @if (sel.birthdays.length > 0) {
+        <div class="detail-birthdays-section">
+          @for (b of sel.birthdays; track b.id) {
+            <div class="birthday-card">
+              <span class="bday-big-icon">🎂</span>
+              <div class="bday-info">
+                <strong>Tanti auguri a {{ b.nome }}!</strong>
+                <p>Oggi è il suo compleanno {{ getEtaCompleanno(b.dataNascita, b.nascondiAnnoNascita) }}</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- PARTITE DEL GIORNO -->
+      @if (sel.matches.length > 0) {
+        <div class="detail-matches-section">
+          <h4 class="sub-section-title">
+            <ion-icon name="football-outline"></ion-icon>
+            Partite
+          </h4>
+          @for (m of sel.matches; track m.id) {
+            <div class="detail-match-card" (click)="apriPartita(m.id)">
+              <div class="match-card-top">
+                <span class="match-status-badge" [class.done]="m.matchConcluso">
+                  {{ m.matchConcluso ? 'Conclusa' : 'In Programma' }}
+                </span>
+                <span class="match-time-slot">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ m.orario || '21:00' }}
+                </span>
+              </div>
+
+              <!-- SCORE O LUOGO -->
+              <div class="match-middle-info">
+                @if (m.matchConcluso) {
+                  <div class="score-row">
+                    <span class="team-a">Bianchi <strong>{{ m.scoreA }}</strong></span>
+                    <span class="score-separator">-</span>
+                    <span class="team-b"><strong>{{ m.scoreB }}</strong> Neri</span>
+                  </div>
+                } @else {
+                  <div class="upcoming-place">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <strong>{{ m.luogo || 'Campo da definire' }}</strong>
+                  </div>
+                }
+              </div>
+
+              <!-- AZIONI MATCH: VAI QUI & APRI -->
+              <div class="match-actions-row">
+                <a
+                  [href]="getGoogleMapsUrl(m.luogo)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="btn-maps-action"
+                  (click)="$event.stopPropagation()"
+                  title="Apri navigatore Google Maps per raggiungere il campo"
+                >
+                  <ion-icon name="navigate-outline"></ion-icon>
+                  <span>📍 Vai qui</span>
+                </a>
+
+                <button type="button" class="btn-open-match">
+                  <span>Apri Scheda Partita</span>
+                  <ion-icon name="chevron-forward"></ion-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- DISPONIBILITÀ DEL GIORNO (SE NELLA SETTIMANA ATTIVA) -->
+      @if (sel.isInActiveWeek && sel.daySummary) {
+        <div class="detail-availability-section">
+          <h4 class="sub-section-title">
+            <ion-icon name="people-outline"></ion-icon>
+            Disponibilità Giocatori ({{ sel.availablePlayers.length }})
+          </h4>
+
+          @if (sel.availablePlayers.length > 0) {
+            <div class="players-chips-list">
+              @for (p of sel.availablePlayers; track p.id) {
+                <div class="player-chip">
+                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                  <span>{{ p.nome }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="empty-players-msg">Nessun giocatore ha ancora espresso disponibilità per questo giorno.</p>
+          }
+
+          <div class="detail-vote-action-bar">
+            <button
+              type="button"
+              class="btn-detail-vote"
+              [class.active]="sel.isAvailableForMe"
+              (click)="toggleVotoGiorno(sel.dateStr)"
+            >
+              <ion-icon [name]="sel.isAvailableForMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+              <span>{{ sel.isAvailableForMe ? 'Sei tra i disponibili (Tocca per rimuovere)' : 'Dai la tua disponibilità per questo giorno' }}</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</ion-content>

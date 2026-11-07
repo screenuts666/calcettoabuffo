@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonItem,
   IonIcon,
   IonInput,
   IonTextarea,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -20,8 +21,13 @@ import {
   createOutline,
   peopleOutline,
   informationCircleOutline,
+  navigateOutline,
+  searchOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
+import { CampiService } from '../../../../../services/campi.service';
+import { CampoDaGioco } from '../../../../../models/campo.model';
+import { getMatchFormatByPlayerCount } from '../../../../../models/partita.model';
 import {
   MIN_CURRENT_SEASON_DATE,
   CURRENT_SEASON,
@@ -44,14 +50,20 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
     IonIcon,
     IonInput,
     IonTextarea,
+    IonSpinner,
     PlayerAvatarComponent,
   ],
 })
 export class StepDettagliComponent {
   public state = inject(MatchStateService);
+  public campiService = inject(CampiService);
 
   readonly MIN_CURRENT_SEASON_DATE = MIN_CURRENT_SEASON_DATE;
   readonly CURRENT_SEASON = CURRENT_SEASON;
+
+  suggerimentiCampi = signal<CampoDaGioco[]>([]);
+  isSearchingCampi = signal<boolean>(false);
+  private searchTimer?: any;
 
   getAvatar(fotoUrl?: string | null): string {
     return getAvatarUrl(fotoUrl);
@@ -75,15 +87,18 @@ export class StepDettagliComponent {
       createOutline,
       peopleOutline,
       informationCircleOutline,
+      navigateOutline,
+      searchOutline,
     });
   }
 
   formatFormatoPartita(): string {
     const tot = this.state.totaleConvocati();
     if (tot === 0) return '0 giocatori';
+    const fmt = getMatchFormatByPlayerCount(tot);
     const half1 = Math.floor(tot / 2);
     const half2 = Math.ceil(tot / 2);
-    return `${half1} vs ${half2}`;
+    return `${fmt.label} (${half1} vs ${half2})`;
   }
 
   getMessaggioValidazione(): string {
@@ -106,6 +121,43 @@ export class StepDettagliComponent {
     this.state.luogo.set(val);
     this.state.salvaSetupPredefinito();
     this.state.triggerAutoSave();
+  }
+
+  onLuogoInput(val: string) {
+    this.aggiornaLuogo(val);
+    clearTimeout(this.searchTimer);
+    if (!val || val.trim().length < 2) {
+      this.suggerimentiCampi.set([]);
+      this.isSearchingCampi.set(false);
+      return;
+    }
+    this.isSearchingCampi.set(true);
+    this.searchTimer = setTimeout(() => {
+      this.campiService.cercaCampiOnline(val).subscribe({
+        next: (risultati: CampoDaGioco[]) => {
+          this.suggerimentiCampi.set(risultati);
+          this.isSearchingCampi.set(false);
+        },
+        error: () => {
+          this.isSearchingCampi.set(false);
+        },
+      });
+    }, 350);
+  }
+
+  selezionaCampo(campo: CampoDaGioco) {
+    this.aggiornaLuogo(campo.nome);
+    if (campo.googleMapsUrl) {
+      this.state.campoGoogleMapsUrl.set(campo.googleMapsUrl);
+    }
+    this.suggerimentiCampi.set([]);
+  }
+
+  getGoogleMapsUrl(): string {
+    if (this.state.campoGoogleMapsUrl()) {
+      return this.state.campoGoogleMapsUrl()!;
+    }
+    return this.campiService.getGoogleMapsUrl(this.state.luogo() || 'Roma');
   }
 
   aggiornaData(val: string) {

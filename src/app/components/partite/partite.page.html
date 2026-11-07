@@ -416,11 +416,25 @@
                 <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
                   {{ stagioneBadgeLabel(m) }}
                 </div>
+                <div class="format-tag">
+                  {{ getFormatoLabel(m) }}
+                </div>
                 @if (m.luogo) {
                   <div class="location-chip" [title]="m.luogo">
                     <ion-icon name="location-outline"></ion-icon>
                     <span>{{ m.luogo }}</span>
                   </div>
+                  <a
+                    [href]="getGoogleMapsUrl(m)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="maps-quick-link"
+                    (click)="$event.stopPropagation()"
+                    title="Apri indicazioni Google Maps"
+                  >
+                    <ion-icon name="navigate-outline"></ion-icon>
+                    <span>Mappa</span>
+                  </a>
                 }
               </div>
 

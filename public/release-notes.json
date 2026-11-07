@@ -1,5 +1,24 @@
 [
   {
+    "version": "2.0.30",
+    "date": "07/11/2026",
+    "title": "Nuovo Calendario Interattivo, Disponibilità Settimanali, Meteo & Mappe Campi",
+    "userChanges": [
+      "📅 Nuova Tab Calendario: introdotta la quinta tab dedicata con navigazione mensile interattiva, storico partite e prossimi match.",
+      "🙋 Quando Giochiamo? Disponibilità Settimanali: vota in 1 tocco i giorni in cui puoi giocare (puoi sceglierne più di uno) con aggiornamento in tempo reale dei compagni.",
+      "📲 Condivisione WhatsApp Professionale: qualsiasi atleta può condividere sul gruppo WhatsApp il riepilogo pulito delle disponibilità con link diretto al calendario e indicazione di chi manca all'appello.",
+      "🌤️ Previsioni Meteo Roma & Fasi Lunari: meteo integrato fino a 14 giorni con temperature e probabilità di pioggia per scegliere la serata perfetta, più calcolo astronomico delle fasi lunari.",
+      "🎂 Compleanni in Rosa: inserimento data di nascita formato italiano (GG/MM/AAAA) con avviso di compleanno sul calendario e opzione privacy per mostrare solo giorno e mese.",
+      "📍 'Vai qui' con Google Maps: link rapido su ogni partita per aprire il navigatore e raggiungere il campo di gioco senza dubbi."
+    ],
+    "superUserChanges": [
+      "⚡ Fissa Partita Ufficiale da Quorum: raggiunto il quorum (10 o più atleti), Mister e Presidente possono convertire lo slot vincente in una partita ufficiale con i convocati già confermati in 1 click.",
+      "⚽ Tag Formato Dinamico (Calcio a 5/6/7/8/11): classificazione automatica e non soffocante del match calcolata rigorosamente in base al numero effettivo dei convocati.",
+      "📍 Autocomplete Campi & Geocoding Roma: digitando il campo vengono suggeriti i luoghi storici (Roma 6, Vigor, Pro Roma, Montesacro) con ricerca online e generazione URL di navigazione.",
+      "🏖️ Gestione Pausa Estiva: sospensione e riattivazione delle votazioni settimanali con banner personalizzato durante le vacanze estive."
+    ]
+  },
+  {
     "version": "2.0.29",
     "date": "07/11/2026",
     "title": "Scroll Sbloccato su Desktop, Snellezza Label & Nuova Gerarchia Ruoli",

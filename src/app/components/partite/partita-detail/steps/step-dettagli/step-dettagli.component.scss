@@ -571,3 +571,118 @@
     }
   }
 }
+
+.campo-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+
+  .campo-spinner {
+    width: 20px;
+    height: 20px;
+    color: var(--app-primary, #10b981);
+    margin-right: 8px;
+  }
+
+  .campi-chips-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 0 4px;
+
+    .quick-campo-chip {
+      background: var(--app-surface-subtle, rgba(255, 255, 255, 0.05));
+      border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.1));
+      color: var(--app-text-muted, #94a3b8);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &.active {
+        background: rgba(16, 185, 129, 0.2);
+        border-color: rgba(16, 185, 129, 0.5);
+        color: #34d399;
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+  }
+
+  .campi-autocomplete-list {
+    background: var(--ion-color-step-100, #1e293b);
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.12));
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    margin-top: 4px;
+
+    .autocomplete-item {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .sugg-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        ion-icon {
+          color: #ef4444;
+          font-size: 1.1rem;
+        }
+
+        strong {
+          font-size: 0.85rem;
+          color: #f8fafc;
+          display: block;
+        }
+
+        small {
+          font-size: 0.72rem;
+          color: #94a3b8;
+        }
+      }
+
+      .sugg-arrow {
+        color: #64748b;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  .campo-maps-preview-row {
+    padding: 2px 4px;
+
+    .maps-preview-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: #38bdf8;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+}
