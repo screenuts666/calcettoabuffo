@@ -54,6 +54,7 @@ import { StatsEngineService } from '../../services/stats-engine.service';
 import { AvailabilityService, getLocalIsoDate } from '../../services/availability.service';
 import { WeatherService, DailyWeatherForecast, LunarPhaseInfo } from '../../services/weather.service';
 import { CampiService } from '../../services/campi.service';
+import { calcolaEta } from '../../utils/date-utils';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { Giocatore } from '../../models/giocatore.model';
@@ -622,16 +623,9 @@ export class CalendarioPage implements OnInit {
     return this.campiService.getGoogleMapsUrl(campo || 'Roma');
   }
 
-  getEtaCompleanno(dataNascita?: string, nascondiAnno?: boolean): string | null {
-    if (!dataNascita || nascondiAnno) return null;
-    const parts = dataNascita.split('/');
-    if (parts.length === 3) {
-      const anno = parseInt(parts[2], 10);
-      if (!isNaN(anno)) {
-        const eta = new Date().getFullYear() - anno;
-        return eta > 0 ? `(${eta} anni)` : null;
-      }
-    }
-    return null;
+  getEtaCompleanno(dataNascita?: string): string | null {
+    if (!dataNascita) return null;
+    const eta = calcolaEta(dataNascita);
+    return eta !== null ? `(${eta} anni)` : null;
   }
 }

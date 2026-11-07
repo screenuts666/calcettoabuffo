@@ -70,6 +70,7 @@ import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
 } from 'src/app/utils/whatsapp-formatter';
+import { formatDataNascitaEdEta } from 'src/app/utils/date-utils';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { TtsService } from 'src/app/services/tts.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
@@ -149,15 +150,7 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
   }
 
   getDataNascitaDisplay(prof?: any): string {
-    if (!prof) return '--';
-    if (prof.dataNascita) {
-      if (prof.nascondiAnnoNascita) {
-        const parts = prof.dataNascita.split('/');
-        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : prof.dataNascita;
-      }
-      return prof.dataNascita;
-    }
-    return prof.annoNascita || '--';
+    return formatDataNascitaEdEta(prof);
   }
 
   getTelUrl(phone?: string | null): string {

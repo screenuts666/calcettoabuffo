@@ -88,7 +88,6 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonSelect,
     IonSelectOption,
     IonAvatar,
-    IonCheckbox,
     PlayerAvatarComponent,
     IonIcon,
   ],

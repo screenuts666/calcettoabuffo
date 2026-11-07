@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.33",
+    "date": "07/11/2026",
+    "title": "Data di Nascita Completa con Età Calcolata & Semplificazione Profilo",
+    "userChanges": [
+      "🎂 Data Completa ed Età Automatica: in Rosa e nella Scheda Giocatore sono subito visibili sia la data di nascita inserita che gli anni calcolati in automatico (es. '24/03/1996 (30 anni)').",
+      "✍️ Form Profilo Snello e Facoltativo: inserimento semplificato con un solo campo pulito 'Data di Nascita (es. 24/03/1996)', senza vincoli o checkbox ridondanti.",
+      "🎁 Compleanno Sempre Attivo sul Calendario: il Calendario individua giorno e mese di ogni atleta per mostrare la torta e gli auguri di compleanno."
+    ],
+    "superUserChanges": [
+      "📐 Modulo date-utils centralizzato: calcolo matematico rigoroso dell'età e formattazione condivisa tra Rosa, Scheda Giocatore e Calendario."
+    ]
+  },
+  {
     "version": "2.0.32",
     "date": "07/11/2026",
     "title": "Giorno Più Scelto Evidenziato, Filtro Giorni Futuri & Regole Firestore",

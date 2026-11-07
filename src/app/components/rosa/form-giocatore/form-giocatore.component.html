@@ -165,9 +165,9 @@
       <ion-item lines="none" class="custom-input-item half">
         <ion-input
           type="text"
-          label="Data di Nascita"
+          label="Data di Nascita (facoltativa)"
           labelPlacement="stacked"
-          placeholder="GG/MM/AAAA o GG/MM"
+          placeholder="es. 24/03/1996"
           [value]="dataNascita()"
           (ionInput)="dataNascita.set($event.detail.value || '')"
           [readonly]="!canEdit"
@@ -194,19 +194,6 @@
         </ion-select>
       </ion-item>
     </div>
-
-    @if (dataNascita().length >= 8) {
-      <div class="privacy-birth-row" style="padding: 2px 8px 10px; display: flex; align-items: center; gap: 8px;">
-        <ion-checkbox
-          [checked]="nascondiAnnoNascita()"
-          (ionChange)="nascondiAnnoNascita.set($event.detail.checked)"
-          [disabled]="!canEdit"
-          style="--size: 16px; font-size: 0.8rem;"
-        >
-          <span style="font-size: 0.8rem; color: var(--app-text-secondary);">Nascondi anno sul profilo (mostra solo compleanno)</span>
-        </ion-checkbox>
-      </div>
-    }
 
     <ion-item lines="none" class="custom-input-item">
       <ion-select

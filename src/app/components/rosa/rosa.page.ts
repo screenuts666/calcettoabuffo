@@ -58,6 +58,7 @@ import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
 } from 'src/app/utils/whatsapp-formatter';
+import { formatDataNascitaEdEta } from 'src/app/utils/date-utils';
 import {
   DEFAULT_AVATAR,
   getAvatarUrl,
@@ -237,15 +238,7 @@ export class RosaPage {
   }
 
   getDataNascitaDisplay(g?: Giocatore | null): string {
-    if (!g) return 'N.D.';
-    if (g.dataNascita) {
-      if (g.nascondiAnnoNascita) {
-        const parts = g.dataNascita.split('/');
-        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : g.dataNascita;
-      }
-      return g.dataNascita;
-    }
-    return g.annoNascita ? String(g.annoNascita) : 'N.D.';
+    return formatDataNascitaEdEta(g);
   }
 
   apriDettagliGiocatore(g: Giocatore) {
