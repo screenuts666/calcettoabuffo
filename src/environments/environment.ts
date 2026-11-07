@@ -6,7 +6,7 @@ export const environment = {
   features: {
     v2Features: {
       enabled: true,
-      showUiToggle: true,
+      showUiToggle: false,
     },
   },
   firebase: {

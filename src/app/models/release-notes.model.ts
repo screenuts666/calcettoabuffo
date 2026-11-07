@@ -11,6 +11,37 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.24",
+    "date": "07/11/2026",
+    "title": "Ruolo Supremo Presidente, Gestione Ruoli WhatsApp & Impostazioni Rinnovate",
+    "userChanges": [
+      "🎩 Ruolo Presidente & Club Admin: introdotto il ruolo supremo di Presidente con gestione diretta dei ruoli dei membri in stile WhatsApp.",
+      "👥 Impostazioni Rinnovate: schermata impostazioni riorganizzata a schede pulite e rapide, senza testi didattici o etichette superflue.",
+      "⚽ Scheda Atleta Facoltativa: Presidente e Mister possono associare o scollegare la propria scheda giocatore in rosa con un tocco.",
+      "🧹 Pulizia Interfaccia: eliminata la fiammella nell'header e rimossi tutti i testi didattici ridondanti."
+    ],
+    "superUserChanges": [
+      "✉️ Pre-autorizzazione Ruoli via Email: possibilità di autorizzare account prima del loro primo login tramite la collezione `authorized_roles`.",
+      "👔 Promozione e Revoca Mister Rapida: pulsanti diretti nella tab Ruoli per promuovere o rimuovere i Mister con salvataggio atomico.",
+      "🛡️ Blindatura Firestore RBAC: introdotta la funzione `isPresidente()`, protezione del fondatore e permessi di lettura/scrittura per la pre-autorizzazione."
+    ]
+  },
+  {
+    "version": "2.0.23",
+    "date": "07/11/2026",
+    "title": "Attivazione Completa Account Google, Gmail & Terzo Tempo su PROD",
+    "userChanges": [
+      "🔑 Accesso con Google Ufficiale: sbloccato su tutti i dispositivi il pulsante 'Accedi' nell'header con Google Sign-In e gestione del profilo personale.",
+      "✉️ Convocazioni e Condivisione Gmail: abilitato l'invio diretto degli inviti e delle convocazioni via Gmail e mailto sia da DEV che da PROD.",
+      "💬 Terzo Tempo Community Live: bacheca commenti, reazioni e sfottò post-partita ora pienamente attiva per tutti i giocatori in produzione.",
+      "🧹 Semplificazione Impostazioni: rimosso lo switch provvisorio per sviluppatori; tutte le funzionalità sono ora attive di default."
+    ],
+    "superUserChanges": [
+      "🚀 Produzione Allineata (v2.0): sbloccati i flag `v2Features` in `environment.prod.ts` e `V2FeaturesService` (ora attivi su tutti gli ambienti).",
+      "🛡️ RBAC & Sicurezza Firestore: verificata la corretta segregazione ruoli (Mister, Atleta, Tifoso) e le regole per la sottocollezione commenti e profili utente."
+    ]
+  },
+  {
     "version": "2.0.23",
     "date": "06/11/2026",
     "title": "Restyling Terzo Tempo & Bacheca Commenti in Primo Piano",

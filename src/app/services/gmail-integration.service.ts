@@ -40,15 +40,12 @@ export class GmailIntegrationService {
   private readonly v2Features = inject(V2FeaturesService);
 
   /**
-   * Flag di visibilità del toggle/pulsante nella UI (controllato dalla build: true in dev, false in prod).
-   * Su prod questo valore è false e la direttiva `@if` non renderizza l'elemento nel DOM.
+   * Flag di visibilità UI (sempre true sia in DEV che in PROD).
    */
-  readonly showUiToggle = computed<boolean>(() =>
-    this.v2Features.showUiToggle(),
-  );
+  readonly showUiToggle = computed<boolean>(() => true);
 
   /**
-   * Stato attivo/disattivo dell'integrazione unificata v2.0 (default true in dev, false in prod).
+   * Stato attivo dell'integrazione Gmail (attiva sia in DEV che in PROD).
    */
   readonly isFeatureEnabled = computed<boolean>(() =>
     this.v2Features.isEnabled(),

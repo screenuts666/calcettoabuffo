@@ -6,6 +6,7 @@ import {
   OnInit,
   OnDestroy,
   signal,
+  computed,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -46,17 +47,32 @@ import {
   syncOutline,
   mailOutline,
   personOutline,
+  peopleOutline,
+  personAddOutline,
+  personRemoveOutline,
+  trashOutline,
+  shieldCheckmarkOutline,
+  searchOutline,
+  linkOutline,
+  unlinkOutline,
 } from 'ionicons/icons';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { ThemeService, AppThemeMode } from '../../services/theme.service';
 import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
 import { GmailIntegrationService } from '../../services/gmail-integration.service';
-import { V2FeaturesService } from '../../services/v2-features.service';
+import { StatsEngineService } from '../../services/stats-engine.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
+import {
+  AppUserProfile,
+  AuthorizedRoleDoc,
+  UserRole,
+  ROLE_METADATA,
+} from '../../models/user-profile.model';
 
-export type SettingsTab = 'portiere' | 'match' | 'sistema';
+export type SettingsTab = 'ruoli' | 'portiere' | 'match' | 'sistema';
 
 @Component({
   selector: 'app-impostazioni-modal',
@@ -77,7 +93,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   public authService = inject(AuthService);
   public soundSettings = inject(SoundSettingsService);
   public gmail = inject(GmailIntegrationService);
-  public v2Features = inject(V2FeaturesService);
+  public statsEngine = inject(StatsEngineService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -88,6 +104,37 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   activeTab = signal<SettingsTab>('portiere');
   readonly isDevEnvironment: boolean = !environment.production;
   readonly turnMinutesOptions = [3, 4, 5, 6, 7, 8, 10];
+
+  // ─── STATO GESTIONE RUOLI (PRESIDENTE) ────────────────────────────────────
+  memberSearchQuery = signal<string>('');
+  newPreAuthEmail = signal<string>('');
+  newPreAuthRole = signal<UserRole>('superuser');
+  isSubmittingRole = signal<boolean>(false);
+
+  // ─── STATO ASSOCIAZIONE SCHEDA ATLETA ──────────────────────────────────────
+  selectedPlayerToLink = signal<string>('');
+  isLinkingAthlete = signal<boolean>(false);
+
+  // Streams reattivi da Firestore
+  users$: Observable<AppUserProfile[]> = this.authService.getAllUsers$();
+  authorizedRoles$: Observable<AuthorizedRoleDoc[]> = this.authService.getAuthorizedRoles$();
+
+  // Giocatori liberi in rosa per l'associazione (opzionale)
+  availablePlayersToLink = computed(() => {
+    const list = this.statsEngine.giocatoriRaw() || [];
+    const myUid = this.authService.firebaseUser()?.uid;
+    return list
+      .filter((g) => !g.linkedUid || (myUid && g.linkedUid === myUid))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
+  });
+
+  currentLinkedPlayerName = computed(() => {
+    const pid = this.authService.linkedPlayerId();
+    if (!pid) return '';
+    const list = this.statsEngine.giocatoriRaw() || [];
+    const p = list.find((g) => g.id === pid);
+    return p ? `${p.nome}${p.soprannome ? ' ("' + p.soprannome + '")' : ''}` : 'Atleta collegato';
+  });
 
   constructor() {
     addIcons({
@@ -118,14 +165,24 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       syncOutline,
       mailOutline,
       personOutline,
+      peopleOutline,
+      personAddOutline,
+      personRemoveOutline,
+      trashOutline,
+      shieldCheckmarkOutline,
+      searchOutline,
+      linkOutline,
+      unlinkOutline,
     });
   }
 
   ngOnInit() {
-    if (!this.authService.isSuperUser()) {
-      this.activeTab.set('sistema');
-    } else {
+    if (this.authService.isPresidente()) {
+      this.activeTab.set(this.initialTab === 'portiere' ? 'ruoli' : this.initialTab);
+    } else if (this.authService.isSuperUser()) {
       this.activeTab.set(this.initialTab);
+    } else {
+      this.activeTab.set('sistema');
     }
     this.soundSettings.unlockAudioOnUserGesture();
   }
@@ -139,6 +196,10 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       this.activeTab.set('sistema');
       return;
     }
+    if (tab === 'ruoli' && !this.authService.isPresidente()) {
+      this.activeTab.set('portiere');
+      return;
+    }
     this.soundSettings.stopPreview();
     this.activeTab.set(tab);
   }
@@ -146,6 +207,164 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   chiudi() {
     this.soundSettings.stopPreview();
     this.modalCtrl.dismiss();
+  }
+
+  // ─── GESTIONE RUOLI (WHATSAPP-STYLE ADMIN MANAGEMENT) ─────────────────────
+
+  filteredUsers(users: AppUserProfile[]): AppUserProfile[] {
+    const q = this.memberSearchQuery().trim().toLowerCase();
+    if (!q) return users;
+    return users.filter(
+      (u) =>
+        (u.displayName || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q),
+    );
+  }
+
+  getRoleBadgeText(role: UserRole): string {
+    return ROLE_METADATA[role]?.badgeText || role;
+  }
+
+  getInitials(text?: string): string {
+    if (!text) return '?';
+    const parts = text.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return text.slice(0, 2).toUpperCase();
+  }
+
+  async onAddPreAuth() {
+    const email = this.newPreAuthEmail().trim();
+    if (!email || !email.includes('@')) {
+      await this.mostraToast('Inserisci un indirizzo email valido', 'warning');
+      return;
+    }
+
+    this.isSubmittingRole.set(true);
+    try {
+      await this.authService.preAuthorizeEmail(email, this.newPreAuthRole());
+      await this.mostraToast(
+        `Email autorizzata: ${this.newPreAuthRole() === 'superuser' ? 'Mister' : 'Atleta'}`,
+        'success',
+      );
+      this.newPreAuthEmail.set('');
+    } catch (err: any) {
+      await this.mostraToast(err?.message || 'Errore pre-autorizzazione', 'danger');
+    } finally {
+      this.isSubmittingRole.set(false);
+    }
+  }
+
+  async onRevokePreAuth(email: string) {
+    const alert = await this.alertCtrl.create({
+      header: 'Revoca autorizzazione',
+      message: `Vuoi rimuovere l'autorizzazione per ${email}?`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Revoca',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.revokeAuthorizedEmail(email);
+              await this.mostraToast('Autorizzazione rimossa', 'success');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore revoca', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async onPromoteToMister(u: AppUserProfile) {
+    const name = u.displayName || u.email;
+    const alert = await this.alertCtrl.create({
+      header: 'Promuovi a Mister',
+      message: `Vuoi assegnare il ruolo di Mister a ${name}? Potrà gestire convocazioni, match e pagelle.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Promuovi',
+          handler: async () => {
+            try {
+              await this.authService.promoteUserToMister(u.uid);
+              await this.mostraToast(`👔 ${name} è ora Mister`, 'success');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore promozione', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async onDemoteFromMister(u: AppUserProfile) {
+    const name = u.displayName || u.email;
+    const alert = await this.alertCtrl.create({
+      header: 'Rimuovi ruolo Mister',
+      message: `Vuoi togliere il ruolo di Mister a ${name}? Tornerà a ${u.playerId ? 'Atleta' : 'Tifoso'}.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Rimuovi',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.demoteUserFromMister(u.uid, !!u.playerId);
+              await this.mostraToast(`Ruolo Mister rimosso a ${name}`, 'medium');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore revoca ruolo', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  // ─── ASSOCIAZIONE SCHEDA ATLETA ───────────────────────────────────────────
+
+  async collegaSchedaSelezionata() {
+    const pid = this.selectedPlayerToLink();
+    if (!pid) return;
+
+    this.isLinkingAthlete.set(true);
+    try {
+      await this.authService.claimPlayer(pid);
+      await this.mostraToast('⚽ Scheda atleta collegata con successo!', 'success');
+      this.selectedPlayerToLink.set('');
+    } catch (err: any) {
+      await this.mostraToast(err?.message || 'Errore associazione atleta', 'danger');
+    } finally {
+      this.isLinkingAthlete.set(false);
+    }
+  }
+
+  async scollegaSchedaAtleta() {
+    const alert = await this.alertCtrl.create({
+      header: 'Scollega Scheda Atleta',
+      message: 'Vuoi scollegare il tuo profilo giocatore? Il tuo account resterà attivo.',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Scollega',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.unlinkCurrentPlayer();
+              await this.mostraToast('Scheda atleta scollegata', 'medium');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore scollegamento', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   // ─── GESTIONE SUONO CAMBIO PORTIERE ────────────────────────────────────────
@@ -294,15 +513,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
 
   async logoutSuperUser() {
     await this.authService.logoutAdmin();
-    await this.mostraToast('Logout Super User effettuato', 'medium');
-  }
-
-  toggleV2Features() {
-    const next = this.v2Features.toggle();
-    this.mostraToast(
-      next ? '✨ Funzioni v2.0 (Account & Gmail): ATTIVATE' : '✨ Funzioni v2.0: DISATTIVATE',
-      next ? 'success' : 'medium'
-    );
+    await this.mostraToast('Logout effettuato', 'medium');
   }
 
   private async mostraToast(
@@ -319,4 +530,3 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     await toast.present();
   }
 }
-

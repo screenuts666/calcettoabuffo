@@ -17,25 +17,32 @@ import {
   signOut,
   authState,
 } from '@angular/fire/auth';
-import { Firestore } from '@angular/fire/firestore';
+import { Firestore, collectionData } from '@angular/fire/firestore';
 import {
   doc,
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   writeBatch,
   collection,
   getDocs,
+  query,
+  where,
   Unsubscribe,
 } from 'firebase/firestore';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   AppUserProfile,
+  AuthorizedRoleDoc,
   ROLE_METADATA,
   RoleMeta,
   UserRole,
   isLegacySuperUserEmail,
+  isPresidenteEmail,
+  PRESIDENTE_EMAIL,
 } from '../models/user-profile.model';
 import { environment } from 'src/environments/environment';
 
@@ -63,12 +70,10 @@ export class AuthService {
   // ─── FEATURE FLAG UNIFICATA v2.0 (ACCOUNT + GMAIL) ─────────────────────────
   private readonly v2Features = inject(V2FeaturesService);
 
-  /** In PROD showAccountUi è SEMPRE false, in DEV è true se showUiToggle è attivo */
-  readonly showAccountUi = computed<boolean>(() =>
-    this.v2Features.showUiToggle(),
-  );
+  /** showAccountUi è SEMPRE true sia in DEV che in PROD */
+  readonly showAccountUi = computed<boolean>(() => true);
 
-  /** In PROD isAccountEnabled è TASSATIVAMENTE false; in DEV segue lo switch unico v2.0 */
+  /** isAccountEnabled è ATTIVO al 100% sia in DEV che in PROD */
   readonly isAccountEnabled = computed<boolean>(() =>
     this.v2Features.isEnabled(),
   );
@@ -77,19 +82,28 @@ export class AuthService {
     return this.v2Features.toggle(forcedValue);
   }
 
-  // ─── STATO REATTIVO RBAC A 3 RUOLI (Tifoso, Atleta, Mister) ──────────────
+  // ─── STATO REATTIVO RBAC A 4 RUOLI (Tifoso, Atleta, Mister, Presidente) ──────────────
   readonly isLoggedIn = computed<boolean>(() => !!this.firebaseUser());
 
   readonly role = computed<UserRole>(() => {
     const fbUser = this.firebaseUser();
     if (!fbUser) return 'guest';
 
+    // Ruolo supremo protetto da lockout (Presidente / Creatore)
+    if (isPresidenteEmail(fbUser.email)) {
+      return 'presidente';
+    }
+
+    const prof = this.userProfile();
+    if (prof?.role === 'presidente') {
+      return 'presidente';
+    }
+
     // Protezione Account Legacy: sempre riconosciuto come `superuser` ("Mister")
     if (isLegacySuperUserEmail(fbUser.email)) {
       return 'superuser';
     }
 
-    const prof = this.userProfile();
     if (!prof) return 'guest';
 
     if (prof.role === 'superuser') {
@@ -102,13 +116,16 @@ export class AuthService {
   });
 
   readonly roleMeta = computed<RoleMeta>(() => ROLE_METADATA[this.role()]);
-  readonly roleLabel = computed<'Tifoso' | 'Atleta' | 'Mister'>(
+  readonly roleLabel = computed<'Tifoso' | 'Atleta' | 'Mister' | 'Presidente'>(
     () => this.roleMeta().label,
   );
 
   readonly isGuest = computed<boolean>(() => this.role() === 'guest');
   readonly isAtleta = computed<boolean>(() => this.role() === 'user');
-  readonly isSuperUser = computed<boolean>(() => this.role() === 'superuser');
+  readonly isPresidente = computed<boolean>(() => this.role() === 'presidente');
+  readonly isSuperUser = computed<boolean>(
+    () => this.role() === 'superuser' || this.role() === 'presidente',
+  );
 
   /**
    * Alias retrocompatibile: `isAdmin()` riflette in modo reattivo `isSuperUser()` ("Mister").
@@ -228,31 +245,52 @@ export class AuthService {
     this.stopProfileListener();
     const userDocRef = doc(this.firestore, `users/${user.uid}`);
     const now = new Date().toISOString();
+    const isPresident = isPresidenteEmail(user.email);
     const isLegacyAdmin = isLegacySuperUserEmail(user.email);
+    const cleanEmail = (user.email || '').trim().toLowerCase();
     const providerId =
       user.providerData?.[0]?.providerId === 'google.com'
         ? 'google.com'
         : 'password';
 
+    // Controllo eventuale pre-autorizzazione ruolo via email da parte del Presidente
+    let preAuthRole: UserRole | null = null;
+    if (cleanEmail && this.firestore && !isPresident && !isLegacyAdmin) {
+      try {
+        const preAuthSnap = await getDoc(
+          doc(this.firestore, `authorized_roles/${cleanEmail}`),
+        );
+        if (preAuthSnap.exists()) {
+          preAuthRole = preAuthSnap.data()?.['role'] as UserRole;
+        }
+      } catch (e) {
+        console.warn('Controllo pre-autorizzazione email fallito:', e);
+      }
+    }
+
     try {
       const snap = await getDoc(userDocRef);
       if (!snap.exists()) {
-        // Verifica se esiste già un giocatore (o un profilo precedente con la stessa email, es. Admin Legacy entrato con Google)
+        // Verifica se esiste già un giocatore associato
         const autoPlayerId = await this.resolveAutoLinkedPlayerId(
           user,
-          isLegacyAdmin,
+          isLegacyAdmin || isPresident,
         );
-        const initialRole: UserRole = isLegacyAdmin
-          ? 'superuser'
-          : autoPlayerId
-            ? 'user'
-            : 'guest';
+        const initialRole: UserRole = isPresident
+          ? 'presidente'
+          : preAuthRole
+            ? preAuthRole
+            : isLegacyAdmin
+              ? 'superuser'
+              : autoPlayerId
+                ? 'user'
+                : 'guest';
 
         const initialProfile: AppUserProfile = {
           uid: user.uid,
           email: user.email || '',
           displayName:
-            user.displayName || user.email?.split('@')[0] || 'Tifoso',
+            user.displayName || user.email?.split('@')[0] || (isPresident ? 'Presidente' : 'Tifoso'),
           photoURL: user.photoURL || null,
           role: initialRole,
           playerId: autoPlayerId,
@@ -267,20 +305,29 @@ export class AuthService {
         const data = snap.data() as AppUserProfile;
         let linkedPid = data.playerId || null;
         if (!linkedPid) {
-          linkedPid = await this.resolveAutoLinkedPlayerId(user, isLegacyAdmin);
+          linkedPid = await this.resolveAutoLinkedPlayerId(
+            user,
+            isLegacyAdmin || isPresident,
+          );
         }
 
-        const effectiveRole: UserRole = isLegacyAdmin
-          ? 'superuser'
-          : linkedPid && (data.role === 'guest' || !data.role)
-            ? 'user'
-            : data.role || 'guest';
+        const effectiveRole: UserRole = isPresident
+          ? 'presidente'
+          : preAuthRole
+            ? preAuthRole
+            : isLegacyAdmin
+              ? 'superuser'
+              : data.role === 'presidente'
+                ? 'presidente'
+                : linkedPid && (data.role === 'guest' || !data.role)
+                  ? 'user'
+                  : data.role || 'guest';
 
         const mergedPhoto = data.photoURL || user.photoURL || null;
         const mergedName =
           data.displayName && data.displayName !== 'Tifoso'
             ? data.displayName
-            : user.displayName || user.email?.split('@')[0] || 'Tifoso';
+            : user.displayName || user.email?.split('@')[0] || (isPresident ? 'Presidente' : 'Tifoso');
 
         this.userProfile.set({
           ...data,
@@ -298,7 +345,9 @@ export class AuthService {
           updatedAt: now,
           authProvider: providerId,
         };
-        if (isLegacyAdmin && data.role !== 'superuser') {
+        if (isPresident && data.role !== 'presidente') {
+          patch['role'] = 'presidente';
+        } else if (isLegacyAdmin && data.role !== 'superuser' && !isPresident) {
           patch['role'] = 'superuser';
         } else if (effectiveRole !== data.role) {
           patch['role'] = effectiveRole;
@@ -322,7 +371,20 @@ export class AuthService {
         'Impossibile sincronizzare il profilo utente iniziale:',
         err,
       );
-      if (isLegacyAdmin) {
+      if (isPresident) {
+        this.userProfile.set({
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || 'Presidente',
+          photoURL: user.photoURL || null,
+          role: 'presidente',
+          playerId: null,
+          authProvider: providerId,
+          createdAt: now,
+          updatedAt: now,
+          lastLoginAt: now,
+        });
+      } else if (isLegacyAdmin) {
         this.userProfile.set({
           uid: user.uid,
           email: user.email || '',
@@ -344,15 +406,17 @@ export class AuthService {
       (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data() as AppUserProfile;
-          const effectiveRole: UserRole = isLegacySuperUserEmail(user.email)
-            ? 'superuser'
-            : data.role || 'guest';
+          const effectiveRole: UserRole = isPresidenteEmail(user.email)
+            ? 'presidente'
+            : isLegacySuperUserEmail(user.email)
+              ? 'superuser'
+              : data.role || 'guest';
           this.userProfile.set({
             ...data,
             uid: user.uid,
             role: effectiveRole,
           });
-          if (effectiveRole !== 'superuser') {
+          if (effectiveRole !== 'superuser' && effectiveRole !== 'presidente') {
             this.lockVault();
           }
         }
@@ -835,13 +899,245 @@ export class AuthService {
     await batch.commit();
   }
 
+  /**
+   * Scollega la scheda atleta dall'utente corrente (mantenendo il ruolo Mister o Presidente).
+   */
+  async unlinkCurrentPlayer(): Promise<void> {
+    const user = this.firebaseUser();
+    const pid = this.linkedPlayerId();
+    if (!user || !pid || !this.firestore) return;
+
+    const now = new Date().toISOString();
+    const batch = writeBatch(this.firestore);
+    batch.update(doc(this.firestore, `giocatori/${pid}`), {
+      linkedUid: null,
+      linkedEmail: null,
+      claimedAt: null,
+      updatedAt: now,
+    });
+    batch.update(doc(this.firestore, `users/${user.uid}`), {
+      playerId: null,
+      updatedAt: now,
+    });
+    await batch.commit();
+  }
+
+  // =========================================================================
+  // GESTIONE RUOLI & MEMBRI CLUB (WHATSAPP-STYLE ADMIN MANAGEMENT)
+  // Riservato al Presidente (supreme admin)
+  // =========================================================================
+
+  /**
+   * Stream di tutti i profili utente registrati nel club.
+   */
+  getAllUsers$(): Observable<AppUserProfile[]> {
+    if (!this.firestore) return of([]);
+    return collectionData(collection(this.firestore, 'users'), {
+      idField: 'uid',
+    }).pipe(
+      map((users) => {
+        return (users as AppUserProfile[]).sort((a, b) => {
+          const roleWeight: Record<UserRole, number> = {
+            presidente: 4,
+            superuser: 3,
+            user: 2,
+            guest: 1,
+          };
+          const diff = (roleWeight[b.role] || 0) - (roleWeight[a.role] || 0);
+          if (diff !== 0) return diff;
+          return (a.displayName || a.email || '').localeCompare(
+            b.displayName || b.email || '',
+          );
+        });
+      }),
+    );
+  }
+
+  /**
+   * Stream delle email pre-autorizzate su `authorized_roles`.
+   */
+  getAuthorizedRoles$(): Observable<AuthorizedRoleDoc[]> {
+    if (!this.firestore) return of([]);
+    return collectionData(collection(this.firestore, 'authorized_roles'), {
+      idField: 'id',
+    }).pipe(
+      map((list) => {
+        return (list as AuthorizedRoleDoc[]).sort((a, b) =>
+          (a.email || '').localeCompare(b.email || ''),
+        );
+      }),
+    );
+  }
+
+  /**
+   * Promuove un utente registrato a Mister ("superuser").
+   */
+  async promoteUserToMister(uid: string): Promise<void> {
+    if (!this.isPresidente()) {
+      throw new Error('Solo il Presidente può assegnare o togliere il ruolo di Mister.');
+    }
+    if (!this.firestore) return;
+
+    const userRef = doc(this.firestore, `users/${uid}`);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data() as AppUserProfile;
+    const now = new Date().toISOString();
+
+    const batch = writeBatch(this.firestore);
+    batch.update(userRef, {
+      role: 'superuser',
+      updatedAt: now,
+    });
+
+    if (data.email) {
+      const authRef = doc(
+        this.firestore,
+        `authorized_roles/${data.email.trim().toLowerCase()}`,
+      );
+      batch.set(authRef, {
+        email: data.email.trim().toLowerCase(),
+        role: 'superuser',
+        addedAt: now,
+        addedBy: 'presidente',
+      });
+    }
+
+    await batch.commit();
+  }
+
+  /**
+   * Rimuove il ruolo di Mister a un utente, facendolo tornare Atleta (se ha playerId) o Tifoso.
+   */
+  async demoteUserFromMister(uid: string, hasPlayerId: boolean): Promise<void> {
+    if (!this.isPresidente()) {
+      throw new Error('Solo il Presidente può assegnare o togliere il ruolo di Mister.');
+    }
+    if (!this.firestore) return;
+
+    const userRef = doc(this.firestore, `users/${uid}`);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) return;
+
+    const data = snap.data() as AppUserProfile;
+    if (isPresidenteEmail(data.email) || isLegacySuperUserEmail(data.email)) {
+      throw new Error('Impossibile revocare il ruolo a un fondatore protetto.');
+    }
+
+    const now = new Date().toISOString();
+    const nextRole: UserRole = hasPlayerId ? 'user' : 'guest';
+
+    const batch = writeBatch(this.firestore);
+    batch.update(userRef, {
+      role: nextRole,
+      updatedAt: now,
+    });
+
+    if (data.email) {
+      const cleanEmail = data.email.trim().toLowerCase();
+      const authRef = doc(this.firestore, `authorized_roles/${cleanEmail}`);
+      if (hasPlayerId) {
+        batch.set(authRef, {
+          email: cleanEmail,
+          role: 'user',
+          addedAt: now,
+          addedBy: 'presidente',
+        });
+      } else {
+        batch.delete(authRef);
+      }
+    }
+
+    await batch.commit();
+  }
+
+  /**
+   * Pre-autorizza una email a un determinato ruolo (Mister o Atleta) prima ancora che acceda.
+   * Se l'utente è già registrato con tale email, aggiorna contestualmente il suo profilo.
+   */
+  async preAuthorizeEmail(email: string, role: UserRole): Promise<void> {
+    if (!this.isPresidente()) {
+      throw new Error('Solo il Presidente può pre-autorizzare ruoli.');
+    }
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      throw new Error('Inserisci un indirizzo email valido.');
+    }
+    if (!this.firestore) return;
+
+    const now = new Date().toISOString();
+    const batch = writeBatch(this.firestore);
+
+    // 1. Salva documento in `authorized_roles/{cleanEmail}`
+    const authRef = doc(this.firestore, `authorized_roles/${cleanEmail}`);
+    batch.set(authRef, {
+      email: cleanEmail,
+      role: role,
+      addedAt: now,
+      addedBy: 'presidente',
+    });
+
+    // 2. Se esiste già un utente con questa email in `users`, aggiorna anche il suo profilo
+    const usersQ = query(
+      collection(this.firestore, 'users'),
+      where('email', '==', cleanEmail),
+    );
+    const userDocs = await getDocs(usersQ);
+    userDocs.forEach((uDoc) => {
+      batch.update(uDoc.ref, {
+        role: role,
+        updatedAt: now,
+      });
+    });
+
+    await batch.commit();
+  }
+
+  /**
+   * Revoca una pre-autorizzazione email da `authorized_roles`.
+   */
+  async revokeAuthorizedEmail(email: string): Promise<void> {
+    if (!this.isPresidente()) {
+      throw new Error('Solo il Presidente può revocare autorizzazioni.');
+    }
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail || !this.firestore) return;
+
+    if (isPresidenteEmail(cleanEmail) || isLegacySuperUserEmail(cleanEmail)) {
+      throw new Error('Impossibile revocare un account fondatore.');
+    }
+
+    const batch = writeBatch(this.firestore);
+    const authRef = doc(this.firestore, `authorized_roles/${cleanEmail}`);
+    batch.delete(authRef);
+
+    // Se esiste un utente con questa email, demotiamolo a user o guest
+    const usersQ = query(
+      collection(this.firestore, 'users'),
+      where('email', '==', cleanEmail),
+    );
+    const userDocs = await getDocs(usersQ);
+    const now = new Date().toISOString();
+    userDocs.forEach((uDoc) => {
+      const uData = uDoc.data() as AppUserProfile;
+      const nextRole: UserRole = uData.playerId ? 'user' : 'guest';
+      batch.update(uDoc.ref, {
+        role: nextRole,
+        updatedAt: now,
+      });
+    });
+
+    await batch.commit();
+  }
+
   // =========================================================================
   // VERIFICA SERVER-SIDE PER ROUTE GUARDS (ZERO DATA LEAK)
   // =========================================================================
 
   /**
    * Verifica asincrona direttamente su Firebase Auth + Firestore (`users/{uid}`)
-   * se l'utente corrente possiede realmente il ruolo `superuser` ("Mister").
+   * se l'utente corrente possiede realmente il ruolo `superuser` ("Mister") o `presidente` ("Presidente").
    */
   async verifySuperUserFromFirestore(): Promise<boolean> {
     if (!this.auth || !this.firestore) return false;
@@ -850,7 +1146,7 @@ export class AuthService {
       const user = await firstValueFrom(authState(this.auth));
       if (!user) return false;
 
-      if (isLegacySuperUserEmail(user.email)) {
+      if (isPresidenteEmail(user.email) || isLegacySuperUserEmail(user.email)) {
         return true;
       }
 
@@ -858,7 +1154,7 @@ export class AuthService {
       if (!snap.exists()) return false;
 
       const data = snap.data() as AppUserProfile;
-      return data.role === 'superuser';
+      return data.role === 'superuser' || data.role === 'presidente';
     } catch {
       return false;
     }
@@ -866,7 +1162,7 @@ export class AuthService {
 
   /**
    * Verifica asincrona su Firestore se l'utente corrente può modificare la scheda `playerId`
-   * (è `superuser` oppure è il proprietario `linkedUid == user.uid`).
+   * (è `superuser` / `presidente` oppure è il proprietario `linkedUid == user.uid`).
    */
   async verifyCanEditPlayerFromFirestore(
     playerId: string | null,
@@ -877,7 +1173,7 @@ export class AuthService {
       const user = await firstValueFrom(authState(this.auth));
       if (!user) return false;
 
-      if (isLegacySuperUserEmail(user.email)) {
+      if (isPresidenteEmail(user.email) || isLegacySuperUserEmail(user.email)) {
         return true;
       }
 
@@ -888,7 +1184,7 @@ export class AuthService {
 
       if (userSnap.exists()) {
         const uData = userSnap.data() as AppUserProfile;
-        if (uData.role === 'superuser') return true;
+        if (uData.role === 'superuser' || uData.role === 'presidente') return true;
         if (
           uData.role === 'user' &&
           uData.playerId === playerId &&
@@ -906,7 +1202,7 @@ export class AuthService {
 
   /**
    * Verifica asincrona su Firestore se l'utente corrente può creare una scheda giocatore:
-   * - Il `Mister` (`superuser`) può sempre creare giocatori.
+   * - Il `Mister` / `Presidente` può sempre creare giocatori.
    * - Un utente autenticato che NON ha ancora una scheda giocatore associata (`!playerId`)
    *   può creare la propria scheda in rosa e agganciarla subito.
    */
@@ -917,7 +1213,7 @@ export class AuthService {
       const user = await firstValueFrom(authState(this.auth));
       if (!user) return false;
 
-      if (isLegacySuperUserEmail(user.email)) {
+      if (isPresidenteEmail(user.email) || isLegacySuperUserEmail(user.email)) {
         return true;
       }
 
@@ -928,7 +1224,7 @@ export class AuthService {
       }
 
       const uData = userSnap.data() as AppUserProfile;
-      if (uData.role === 'superuser') return true;
+      if (uData.role === 'superuser' || uData.role === 'presidente') return true;
       return !uData.playerId;
     } catch {
       return false;

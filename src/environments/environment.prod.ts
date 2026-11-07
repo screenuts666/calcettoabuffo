@@ -5,7 +5,7 @@ export const environment = {
     '188767969527-jscjmees8bqfjhuqu5v6nlq80222dchm.apps.googleusercontent.com',
   features: {
     v2Features: {
-      enabled: false,
+      enabled: true,
       showUiToggle: false,
     },
   },

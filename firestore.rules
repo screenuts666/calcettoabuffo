@@ -9,7 +9,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Protezione Account Admin Legacy (anti-lockout per i 2 Mister ufficiali)
+    // Verifica "Presidente" (Supreme Admin & Developer)
+    function isPresidente() {
+      return isAuthenticated() && (
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'giradischi666@gmail.com') ||
+        (userDocExists() && getUserData().role == 'presidente')
+      );
+    }
+
+    // Protezione Account Admin Legacy (anti-lockout per i Mister ufficiali)
     function isLegacySuperUser() {
       return isAuthenticated() &&
         request.auth.token.email != null &&
@@ -28,12 +36,13 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Verifica "Mister" (Superuser): da documento users/{uid} oppure fallback Legacy
-    // Nota: un Mister può anche avere un `playerId` associato (Mister-Giocatore)
+    // Verifica "Mister" o "Presidente"
+    // Nota: un Mister o Presidente può anche avere un `playerId` associato
     function isSuperUser() {
       return isAuthenticated() && (
         isLegacySuperUser() ||
-        (userDocExists() && getUserData().role == 'superuser')
+        isPresidente() ||
+        (userDocExists() && (getUserData().role == 'superuser' || getUserData().role == 'presidente'))
       );
     }
 
@@ -105,6 +114,15 @@ service cloud.firestore {
       );
 
       allow delete: if isSuperUser();
+    }
+
+    // =========================================================================
+    // 1b. COLLEZIONE AUTHORIZED_ROLES: Pre-autorizzazione Ruoli via Email
+    // Permette al Presidente di pre-assegnare ruoli prima del primo login
+    // =========================================================================
+    match /authorized_roles/{emailDoc} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperUser();
     }
 
     // =========================================================================

@@ -1,4 +1,4 @@
-export type UserRole = 'guest' | 'user' | 'superuser';
+export type UserRole = 'guest' | 'user' | 'superuser' | 'presidente';
 
 export type AuthProviderType = 'password' | 'google.com';
 
@@ -11,7 +11,7 @@ export interface AppUserProfile {
   /**
    * ID del documento in `giocatori/{playerId}`.
    * - Obbligatorio per `user` ("Atleta")
-   * - Opzionale per `superuser` ("Mister", che può essere anche un giocatore in campo)
+   * - Opzionale per `superuser` ("Mister") e `presidente` ("Presidente")
    * - Null per `guest` ("Tifoso")
    */
   playerId?: string | null;
@@ -23,7 +23,7 @@ export interface AppUserProfile {
 
 export interface RoleMeta {
   role: UserRole;
-  label: 'Tifoso' | 'Atleta' | 'Mister';
+  label: 'Tifoso' | 'Atleta' | 'Mister' | 'Presidente';
   emoji: string;
   badgeText: string;
   description: string;
@@ -35,33 +35,56 @@ export const ROLE_METADATA: Record<UserRole, RoleMeta> = {
     label: 'Tifoso',
     emoji: '🧢',
     badgeText: '🧢 Tifoso',
-    description: 'Sola lettura di classifiche, partite e schede giocatori.',
+    description: 'Sola lettura di classifiche, partite e commenti.',
   },
   user: {
     role: 'user',
     label: 'Atleta',
     emoji: '⚽',
     badgeText: '⚽ Atleta',
-    description:
-      'Profilo giocatore associato: modifica la tua scheda e gestisci le tue convocazioni RSVP.',
+    description: 'Giocatore in rosa con convocazioni e scheda.',
   },
   superuser: {
     role: 'superuser',
     label: 'Mister',
-    emoji: '👑',
-    badgeText: '👑 Mister',
-    description:
-      'Controllo completo su partite, pagelle, Area Segreta e gestione ruoli (può anche essere associato a un giocatore).',
+    emoji: '👔',
+    badgeText: '👔 Mister',
+    description: 'Gestione gare, convocazioni e pagelle.',
+  },
+  presidente: {
+    role: 'presidente',
+    label: 'Presidente',
+    emoji: '🎩',
+    badgeText: '🎩 Presidente',
+    description: 'Fondatore e gestione ruoli del club.',
   },
 };
 
 /**
- * Email dei 2 account Admin/Mister ufficiali protetti da lockout (riconosciuti come `superuser` di default).
+ * Email del Presidente & Sviluppatore ufficiale (ruolo supremo protetto da lockout).
+ */
+export const PRESIDENTE_EMAIL = 'giradischi666@gmail.com';
+
+export function isPresidenteEmail(email?: string | null): boolean {
+  if (!email) return false;
+  return email.trim().toLowerCase() === PRESIDENTE_EMAIL;
+}
+
+/**
+ * Email degli account Admin/Mister ufficiali protetti da lockout.
  */
 export const LEGACY_SUPERUSER_EMAILS: readonly string[] = [
   'giradischi666@gmail.com',
   'lucais1991@gmail.com',
 ];
+
+export interface AuthorizedRoleDoc {
+  id?: string;
+  email: string;
+  role: UserRole;
+  addedAt: string;
+  addedBy?: string;
+}
 
 export function isLegacySuperUserEmail(email?: string | null): boolean {
   if (!email) return false;

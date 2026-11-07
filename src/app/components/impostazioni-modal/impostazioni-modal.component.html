@@ -7,8 +7,12 @@
       <div class="mtb-title-text">
         <span class="mtb-title">Impostazioni</span>
       </div>
+      @if (authService.isPresidente()) {
+        <span class="su-pill presidente-pill">🎩 Presidente</span>
+      } @else if (authService.isSuperUser()) {
+        <span class="su-pill">👔 Mister</span>
+      }
       @if (authService.isSuperUser()) {
-        <span class="su-pill">👑 Mister</span>
         <span
           class="cloud-status-icon"
           [class.saving]="soundSettings.isSavingCloud()"
@@ -34,8 +38,19 @@
   </div>
 
   @if (authService.isSuperUser()) {
-    <!-- BARRA DI NAVIGAZIONE A 3 SCHEDE -->
+    <!-- BARRA DI NAVIGAZIONE SCHEDE -->
     <div class="settings-tabs-bar">
+      @if (authService.isPresidente()) {
+        <button
+          type="button"
+          class="s-tab-btn"
+          [class.active]="activeTab() === 'ruoli'"
+          (click)="setTab('ruoli')"
+        >
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Ruoli</span>
+        </button>
+      }
       <button
         type="button"
         class="s-tab-btn"
@@ -61,7 +76,7 @@
         (click)="setTab('sistema')"
       >
         <ion-icon name="sparkles-outline"></ion-icon>
-        <span>Tema & App</span>
+        <span>Sistema</span>
       </button>
     </div>
   }
@@ -71,6 +86,162 @@
   <div class="settings-container">
     @let cfg = soundSettings.config();
     @let activePreset = soundSettings.selectedGkPreset();
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB 0: RUOLI & AUTORIZZAZIONI (ESCLUSIVO PRESIDENTE)                -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (authService.isPresidente() && activeTab() === 'ruoli') {
+      <!-- AUTORIZZA VIA EMAIL (PRE-ACCESSO) -->
+      <div class="settings-section-card roles-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">✉️</span>
+          <div>
+            <h4>Autorizza via Email</h4>
+          </div>
+        </div>
+
+        <div class="pre-auth-form">
+          <input
+            type="email"
+            class="role-input"
+            placeholder="nome@gmail.com"
+            [value]="newPreAuthEmail()"
+            (input)="newPreAuthEmail.set($any($event.target).value)"
+          />
+          <div class="role-form-actions">
+            <select
+              class="role-select"
+              [value]="newPreAuthRole()"
+              (change)="newPreAuthRole.set($any($event.target).value)"
+            >
+              <option value="superuser">👔 Mister</option>
+              <option value="user">⚽ Atleta</option>
+            </select>
+            <button
+              type="button"
+              class="btn-add-role"
+              [disabled]="!newPreAuthEmail() || isSubmittingRole()"
+              (click)="onAddPreAuth()"
+            >
+              <ion-icon name="person-add-outline"></ion-icon>
+              <span>Autorizza</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- LISTA EMAIL PRE-AUTORIZZATE -->
+        @if ((authorizedRoles$ | async); as authList) {
+          @if (authList.length > 0) {
+            <div class="preauth-list-section">
+              <span class="sub-label">Email autorizzate ({{ authList.length }})</span>
+              <div class="preauth-chips-wrap">
+                @for (item of authList; track item.id || item.email) {
+                  <div class="preauth-chip">
+                    <span class="p-role-badge" [class.mister]="item.role === 'superuser'">
+                      {{ item.role === 'superuser' ? '👔 Mister' : '⚽ Atleta' }}
+                    </span>
+                    <span class="p-email">{{ item.email }}</span>
+                    <button
+                      type="button"
+                      class="btn-remove-preauth"
+                      (click)="onRevokePreAuth(item.email)"
+                      title="Revoca autorizzazione"
+                    >
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- MEMBRI DEL CLUB (GESTIONE RUOLI STILE WHATSAPP) -->
+      <div class="settings-section-card members-card">
+        <div class="ssc-header">
+          <span class="ssc-icon">👥</span>
+          <div>
+            <h4>Membri del Club</h4>
+          </div>
+        </div>
+
+        <!-- RICERCA MEMBRI -->
+        <div class="member-search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            placeholder="Cerca utente o email..."
+            [value]="memberSearchQuery()"
+            (input)="memberSearchQuery.set($any($event.target).value)"
+          />
+          @if (memberSearchQuery()) {
+            <button type="button" class="clear-search-btn" (click)="memberSearchQuery.set('')">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          }
+        </div>
+
+        <!-- LISTA UTENTI -->
+        @if ((users$ | async); as users) {
+          <div class="members-list">
+            @for (u of filteredUsers(users); track u.uid) {
+              <div class="member-row" [class.is-presidente]="u.role === 'presidente'">
+                <div class="member-avatar">
+                  @if (u.photoURL) {
+                    <img [src]="u.photoURL" [alt]="u.displayName" />
+                  } @else {
+                    <div class="avatar-fallback">{{ getInitials(u.displayName || u.email) }}</div>
+                  }
+                </div>
+
+                <div class="member-details">
+                  <div class="member-name-row">
+                    <strong class="member-name">{{ u.displayName || 'Utente' }}</strong>
+                    <span class="role-tag" [ngClass]="'role-' + u.role">
+                      {{ getRoleBadgeText(u.role) }}
+                    </span>
+                  </div>
+                  <span class="member-email">{{ u.email }}</span>
+                </div>
+
+                <div class="member-actions">
+                  @if (u.role === 'presidente') {
+                    <span class="locked-badge" title="Fondatore protetto">
+                      🔒 Fondatore
+                    </span>
+                  } @else if (u.role === 'superuser') {
+                    <button
+                      type="button"
+                      class="btn-role-action demote"
+                      (click)="onDemoteFromMister(u)"
+                      title="Rimuovi ruolo di Mister"
+                    >
+                      <ion-icon name="person-remove-outline"></ion-icon>
+                      <span>Rimuovi Mister</span>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-role-action promote"
+                      (click)="onPromoteToMister(u)"
+                      title="Promuovi a Mister"
+                    >
+                      <ion-icon name="shield-checkmark-outline"></ion-icon>
+                      <span>Rendi Mister</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="empty-members">
+                <p>Nessun utente trovato</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     <!-- TAB 1: SUONO CAMBIO PORTIERE (ESCLUSIVO SUPER USER)                 -->
@@ -361,7 +532,7 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 3: TEMA, VERSIONE APP & GESTIONE MISTER                         -->
+    <!-- TAB 3: TEMA, SCHEDA ATLETA, VERSIONE APP & GESTIONE MISTER          -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
     @if (!authService.isSuperUser() || activeTab() === 'sistema') {
       <!-- SEZIONE TEMA VISUALE (COMPATTA) -->
@@ -406,6 +577,61 @@
         </div>
       </div>
 
+      <!-- SEZIONE SCHEDA ATLETA (OPZIONALE PER MISTER & PRESIDENTE) -->
+      @if (authService.isSuperUser()) {
+        <div class="settings-section-card athlete-card">
+          <div class="ssc-header">
+            <span class="ssc-icon">⚽</span>
+            <div>
+              <h4>Scheda Atleta</h4>
+            </div>
+          </div>
+
+          @if (authService.hasLinkedPlayer()) {
+            <div class="linked-athlete-row">
+              <div class="lar-left">
+                <span class="lar-badge">Collegata</span>
+                <strong class="lar-name">{{ currentLinkedPlayerName() }}</strong>
+              </div>
+              <button
+                type="button"
+                class="btn-unlink-athlete"
+                (click)="scollegaSchedaAtleta()"
+                title="Scollega atleta"
+              >
+                <ion-icon name="unlink-outline"></ion-icon>
+                <span>Scollega</span>
+              </button>
+            </div>
+          } @else {
+            <div class="unlinked-athlete-block">
+              <p class="uab-hint">Opzionale: se giochi anche in campo, collega il tuo atleta.</p>
+              <div class="uab-form-row">
+                <select
+                  class="uab-select"
+                  [value]="selectedPlayerToLink()"
+                  (change)="selectedPlayerToLink.set($any($event.target).value)"
+                >
+                  <option value="">-- Scegli dalla rosa --</option>
+                  @for (p of availablePlayersToLink(); track p.id) {
+                    <option [value]="p.id">{{ p.nome }}{{ p.soprannome ? ' ("' + p.soprannome + '")' : '' }}</option>
+                  }
+                </select>
+                <button
+                  type="button"
+                  class="btn-link-athlete"
+                  [disabled]="!selectedPlayerToLink() || isLinkingAthlete()"
+                  (click)="collegaSchedaSelezionata()"
+                >
+                  <ion-icon name="link-outline"></ion-icon>
+                  <span>Collega</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
       <!-- SEZIONE GESTIONE MISTER (VISIBILE ESCLUSIVAMENTE AL MISTER) -->
       @if (authService.isSuperUser()) {
         <div class="settings-section-card su-card">
@@ -446,7 +672,7 @@
             >
               <ion-icon name="log-out-outline"></ion-icon>
               <div class="sab-text">
-                <strong>🚪 Esci da Super User</strong>
+                <strong>🚪 Esci dall'account</strong>
               </div>
             </button>
           </div>
@@ -471,40 +697,6 @@
                 <strong>👑 Accedi come Mister</strong>
               </div>
             </button>
-          </div>
-        </div>
-      }
-
-      <!-- SEZIONE DEV: FUNZIONI v2.0 (SOLO IN DEV, MAI NEL DOM DI PROD) -->
-      @if (isDevEnvironment && v2Features.showUiToggle()) {
-        <div class="settings-section-card">
-          <div class="ssc-header">
-            <span class="ssc-icon">🛠️</span>
-            <div>
-              <h4>Funzioni DEV v2.0</h4>
-            </div>
-          </div>
-
-          <div class="toggles-list">
-            <div
-              class="toggle-row"
-              [class.active]="v2Features.isEnabled()"
-              (click)="toggleV2Features()"
-            >
-              <div class="tr-left">
-                <span class="tr-emoji">✨</span>
-                <div class="tr-text">
-                  <strong>Funzioni v2.0 (Account & Gmail)</strong>
-                </div>
-              </div>
-              <button
-                type="button"
-                class="pill-switch"
-                [class.on]="v2Features.isEnabled()"
-              >
-                <span class="knob"></span>
-              </button>
-            </div>
           </div>
         </div>
       }

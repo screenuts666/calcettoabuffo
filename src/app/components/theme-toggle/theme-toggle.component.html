@@ -1,6 +1,6 @@
 <div class="header-actions-group">
-  <!-- PILL UTENTE LOGGATO / ACCEDI (SOLO IN DEV CON SWITCH ATTIVO, MAI IN PROD) -->
-  @if (isDevEnvironment && authService.showAccountUi() && authService.isAccountEnabled()) {
+  <!-- PILL UTENTE LOGGATO / ACCEDI (ATTIVO SIA IN DEV CHE IN PROD) -->
+  @if (authService.isAccountEnabled()) {
     @if (authService.isLoggedIn()) {
       <button
         type="button"

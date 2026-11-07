@@ -51,8 +51,8 @@
             <ion-icon name="copy-outline"></ion-icon>
           </button>
 
-          <!-- INVIO CONVOCAZIONI GMAIL (ATTIVO DI DEFAULT IN DEV, SWITCHABILE NELLE IMPOSTAZIONI, MAI IN PROD) -->
-          @if (isDev && gmail.showUiToggle() && gmail.isFeatureEnabled()) {
+          <!-- INVIO CONVOCAZIONI GMAIL (ATTIVO SIA IN DEV CHE IN PROD) -->
+          @if (gmail.isFeatureEnabled()) {
             <button
               type="button"
               class="btn-share-gmail"
