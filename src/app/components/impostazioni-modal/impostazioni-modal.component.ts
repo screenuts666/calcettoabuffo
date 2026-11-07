@@ -17,7 +17,7 @@ import {
   AlertController,
   ToastController,
 } from '@ionic/angular/standalone';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import {
   closeOutline,
@@ -55,6 +55,9 @@ import {
   searchOutline,
   linkOutline,
   unlinkOutline,
+  createOutline,
+  alertCircleOutline,
+  arrowBackOutline,
   cloudDownloadOutline,
   cloudUploadOutline,
   logoGoogle,
@@ -74,6 +77,8 @@ import {
   AuthorizedRoleDoc,
   UserRole,
   ROLE_METADATA,
+  isPresidenteEmail,
+  isLegacySuperUserEmail,
 } from '../../models/user-profile.model';
 
 export type SettingsTab = 'ruoli' | 'portiere' | 'match' | 'sistema';
@@ -103,12 +108,15 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   private router = inject(Router);
+  private route = inject(ActivatedRoute, { optional: true });
 
   @Input() initialTab: SettingsTab = 'portiere';
 
   activeTab = signal<SettingsTab>('portiere');
   readonly isDevEnvironment: boolean = !environment.production;
   readonly turnMinutesOptions = [3, 4, 5, 6, 7, 8, 10];
+  readonly isPresidenteEmail = isPresidenteEmail;
+  readonly isLegacySuperUserEmail = isLegacySuperUserEmail;
 
   // ─── STATO GESTIONE RUOLI (PRESIDENTE) ────────────────────────────────────
   memberSearchQuery = signal<string>('');
@@ -180,6 +188,9 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       searchOutline,
       linkOutline,
       unlinkOutline,
+      createOutline,
+      alertCircleOutline,
+      arrowBackOutline,
       cloudDownloadOutline,
       cloudUploadOutline,
       logoGoogle,
@@ -187,10 +198,13 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const queryTab = this.route?.snapshot?.queryParams?.['tab'] as SettingsTab | undefined;
+    const targetTab = queryTab || this.initialTab;
+
     if (this.authService.isPresidente()) {
-      this.activeTab.set(this.initialTab === 'portiere' ? 'ruoli' : this.initialTab);
+      this.activeTab.set(targetTab || 'ruoli');
     } else if (this.authService.isSuperUser()) {
-      this.activeTab.set(this.initialTab);
+      this.activeTab.set(targetTab === 'ruoli' ? 'portiere' : (targetTab || 'portiere'));
     } else {
       this.activeTab.set('sistema');
     }
@@ -214,9 +228,18 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
     this.activeTab.set(tab);
   }
 
-  chiudi() {
+  async chiudi() {
     this.soundSettings.stopPreview();
-    this.modalCtrl.dismiss();
+    const top = await this.modalCtrl.getTop();
+    if (top) {
+      await this.modalCtrl.dismiss();
+    } else {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        await this.router.navigate(['/']);
+      }
+    }
   }
 
   // ─── GESTIONE RUOLI (WHATSAPP-STYLE ADMIN MANAGEMENT) ─────────────────────
@@ -328,6 +351,134 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
               await this.mostraToast(`Ruolo Mister rimosso a ${name}`, 'medium');
             } catch (err: any) {
               await this.mostraToast(err?.message || 'Errore revoca ruolo', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  getPlayerNameById(playerId?: string | null): string {
+    if (!playerId) return '';
+    const g = (this.statsEngine.giocatoriRaw() || []).find((p) => p.id === playerId);
+    if (!g) return playerId;
+    return `${g.nome}${g.soprannome ? ' ("' + g.soprannome + '")' : ''}`;
+  }
+
+  async onModificaSchedaAtleta(u: AppUserProfile) {
+    if (!this.authService.isPresidente()) return;
+    const allPlayers = [...(this.statsEngine.giocatoriRaw() || [])].sort((a, b) =>
+      (a.nome || '').localeCompare(b.nome || '')
+    );
+
+    const inputs = allPlayers.map((p) => {
+      const isMine = p.id === u.playerId;
+      const isTaken = !!p.linkedUid && p.linkedUid !== u.uid;
+      const sub = p.soprannome ? ` (${p.soprannome})` : '';
+      const tag = isMine ? ' [Attuale]' : isTaken ? ' [Associato ad altro]' : '';
+      return {
+        name: 'selectedPlayer',
+        type: 'radio' as const,
+        label: `${p.nome}${sub}${tag}`,
+        value: p.id,
+        checked: isMine,
+      };
+    });
+
+    const alert = await this.alertCtrl.create({
+      header: 'Associa Scheda Atleta',
+      subHeader: u.displayName || u.email,
+      message: 'Seleziona il giocatore in rosa da collegare a questo account:',
+      inputs,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        ...(u.playerId
+          ? [
+              {
+                text: 'Scollega Scheda',
+                role: 'destructive',
+                handler: async () => {
+                  await this.onScollegaSchedaAtleta(u);
+                },
+              },
+            ]
+          : []),
+        {
+          text: 'Salva Associazione',
+          handler: async (selectedPlayerId: string) => {
+            if (!selectedPlayerId) return;
+            try {
+              await this.authService.assignPlayerToUser(u, selectedPlayerId);
+              await this.mostraToast(
+                `⚽ Scheda "${this.getPlayerNameById(selectedPlayerId)}" associata a ${u.displayName || u.email}`,
+                'success'
+              );
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore associazione scheda', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async onScollegaSchedaAtleta(u: AppUserProfile) {
+    if (!this.authService.isPresidente() || !u.playerId) return;
+    const playerName = this.getPlayerNameById(u.playerId);
+    const alert = await this.alertCtrl.create({
+      header: 'Scollega Scheda Atleta',
+      message: `Vuoi scollegare la scheda di "${playerName}" dall'account ${u.displayName || u.email}?\n\nL'account rimarrà attivo e la scheda rimarrà nella rosa con tutte le sue statistiche.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Scollega',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.unlinkPlayerFromUser(u);
+              await this.mostraToast(`Scheda di ${playerName} scollegata`, 'medium');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore scollegamento', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async onEliminaAccount(u: AppUserProfile) {
+    if (!this.authService.isPresidente()) return;
+    if (u.role === 'presidente' || isPresidenteEmail(u.email)) {
+      await this.mostraToast("Non puoi eliminare l'account del Presidente.", 'warning');
+      return;
+    }
+    const myUid = this.authService.firebaseUser()?.uid;
+    if (u.uid === myUid) {
+      await this.mostraToast('Non puoi eliminare il tuo stesso account.', 'warning');
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: '⚠️ Elimina Account Utente',
+      subHeader: u.displayName || u.email,
+      message: `Sei sicuro di voler eliminare definitivamente questo account?\n\n⚠️ OCCHIO: Verrà eliminato SOLO l'account di accesso. La scheda del giocatore associata NON verrà cancellata ma solo scollegata.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Elimina Account',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.deleteUserAccount(u);
+              await this.mostraToast(
+                `🗑️ Account di ${u.displayName || u.email} eliminato. La scheda giocatore è rimasta in rosa.`,
+                'medium'
+              );
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore eliminazione account', 'danger');
             }
           },
         },

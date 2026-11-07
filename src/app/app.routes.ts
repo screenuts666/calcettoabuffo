@@ -15,6 +15,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'impostazioni',
+    loadComponent: () =>
+      import('./components/impostazioni-modal/impostazioni-modal.component').then(
+        (m) => m.ImpostazioniModalComponent
+      ),
+  },
+  {
     path: 'match/:id',
     redirectTo: 'partite/:id',
     pathMatch: 'full',

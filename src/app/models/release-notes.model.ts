@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.27",
+    "date": "07/11/2026",
+    "title": "Gestione Associazioni Giocatori, Eliminazione Account & Addio Modali su Desktop",
+    "userChanges": [
+      "🖥️ Esperienza Desktop a Schermo Intero: le Impostazioni e la gestione del club ora si aprono a tutto schermo su Desktop, senza più modali strette o fluttuanti.",
+      "⚽ Scheda Atleta nei Membri: visibilità immediata della scheda giocatore associata a ciascun account utente o indicazione chiara di nessuna scheda."
+    ],
+    "superUserChanges": [
+      "🎩 Gestione Associazioni Giocatori: il Presidente può assegnare o cambiare la scheda atleta associata a qualsiasi account da un pratico selettore.",
+      "🔗 Scollega Scheda: rimozione dell'associazione tra account e atleta in un click, preservando integralmente la scheda giocatore in rosa.",
+      "🗑️ Eliminazione Account Sicura: il Presidente può cancellare l'account di accesso utente con la garanzia che la scheda del giocatore in rosa NON viene eliminata.",
+      "🌐 Route Dedicata `/impostazioni`: creata rotta nativa autonoma con supporto responsive completo sia come pagina desktop ampia che come modale su mobile."
+    ]
+  },
+  {
     "version": "2.0.26",
     "date": "07/11/2026",
     "title": "Salvataggio Diretto Backup su Google Drive",

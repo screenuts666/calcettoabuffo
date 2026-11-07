@@ -108,8 +108,27 @@ export class UserMenuModalComponent {
     this.modalCtrl.dismiss({ type: 'auth', openClaimPicker: false });
   }
 
+  apriGestioneRuoli() {
+    this.modalCtrl.dismiss({
+      type: 'navigate',
+      url: ['/impostazioni'],
+      queryParams: { tab: 'ruoli' },
+    });
+  }
+
   apriImpostazioni() {
-    this.modalCtrl.dismiss({ type: 'settings' });
+    this.modalCtrl.dismiss({
+      type: 'navigate',
+      url: ['/impostazioni'],
+    });
+  }
+
+  apriAccount() {
+    this.modalCtrl.dismiss({
+      type: 'navigate',
+      url: ['/impostazioni'],
+      queryParams: { tab: 'sistema' },
+    });
   }
 
   esci() {

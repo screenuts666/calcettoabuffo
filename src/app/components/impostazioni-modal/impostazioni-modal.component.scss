@@ -1360,9 +1360,67 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+
+      .member-player-association {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 2px;
+
+        .player-linked-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 2px 8px;
+          border-radius: 6px;
+          background: rgba(59, 130, 246, 0.12);
+          border: 1px solid rgba(59, 130, 246, 0.3);
+          color: #60a5fa;
+          font-size: 0.72rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s ease;
+
+          &:hover {
+            background: rgba(59, 130, 246, 0.22);
+          }
+
+          ion-icon {
+            font-size: 0.8rem;
+          }
+        }
+
+        .player-unlinked-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 2px 8px;
+          border-radius: 6px;
+          background: rgba(245, 158, 11, 0.1);
+          border: 1px dashed rgba(245, 158, 11, 0.35);
+          color: #fbbf24;
+          font-size: 0.7rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.15s ease;
+
+          &:hover {
+            background: rgba(245, 158, 11, 0.2);
+          }
+
+          ion-icon {
+            font-size: 0.8rem;
+          }
+        }
+      }
     }
 
-    .member-actions {
+    .member-actions-cluster {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       flex-shrink: 0;
 
       .locked-badge {
@@ -1375,19 +1433,57 @@
         border: 1px solid rgba(168, 85, 247, 0.3);
       }
 
+      .btn-subtle-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 9px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: var(--app-surface-subtle);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.82rem;
+        }
+
+        &:hover {
+          background: var(--app-surface-hover);
+          border-color: var(--app-primary);
+        }
+
+        &.unlink {
+          background: rgba(239, 68, 68, 0.08);
+          border-color: rgba(239, 68, 68, 0.25);
+          color: #f87171;
+
+          &:hover {
+            background: rgba(239, 68, 68, 0.18);
+          }
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+
       .btn-role-action {
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        padding: 6px 11px;
+        padding: 5px 10px;
         border-radius: 8px;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 700;
         cursor: pointer;
         transition: transform 0.12s ease, opacity 0.15s ease;
 
         ion-icon {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
         }
 
         &.promote {
@@ -1408,6 +1504,34 @@
           &:hover {
             background: rgba(239, 68, 68, 0.2);
           }
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+
+      .btn-delete-account {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 9px;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #ef4444;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        ion-icon {
+          font-size: 0.85rem;
+        }
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.22);
+          border-color: #ef4444;
         }
 
         &:active {
@@ -1526,6 +1650,74 @@
         &:not(:disabled):active {
           transform: scale(0.97);
         }
+      }
+    }
+  }
+}
+
+// ─── RESPONSIVE DESKTOP ENHANCEMENTS (>= 768px) ──────────────────────────
+@media (min-width: 768px) {
+  :host {
+    display: block;
+    height: 100%;
+  }
+
+  .settings-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 24px 64px;
+    gap: 20px;
+  }
+
+  .modal-top-bar {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px 24px;
+
+    .mtb-title-group .mtb-title-text .mtb-title {
+      font-size: 1.15rem;
+    }
+  }
+
+  .settings-tabs-bar {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px 12px;
+    gap: 12px;
+
+    .s-tab-btn {
+      padding: 10px 20px;
+      font-size: 0.95rem;
+
+      ion-icon {
+        font-size: 1.15rem;
+      }
+    }
+  }
+
+  .member-row {
+    padding: 14px 18px;
+    gap: 14px;
+
+    .member-avatar {
+      width: 44px;
+      height: 44px;
+    }
+
+    .member-details {
+      .member-name-row .member-name {
+        font-size: 0.98rem;
+      }
+    }
+
+    .member-actions-cluster {
+      gap: 8px;
+
+      .btn-subtle-action,
+      .btn-role-action,
+      .btn-delete-account {
+        padding: 6px 12px;
+        font-size: 0.78rem;
       }
     }
   }

@@ -40,6 +40,9 @@ import {
   logoGoogle,
   mailOutline,
   keyOutline,
+  trashOutline,
+  openOutline,
+  alertCircleOutline,
 } from 'ionicons/icons';
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
@@ -49,6 +52,7 @@ import {
   ROLE_METADATA,
   UserRole,
   isLegacySuperUserEmail,
+  isPresidenteEmail,
 } from '../../models/user-profile.model';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 
@@ -147,6 +151,9 @@ export class AuthModalComponent implements OnInit {
       logoGoogle,
       mailOutline,
       keyOutline,
+      trashOutline,
+      openOutline,
+      alertCircleOutline,
     });
   }
 
@@ -459,6 +466,137 @@ export class AuthModalComponent implements OnInit {
       ],
     });
     await alert.present();
+  }
+
+  async modificaSchedaAtleta(u: AppUserProfile) {
+    if (!this.authService.isPresidente()) return;
+    const allPlayers = [...(this.statsEngine.giocatoriRaw() || [])].sort((a, b) =>
+      (a.nome || '').localeCompare(b.nome || '')
+    );
+
+    const inputs = allPlayers.map((p) => {
+      const isMine = p.id === u.playerId;
+      const isTaken = !!p.linkedUid && p.linkedUid !== u.uid;
+      const sub = p.soprannome ? ` (${p.soprannome})` : '';
+      const tag = isMine ? ' [Attuale]' : isTaken ? ' [Associato ad altro]' : '';
+      return {
+        name: 'selectedPlayer',
+        type: 'radio' as const,
+        label: `${p.nome}${sub}${tag}`,
+        value: p.id,
+        checked: isMine,
+      };
+    });
+
+    const alert = await this.alertCtrl.create({
+      header: 'Associa Scheda Atleta',
+      subHeader: u.displayName || u.email,
+      message: 'Seleziona il giocatore in rosa da abbinare a questo account:',
+      inputs,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        ...(u.playerId
+          ? [
+              {
+                text: 'Scollega Scheda',
+                role: 'destructive',
+                handler: async () => {
+                  await this.scollegaSchedaAtleta(u);
+                },
+              },
+            ]
+          : []),
+        {
+          text: 'Salva Associazione',
+          handler: async (selectedPlayerId: string) => {
+            if (!selectedPlayerId) return;
+            try {
+              await this.authService.assignPlayerToUser(u, selectedPlayerId);
+              await this.caricaUtentiRegistrati();
+              await this.mostraToast(
+                `⚽ Scheda "${this.getPlayerNameById(selectedPlayerId)}" associata a ${u.displayName || u.email}`,
+                'success'
+              );
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore associazione scheda', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async scollegaSchedaAtleta(u: AppUserProfile) {
+    if (!this.authService.isPresidente() || !u.playerId) return;
+    const playerName = this.getPlayerNameById(u.playerId);
+    const alert = await this.alertCtrl.create({
+      header: 'Scollega Scheda Atleta',
+      message: `Vuoi scollegare la scheda di "${playerName}" dall'account ${u.displayName || u.email}?\n\nL'account rimarrà attivo e la scheda dell'atleta rimarrà nella rosa con tutte le sue statistiche.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Scollega',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.unlinkPlayerFromUser(u);
+              await this.caricaUtentiRegistrati();
+              await this.mostraToast(`Scheda di ${playerName} scollegata`, 'medium');
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore scollegamento', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async eliminaAccount(u: AppUserProfile) {
+    if (!this.authService.isPresidente()) return;
+    if (u.role === 'presidente' || isPresidenteEmail(u.email)) {
+      await this.mostraToast("Non puoi eliminare l'account del Presidente.", 'warning');
+      return;
+    }
+    const myUid = this.authService.firebaseUser()?.uid;
+    if (u.uid === myUid) {
+      await this.mostraToast('Non puoi eliminare il tuo stesso account.', 'warning');
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: '⚠️ Elimina Account',
+      subHeader: u.displayName || u.email,
+      message: `Sei sicuro di voler eliminare definitivamente questo account?\n\n⚠️ OCCHIO: Verrà eliminato SOLO l'account di accesso. La scheda del giocatore associata NON verrà cancellata ma solo scollegata.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Elimina Account',
+          role: 'destructive',
+          handler: async () => {
+            try {
+              await this.authService.deleteUserAccount(u);
+              await this.caricaUtentiRegistrati();
+              await this.mostraToast(
+                `🗑️ Account di ${u.displayName || u.email} eliminato. La scheda giocatore è rimasta in rosa.`,
+                'medium'
+              );
+            } catch (err: any) {
+              await this.mostraToast(err?.message || 'Errore eliminazione account', 'danger');
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async apriGestioneImpostazioni() {
+    await this.chiudi();
+    await this.router.navigate(['/impostazioni'], {
+      queryParams: { tab: 'ruoli' },
+    });
   }
 
   private formatFirebaseAuthError(err: any): string {

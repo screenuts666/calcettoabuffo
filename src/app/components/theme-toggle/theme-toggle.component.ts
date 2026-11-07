@@ -34,7 +34,10 @@ import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { Giocatore } from '../../models/giocatore.model';
-import { ImpostazioniModalComponent } from '../impostazioni-modal/impostazioni-modal.component';
+import {
+  ImpostazioniModalComponent,
+  SettingsTab,
+} from '../impostazioni-modal/impostazioni-modal.component';
 import {
   AuthModalComponent,
   AuthModalView,
@@ -121,13 +124,14 @@ export class ThemeToggleComponent {
       return;
     }
 
+    const isDesktop = window.innerWidth >= 768;
     const modal = await this.modalCtrl.create({
       component: UserMenuModalComponent,
-      breakpoints: [0, 0.78, 1],
-      initialBreakpoint: 0.78,
-      handle: true,
+      breakpoints: isDesktop ? undefined : [0, 0.78, 1],
+      initialBreakpoint: isDesktop ? undefined : 0.78,
+      handle: !isDesktop,
       mode: 'ios',
-      cssClass: 'user-menu-sheet-modal',
+      cssClass: isDesktop ? 'user-menu-desktop-modal' : 'user-menu-sheet-modal',
     });
     await modal.present();
 
@@ -157,10 +161,12 @@ export class ThemeToggleComponent {
     initialMode: AuthModalView = 'login',
     openClaimPicker = false,
   ) {
+    const isDesktop = window.innerWidth >= 768;
     const modal = await this.modalCtrl.create({
       component: AuthModalComponent,
       componentProps: { initialMode, openClaimPicker },
       mode: 'ios',
+      cssClass: isDesktop ? 'auth-desktop-modal' : undefined,
     });
     await modal.present();
     const { data } = await modal.onWillDismiss();
@@ -169,9 +175,16 @@ export class ThemeToggleComponent {
     }
   }
 
-  async openThemeMenu() {
+  async openThemeMenu(tab?: SettingsTab) {
+    if (window.innerWidth >= 768) {
+      await this.router.navigate(['/impostazioni'], {
+        queryParams: tab ? { tab } : undefined,
+      });
+      return;
+    }
     const modal = await this.modalCtrl.create({
       component: ImpostazioniModalComponent,
+      componentProps: tab ? { initialTab: tab } : undefined,
       mode: 'ios',
     });
     await modal.present();

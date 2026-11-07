@@ -437,6 +437,17 @@
 
           @if (showUsersManager()) {
             <div class="users-manager-box">
+              <div class="um-top-shortcut">
+                <button
+                  type="button"
+                  class="um-fullscreen-btn"
+                  (click)="apriGestioneImpostazioni()"
+                >
+                  <ion-icon name="open-outline"></ion-icon>
+                  <span>Apri Gestione Ruoli & Membri Completa</span>
+                </button>
+              </div>
+
               @if (isLoadingUsers()) {
                 <div class="um-loading">
                   <ion-spinner name="crescent"></ion-spinner>
@@ -459,21 +470,62 @@
                         <small class="um-player">
                           ⚽ Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong>
                         </small>
+                      } @else {
+                        <small class="um-player unlinked">
+                          ⚠️ Nessuna scheda atleta
+                        </small>
                       }
                     </div>
 
-                    @if (!isLegacySuperUserEmail(u.email)) {
-                      <button
-                        type="button"
-                        class="um-action-btn"
-                        [class.promote]="u.role !== 'superuser'"
-                        (click)="promuoviORevocaMister(u)"
-                      >
-                        {{ u.role === 'superuser' ? 'Revoca Mister' : '👑 Fai Mister' }}
-                      </button>
-                    } @else {
-                      <span class="um-founder-badge">👑 Fondatore</span>
-                    }
+                    <div class="um-actions-wrap">
+                      <!-- Modifica / Associa Scheda (Presidente) -->
+                      @if (authService.isPresidente()) {
+                        <button
+                          type="button"
+                          class="um-icon-action-btn"
+                          (click)="modificaSchedaAtleta(u)"
+                          [title]="u.playerId ? 'Cambia scheda atleta' : 'Associa scheda atleta'"
+                        >
+                          <ion-icon [name]="u.playerId ? 'create-outline' : 'link-outline'"></ion-icon>
+                        </button>
+                        @if (u.playerId) {
+                          <button
+                            type="button"
+                            class="um-icon-action-btn warning"
+                            (click)="scollegaSchedaAtleta(u)"
+                            title="Scollega scheda atleta da questo account"
+                          >
+                            <ion-icon name="unlink-outline"></ion-icon>
+                          </button>
+                        }
+                      }
+
+                      <!-- Promuovi/Revoca Mister -->
+                      @if (!isLegacySuperUserEmail(u.email) && u.role !== 'presidente') {
+                        <button
+                          type="button"
+                          class="um-action-btn"
+                          [class.promote]="u.role !== 'superuser'"
+                          (click)="promuoviORevocaMister(u)"
+                        >
+                          {{ u.role === 'superuser' ? 'Revoca Mister' : '👑 Fai Mister' }}
+                        </button>
+                      } @else {
+                        <span class="um-founder-badge">👑 Fondatore</span>
+                      }
+
+                      <!-- Elimina Account (Presidente) -->
+                      @if (authService.isPresidente() && u.role !== 'presidente' && !isLegacySuperUserEmail(u.email)) {
+                        <button
+                          type="button"
+                          class="um-icon-action-btn danger"
+                          (click)="eliminaAccount(u)"
+                          title="Elimina questo account (la scheda atleta NON verrà cancellata)"
+                        >
+                          <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                      }
+                    </div>
                   </div>
                 }
               }

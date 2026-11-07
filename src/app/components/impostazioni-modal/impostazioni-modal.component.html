@@ -203,9 +203,49 @@
                     </span>
                   </div>
                   <span class="member-email">{{ u.email }}</span>
+
+                  <!-- SCHEDA GIOCATORE COLLEGATA -->
+                  <div class="member-player-association">
+                    @if (u.playerId) {
+                      <span class="player-linked-chip" (click)="onModificaSchedaAtleta(u)" title="Clicca per cambiare scheda atleta">
+                        <ion-icon name="football-outline"></ion-icon>
+                        <span>Scheda: <strong>{{ getPlayerNameById(u.playerId) }}</strong></span>
+                      </span>
+                    } @else {
+                      <span class="player-unlinked-chip" (click)="onModificaSchedaAtleta(u)" title="Clicca per associare una scheda atleta">
+                        <ion-icon name="alert-circle-outline"></ion-icon>
+                        <span>Nessuna scheda atleta associata</span>
+                      </span>
+                    }
+                  </div>
                 </div>
 
-                <div class="member-actions">
+                <div class="member-actions-cluster">
+                  <!-- ASSOCIA / CAMBIA SCHEDA -->
+                  <button
+                    type="button"
+                    class="btn-subtle-action"
+                    (click)="onModificaSchedaAtleta(u)"
+                    [title]="u.playerId ? 'Cambia scheda atleta associata' : 'Associa scheda atleta'"
+                  >
+                    <ion-icon [name]="u.playerId ? 'create-outline' : 'link-outline'"></ion-icon>
+                    <span>{{ u.playerId ? 'Cambia Scheda' : 'Associa' }}</span>
+                  </button>
+
+                  <!-- SCOLLEGA SCHEDA -->
+                  @if (u.playerId) {
+                    <button
+                      type="button"
+                      class="btn-subtle-action unlink"
+                      (click)="onScollegaSchedaAtleta(u)"
+                      title="Scollega la scheda atleta da questo account"
+                    >
+                      <ion-icon name="unlink-outline"></ion-icon>
+                      <span>Scollega</span>
+                    </button>
+                  }
+
+                  <!-- RUOLO MISTER -->
                   @if (u.role === 'presidente') {
                     <span class="locked-badge" title="Fondatore protetto">
                       🔒 Fondatore
@@ -218,7 +258,7 @@
                       title="Rimuovi ruolo di Mister"
                     >
                       <ion-icon name="person-remove-outline"></ion-icon>
-                      <span>Rimuovi Mister</span>
+                      <span>Revoca Mister</span>
                     </button>
                   } @else {
                     <button
@@ -228,7 +268,20 @@
                       title="Promuovi a Mister"
                     >
                       <ion-icon name="shield-checkmark-outline"></ion-icon>
-                      <span>Rendi Mister</span>
+                      <span>Fai Mister</span>
+                    </button>
+                  }
+
+                  <!-- ELIMINA ACCOUNT (PRESIDENTE) -->
+                  @if (u.role !== 'presidente' && !isLegacySuperUserEmail(u.email)) {
+                    <button
+                      type="button"
+                      class="btn-delete-account"
+                      (click)="onEliminaAccount(u)"
+                      title="Elimina questo account (la scheda atleta NON verrà cancellata)"
+                    >
+                      <ion-icon name="trash-outline"></ion-icon>
+                      <span>Elimina</span>
                     </button>
                   }
                 </div>

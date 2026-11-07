@@ -1131,6 +1131,134 @@ export class AuthService {
     await batch.commit();
   }
 
+  /**
+   * Modifica l'associazione tra un account utente e una scheda atleta in rosa.
+   * Riservato esclusivamente al Presidente.
+   * Se `newPlayerId` è null, scollega l'atleta dall'account (la scheda atleta resta intatta in rosa!).
+   */
+  async assignPlayerToUser(
+    targetUser: AppUserProfile,
+    newPlayerId: string | null,
+  ): Promise<void> {
+    if (!this.firestore || !this.isPresidente()) {
+      throw new Error('Solo il Presidente può modificare le associazioni dei giocatori.');
+    }
+
+    const now = new Date().toISOString();
+    const batch = writeBatch(this.firestore);
+
+    // 1. Se l'utente era precedentemente collegato a un altro giocatore, liberalo
+    if (targetUser.playerId && targetUser.playerId !== newPlayerId) {
+      batch.update(doc(this.firestore, `giocatori/${targetUser.playerId}`), {
+        linkedUid: null,
+        linkedEmail: null,
+        claimedAt: null,
+        updatedAt: now,
+      });
+    }
+
+    // 2. Se viene assegnato un nuovo giocatore
+    if (newPlayerId) {
+      // Se il giocatore era associato a un altro utente, scolleghiamolo da quell'altro utente
+      const otherUsersQ = query(
+        collection(this.firestore, 'users'),
+        where('playerId', '==', newPlayerId),
+      );
+      const otherDocs = await getDocs(otherUsersQ);
+      otherDocs.forEach((uDoc) => {
+        if (uDoc.id !== targetUser.uid) {
+          const uData = uDoc.data() as AppUserProfile;
+          const fallbackRole: UserRole =
+            uData.role === 'user' ? 'guest' : uData.role;
+          batch.update(uDoc.ref, {
+            playerId: null,
+            role: fallbackRole,
+            updatedAt: now,
+          });
+        }
+      });
+
+      // Aggiorna il giocatore con i dati di questo account
+      batch.update(doc(this.firestore, `giocatori/${newPlayerId}`), {
+        linkedUid: targetUser.uid,
+        linkedEmail: targetUser.email || null,
+        claimedAt: now,
+        updatedAt: now,
+      });
+    }
+
+    // 3. Calcola il nuovo ruolo per targetUser (senza degradare Presidente o Mister)
+    let effectiveRole: UserRole = targetUser.role;
+    if (effectiveRole !== 'presidente' && effectiveRole !== 'superuser') {
+      effectiveRole = newPlayerId ? 'user' : 'guest';
+    }
+
+    // 4. Aggiorna users/{targetUser.uid}
+    batch.update(doc(this.firestore, `users/${targetUser.uid}`), {
+      role: effectiveRole,
+      playerId: newPlayerId || null,
+      updatedAt: now,
+    });
+
+    await batch.commit();
+  }
+
+  /**
+   * Scollega la scheda atleta dall'account utente specificato.
+   * La scheda atleta rimane intatta nella rosa (NON viene eliminata).
+   */
+  async unlinkPlayerFromUser(targetUser: AppUserProfile): Promise<void> {
+    await this.assignPlayerToUser(targetUser, null);
+  }
+
+  /**
+   * Elimina definitivamente un account utente (`users/{uid}`).
+   * OCCHIO: Elimina SOLO l'account di accesso.
+   * La scheda del giocatore collegato in rosa NON viene eliminata, ma solo liberata/scollegata!
+   * Riservato esclusivamente al Presidente.
+   */
+  async deleteUserAccount(targetUser: AppUserProfile): Promise<void> {
+    if (!this.firestore || !this.isPresidente()) {
+      throw new Error('Solo il Presidente può eliminare un account utente.');
+    }
+
+    if (targetUser.role === 'presidente' || isPresidenteEmail(targetUser.email)) {
+      throw new Error("Impossibile eliminare l'account del Presidente.");
+    }
+
+    const currentUid = this.firebaseUser()?.uid;
+    if (targetUser.uid === currentUid) {
+      throw new Error('Non puoi eliminare il tuo stesso account dal pannello di gestione.');
+    }
+
+    const now = new Date().toISOString();
+    const batch = writeBatch(this.firestore);
+
+    // 1. Se l'utente era collegato a un giocatore in rosa, LIBERA la scheda dell'atleta!
+    // ATTENZIONE CRITICA: il documento in `giocatori/{playerId}` NON viene cancellato!
+    if (targetUser.playerId) {
+      batch.update(doc(this.firestore, `giocatori/${targetUser.playerId}`), {
+        linkedUid: null,
+        linkedEmail: null,
+        claimedAt: null,
+        updatedAt: now,
+      });
+    }
+
+    // 2. Elimina il profilo da `users/{uid}`
+    const userRef = doc(this.firestore, `users/${targetUser.uid}`);
+    batch.delete(userRef);
+
+    // 3. Se presente in `authorized_roles`, rimuovi la pre-autorizzazione
+    if (targetUser.email) {
+      const cleanEmail = targetUser.email.trim().toLowerCase();
+      const authRef = doc(this.firestore, `authorized_roles/${cleanEmail}`);
+      batch.delete(authRef);
+    }
+
+    await batch.commit();
+  }
+
   // =========================================================================
   // VERIFICA SERVER-SIDE PER ROUTE GUARDS (ZERO DATA LEAK)
   // =========================================================================
