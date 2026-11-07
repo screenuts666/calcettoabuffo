@@ -422,6 +422,9 @@ export class CalendarioPage implements OnInit {
 
     // Identifica il massimo di preferenze per far risaltare il giorno più scelto
     const maxVotes = Math.max(0, ...upcomingSummaries.map((s) => s.voterCount));
+    // Mostra "Più Scelto" solo se ci sono almeno 2 voti e una chiara preferenza (max 2 giorni pari merito)
+    const topDaysCount = upcomingSummaries.filter((s) => s.voterCount === maxVotes).length;
+    const hasFavorite = maxVotes >= 2 && topDaysCount <= 2;
 
     return upcomingSummaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
@@ -439,7 +442,7 @@ export class CalendarioPage implements OnInit {
         )
         .filter((g): g is Giocatore => !!g);
 
-      const isTopVoted = maxVotes > 0 && s.voterCount === maxVotes;
+      const isTopVoted = hasFavorite && s.voterCount === maxVotes;
 
       return {
         dateStr: s.date,
@@ -461,7 +464,7 @@ export class CalendarioPage implements OnInit {
   /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */
   readonly topVotedDayInfo = computed(() => {
     const days = this.activeWeekDaysList();
-    const topDays = days.filter((d) => d.isTopVoted && d.count > 0);
+    const topDays = days.filter((d) => d.isTopVoted && d.count >= 2);
     if (topDays.length === 0) return null;
     if (topDays.length === 1) {
       return {

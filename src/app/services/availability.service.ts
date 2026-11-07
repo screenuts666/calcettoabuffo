@@ -91,8 +91,8 @@ export class AvailabilityService {
       .map((p) => p.nome);
   });
 
-  /** Etichetta descrittiva della settimana attiva (es. "9 - 15 nov (Prossima Settimana)") */
-  readonly activeWeekLabel = computed(() => {
+  /** Etichetta pulita del range di date della settimana (es. "9 - 15 Novembre") */
+  readonly activeWeekRangeLabel = computed(() => {
     const days = this.activeWeekDays();
     if (!days || days.length < 7) return '';
     const dStart = new Date(days[0].date);
@@ -100,21 +100,32 @@ export class AvailabilityService {
 
     const startDay = dStart.getDate();
     const endDay = dEnd.getDate();
-    const month = dEnd.toLocaleDateString('it-IT', { month: 'short' });
+    const month = dEnd.toLocaleDateString('it-IT', { month: 'long' });
+    const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
 
+    return `${startDay} - ${endDay} ${capitalizedMonth}`;
+  });
+
+  /** Tag contestuale della settimana ("Questa Settimana" / "Prossima Settimana" / null) */
+  readonly activeWeekTag = computed(() => {
     const now = new Date();
     const thisWeekKey = this.getIsoWeekKey(now);
     const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const nextWeekKey = this.getIsoWeekKey(nextWeekDate);
 
-    let tag = '';
     if (this.activeWeekKey() === thisWeekKey) {
-      tag = ' (Questa Settimana)';
-    } else if (this.activeWeekKey() === nextWeekKey) {
-      tag = ' (Prossima Settimana)';
+      return 'Questa Settimana';
     }
+    if (this.activeWeekKey() === nextWeekKey) {
+      return 'Prossima Settimana';
+    }
+    return null;
+  });
 
-    return `${startDay} - ${endDay} ${month}${tag}`;
+  /** Etichetta completa retrocompatibile */
+  readonly activeWeekLabel = computed(() => {
+    const tag = this.activeWeekTag();
+    return tag ? `${this.activeWeekRangeLabel()} (${tag})` : this.activeWeekRangeLabel();
   });
 
   constructor() {

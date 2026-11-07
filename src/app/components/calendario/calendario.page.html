@@ -103,57 +103,63 @@
   @if (!availabilityService.isSummerBreakActive()) {
     <div class="weekly-availability-section">
       <div class="section-top-header">
-        <div class="section-titles">
+        <div class="section-header-top-row">
           <div class="availability-badge">
             <span class="live-pulse-dot"></span>
             <span>Quando Giochiamo?</span>
+            @if (availabilityService.activeWeekTag(); as tag) {
+              <span class="week-tag-pill">{{ tag }}</span>
+            }
           </div>
-          <div class="section-week-nav">
-            <button
-              type="button"
-              class="btn-week-chevron"
-              (click)="availabilityService.settimanaPrecedente()"
-              title="Settimana precedente"
-            >
-              <ion-icon name="chevron-back"></ion-icon>
-            </button>
-            <h2 class="section-week-label">
-              {{ availabilityService.activeWeekLabel() }}
-            </h2>
-            <button
-              type="button"
-              class="btn-week-chevron"
-              (click)="availabilityService.settimanaSuccessiva()"
-              title="Settimana successiva"
-            >
-              <ion-icon name="chevron-forward"></ion-icon>
-            </button>
-          </div>
-          @if (topVotedDayInfo(); as top) {
-            <div class="top-voted-callout">
-              <ion-icon name="flame" class="fire-icon"></ion-icon>
-              <span>
-                Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
-                @if (top.hasQuorum) {
-                  <span class="callout-quorum">⚽ Quorum!</span>
-                }
-              </span>
-            </div>
-          }
-          <p class="section-subtitle">
-            Seleziona i giorni in cui puoi giocare (puoi sceglierne più di uno):
-          </p>
+
+          <button
+            type="button"
+            class="btn-wa-sollecita"
+            (click)="condividiSuWhatsApp()"
+            title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
+          >
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <span>Sollecita</span>
+          </button>
         </div>
 
-        <button
-          type="button"
-          class="btn-wa-sollecita"
-          (click)="condividiSuWhatsApp()"
-          title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
-        >
-          <ion-icon name="logo-whatsapp"></ion-icon>
-          <span>Sollecita</span>
-        </button>
+        <div class="section-week-nav">
+          <button
+            type="button"
+            class="btn-week-chevron"
+            (click)="availabilityService.settimanaPrecedente()"
+            title="Settimana precedente"
+          >
+            <ion-icon name="chevron-back"></ion-icon>
+          </button>
+          <h2 class="section-week-label">
+            {{ availabilityService.activeWeekRangeLabel() }}
+          </h2>
+          <button
+            type="button"
+            class="btn-week-chevron"
+            (click)="availabilityService.settimanaSuccessiva()"
+            title="Settimana successiva"
+          >
+            <ion-icon name="chevron-forward"></ion-icon>
+          </button>
+        </div>
+
+        @if (topVotedDayInfo(); as top) {
+          <div class="top-voted-callout">
+            <ion-icon name="flame" class="fire-icon"></ion-icon>
+            <span>
+              Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
+              @if (top.hasQuorum) {
+                <span class="callout-quorum">⚽ Quorum!</span>
+              }
+            </span>
+          </div>
+        }
+
+        <p class="section-subtitle">
+          Seleziona i giorni in cui puoi giocare (puoi sceglierne più di uno):
+        </p>
       </div>
 
       <!-- CAROUSEL DEI GIORNI IN ARRIVO DELLA SETTIMANA ATTIVA -->
@@ -167,7 +173,7 @@
               [class.is-top-voted]="day.isTopVoted"
             >
               @if (day.isTopVoted) {
-                <div class="top-voted-pill">
+                <div class="top-voted-chip">
                   <ion-icon name="flame"></ion-icon>
                   <span>Più Scelto</span>
                 </div>

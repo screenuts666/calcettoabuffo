@@ -80,3 +80,4 @@ export function formatDataNascitaEdEta(
 
   return 'N.D.';
 }
+

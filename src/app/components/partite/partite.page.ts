@@ -726,7 +726,19 @@ export class PartitePage {
       return { startStr: '', endStr: null, fullRangeStr: '', isReal: false };
     }
 
-    // 1. Orario Inizio
+    // Se la partita ha un orario ufficiale fissato (es. "19:00", "20:00", "21:00"),
+    // mostriamo quello per coerenza ed eleganza visiva con tutte le altre partite
+    const orarioUfficiale = (m.orario || m.ora || '').trim();
+    if (orarioUfficiale) {
+      return {
+        startStr: orarioUfficiale,
+        endStr: null,
+        fullRangeStr: orarioUfficiale,
+        isReal: false,
+      };
+    }
+
+    // 1. Orario Inizio (fallback se non c'è orario ufficiale)
     let startStr: string | null = m.orarioInizioReale || null;
     let isReal = false;
 

@@ -1800,17 +1800,10 @@
   }
 
   .member-row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
     padding: 14px 18px;
-    gap: 14px;
+    gap: 10px;
 
     .member-header-row {
-      flex: 1;
-      width: auto;
-      align-items: center;
-
       .member-avatar {
         width: 44px;
         height: 44px;
@@ -1824,10 +1817,6 @@
     }
 
     .member-actions-cluster {
-      width: auto;
-      margin-top: 0;
-      padding-top: 0;
-      border-top: none;
       gap: 8px;
 
       .btn-subtle-action,

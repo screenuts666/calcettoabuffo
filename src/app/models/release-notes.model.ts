@@ -11,6 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.35",
+    "date": "07/11/2026",
+    "title": "Fix Layout Ruoli Impostazioni, Calendario Snello & Orari Partite Uniformi",
+    "userChanges": [
+      "👥 Gestione Ruoli & Membri Ripristinata: risolto l'accavallamento grafico tra bottoni e schede atlete nella sezione Ruoli delle Impostazioni, con layout verticale pulito e leggibile.",
+      "🏷️ Badge 'Più Scelto' Nitido e Senza Tagli: il badge è ora posizionato armoniosamente dentro la scheda giorno senza tagli o sbavature con lo scroll.",
+      "↔️ Settimane su Singola Riga: navigazione settimana ordinata e compatta ('9 - 15 Novembre') con tag 'Prossima Settimana' senza andare a capo.",
+      "🔥 Preferenza Intelligente: l'avviso di giorno favorito appare solo quando ci sono almeno 2 voti effettivi ed una reale preferenza di gruppo.",
+      "🕒 Orari Partite Uniformi: tutte le gare nello storico mostrano l'orario ufficiale stabilito con colore armonioso e coerente."
+    ],
+    "superUserChanges": [
+      "📐 Risolto squashing in flex row su schermi intermedi/desktop per i membri del club in Impostazioni.",
+      "⚡ Fallback intelligente su orario programmato in getOrariGaraDisplay per evitare sovrascritture da timestamp di test.",
+      "🛡️ Sanitizzazione payload e rimozione campi undefined per setDoc su weekly_availability."
+    ]
+  },
+  {
     "version": "2.0.33",
     "date": "07/11/2026",
     "title": "Data di Nascita Completa con Età Calcolata & Semplificazione Profilo",
