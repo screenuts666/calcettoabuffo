@@ -57,6 +57,7 @@ import {
   unlinkOutline,
   cloudDownloadOutline,
   cloudUploadOutline,
+  logoGoogle,
 } from 'ionicons/icons';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -119,6 +120,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   selectedPlayerToLink = signal<string>('');
   isLinkingAthlete = signal<boolean>(false);
   isExportingBackup = signal<boolean>(false);
+  isSavingToDrive = signal<boolean>(false);
 
   // Streams reattivi da Firestore
   users$: Observable<AppUserProfile[]> = this.authService.getAllUsers$();
@@ -180,6 +182,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       unlinkOutline,
       cloudDownloadOutline,
       cloudUploadOutline,
+      logoGoogle,
     });
   }
 
@@ -521,6 +524,35 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   async logoutSuperUser() {
     await this.authService.logoutAdmin();
     await this.mostraToast('Logout effettuato', 'medium');
+  }
+
+  async salvaBackupSuGoogleDrive() {
+    this.isSavingToDrive.set(true);
+    try {
+      const res = await this.backupRestore.uploadBackupToGoogleDrive();
+      const alert = await this.alertCtrl.create({
+        header: 'Backup su Google Drive',
+        message: `Backup salvato con successo nella cartella "${res.folderName}" del tuo account Google Drive (${res.filename}).`,
+        buttons: [
+          ...(res.webViewLink
+            ? [
+                {
+                  text: 'Visualizza in Drive',
+                  handler: () => {
+                    window.open(res.webViewLink, '_blank', 'noopener,noreferrer');
+                  },
+                },
+              ]
+            : []),
+          { text: 'OK', role: 'cancel' },
+        ],
+      });
+      await alert.present();
+    } catch (err: any) {
+      await this.mostraToast(err?.message || 'Errore salvataggio su Drive', 'danger');
+    } finally {
+      this.isSavingToDrive.set(false);
+    }
   }
 
   async scaricaBackupDatabase() {

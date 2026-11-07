@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.26",
+    "date": "07/11/2026",
+    "title": "Salvataggio Diretto Backup su Google Drive",
+    "userChanges": [
+      "☁️ Salva Backup su Google Drive: aggiunto il salvataggio automatico del database direttamente sul proprio account Google Drive in una cartella dedicata, senza dover scaricare file sul dispositivo.",
+      "📂 Cartella Dedicata 'Calcetto Abbuffo - Backup': i backup vengono archiviati in modo pulito e sicuro nel cloud personale, consultabili con 1 tocco."
+    ],
+    "superUserChanges": [
+      "🔑 Integrazione Google Drive API v3: abilitata l'API Drive sui progetti GCP e implementato il caricamento multipart OAuth 2.0 con scope di minima autorizzazione (`drive.file`).",
+      "🛡️ Zero Local Storage Dependency: possibilità per il Presidente di archiviare dump completi periodici senza occupare spazio su smartphone o PC."
+    ]
+  },
+  {
     "version": "2.0.25",
     "date": "07/11/2026",
     "title": "Blindatura Sicurezza Totale & Backup Snapshot Database",

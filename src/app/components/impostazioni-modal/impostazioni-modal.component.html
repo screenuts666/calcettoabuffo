@@ -654,15 +654,30 @@
               </div>
             </button>
 
+            <!-- SALVA SU GOOGLE DRIVE (DIRETTO SULL'ACCOUNT) -->
+            <button
+              type="button"
+              class="sys-action-btn drive"
+              [disabled]="isSavingToDrive() || isExportingBackup()"
+              (click)="salvaBackupSuGoogleDrive()"
+            >
+              <ion-icon name="logo-google"></ion-icon>
+              <div class="sab-text">
+                <strong>☁️ {{ isSavingToDrive() ? 'Salvataggio su Google Drive...' : 'Salva Backup su Google Drive' }}</strong>
+                <small>Cartella "Calcetto Abbuffo - Backup" sul tuo Drive</small>
+              </div>
+            </button>
+
+            <!-- SCARICA FILE LOCALE JSON -->
             <button
               type="button"
               class="sys-action-btn"
-              [disabled]="isExportingBackup()"
+              [disabled]="isExportingBackup() || isSavingToDrive()"
               (click)="scaricaBackupDatabase()"
             >
               <ion-icon name="cloud-download-outline"></ion-icon>
               <div class="sab-text">
-                <strong>💾 {{ isExportingBackup() ? 'Generazione Backup...' : 'Scarica Backup Database (.json)' }}</strong>
+                <strong>💾 {{ isExportingBackup() ? 'Generazione...' : 'Scarica File Locale (.json)' }}</strong>
               </div>
             </button>
 

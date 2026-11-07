@@ -6,6 +6,11 @@ import {
   writeBatch,
   doc,
 } from 'firebase/firestore';
+import {
+  Auth,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from '@angular/fire/auth';
 import { AuthService } from './auth.service';
 
 export interface DatabaseBackupPayload {
@@ -28,13 +33,15 @@ export interface DatabaseBackupPayload {
 })
 export class BackupRestoreService {
   private firestore: Firestore | null = inject(Firestore, { optional: true });
+  private auth: Auth | null = inject(Auth, { optional: true });
   private authService = inject(AuthService);
 
+  private driveAccessToken: string | null = null;
+
   /**
-   * Esporta un dump JSON completo di tutte le collezioni critiche del database
-   * e avvia automaticamente il download sul dispositivo locale.
+   * Genera l'intero snapshot JSON di tutte le collezioni del database.
    */
-  async exportDatabaseSnapshot(): Promise<{ filename: string; payload: DatabaseBackupPayload }> {
+  async buildBackupPayload(): Promise<{ filename: string; jsonStr: string; payload: DatabaseBackupPayload }> {
     if (!this.authService.isSuperUser()) {
       throw new Error('Accesso negato: solo il Presidente o il Mister possono esportare il database.');
     }
@@ -62,7 +69,7 @@ export class BackupRestoreService {
 
     const payload: DatabaseBackupPayload = {
       app: 'calcettoabbuffo',
-      version: '2.0.24',
+      version: '2.0.25',
       exportedAt: timestampStr,
       exportedBy: `${this.authService.roleLabel()} (${this.authService.displayName()})`,
       counts,
@@ -75,8 +82,17 @@ export class BackupRestoreService {
       },
     };
 
-    // Trigger download automatico via Blob
     const jsonStr = JSON.stringify(payload, null, 2);
+    return { filename, jsonStr, payload };
+  }
+
+  /**
+   * Esporta un dump JSON completo di tutte le collezioni del database
+   * e avvia il download locale del file sul dispositivo.
+   */
+  async exportDatabaseSnapshot(): Promise<{ filename: string; payload: DatabaseBackupPayload }> {
+    const { filename, jsonStr, payload } = await this.buildBackupPayload();
+
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -88,6 +104,134 @@ export class BackupRestoreService {
     URL.revokeObjectURL(url);
 
     return { filename, payload };
+  }
+
+  /**
+   * Salva il backup direttamente su Google Drive dell'utente autenticato
+   * (all'interno della cartella dedicata "Calcetto Abbuffo - Backup").
+   */
+  async uploadBackupToGoogleDrive(): Promise<{ filename: string; webViewLink?: string; folderName: string }> {
+    if (!this.authService.isSuperUser()) {
+      throw new Error('Accesso negato: solo il Presidente o il Mister possono eseguire il backup.');
+    }
+    if (!this.auth) {
+      throw new Error('Servizio Google Auth non disponibile.');
+    }
+
+    // 1. Ottieni il token OAuth 2.0 con scope `drive.file`
+    let token = this.driveAccessToken;
+    if (!token) {
+      const provider = new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/drive.file');
+      provider.setCustomParameters({
+        prompt: 'consent',
+      });
+      const cred = await signInWithPopup(this.auth, provider);
+      const googleCred = GoogleAuthProvider.credentialFromResult(cred);
+      token = googleCred?.accessToken || null;
+      if (!token) {
+        throw new Error('Impossibile ottenere l\'autorizzazione per Google Drive.');
+      }
+      this.driveAccessToken = token;
+    }
+
+    // 2. Genera il payload del backup
+    const { filename, jsonStr } = await this.buildBackupPayload();
+
+    // 3. Trova o crea la cartella "Calcetto Abbuffo - Backup" su Google Drive
+    const folderName = 'Calcetto Abbuffo - Backup';
+    const folderQuery = encodeURIComponent(
+      `name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    );
+
+    let folderId: string | null = null;
+    try {
+      const searchRes = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${folderQuery}&fields=files(id,name)`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (searchRes.status === 401) {
+        this.driveAccessToken = null;
+        throw new Error('Sessione Google Drive scaduta. Riprova per riconnetterti.');
+      }
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        folderId = searchData.files?.[0]?.id || null;
+      }
+    } catch (e: any) {
+      if (e?.message?.includes('scaduta')) throw e;
+    }
+
+    if (!folderId) {
+      const createFolderRes = await fetch(
+        'https://www.googleapis.com/drive/v3/files',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: folderName,
+            mimeType: 'application/vnd.google-apps.folder',
+          }),
+        },
+      );
+      if (!createFolderRes.ok) {
+        throw new Error('Impossibile creare la cartella di backup su Google Drive.');
+      }
+      const folderData = await createFolderRes.json();
+      folderId = folderData.id;
+    }
+
+    // 4. Esegui l'upload multipart del file JSON all'interno della cartella Drive
+    const now = new Date();
+    const metadata = {
+      name: filename,
+      parents: folderId ? [folderId] : [],
+      mimeType: 'application/json',
+      description: `Backup Calcetto Abbuffo generato il ${now.toLocaleString('it-IT')}`,
+    };
+
+    const boundary = '-------CalcettoDriveBackup' + Date.now();
+    const delimiter = `\r\n--${boundary}\r\n`;
+    const closeDelim = `\r\n--${boundary}--`;
+
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify(metadata) +
+      delimiter +
+      'Content-Type: application/json\r\n\r\n' +
+      jsonStr +
+      closeDelim;
+
+    const uploadRes = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': `multipart/related; boundary=${boundary}`,
+        },
+        body: multipartRequestBody,
+      },
+    );
+
+    if (!uploadRes.ok) {
+      const errText = await uploadRes.text();
+      console.error('Errore caricamento su Google Drive:', errText);
+      throw new Error(`Errore caricamento su Google Drive (status ${uploadRes.status})`);
+    }
+
+    const fileData = await uploadRes.json();
+    return {
+      filename,
+      webViewLink: fileData.webViewLink,
+      folderName,
+    };
   }
 
   /**
@@ -120,7 +264,6 @@ export class BackupRestoreService {
       const items = parsed.collections[name] || [];
       if (items.length === 0) continue;
 
-      // Scrittura a lotti di 400 per rispettare il limite Firestore di 500
       const chunkSize = 400;
       for (let i = 0; i < items.length; i += chunkSize) {
         const chunk = items.slice(i, i + chunkSize);
