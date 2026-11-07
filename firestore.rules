@@ -168,6 +168,8 @@ service cloud.firestore {
           'piedePreferito',
           'ruoloPreferito',
           'annoNascita',
+          'dataNascita',
+          'nascondiAnnoNascita',
           'altezza',
           'peso',
           'bio',
@@ -209,6 +211,8 @@ service cloud.firestore {
               'piedePreferito',
               'ruoloPreferito',
               'annoNascita',
+              'dataNascita',
+              'nascondiAnnoNascita',
               'altezza',
               'peso',
               'bio',
@@ -298,6 +302,24 @@ service cloud.firestore {
           resource.data.get('authorUid', null) == request.auth.uid
         );
       }
+    }
+
+    // =========================================================================
+    // 3b. COLLEZIONE WEEKLY_AVAILABILITY: Disponibilità Settimanale & Quorum Partite
+    // =========================================================================
+    match /weekly_availability/{weekKey} {
+      // Lettura pubblica delle disponibilità settimanali per tutti
+      allow read: if true;
+
+      // Creazione/Update: Mister ha Full CRUD. Atleti autenticati possono votare e aggiornare la settimana
+      // purché non sia bloccata (isLocked != true) e non modifichino isLocked, confirmedMatchId o confirmedDate.
+      allow create: if isAuthenticated();
+      allow update: if isSuperUser() || (
+        isAuthenticated() &&
+        resource.data.get('isLocked', false) == false &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isLocked', 'confirmedMatchId', 'confirmedDate'])
+      );
+      allow delete: if isSuperUser();
     }
 
     // =========================================================================

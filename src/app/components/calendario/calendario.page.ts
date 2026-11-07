@@ -46,11 +46,12 @@ import {
   shareSocialOutline,
   sparklesOutline,
   refreshOutline,
+  flame,
 } from 'ionicons/icons';
 
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
-import { AvailabilityService } from '../../services/availability.service';
+import { AvailabilityService, getLocalIsoDate } from '../../services/availability.service';
 import { WeatherService, DailyWeatherForecast, LunarPhaseInfo } from '../../services/weather.service';
 import { CampiService } from '../../services/campi.service';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
@@ -159,6 +160,7 @@ export class CalendarioPage implements OnInit {
       shareSocialOutline,
       sparklesOutline,
       refreshOutline,
+      flame,
     });
   }
 
@@ -407,13 +409,20 @@ export class CalendarioPage implements OnInit {
     };
   });
 
-  // Voti nella settimana attiva
+  // Voti nella settimana attiva (mostra solo i giorni da oggi in avanti)
   readonly activeWeekDaysList = computed(() => {
     const summaries = this.availabilityService.daySummaries();
     const myVoted = this.availabilityService.myVotedDates();
     const allPlayers = this.statsEngine.giocatoriRaw();
+    const todayStr = getLocalIsoDate();
 
-    return summaries.map((s) => {
+    // Filtra via i giorni passati: mostra solo i giorni da oggi in avanti
+    const upcomingSummaries = summaries.filter((s) => s.date >= todayStr);
+
+    // Identifica il massimo di preferenze per far risaltare il giorno più scelto
+    const maxVotes = Math.max(0, ...upcomingSummaries.map((s) => s.voterCount));
+
+    return upcomingSummaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
       const lunar = this.mostraFasiLunari()
         ? this.weatherService.getLunarPhase(s.date)
@@ -429,6 +438,8 @@ export class CalendarioPage implements OnInit {
         )
         .filter((g): g is Giocatore => !!g);
 
+      const isTopVoted = maxVotes > 0 && s.voterCount === maxVotes;
+
       return {
         dateStr: s.date,
         dayLabel: `${s.dayName} ${s.dayNumber}`,
@@ -440,9 +451,29 @@ export class CalendarioPage implements OnInit {
         weather,
         lunar,
         isVotedByMe: myVoted.includes(s.date),
+        isTopVoted,
         players,
       };
     });
+  });
+
+  /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */
+  readonly topVotedDayInfo = computed(() => {
+    const days = this.activeWeekDaysList();
+    const topDays = days.filter((d) => d.isTopVoted && d.count > 0);
+    if (topDays.length === 0) return null;
+    if (topDays.length === 1) {
+      return {
+        label: topDays[0].dayLabel,
+        count: topDays[0].count,
+        hasQuorum: topDays[0].isQuorumReached,
+      };
+    }
+    return {
+      label: topDays.map((d) => d.dayLabel).join(' e '),
+      count: topDays[0].count,
+      hasQuorum: topDays.some((d) => d.isQuorumReached),
+    };
   });
 
   // Toggle voto atleta per un giorno specifico
@@ -545,8 +576,12 @@ export class CalendarioPage implements OnInit {
 
   // Condividi disponibilità su WhatsApp (Aperto a tutti gli atleti!)
   async condividiSuWhatsApp() {
+    const todayStr = getLocalIsoDate();
+    const summaries = this.availabilityService
+      .daySummaries()
+      .filter((d) => d.date >= todayStr);
     const text = formatWeeklyAvailabilityForWhatsApp(
-      this.availabilityService.daySummaries(),
+      summaries,
       this.availabilityService.missingAthletes()
     );
     const encoded = encodeURIComponent(text);

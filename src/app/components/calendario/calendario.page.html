@@ -108,9 +108,38 @@
             <span class="live-pulse-dot"></span>
             <span>Quando Giochiamo?</span>
           </div>
-          <h2 class="section-week-label">
-            Disponibilità Settimanale
-          </h2>
+          <div class="section-week-nav">
+            <button
+              type="button"
+              class="btn-week-chevron"
+              (click)="availabilityService.settimanaPrecedente()"
+              title="Settimana precedente"
+            >
+              <ion-icon name="chevron-back"></ion-icon>
+            </button>
+            <h2 class="section-week-label">
+              {{ availabilityService.activeWeekLabel() }}
+            </h2>
+            <button
+              type="button"
+              class="btn-week-chevron"
+              (click)="availabilityService.settimanaSuccessiva()"
+              title="Settimana successiva"
+            >
+              <ion-icon name="chevron-forward"></ion-icon>
+            </button>
+          </div>
+          @if (topVotedDayInfo(); as top) {
+            <div class="top-voted-callout">
+              <ion-icon name="flame" class="fire-icon"></ion-icon>
+              <span>
+                Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
+                @if (top.hasQuorum) {
+                  <span class="callout-quorum">⚽ Quorum!</span>
+                }
+              </span>
+            </div>
+          }
           <p class="section-subtitle">
             Seleziona i giorni in cui puoi giocare (puoi sceglierne più di uno):
           </p>
@@ -127,94 +156,115 @@
         </button>
       </div>
 
-      <!-- CAROUSEL DEI 7 GIORNI DELLA SETTIMANA ATTIVA -->
-      <div class="days-vote-scroll">
-        @for (day of activeWeekDaysList(); track day.dateStr) {
-          <div
-            class="day-vote-card"
-            [class.quorum-reached]="day.isQuorumReached"
-            [class.is-my-choice]="day.isVotedByMe"
-          >
-            <!-- INTESTAZIONE GIORNO -->
-            <div class="card-day-header">
-              <span class="day-name">{{ day.dayLabel }}</span>
-              @if (mostraMeteo() && day.weather) {
-                <span class="weather-mini-chip" [title]="day.weather.conditionDescription + ' (' + day.weather.tempMin + '° / ' + day.weather.tempMax + '°)'">
-                  <span>{{ day.weather.iconEmoji }}</span>
-                  <small>{{ day.weather.tempMax }}°</small>
-                  @if (day.weather.rainProbability > 30) {
-                    <span class="rain-chance">💧{{ day.weather.rainProbability }}%</span>
-                  }
-                </span>
+      <!-- CAROUSEL DEI GIORNI IN ARRIVO DELLA SETTIMANA ATTIVA -->
+      @if (activeWeekDaysList().length > 0) {
+        <div class="days-vote-scroll">
+          @for (day of activeWeekDaysList(); track day.dateStr) {
+            <div
+              class="day-vote-card"
+              [class.quorum-reached]="day.isQuorumReached"
+              [class.is-my-choice]="day.isVotedByMe"
+              [class.is-top-voted]="day.isTopVoted"
+            >
+              @if (day.isTopVoted) {
+                <div class="top-voted-pill">
+                  <ion-icon name="flame"></ion-icon>
+                  <span>Più Scelto</span>
+                </div>
               }
-              @if (mostraFasiLunari() && day.lunar) {
-                <span class="lunar-mini" [title]="day.lunar.name + ' (' + day.lunar.illuminationPercent + '%)'">
-                  {{ day.lunar.emoji }}
-                </span>
-              }
-            </div>
-
-            <!-- CONTATORE & FORMATO DINAMICO -->
-            <div class="card-quorum-status">
-              <div class="voters-count-row">
-                <ion-icon name="people-outline"></ion-icon>
-                <strong>{{ day.count }}</strong>
-                <span class="quorum-target">/ 10</span>
+              <!-- INTESTAZIONE GIORNO -->
+              <div class="card-day-header">
+                <span class="day-name">{{ day.dayLabel }}</span>
+                @if (mostraMeteo() && day.weather) {
+                  <span class="weather-mini-chip" [title]="day.weather.conditionDescription + ' (' + day.weather.tempMin + '° / ' + day.weather.tempMax + '°)'">
+                    <span>{{ day.weather.iconEmoji }}</span>
+                    <small>{{ day.weather.tempMax }}°</small>
+                    @if (day.weather.rainProbability > 30) {
+                      <span class="rain-chance">💧{{ day.weather.rainProbability }}%</span>
+                    }
+                  </span>
+                }
+                @if (mostraFasiLunari() && day.lunar) {
+                  <span class="lunar-mini" [title]="day.lunar.name + ' (' + day.lunar.illuminationPercent + '%)'">
+                    {{ day.lunar.emoji }}
+                  </span>
+                }
               </div>
 
-              <!-- BADGE FORMATO DINAMICO -->
-              @if (day.isQuorumReached) {
-                <div class="quorum-badge-success">
-                  <ion-icon name="checkmark-circle"></ion-icon>
-                  <span>{{ day.formatInfo.label }}</span>
+              <!-- CONTATORE & FORMATO DINAMICO -->
+              <div class="card-quorum-status">
+                <div class="voters-count-row">
+                  <ion-icon name="people-outline"></ion-icon>
+                  <strong>{{ day.count }}</strong>
+                  <span class="quorum-target">/ 10</span>
                 </div>
-              } @else {
-                <div class="quorum-badge-missing">
-                  <span>Mancano {{ day.missingToQuorum }}</span>
-                </div>
-              }
-            </div>
 
-            <!-- AVATAR DEI GIOCATORI DISPONIBILI -->
-            <div class="voters-avatars-tray">
-              @for (p of day.players.slice(0, 5); track p.id) {
-                <div class="voter-mini-avatar" [title]="p.nome">
-                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                </div>
-              }
-              @if (day.players.length > 5) {
-                <div class="voters-overflow-pill" [title]="getExtraPlayersTitle(day.players)">
-                  +{{ day.players.length - 5 }}
-                </div>
-              }
-            </div>
+                <!-- BADGE FORMATO DINAMICO -->
+                @if (day.isQuorumReached) {
+                  <div class="quorum-badge-success">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    <span>{{ day.formatInfo.label }}</span>
+                  </div>
+                } @else {
+                  <div class="quorum-badge-missing">
+                    <span>Mancano {{ day.missingToQuorum }}</span>
+                  </div>
+                }
+              </div>
 
-            <!-- AZIONE DI VOTO ATLETA -->
-            <button
-              type="button"
-              class="btn-vote-toggle"
-              [class.active]="day.isVotedByMe"
-              (click)="toggleVotoGiorno(day.dateStr)"
-            >
-              <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-              <span>{{ day.isVotedByMe ? 'Disponibile' : 'Ci sono' }}</span>
-            </button>
+              <!-- AVATAR DEI GIOCATORI DISPONIBILI -->
+              <div class="voters-avatars-tray">
+                @for (p of day.players.slice(0, 5); track p.id) {
+                  <div class="voter-mini-avatar" [title]="p.nome">
+                    <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                  </div>
+                }
+                @if (day.players.length > 5) {
+                  <div class="voters-overflow-pill" [title]="getExtraPlayersTitle(day.players)">
+                    +{{ day.players.length - 5 }}
+                  </div>
+                }
+              </div>
 
-            <!-- AZIONE FISSA PARTITA PER SUPERUSER SE QUORUM RAGGIUNTO -->
-            @if (auth.isSuperUser() && day.isQuorumReached) {
+              <!-- AZIONE DI VOTO ATLETA -->
               <button
                 type="button"
-                class="btn-fissa-partita"
-                (click)="fissaPartitaSlot(day.dateStr)"
-                title="Crea partita con i convocati già confermati"
+                class="btn-vote-toggle"
+                [class.active]="day.isVotedByMe"
+                (click)="toggleVotoGiorno(day.dateStr)"
               >
-                <ion-icon name="shield-checkmark-outline"></ion-icon>
-                <span>Fissa Partita</span>
+                <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+                <span>{{ day.isVotedByMe ? 'Disponibile' : 'Ci sono' }}</span>
               </button>
-            }
+
+              <!-- AZIONE FISSA PARTITA PER SUPERUSER SE QUORUM RAGGIUNTO -->
+              @if (auth.isSuperUser() && day.isQuorumReached) {
+                <button
+                  type="button"
+                  class="btn-fissa-partita"
+                  (click)="fissaPartitaSlot(day.dateStr)"
+                  title="Crea partita con i convocati già confermati"
+                >
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  <span>Fissa Partita</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="no-upcoming-days-box">
+          <ion-icon name="time-outline"></ion-icon>
+          <div class="no-days-text">
+            <strong>Tutti i giorni di questa settimana sono già trascorsi</strong>
+            <p>Passa alla prossima settimana per esprimere le tue disponibilità.</p>
           </div>
-        }
-      </div>
+          <button type="button" class="btn-go-next-week" (click)="availabilityService.settimanaSuccessiva()">
+            <span>Prossima Settimana</span>
+            <ion-icon name="chevron-forward"></ion-icon>
+          </button>
+        </div>
+      }
 
       <!-- RIEPILOGO CHI MANCA ALL'APPELLO -->
       @if (availabilityService.missingAthletes().length > 0) {

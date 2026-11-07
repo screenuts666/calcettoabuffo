@@ -242,12 +242,78 @@
         }
       }
 
-      .section-week-label {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #f8fafc;
-        margin: 0 0 4px 0;
-        letter-spacing: -0.01em;
+      .section-week-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 2px 0 4px 0;
+
+        .btn-week-chevron {
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: #e2e8f0;
+          width: 26px;
+          height: 26px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.15s ease;
+
+          ion-icon {
+            font-size: 0.95rem;
+          }
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.16);
+          }
+
+          &:active {
+            transform: scale(0.92);
+          }
+        }
+
+        .section-week-label {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #f8fafc;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+      }
+
+      .top-voted-callout {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.3);
+        border-radius: 8px;
+        padding: 4px 10px;
+        margin: 4px 0 6px 0;
+        font-size: 0.78rem;
+        color: #fde68a;
+
+        .fire-icon {
+          color: #f59e0b;
+          font-size: 0.95rem;
+          animation: flamePulse 1.8s infinite ease-in-out;
+        }
+
+        strong {
+          color: #fbbf24;
+        }
+
+        .callout-quorum {
+          margin-left: 6px;
+          color: #34d399;
+          font-weight: 800;
+          font-size: 0.72rem;
+          background: rgba(16, 185, 129, 0.18);
+          padding: 1px 6px;
+          border-radius: 6px;
+        }
       }
 
       .section-subtitle {
@@ -317,9 +383,43 @@
         background: linear-gradient(180deg, rgba(16, 185, 129, 0.1), var(--ion-color-step-100, #1e293b));
       }
 
+      &.is-top-voted {
+        border-color: rgba(245, 158, 11, 0.65);
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.22);
+
+        &.quorum-reached {
+          border-color: #10b981;
+          box-shadow: 0 0 18px rgba(16, 185, 129, 0.25), inset 0 0 12px rgba(245, 158, 11, 0.1);
+        }
+      }
+
       &.quorum-reached {
         border-color: #10b981;
         box-shadow: 0 0 15px rgba(16, 185, 129, 0.15);
+      }
+
+      .top-voted-pill {
+        position: absolute;
+        top: -9px;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #0f172a;
+        font-size: 0.62rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 2px 7px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.45);
+        z-index: 2;
+
+        ion-icon {
+          font-size: 0.75rem;
+          color: #0f172a;
+        }
       }
 
       .card-day-header {
@@ -479,6 +579,65 @@
         &:active {
           background: rgba(59, 130, 246, 0.35);
         }
+      }
+    }
+  }
+
+  .no-upcoming-days-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    text-align: center;
+    gap: 12px;
+
+    ion-icon {
+      font-size: 2rem;
+      color: #94a3b8;
+    }
+
+    .no-days-text {
+      strong {
+        display: block;
+        color: #e2e8f0;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+      p {
+        margin: 4px 0 0 0;
+        font-size: 0.8rem;
+        color: #94a3b8;
+      }
+    }
+
+    .btn-go-next-week {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      ion-icon {
+        font-size: 0.95rem;
+        color: #34d399;
+      }
+
+      &:hover {
+        background: rgba(16, 185, 129, 0.3);
+      }
+      &:active {
+        transform: scale(0.95);
       }
     }
   }
@@ -1035,4 +1194,16 @@
     opacity: 0.6;
   }
 }
+
+@keyframes flamePulse {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.9));
+  }
+}
+
 

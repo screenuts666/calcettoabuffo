@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.32",
+    "date": "07/11/2026",
+    "title": "Giorno Più Scelto Evidenziato, Filtro Giorni Futuri & Regole Firestore",
+    "userChanges": [
+      "🔥 Giorno Più Scelto in Risalto: il giorno che raccoglie più adesioni viene subito evidenziato con un badge infuocato 'Più Scelto', aura dorata e banner riepilogativo in cima al calendario.",
+      "⏩ Solo Giorni Che Devono Venire: la disponibilità settimanale nasconde automaticamente i giorni già trascorsi e passa alla prossima settimana nel weekend o a partita già giocata.",
+      "🎂 Compleanno Visibile in Rosa: la data di nascita inserita (completa o con anno nascosto) è ora chiaramente visibile nella scheda del giocatore in Rosa.",
+      "↔️ Navigazione Settimane: comode frecce per sfogliare la disponibilità tra questa settimana e le prossime."
+    ],
+    "superUserChanges": [
+      "🛡️ Regole Firestore Aggiornate: deploy delle regole di sicurezza per la collezione weekly_availability e autorizzazione ai campi dataNascita e nascondiAnnoNascita nei profili giocatore.",
+      "⚡ Calcolo ISO 8601 Esatto: sincronizzazione automatica della settimana attiva al caricamento dei dati delle partite in tempo reale."
+    ]
+  },
+  {
     "version": "2.0.31",
     "date": "07/11/2026",
     "title": "Fix Menu Profilo Desktop, Layout Ruoli & Votazioni Calendario",

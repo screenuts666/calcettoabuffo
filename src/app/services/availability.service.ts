@@ -1,15 +1,20 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { Firestore, collection, doc, docData, setDoc, updateDoc } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
+import { Injectable, inject, signal, computed, effect } from '@angular/core';
+import { Firestore, doc, docData, setDoc, updateDoc } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { StatsEngineService } from './stats-engine.service';
 import {
   WeeklyAvailabilityDoc,
-  AthleteWeeklyVote,
   DaySummary,
   SeasonCalendarConfig,
 } from '../models/weekly-availability.model';
 import { getMatchFormatByPlayerCount, Partita } from '../models/partita.model';
+
+export function getLocalIsoDate(d: Date = new Date()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -28,8 +33,10 @@ export class AvailabilityService {
     return this.calendarConfig().summerBreakEnabled;
   });
 
-  /** Chiave settimana attiva calcolata automaticamente (es. "2026-W46") */
-  readonly activeWeekKey = signal<string>(this.calculateActiveWeekKey());
+  private userHasManuallyChangedWeek = false;
+
+  /** Chiave settimana attiva (es. "2026-W46") */
+  readonly activeWeekKey = signal<string>(this.calculateDefaultWeekKey());
 
   /** Documento real-time da Firestore per la settimana attiva */
   readonly activeWeekDoc = signal<WeeklyAvailabilityDoc | null>(null);
@@ -84,21 +91,93 @@ export class AvailabilityService {
       .map((p) => p.nome);
   });
 
+  /** Etichetta descrittiva della settimana attiva (es. "9 - 15 nov (Prossima Settimana)") */
+  readonly activeWeekLabel = computed(() => {
+    const days = this.activeWeekDays();
+    if (!days || days.length < 7) return '';
+    const dStart = new Date(days[0].date);
+    const dEnd = new Date(days[6].date);
+
+    const startDay = dStart.getDate();
+    const endDay = dEnd.getDate();
+    const month = dEnd.toLocaleDateString('it-IT', { month: 'short' });
+
+    const now = new Date();
+    const thisWeekKey = this.getIsoWeekKey(now);
+    const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const nextWeekKey = this.getIsoWeekKey(nextWeekDate);
+
+    let tag = '';
+    if (this.activeWeekKey() === thisWeekKey) {
+      tag = ' (Questa Settimana)';
+    } else if (this.activeWeekKey() === nextWeekKey) {
+      tag = ' (Prossima Settimana)';
+    }
+
+    return `${startDay} - ${endDay} ${month}${tag}`;
+  });
+
   constructor() {
-    this.subscribeToActiveWeek();
+    // Sincronizza la settimana di default non appena i dati delle partite arrivano da Firestore
+    effect(() => {
+      this.statsEngine.partiteRaw();
+      if (!this.userHasManuallyChangedWeek) {
+        this.activeWeekKey.set(this.calculateDefaultWeekKey());
+      }
+    });
+
+    // Sottoscrizione Firestore in tempo reale per la settimana attiva con auto-cleanup
+    effect((onCleanup) => {
+      const weekKey = this.activeWeekKey();
+      if (!this.firestore || !weekKey) return;
+      const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
+      const sub = docData(docRef).subscribe({
+        next: (data) => {
+          this.activeWeekDoc.set(data ? (data as WeeklyAvailabilityDoc) : null);
+        },
+        error: (err) => {
+          console.warn('DocData weekly_availability listen warning:', err);
+          this.activeWeekDoc.set(null);
+        },
+      });
+      onCleanup(() => sub.unsubscribe());
+    });
+
     this.loadSeasonConfig();
   }
 
+  settimanaPrecedente(): void {
+    this.userHasManuallyChangedWeek = true;
+    const cur = this.activeWeekKey();
+    const days = this.generateWeekDays(cur);
+    const prevMon = new Date(days[0].date);
+    prevMon.setDate(prevMon.getDate() - 7);
+    this.activeWeekKey.set(this.getIsoWeekKey(prevMon));
+  }
+
+  settimanaSuccessiva(): void {
+    this.userHasManuallyChangedWeek = true;
+    const cur = this.activeWeekKey();
+    const days = this.generateWeekDays(cur);
+    const nextMon = new Date(days[0].date);
+    nextMon.setDate(nextMon.getDate() + 7);
+    this.activeWeekKey.set(this.getIsoWeekKey(nextMon));
+  }
+
+  vaiASettimanaDefault(): void {
+    this.userHasManuallyChangedWeek = false;
+    this.activeWeekKey.set(this.calculateDefaultWeekKey());
+  }
+
   /**
-   * Calcola la settimana di riferimento:
-   * Se c'è già una partita disputata questa settimana (o oggi è Domenica),
-   * passa automaticamente alla settimana successiva.
+   * Calcola la settimana di default:
+   * Se c'è già una partita disputata questa settimana, oppure se oggi è nel weekend (Ven/Sab/Dom),
+   * passa automaticamente alla settimana successiva per iniziare a raccogliere presenze.
    */
-  calculateActiveWeekKey(): string {
+  calculateDefaultWeekKey(): string {
     const now = new Date();
     const currentWeekKey = this.getIsoWeekKey(now);
 
-    // Controlla se è già stata giocata una partita questa settimana
     const partite = this.statsEngine.partiteRaw?.() || [];
     const hasMatchThisWeek = partite.some((m) => {
       if (!m.dataPartita) return false;
@@ -106,8 +185,10 @@ export class AvailabilityService {
       return !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey;
     });
 
-    // Se si è già giocato in settimana, passa alla prossima
-    if (hasMatchThisWeek) {
+    const dayOfWeek = now.getDay();
+    const isWeekendOrLateWeek = dayOfWeek === 0 || dayOfWeek >= 5; // Ven, Sab, Dom
+
+    if (hasMatchThisWeek || isWeekendOrLateWeek) {
       const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       return this.getIsoWeekKey(nextWeekDate);
     }
@@ -260,25 +341,6 @@ export class AvailabilityService {
     await setDoc(cfgRef, nextCfg, { merge: true });
   }
 
-  private subscribeToActiveWeek(): void {
-    if (!this.firestore) return;
-    const weekKey = this.activeWeekKey();
-    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
-
-    docData(docRef).subscribe({
-      next: (data) => {
-        if (data) {
-          this.activeWeekDoc.set(data as WeeklyAvailabilityDoc);
-        } else {
-          this.activeWeekDoc.set(null);
-        }
-      },
-      error: () => {
-        this.activeWeekDoc.set(null);
-      },
-    });
-  }
-
   private async loadSeasonConfig(): Promise<void> {
     if (!this.firestore) return;
     try {
@@ -309,31 +371,26 @@ export class AvailabilityService {
     const year = parseInt(yearStr, 10);
     const week = parseInt(weekStr, 10);
 
-    // Trova il lunedì della settimana ISO
-    const simple = new Date(year, 0, 1 + (week - 1) * 7);
-    const dow = simple.getDay();
-    const isoMonday = simple;
-    if (dow <= 4) {
-      isoMonday.setDate(simple.getDate() - simple.getDay() + 1);
-    } else {
-      isoMonday.setDate(simple.getDate() + 8 - simple.getDay());
-    }
+    // Calcolo esatto del lunedì ISO 8601 (il 4 gennaio cade sempre nella settimana 1)
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const dayOfWeek = jan4.getUTCDay() || 7;
+    const isoMonday = new Date(Date.UTC(year, 0, 4 - (dayOfWeek - 1) + (week - 1) * 7));
 
     const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'] as const;
     const days: { date: string; dayName: any; dayNumber: number }[] = [];
 
     for (let i = 0; i < 7; i++) {
       const current = new Date(isoMonday);
-      current.setDate(isoMonday.getDate() + i);
+      current.setUTCDate(isoMonday.getUTCDate() + i);
 
-      const y = current.getFullYear();
-      const m = (current.getMonth() + 1).toString().padStart(2, '0');
-      const d = current.getDate().toString().padStart(2, '0');
+      const y = current.getUTCFullYear();
+      const m = String(current.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(current.getUTCDate()).padStart(2, '0');
 
       days.push({
         date: `${y}-${m}-${d}`,
         dayName: dayNames[i],
-        dayNumber: current.getDate(),
+        dayNumber: current.getUTCDate(),
       });
     }
 

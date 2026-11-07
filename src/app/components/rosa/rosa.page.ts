@@ -133,6 +133,7 @@ export class RosaPage {
       const soprannome = (g.soprannome || '').toLowerCase();
       const soprannomeAi = (g.soprannomeAi || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
+      const dataNascita = (g.dataNascita || '').toLowerCase();
       const piede = ((g.piedePreferito as string) || '').toLowerCase();
       const ruolo = ((g.ruoloPreferito as string) || '').toLowerCase();
       const maglia =
@@ -144,6 +145,7 @@ export class RosaPage {
         soprannome.includes(f) ||
         soprannomeAi.includes(f) ||
         anno.includes(f) ||
+        dataNascita.includes(f) ||
         piede.includes(f) ||
         ruolo.includes(f) ||
         maglia.includes(f)
@@ -232,6 +234,18 @@ export class RosaPage {
 
   isMyPlayer(playerId: string): boolean {
     return this.auth.linkedPlayerId() === playerId;
+  }
+
+  getDataNascitaDisplay(g?: Giocatore | null): string {
+    if (!g) return 'N.D.';
+    if (g.dataNascita) {
+      if (g.nascondiAnnoNascita) {
+        const parts = g.dataNascita.split('/');
+        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : g.dataNascita;
+      }
+      return g.dataNascita;
+    }
+    return g.annoNascita ? String(g.annoNascita) : 'N.D.';
   }
 
   apriDettagliGiocatore(g: Giocatore) {

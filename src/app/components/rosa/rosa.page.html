@@ -200,7 +200,7 @@
               }
             </div>
             <div class="player-stats">
-              <span>🎂 {{ g.annoNascita || 'N.D.' }}</span>
+              <span>🎂 {{ getDataNascitaDisplay(g) }}</span>
               <span>| 👟 {{ g.piedePreferito || 'N.D.' }}</span>
               <span>| 📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
               <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
