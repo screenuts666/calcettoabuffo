@@ -243,16 +243,17 @@
                 <span>{{ day.isVotedByMe ? 'Disponibile' : 'Ci sono' }}</span>
               </button>
 
-              <!-- AZIONE FISSA PARTITA PER SUPERUSER SE QUORUM RAGGIUNTO -->
-              @if (auth.isSuperUser() && day.isQuorumReached) {
+              <!-- AZIONE CREA/FISSA PARTITA PER SUPERUSER (MISTER / PRESIDENTE) -->
+              @if (auth.isSuperUser()) {
                 <button
                   type="button"
                   class="btn-fissa-partita"
+                  [class.is-quorum]="day.isQuorumReached"
                   (click)="fissaPartitaSlot(day.dateStr)"
-                  title="Crea partita con i convocati già confermati"
+                  title="Crea partita convocando subito tutti gli atleti disponibili"
                 >
-                  <ion-icon name="shield-checkmark-outline"></ion-icon>
-                  <span>Fissa Partita</span>
+                  <ion-icon [name]="day.isQuorumReached ? 'shield-checkmark' : 'football-outline'"></ion-icon>
+                  <span>{{ day.isQuorumReached ? 'Fissa (Quorum!)' : (day.count > 0 ? 'Crea Partita (' + day.count + ')' : 'Crea Partita') }}</span>
                 </button>
               }
             </div>
@@ -525,6 +526,25 @@
               <span>{{ sel.isAvailableForMe ? 'Sei tra i disponibili (Tocca per rimuovere)' : 'Dai la tua disponibilità per questo giorno' }}</span>
             </button>
           </div>
+        </div>
+      }
+
+      <!-- AZIONE CREA PARTITA PER SUPERUSER SE NON ESISTE GIA' UNA PARTITA -->
+      @if (auth.isSuperUser() && sel.matches.length === 0) {
+        <div class="detail-superuser-action-bar">
+          <button
+            type="button"
+            class="btn-detail-create-match"
+            (click)="fissaPartitaSlot(sel.dateStr)"
+          >
+            <ion-icon name="football-outline"></ion-icon>
+            <span>
+              Crea Partita per {{ sel.dateFormatted }}
+              @if (sel.availablePlayers.length > 0) {
+                ({{ sel.availablePlayers.length }} convocati subito)
+              }
+            </span>
+          </button>
         </div>
       }
     </div>

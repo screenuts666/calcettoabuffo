@@ -291,7 +291,7 @@ export class AvailabilityService {
     const convocatiIds: string[] = [];
     const rsvpMap: Record<string, any> = {};
 
-    for (const v of day.voters) {
+    for (const v of day.voters || []) {
       const p = allPlayers.find((g) => (v.playerId && g.id === v.playerId) || (g.linkedUid && g.linkedUid === v.uid));
       if (p) {
         convocatiIds.push(p.id);
@@ -309,7 +309,7 @@ export class AvailabilityService {
       orario: orario || '21:00',
       luogo: campoNome || 'Roma 6',
       campoGoogleMapsUrl: campoMapsUrl || null,
-      formato: day.formatInfo.format || 'calcetto',
+      formato: day.formatInfo?.format || 'calcetto',
       convocati: convocatiIds,
       teamA: [],
       teamB: [],
@@ -328,12 +328,16 @@ export class AvailabilityService {
 
     // Blocca e finalizza la settimana in weekly_availability
     const weekDocRef = doc(this.firestore, `weekly_availability/${weekKey}`);
-    await updateDoc(weekDocRef, {
-      isLocked: true,
-      confirmedMatchId: matchId,
-      confirmedDate: day.date,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(
+      weekDocRef,
+      {
+        isLocked: true,
+        confirmedMatchId: matchId,
+        confirmedDate: day.date,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true }
+    );
 
     return matchId;
   }

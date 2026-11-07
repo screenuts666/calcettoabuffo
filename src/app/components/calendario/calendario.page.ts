@@ -506,24 +506,46 @@ export class CalendarioPage implements OnInit {
     }
   }
 
-  // Fissa Partita Ufficiale da uno slot con quorum raggiunto (Solo SuperUser)
+  // Fissa / Crea Partita Ufficiale da uno slot del calendario (Mister / Presidente)
   async fissaPartitaSlot(dateStr: string) {
     if (!this.auth.isSuperUser()) return;
 
-    const day = this.availabilityService.daySummaries().find((d) => d.date === dateStr);
-    if (!day || !day.hasQuorum) {
-      const t = await this.toastCtrl.create({
-        message: 'Servono almeno 10 giocatori disponibili per fissare la partita.',
-        duration: 3000,
-        color: 'warning',
-      });
-      await t.present();
-      return;
+    const activeSummaries = this.availabilityService.daySummaries();
+    let day = activeSummaries.find((d) => d.date === dateStr);
+
+    if (!day) {
+      const parts = dateStr.split('-');
+      const d =
+        parts.length === 3
+          ? new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]))
+          : new Date();
+      const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'] as const;
+      const dayName = dayNames[d.getDay()] as any;
+      day = {
+        date: dateStr,
+        dayName: dayName || 'Lun',
+        dayNumber: d.getDate(),
+        voters: [],
+        voterCount: 0,
+        formatInfo: {
+          format: 'calcetto',
+          label: 'Calcetto (5v5)',
+          perTeam: 5,
+        },
+        hasQuorum: false,
+        missingForQuorum: 10,
+      };
     }
 
+    const count = day.voterCount || 0;
+    const subHeader =
+      count > 0
+        ? `Converti ${day.dayName} ${day.date} in partita ufficiale con i ${count} ${count === 1 ? 'atleta disponibile già inserito' : 'atleti disponibili già inseriti'} nei convocati!`
+        : `Crea subito la partita per ${day.dayName} ${day.date}. Potrai aggiungere i convocati appena creata!`;
+
     const alert = await this.alertCtrl.create({
-      header: 'Fissa Partita Ufficiale',
-      subHeader: `Converti lo slot ${day.dayName} ${day.date} con ${day.voterCount} atleti già convocati!`,
+      header: count >= 10 ? 'Fissa Partita (Quorum Raggiunto!)' : 'Crea Partita da Calendario',
+      subHeader,
       inputs: [
         {
           name: 'luogo',
@@ -543,19 +565,22 @@ export class CalendarioPage implements OnInit {
           role: 'cancel',
         },
         {
-          text: 'Crea Partita',
+          text: count > 0 ? `Crea (${count} convocati)` : 'Crea Partita',
           handler: async (data) => {
             try {
               const campoMapsUrl = this.campiService.getGoogleMapsUrl(data.luogo || 'Roma 6');
               const newMatchId = await this.availabilityService.convertDayToMatch(
-                day,
+                day!,
                 data.luogo || 'Roma 6',
                 campoMapsUrl,
                 data.orario || '21:00'
               );
               if (newMatchId) {
                 const toast = await this.toastCtrl.create({
-                  message: 'Partita creata con successo! Atleti convocati.',
+                  message:
+                    count > 0
+                      ? `Partita creata! ${count} atleti confermati e convocati.`
+                      : 'Partita creata con successo!',
                   duration: 2500,
                   color: 'success',
                   position: 'top',

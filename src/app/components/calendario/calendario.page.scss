@@ -577,8 +577,8 @@
       }
 
       .btn-fissa-partita {
-        background: rgba(59, 130, 246, 0.2);
-        border: 1px solid rgba(59, 130, 246, 0.5);
+        background: rgba(59, 130, 246, 0.16);
+        border: 1px solid rgba(59, 130, 246, 0.4);
         color: #60a5fa;
         padding: 5px 6px;
         border-radius: 8px;
@@ -590,9 +590,18 @@
         gap: 4px;
         cursor: pointer;
         margin-top: 4px;
+        transition: all 0.15s ease;
+
+        &.is-quorum {
+          background: rgba(16, 185, 129, 0.22);
+          border-color: rgba(16, 185, 129, 0.55);
+          color: #34d399;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+        }
 
         &:active {
-          background: rgba(59, 130, 246, 0.35);
+          transform: scale(0.96);
+          filter: brightness(1.2);
         }
       }
     }
@@ -1189,6 +1198,44 @@
         &.active {
           background: #10b981;
           color: #022c22;
+        }
+
+        &:active {
+          transform: scale(0.98);
+        }
+      }
+    }
+
+    .detail-superuser-action-bar {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+      .btn-detail-create-match {
+        width: 100%;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.35));
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        color: #34d399;
+        font-weight: 800;
+        font-size: 0.88rem;
+        padding: 10px 14px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 1.2rem;
+        }
+
+        &:hover {
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.35), rgba(5, 150, 105, 0.45));
+          border-color: #10b981;
+          color: #fff;
         }
 
         &:active {

@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.36",
+    "date": "07/11/2026",
+    "title": "Creazione Partita Diretta da Calendario & Convocazione Automatica",
+    "userChanges": [
+      "⚽ Creazione Partita Istantanea: Mister e Presidente possono ora fissare la partita ufficiale direttamente dal Calendario (sia dal carosello settimanale che dal dettaglio giorno) con qualsiasi numero di giocatori disponibili, anche solo 1!",
+      "📋 Convocati Automatici: tutti gli atleti che hanno votato 'Ci sono' vengono portati automaticamente come convocati confermati nella nuova partita creata."
+    ],
+    "superUserChanges": [
+      "⚡ Rimosso vincolo hard quorum in fissaPartitaSlot: apertura flessibile a qualsiasi numero di atleti.",
+      "🛡️ setDoc con merge per weekly_availability per garantire compatibilità e persistenza stato partita."
+    ]
+  },
+  {
     "version": "2.0.35",
     "date": "07/11/2026",
     "title": "Fix Layout Ruoli Impostazioni, Calendario Snello & Orari Partite Uniformi",
