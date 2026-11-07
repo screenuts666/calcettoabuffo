@@ -1,5 +1,31 @@
 [
   {
+    "version": "2.0.28",
+    "date": "07/11/2026",
+    "title": "Menu Desktop Nativo senza Modali & Fix Collasso Contenuti",
+    "userChanges": [
+      "🖥️ Dropdown Desktop Nativo: cliccando sull'avatar in alto a destra su Desktop ora si apre un menu a discesa contestuale pulito, senza oscurare lo schermo con modali fluttuanti.",
+      "⚡ Fix Visualizzazione Profilo: risolto il collasso visivo che mostrava la finestra del profilo vuota su Desktop."
+    ],
+    "superUserChanges": [
+      "🚀 Accesso Rapido da Dropdown: scorciatoie dirette per Area Segreta, Gestione Membri & Ruoli e Impostazioni senza alcun passaggio intermedio.",
+      "📐 Altezza Modali Robusta: corretto il dimensionamento CSS per garantire che `ion-content` mantenga sempre altezza completa in ogni viewport."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "07/11/2026",
+    "title": "Menu Desktop Nativo senza Modali & Fix Collasso Contenuti",
+    "userChanges": [
+      "🖥️ Dropdown Desktop Nativo: cliccando sull'avatar in alto a destra su Desktop ora si apre un menu a discesa contestuale pulito, senza oscurare lo schermo con modali fluttuanti.",
+      "⚡ Fix Visualizzazione Profilo: risolto il collasso visivo che mostrava la finestra del profilo vuota su Desktop."
+    ],
+    "superUserChanges": [
+      "🚀 Accesso Rapido da Dropdown: scorciatoie dirette per Area Segreta, Gestione Membri & Ruoli e Impostazioni senza alcun passaggio intermedio.",
+      "📐 Altezza Modali Robusta: corretto il dimensionamento CSS per garantire che `ion-content` mantenga sempre altezza completa in ogni viewport."
+    ]
+  },
+  {
     "version": "2.0.27",
     "date": "07/11/2026",
     "title": "Gestione Associazioni Giocatori, Eliminazione Account & Addio Modali su Desktop",

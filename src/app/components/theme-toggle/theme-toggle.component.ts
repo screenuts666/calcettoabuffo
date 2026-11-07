@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   computed,
+  signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -23,9 +24,13 @@ import {
   personOutline,
   createOutline,
   shieldCheckmark,
+  shieldCheckmarkOutline,
   logOutOutline,
   logInOutline,
   footballOutline,
+  peopleOutline,
+  personAddOutline,
+  chevronForwardOutline,
   closeOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
@@ -85,6 +90,13 @@ export class ThemeToggleComponent {
     return this.linkedPlayer()?.fotoUrl || this.authService.photoURL() || null;
   });
 
+  readonly displayName = computed<string>(() => {
+    const pl = this.linkedPlayer();
+    return pl?.nome || this.authService.displayName() || 'Utente';
+  });
+
+  readonly isDesktopMenuOpen = signal<boolean>(false);
+
   constructor() {
     addIcons({
       sunny,
@@ -97,9 +109,13 @@ export class ThemeToggleComponent {
       personOutline,
       createOutline,
       shieldCheckmark,
+      shieldCheckmarkOutline,
       logOutOutline,
       logInOutline,
       footballOutline,
+      peopleOutline,
+      personAddOutline,
+      chevronForwardOutline,
       closeOutline,
     });
   }
@@ -113,25 +129,38 @@ export class ThemeToggleComponent {
       : 'sunny-outline';
   }
 
+  closeDesktopMenu() {
+    this.isDesktopMenuOpen.set(false);
+  }
+
   /**
    * Click sul badge Utente nell'Header:
-   * - Se NON è loggato: apre direttamente il modale di Login / Registrazione (Email + Google)
-   * - Se è loggato: apre il moderno bottom sheet con profilo, scheda atleta, area mister, impostazioni e logout
+   * - Se NON è loggato: apre direttamente il modale di Login / Registrazione
+   * - Su Desktop: apre/chiude il menu a discesa nativo ancorato all'avatar (ZERO MODALI!)
+   * - Su Mobile: apre il bottom sheet con profilo completo
    */
-  async onUserHeaderClick() {
+  async onUserHeaderClick(event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
     if (!this.authService.isLoggedIn()) {
       await this.openAuthModal('login');
       return;
     }
 
-    const isDesktop = window.innerWidth >= 768;
+    if (window.innerWidth >= 768) {
+      this.isDesktopMenuOpen.update((v) => !v);
+      return;
+    }
+
+    // Su mobile: apri bottom sheet modal
     const modal = await this.modalCtrl.create({
       component: UserMenuModalComponent,
-      breakpoints: isDesktop ? undefined : [0, 0.78, 1],
-      initialBreakpoint: isDesktop ? undefined : 0.78,
-      handle: !isDesktop,
+      breakpoints: [0, 0.78, 1],
+      initialBreakpoint: 0.78,
+      handle: true,
       mode: 'ios',
-      cssClass: isDesktop ? 'user-menu-desktop-modal' : 'user-menu-sheet-modal',
+      cssClass: 'user-menu-sheet-modal',
     });
     await modal.present();
 
@@ -155,6 +184,29 @@ export class ThemeToggleComponent {
       });
       await toast.present();
     }
+  }
+
+  async navigaDaDropdown(url: any[], queryParams?: any) {
+    this.closeDesktopMenu();
+    await this.router.navigate(url, { queryParams });
+  }
+
+  async apriClaimDaDropdown() {
+    this.closeDesktopMenu();
+    await this.openAuthModal('login', true);
+  }
+
+  async eseguiLogoutDaDropdown() {
+    this.closeDesktopMenu();
+    await this.authService.logout();
+    const toast = await this.toastCtrl.create({
+      message: 'Logout effettuato.',
+      duration: 2000,
+      position: 'bottom',
+      mode: 'ios',
+      color: 'medium',
+    });
+    await toast.present();
   }
 
   async openAuthModal(
