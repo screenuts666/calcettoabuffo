@@ -48,22 +48,32 @@
           <ion-input
             label="Luogo Partita *"
             labelPlacement="stacked"
-            placeholder="Es. Roma 6, Vigor..."
+            placeholder="Cerca campo o indirizzo (es. Montesacro, Roma 6, Vigor)..."
             [value]="state.luogo()"
             (ionInput)="onLuogoInput($event.detail.value || '')"
           ></ion-input>
           @if (isSearchingCampi()) {
             <ion-spinner name="dots" slot="end" class="campo-spinner"></ion-spinner>
+          } @else {
+            <button
+              type="button"
+              class="btn-inline-search-maps"
+              slot="end"
+              (click)="apriRicercaGoogleMaps(state.luogo())"
+              title="Cerca questo campo su Google Maps"
+            >
+              <ion-icon name="search-outline"></ion-icon>
+            </button>
           }
         </ion-item>
 
         <!-- CHIP CAMPI STORICI RAPIDI -->
         <div class="campi-chips-row">
-          @for (c of campiService.campiStorici(); track c.nome) {
+          @for (c of campiService.campiStorici(); track c.id) {
             <button
               type="button"
               class="quick-campo-chip"
-              [class.active]="state.luogo() === c.nome"
+              [class.active]="isCampoActive(c)"
               (click)="selezionaCampo(c)"
             >
               {{ c.nome }}
@@ -71,15 +81,20 @@
           }
         </div>
 
-        <!-- DROPDOWN SUGGERIMENTI RICERCA ONLINE -->
+        <!-- DROPDOWN SUGGERIMENTI RICERCA ONLINE & VERIFICATI -->
         @if (suggerimentiCampi().length > 0) {
           <div class="campi-autocomplete-list">
             @for (sugg of suggerimentiCampi(); track sugg.nome) {
               <div class="autocomplete-item" (click)="selezionaCampo(sugg)">
                 <div class="sugg-info">
-                  <ion-icon name="location-outline"></ion-icon>
+                  <ion-icon name="location-outline" class="sugg-pin-icon"></ion-icon>
                   <div>
-                    <strong>{{ sugg.nome }}</strong>
+                    <div class="sugg-name-line">
+                      <strong>{{ sugg.nome }}</strong>
+                      @if (sugg.isStorico) {
+                        <span class="badge-verificato">✓ Campo del Club</span>
+                      }
+                    </div>
                     @if (sugg.indirizzo) {
                       <small>{{ sugg.indirizzo }}</small>
                     }
@@ -88,21 +103,48 @@
                 <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
               </div>
             }
+            <!-- AZIONE DIRETTA: CERCA SU GOOGLE MAPS -->
+            <div class="autocomplete-item maps-search-action" (click)="apriRicercaGoogleMaps(state.luogo())">
+              <div class="sugg-info">
+                <ion-icon name="open-outline" class="maps-action-icon"></ion-icon>
+                <div>
+                  <strong>Cerca "{{ state.luogo() }}" su Google Maps</strong>
+                  <small>Apri Maps per navigare e visualizzare tutti i dettagli</small>
+                </div>
+              </div>
+              <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
+            </div>
           </div>
         }
 
-        <!-- ANTEPRIMA GOOGLE MAPS SE LUOGO INSERITO -->
+        <!-- ANTEPRIMA CAMPO SELEZIONATO & GOOGLE MAPS -->
         @if (state.luogo().trim()) {
-          <div class="campo-maps-preview-row">
+          <div class="campo-selected-card">
+            <div class="campo-card-left">
+              <div class="campo-pin-wrapper">
+                <ion-icon name="location" class="campo-pin-icon"></ion-icon>
+              </div>
+              <div class="campo-details">
+                <div class="campo-name-row">
+                  <strong class="campo-name">{{ getNomeDisplay() }}</strong>
+                  @if (isCampoVerificato()) {
+                    <span class="verified-tag">✓ Verificato</span>
+                  }
+                </div>
+                <div class="campo-address">
+                  {{ getIndirizzoDisplay() }}
+                </div>
+              </div>
+            </div>
             <a
               [href]="getGoogleMapsUrl()"
               target="_blank"
               rel="noopener noreferrer"
-              class="maps-preview-link"
+              class="btn-open-maps"
               title="Apri le indicazioni stradali su Google Maps"
             >
               <ion-icon name="navigate-outline"></ion-icon>
-              <span>📍 Vai qui (Google Maps)</span>
+              <span>Vai qui</span>
             </a>
           </div>
         }

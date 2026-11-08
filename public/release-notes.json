@@ -1,5 +1,61 @@
 [
   {
+    "version": "2.0.41",
+    "date": "08/11/2026",
+    "title": "Convocati Manuali Blindati & Tracciabilità Totale Partita",
+    "userChanges": [
+      "👥 Convocati Manuali Sempre Salvi: quando il Mister seleziona i giocatori manualmente (anche se non avevano confermato o erano in dubbio), il sistema li salva blindati nella partita e li rende immediatamente confermati.",
+      "📅 Convocati Subito Visibili nel Calendario: la scheda della partita nel Calendario mostra chiaramente il conteggio e i volti dei convocati scelti per la sfida, con pallino match sulla striscia settimanale.",
+      "⚽ Anteprima Convocati nella Tab Partite: espandendo la partita in programma nella lista partite compare subito l'elenco dei convocati con i rispettivi avatar."
+    ],
+    "superUserChanges": [
+      "🛡️ Sanitizzazione Payload Firestore: introdotta la funzione `sanitizeForFirestore` ricorsiva per ripulire campi undefined da convocati, rose e dettagli, prevenendo il blocco del salvataggio.",
+      "🔄 Sincronizzazione Convocati & RSVP: quando il Mister spunta un giocatore a mano, vengono aggiornati sia `convocati` che la voce `rsvp`, evitando che il listener in tempo reale deselezioni i giocatori."
+    ]
+  },
+  {
+    "version": "2.0.40",
+    "date": "08/11/2026",
+    "title": "Filtro Sportivo Impianti da Gioco & Badge Esclusivo Campo del Club",
+    "userChanges": [
+      "📍 Ricerca Impianti Sportivi: la ricerca online dei luoghi esclude depositi di autobus, uffici postali, vinerie e supermercati, mostrando solo veri centri sportivi, campi da calcio/calcetto e strutture atletiche.",
+      "⭐ Badge 'Campo del Club' Rigoroso: il badge ufficiale è riservato esclusivamente ai 4 campi storici del club (Roma 6, Montesacro Calcio, Vigor Perconti, Pro Roma), senza più falsi positivi per altri luoghi della zona."
+    ],
+    "superUserChanges": [
+      "🔍 Tagging OSM Leisure & Sport: query geocoding con filtro OSM leisure e sport su Roma, con fallback sanitizzato contro POI commerciali/trasporti.",
+      "🎯 Normalizzazione Alias Rigorosa: getCampoByNome adotta un matching su alias storici specifici invece di un includes generico, prevenendo attribuzioni errate nel database."
+    ]
+  },
+  {
+    "version": "2.0.39",
+    "date": "08/11/2026",
+    "title": "Creazione Partita Ufficiale Step 1, Google Maps Dinamico & Fix Convocati",
+    "userChanges": [
+      "📍 Coordinate & Mappe Precise: cliccando 'Vai qui' sul campo di gioco (es. Montesacro Calcio) Google Maps apre esattamente l'indirizzo corretto (Via Clelia Bertini Attilj, 35) senza più errori di reindirizzamento.",
+      "🔍 Ricerca Dinamica Campi: digitando il nome del campo compaiono subito in cima i campi ufficiali del club e centinaia di centri sportivi e indirizzi di Roma trovati online, con pulsante per cercare al volo su Google Maps.",
+      "📋 Nuove Partite Subito Visibili: le partite create dal calendario o manualmente appaiono all'istante sia nel calendario che nella lista partite principale.",
+      "👥 Convocati Sempre Salvi: risolto il problema della perdita occasionale dei convocati, garantendo presenze e conferme blindate.",
+      "📅 Vista Settimanale Compatta: nuova striscia a 7 colonne (Lun-Dom) con scheda focus dettagliata e navigazione mese unificata."
+    ],
+    "superUserChanges": [
+      "⚽ Creazione Partita Guidata: rimosso l'alert semplificato; il Mister atterra direttamente nello Step 1 (Coordinate) con campi storici, maps link e convocati del giorno già agganciati.",
+      "🛡️ Query Partite Resiliente: eliminato orderBy('dataOra') su Firestore che escludeva i match privi di timestamp iniziale, con ordinamento avanzato in memoria e generazione automatica dataOra.",
+      "🔄 Reconcile Convocati Ibrido: riconciliazione robusta sia per ID stringa che per oggetti convocato in match-state.service."
+    ]
+  },
+  {
+    "version": "2.0.38",
+    "date": "08/11/2026",
+    "title": "Fix Calcolo Età Compleanni nel Calendario per Anni Futuri",
+    "userChanges": [
+      "🎂 Età Compleanno Dinamica: navigando nel Calendario verso date o anni futuri (es. marzo 2027), l'età indicata calcola gli anni precisi che l'atleta compie in quell'anno (es. nato nel 1991 -> nel 2027 compie 36 anni!), senza fermarsi all'età corrente odierna.",
+      "✨ Testo Contestualizzato: 'Festeggia il suo compleanno (compie X anni)' se si consulta una data futura e 'Oggi è il suo compleanno' se è oggi."
+    ],
+    "superUserChanges": [
+      "📐 Esteso calcolaEta in date-utils per supportare una referenceDate dinamica (default new Date())."
+    ]
+  },
+  {
     "version": "2.0.37",
     "date": "07/11/2026",
     "title": "Pulsante 'Forse' nel Calendario & Grafiche Unificate Stile Partita",

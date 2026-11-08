@@ -10,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   locationOutline,
+  location,
   calendarOutline,
   timeOutline,
   checkmark,
@@ -23,6 +24,8 @@ import {
   informationCircleOutline,
   navigateOutline,
   searchOutline,
+  openOutline,
+  mapOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { CampiService } from '../../../../../services/campi.service';
@@ -75,6 +78,7 @@ export class StepDettagliComponent {
 
   constructor() {
     addIcons({
+      location,
       locationOutline,
       calendarOutline,
       timeOutline,
@@ -89,6 +93,8 @@ export class StepDettagliComponent {
       informationCircleOutline,
       navigateOutline,
       searchOutline,
+      openOutline,
+      mapOutline,
     });
   }
 
@@ -117,8 +123,39 @@ export class StepDettagliComponent {
     return '';
   }
 
-  aggiornaLuogo(val: string) {
+  isCampoVerificato(): boolean {
+    const luogo = this.state.luogo()?.trim();
+    if (!luogo) return false;
+    return this.campiService.getCampoByNome(luogo) !== undefined;
+  }
+
+  getNomeDisplay(): string {
+    const luogo = this.state.luogo()?.trim();
+    if (!luogo) return '';
+    const canonical = this.campiService.getCampoByNome(luogo);
+    return canonical?.nome || luogo;
+  }
+
+  getIndirizzoDisplay(): string {
+    const luogo = this.state.luogo()?.trim();
+    if (!luogo) return '';
+    const canonical = this.campiService.getCampoByNome(luogo);
+    if (canonical?.indirizzo) return canonical.indirizzo;
+    return 'Roma • Indicazioni stradali su Google Maps';
+  }
+
+  isCampoActive(c: CampoDaGioco): boolean {
+    const current = this.state.luogo()?.trim();
+    if (!current) return false;
+    if (current.toLowerCase() === c.nome.toLowerCase()) return true;
+    const match = this.campiService.getCampoByNome(current);
+    return match?.id === c.id;
+  }
+
+  aggiornaLuogo(val: string, mapsUrl?: string | null) {
     this.state.luogo.set(val);
+    const resolvedUrl = mapsUrl || this.campiService.getGoogleMapsUrl(val);
+    this.state.campoGoogleMapsUrl.set(resolvedUrl);
     this.state.salvaSetupPredefinito();
     this.state.triggerAutoSave();
   }
@@ -142,22 +179,45 @@ export class StepDettagliComponent {
           this.isSearchingCampi.set(false);
         },
       });
-    }, 350);
+    }, 250);
   }
 
   selezionaCampo(campo: CampoDaGioco) {
-    this.aggiornaLuogo(campo.nome);
-    if (campo.googleMapsUrl) {
-      this.state.campoGoogleMapsUrl.set(campo.googleMapsUrl);
-    }
+    this.aggiornaLuogo(campo.nome, campo.googleMapsUrl);
     this.suggerimentiCampi.set([]);
   }
 
   getGoogleMapsUrl(): string {
-    if (this.state.campoGoogleMapsUrl()) {
-      return this.state.campoGoogleMapsUrl()!;
+    const luogo = this.state.luogo()?.trim();
+    if (!luogo) {
+      return this.campiService.getGoogleMapsUrl('Roma');
     }
-    return this.campiService.getGoogleMapsUrl(this.state.luogo() || 'Roma');
+    const noto = this.campiService.getCampoByNome(luogo);
+    if (noto?.googleMapsUrl) {
+      return noto.googleMapsUrl;
+    }
+    const savedUrl = this.state.campoGoogleMapsUrl();
+    if (savedUrl && !this.isStaleUrl(savedUrl, luogo)) {
+      return savedUrl;
+    }
+    return this.campiService.getGoogleMapsUrl(luogo);
+  }
+
+  private isStaleUrl(url: string, currentLuogo: string): boolean {
+    const cleanLuogo = currentLuogo.toLowerCase();
+    const cleanUrl = url.toLowerCase();
+    if (cleanLuogo.includes('montesacro') && cleanUrl.includes('roma+6')) return true;
+    if (cleanLuogo.includes('vigor') && cleanUrl.includes('roma+6')) return true;
+    if (cleanLuogo.includes('pro roma') && cleanUrl.includes('roma+6')) return true;
+    if (cleanLuogo.includes('roma 6') && cleanUrl.includes('montesacro')) return true;
+    return false;
+  }
+
+  apriRicercaGoogleMaps(query?: string) {
+    const q = (query || this.state.luogo() || 'campi da calcetto Roma').trim();
+    const cleanQuery = q.toLowerCase().includes('roma') ? q : `${q} Roma`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanQuery)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   aggiornaData(val: string) {

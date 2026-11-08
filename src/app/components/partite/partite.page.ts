@@ -28,13 +28,8 @@ import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
-import {
-  collection,
-  doc,
-  query,
-  orderBy,
-  deleteDoc,
-} from 'firebase/firestore';
+import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
+import { collection, doc, query, orderBy, deleteDoc } from 'firebase/firestore';
 import { Firestore, collectionData } from '@angular/fire/firestore';
 import { Storage } from '@angular/fire/storage';
 import { ref, deleteObject } from 'firebase/storage';
@@ -88,6 +83,7 @@ import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.componen
 import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
+import { CampiService } from 'src/app/services/campi.service';
 import {
   CURRENT_SEASON,
   PREVIOUS_SEASON,
@@ -127,8 +123,18 @@ export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
   { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
   { id: 'tempo', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'TEMPO' },
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
-  { id: 'giocatori', label: 'Giocatori', icon: 'people-outline', unit: 'GIOCATORI' },
-  { id: 'campetto', label: 'Campetto', icon: 'location-outline', unit: 'CAMPO' },
+  {
+    id: 'giocatori',
+    label: 'Giocatori',
+    icon: 'people-outline',
+    unit: 'GIOCATORI',
+  },
+  {
+    id: 'campetto',
+    label: 'Campetto',
+    icon: 'location-outline',
+    unit: 'CAMPO',
+  },
 ];
 
 @Component({
@@ -155,6 +161,7 @@ export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
     IonButtons,
     ThemeToggleComponent,
     TacticalPitchComponent,
+    PlayerAvatarComponent,
   ],
 })
 export class PartitePage {
@@ -165,6 +172,7 @@ export class PartitePage {
   private toastController = inject(ToastController);
   private auth = inject(AuthService);
   readonly trashService = inject(TrashService);
+  readonly campiService = inject(CampiService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
@@ -246,33 +254,40 @@ export class PartitePage {
     return getMatchFormatByPlayerCount(count).label;
   }
 
+  getLuogoDisplay(m: any): string {
+    return this.campiService.normalizzaNomeCampo(m?.luogo);
+  }
+
   getGoogleMapsUrl(m: any): string {
     if (m?.campoGoogleMapsUrl) return m.campoGoogleMapsUrl;
-    if (m?.luogo) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-        m.luogo + ' Roma'
-      )}`;
-    }
-    return 'https://www.google.com/maps';
+    return this.campiService.getGoogleMapsUrl(m?.luogo || 'Roma 6');
   }
 
   partite = toSignal<any[]>(
-    collectionData(
-      query(collection(this.firestore, 'partite'), orderBy('dataOra', 'desc')),
-      { idField: 'id' },
-    ).pipe(
+    collectionData(collection(this.firestore, 'partite'), {
+      idField: 'id',
+    }).pipe(
       map((list: any[]) => {
         const priority = (m: any) =>
           m.matchConcluso ? (m.pagelleInserite ? 2 : 1) : 0;
+
+        const getTime = (m: any): number => {
+          if (m?.dataOra?.seconds) return m.dataOra.seconds * 1000;
+          if (m?.dataOra?.toMillis) return m.dataOra.toMillis();
+          if (m?.dataPartita) {
+            const iso = `${m.dataPartita}T${m.orario || '21:00'}:00`;
+            const t = new Date(iso).getTime();
+            if (!isNaN(t)) return t;
+          }
+          return 0;
+        };
 
         return [...list].sort((a: any, b: any) => {
           const pa = priority(a);
           const pb = priority(b);
           if (pa !== pb) return pa - pb;
 
-          const at = a.dataOra?.seconds ?? 0;
-          const bt = b.dataOra?.seconds ?? 0;
-          return bt - at;
+          return getTime(b) - getTime(a);
         });
       }),
       catchError(() => of([] as any[])),
@@ -439,8 +454,7 @@ export class PartitePage {
     const c = this.filtroCampetto();
     return list
       .filter(
-        (m: any) =>
-          m.status === 'pronta' || (!m.status && !m.matchConcluso),
+        (m: any) => m.status === 'pronta' || (!m.status && !m.matchConcluso),
       )
       .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
       .sort(
@@ -577,44 +591,45 @@ export class PartitePage {
 
   constructor() {
     addIcons({
-      add,
-      calendarOutline,
-      checkmarkDoneCircle,
-      starHalf,
-      playCircle,
-      time,
-      timeOutline,
-      locationOutline,
-      peopleOutline,
       footballOutline,
+      flame,
+      flash,
+      timeOutline,
+      star,
+      searchOutline,
+      closeCircle,
+      filter,
+      locationOutline,
       calendarClearOutline,
+      constructOutline,
+      playCircle,
+      starHalf,
+      trophy,
+      calendarOutline,
+      navigateOutline,
+      chevronForward,
+      peopleOutline,
+      image,
+      expandOutline,
+      people,
+      chatboxEllipsesOutline,
+      mic,
+      sparkles,
+      logoWhatsapp,
       trash,
+      add,
+      checkmarkDoneCircle,
+      time,
       close,
       arrowBack,
       radioOutline,
-      image,
       imageOutline,
-      expandOutline,
-      sparkles,
       globeOutline,
-      logoWhatsapp,
       shareSocialOutline,
-      chatboxEllipsesOutline,
       chevronDown,
       chevronUp,
-      chevronForward,
-      mic,
-      filter,
-      closeCircle,
-      star,
-      flash,
-      flame,
-      trophy,
-      searchOutline,
       swapVerticalOutline,
       shieldCheckmark,
-      constructOutline,
-      navigateOutline,
     });
 
     this.route.queryParams.subscribe((params) => {
@@ -671,10 +686,10 @@ export class PartitePage {
       ).length;
       if (fromEvents > 0) return fromEvents;
     }
-    const fromPlayers = [
-      ...(m.teamA || []),
-      ...(m.teamB || []),
-    ].reduce((acc, p) => acc + (p.assist || 0), 0);
+    const fromPlayers = [...(m.teamA || []), ...(m.teamB || [])].reduce(
+      (acc, p) => acc + (p.assist || 0),
+      0,
+    );
     return fromPlayers;
   }
 
@@ -701,7 +716,10 @@ export class PartitePage {
 
       if (startMs && endMs && endMs > startMs) {
         sec = Math.round((endMs - startMs) / 1000);
-      } else if (typeof m.accumulatedTime === 'number' && m.accumulatedTime > 0) {
+      } else if (
+        typeof m.accumulatedTime === 'number' &&
+        m.accumulatedTime > 0
+      ) {
         sec =
           m.accumulatedTime > 10000
             ? Math.round(m.accumulatedTime / 1000)
@@ -944,7 +962,8 @@ export class PartitePage {
         return {
           valore: `${tot}`,
           etichetta: 'GIOCATORI',
-          subText: teamA > 0 && teamB > 0 ? `${teamA} vs ${teamB}` : 'Convocati',
+          subText:
+            teamA > 0 && teamB > 0 ? `${teamA} vs ${teamB}` : 'Convocati',
           subType: 'neutral',
         };
       }
@@ -972,7 +991,7 @@ export class PartitePage {
   haNote(m: any): boolean {
     return Boolean(
       (m.commentoPartita && m.commentoPartita.trim() !== '') ||
-        (m.notePortieri && m.notePortieri.trim() !== ''),
+      (m.notePortieri && m.notePortieri.trim() !== ''),
     );
   }
 

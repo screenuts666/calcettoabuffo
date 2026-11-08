@@ -3,13 +3,22 @@
  * - Italiano: 'GG/MM/AAAA' (es. '24/03/1996')
  * - ISO: 'YYYY-MM-DD' (es. '1996-03-24')
  * - Solo anno: '1996'
+ * 
+ * Permette di passare una data di riferimento (es. data visualizzata a calendario)
+ * per calcolare l'età precisa in quel giorno (es. quanti anni compie nel 2027).
  */
-export function calcolaEta(dataStr?: string | number | null): number | null {
+export function calcolaEta(
+  dataStr?: string | number | null,
+  referenceDate: Date = new Date()
+): number | null {
   if (!dataStr) return null;
   const str = String(dataStr).trim();
   if (!str) return null;
 
-  const today = new Date();
+  const target =
+    referenceDate instanceof Date && !isNaN(referenceDate.getTime())
+      ? referenceDate
+      : new Date();
 
   // Formato GG/MM/AAAA
   if (str.includes('/')) {
@@ -18,10 +27,10 @@ export function calcolaEta(dataStr?: string | number | null): number | null {
       const day = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
       const year = parts.length === 3 ? parseInt(parts[2], 10) : null;
-      if (year && !isNaN(year) && year > 1900 && year <= today.getFullYear()) {
-        let age = today.getFullYear() - year;
-        const m = today.getMonth() + 1 - month;
-        if (m < 0 || (m === 0 && today.getDate() < day)) {
+      if (year && !isNaN(year) && year > 1900 && year <= target.getFullYear()) {
+        let age = target.getFullYear() - year;
+        const m = target.getMonth() + 1 - month;
+        if (m < 0 || (m === 0 && target.getDate() < day)) {
           age--;
         }
         return age >= 0 ? age : null;
@@ -36,10 +45,10 @@ export function calcolaEta(dataStr?: string | number | null): number | null {
       const year = parseInt(parts[0], 10);
       const month = parseInt(parts[1], 10);
       const day = parseInt(parts[2], 10);
-      if (!isNaN(year) && year > 1900 && year <= today.getFullYear()) {
-        let age = today.getFullYear() - year;
-        const m = today.getMonth() + 1 - month;
-        if (m < 0 || (m === 0 && today.getDate() < day)) {
+      if (!isNaN(year) && year > 1900 && year <= target.getFullYear()) {
+        let age = target.getFullYear() - year;
+        const m = target.getMonth() + 1 - month;
+        if (m < 0 || (m === 0 && target.getDate() < day)) {
           age--;
         }
         return age >= 0 ? age : null;
@@ -49,8 +58,8 @@ export function calcolaEta(dataStr?: string | number | null): number | null {
 
   // Formato solo anno (es. '1996')
   const soloAnno = parseInt(str, 10);
-  if (!isNaN(soloAnno) && soloAnno > 1920 && soloAnno <= today.getFullYear()) {
-    const age = today.getFullYear() - soloAnno;
+  if (!isNaN(soloAnno) && soloAnno > 1920 && soloAnno <= target.getFullYear()) {
+    const age = target.getFullYear() - soloAnno;
     return age >= 0 ? age : null;
   }
 

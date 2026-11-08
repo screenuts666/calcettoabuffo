@@ -38,6 +38,7 @@ import {
 } from '../../../utils/season-utils';
 import { SyncStatusService } from '../../../services/sync-status.service';
 import { SoundSettingsService } from '../../../services/sound-settings.service';
+import { CampiService } from '../../../services/campi.service';
 import { AuthService } from '../../../services/auth.service';
 
 export type ConvocatoState = Giocatore & {
@@ -46,6 +47,26 @@ export type ConvocatoState = Giocatore & {
   source?: 'self' | 'mister';
   rsvpStatus?: 'yes' | 'maybe' | 'no' | null;
 };
+
+/**
+ * Rimuove ricorsivamente i campi con valore `undefined` prima di inviare documenti o array a Firestore,
+ * prevenendo l'eccezione FirebaseError: Unsupported field value: undefined.
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === undefined) return null as any;
+  if (data === null || typeof data !== 'object') return data;
+  if (data instanceof Date || (data as any)?.toMillis || (data as any)?._seconds) return data;
+  if (Array.isArray(data)) {
+    return data.map((item) => sanitizeForFirestore(item)) as any;
+  }
+  const result: any = {};
+  for (const [key, val] of Object.entries(data as any)) {
+    if (val !== undefined) {
+      result[key] = sanitizeForFirestore(val);
+    }
+  }
+  return result;
+}
 export type MatchDetailState = Partita & { isAdmin?: boolean };
 export const LOCAL_STORAGE_MATCH_KEY = 'calcettoabbuffo_active_match';
 
@@ -71,6 +92,7 @@ export class MatchStateService {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
   public soundSettings = inject(SoundSettingsService, { optional: true });
+  public campiService = inject(CampiService, { optional: true });
   private auth = inject(AuthService);
   private injector = inject(EnvironmentInjector);
 
@@ -881,7 +903,17 @@ export class MatchStateService {
     const entries = Object.values(rsvpMap || {}).filter(Boolean);
     const savedMap = new Map<string, any>();
     for (const c of savedConvocati || []) {
-      if (c?.id) savedMap.set(c.id, c);
+      if (!c) continue;
+      if (typeof c === 'string') {
+        savedMap.set(c, { id: c, selezionato: true });
+      } else if (c.id) {
+        savedMap.set(c.id, c);
+      } else if (c.playerId) {
+        savedMap.set(c.playerId, c);
+      }
+      if (typeof c === 'object' && c.nome) {
+        savedMap.set(c.nome.toLowerCase().trim(), c);
+      }
     }
 
     this.tutti.update((list) =>
@@ -892,7 +924,7 @@ export class MatchStateService {
             (!!g.linkedUid && e.uid === g.linkedUid)
         );
         const normStatus = normalizeRsvpStatus(rsvpEntry?.status);
-        const saved = savedMap.get(g.id);
+        const saved = savedMap.get(g.id) || savedMap.get(g.nome?.toLowerCase().trim());
 
         const isSelected = Boolean(saved) || normStatus === 'yes';
         const isSelf = Boolean(
@@ -909,7 +941,7 @@ export class MatchStateService {
           selezionato: isSelected,
           selfRegistered: isSelf,
           source: isSelf ? 'self' : isSelected ? 'mister' : undefined,
-          rsvpStatus: normStatus,
+          rsvpStatus: isSelected ? 'yes' : normStatus,
         };
       })
     );
@@ -1222,12 +1254,60 @@ export class MatchStateService {
       ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs))
       : null;
 
-    const payload: any = {
+    const orarioStr = this.orario() || '21:00';
+    let dataOraTimestamp: any = null;
+    if (this.dataPartita()) {
+      try {
+        const dt = new Date(`${this.dataPartita()}T${orarioStr}:00`);
+        if (!isNaN(dt.getTime())) {
+          dataOraTimestamp = Timestamp.fromDate(dt);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    const cleanConvocati = this.convocati().map((g) => ({
+      id: g.id,
+      nome: g.nome || 'Giocatore',
+      soprannome: g.soprannome || null,
+      soprannomeAi: g.soprannomeAi || null,
+      fotoUrl: g.fotoUrl || null,
+      ruoloPreferito: (g.ruoloPreferito as string) || null,
+      piedePreferito: (g.piedePreferito as string) || null,
+      annoNascita: g.annoNascita || null,
+      selezionato: true,
+      selfRegistered: Boolean(g.selfRegistered),
+      source: g.source || (g.selfRegistered ? 'self' : 'mister'),
+      rsvpStatus: g.rsvpStatus || 'yes',
+    }));
+
+    const cleanTeamA = (this.teamA() || []).map((p) => ({
+      ...p,
+      voto: typeof p.voto === 'number' ? p.voto : null,
+      note: p.note || null,
+      gol: typeof p.gol === 'number' ? p.gol : 0,
+      autogol: typeof p.autogol === 'number' ? p.autogol : 0,
+      assist: typeof p.assist === 'number' ? p.assist : 0,
+    }));
+
+    const cleanTeamB = (this.teamB() || []).map((p) => ({
+      ...p,
+      voto: typeof p.voto === 'number' ? p.voto : null,
+      note: p.note || null,
+      gol: typeof p.gol === 'number' ? p.gol : 0,
+      autogol: typeof p.autogol === 'number' ? p.autogol : 0,
+      assist: typeof p.assist === 'number' ? p.assist : 0,
+    }));
+
+    const rawPayload: any = {
       step: this.step(),
       dataPartita: this.dataPartita(),
-      orario: this.orario(),
+      orario: orarioStr,
+      dataOra: dataOraTimestamp || serverTimestamp(),
       luogo: this.luogo(),
       campoGoogleMapsUrl:
+        (this.luogo() ? this.campiService?.getGoogleMapsUrl(this.luogo()) : null) ||
         this.campoGoogleMapsUrl() ||
         (this.luogo()
           ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -1235,9 +1315,9 @@ export class MatchStateService {
             )}`
           : null),
       formato: getMatchFormatByPlayerCount(this.convocati().length).label,
-      convocati: this.convocati(),
-      teamA: this.teamA(),
-      teamB: this.teamB(),
+      convocati: cleanConvocati,
+      teamA: cleanTeamA,
+      teamB: cleanTeamB,
       scoreA: this.scoreA(),
       scoreB: this.scoreB(),
       eventiGol: this.eventiGol(),
@@ -1265,6 +1345,8 @@ export class MatchStateService {
       parateIncredibili: this.parateIncredibili() || {},
       rsvp: this.rsvp() || {},
     };
+
+    const payload = sanitizeForFirestore(rawPayload);
 
     try {
       this.syncStatus.notifySyncPending();

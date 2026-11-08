@@ -15,7 +15,6 @@ import {
   IonButtons,
   IonButton,
   IonIcon,
-  AlertController,
   ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -106,7 +105,6 @@ export class CalendarioPage implements OnInit {
   public weatherService = inject(WeatherService);
   public campiService = inject(CampiService);
   private router = inject(Router);
-  private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
 
   // Filtri calendario salvati in LocalStorage
@@ -429,7 +427,10 @@ export class CalendarioPage implements OnInit {
     };
   });
 
-  // Voti nella settimana attiva (mostra solo i giorni da oggi in avanti)
+  /** Giorno selezionato nella striscia settimanale compatta per la scheda focus */
+  readonly selectedWeekDayStr = signal<string | null>(null);
+
+  // Voti nei 7 giorni della settimana attiva (Lun -> Dom)
   readonly activeWeekDaysList = computed(() => {
     const summaries = this.availabilityService.daySummaries();
     const myVoted = this.availabilityService.myVotedDates();
@@ -437,16 +438,13 @@ export class CalendarioPage implements OnInit {
     const allPlayers = this.statsEngine.giocatoriRaw();
     const todayStr = getLocalIsoDate();
 
-    // Filtra via i giorni passati: mostra solo i giorni da oggi in avanti
+    // Identifica il massimo di preferenze per far risaltare il giorno più scelto tra quelli futuri
     const upcomingSummaries = summaries.filter((s) => s.date >= todayStr);
-
-    // Identifica il massimo di preferenze per far risaltare il giorno più scelto
     const maxVotes = Math.max(0, ...upcomingSummaries.map((s) => s.voterCount));
-    // Mostra "Più Scelto" solo se ci sono almeno 2 voti e una chiara preferenza (max 2 giorni pari merito)
     const topDaysCount = upcomingSummaries.filter((s) => s.voterCount === maxVotes).length;
     const hasFavorite = maxVotes >= 2 && topDaysCount <= 2;
 
-    return upcomingSummaries.map((s) => {
+    return summaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
       const lunar = this.mostraFasiLunari()
         ? this.weatherService.getLunarPhase(s.date)
@@ -472,12 +470,28 @@ export class CalendarioPage implements OnInit {
         )
         .filter((g): g is Giocatore => !!g);
 
-      const isTopVoted = hasFavorite && s.voterCount === maxVotes;
+      const isPast = s.date < todayStr;
+      const isToday = s.date === todayStr;
+      const isTopVoted = !isPast && hasFavorite && s.voterCount === maxVotes;
+
+      const [y, m, d] = s.date.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      const rawFull = dateObj.toLocaleDateString('it-IT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
+      const dayLabelFull = rawFull.charAt(0).toUpperCase() + rawFull.slice(1);
 
       return {
         dateStr: s.date,
+        dayName: s.dayName,
+        dayNumber: s.dayNumber,
         dayLabel: `${s.dayName} ${s.dayNumber}`,
+        dayLabelFull,
         summary: s,
+        isPast,
+        isToday,
         count: s.voterCount,
         maybeCount: s.maybeCount,
         isQuorumReached: s.hasQuorum,
@@ -494,9 +508,34 @@ export class CalendarioPage implements OnInit {
     });
   });
 
+  /** Giorno attualmente in focus nella striscia settimanale */
+  readonly focusedWeekDay = computed(() => {
+    const days = this.activeWeekDaysList();
+    if (days.length === 0) return null;
+    const selected = this.selectedWeekDayStr();
+    if (selected) {
+      const found = days.find((d) => d.dateStr === selected);
+      if (found) return found;
+    }
+    // Default: il giorno più votato futuro, oppure oggi, oppure il primo giorno non passato
+    const nonPast = days.filter((d) => !d.isPast);
+    if (nonPast.length > 0) {
+      const top = nonPast.find((d) => d.isTopVoted);
+      if (top) return top;
+      const today = nonPast.find((d) => d.isToday);
+      if (today) return today;
+      return nonPast[0];
+    }
+    return days[0];
+  });
+
+  selezionaGiornoSettimana(dateStr: string): void {
+    this.selectedWeekDayStr.set(dateStr);
+  }
+
   /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */
   readonly topVotedDayInfo = computed(() => {
-    const days = this.activeWeekDaysList();
+    const days = this.activeWeekDaysList().filter((d) => !d.isPast);
     const topDays = days.filter((d) => d.isTopVoted && d.count >= 2);
     if (topDays.length === 0) return null;
     if (topDays.length === 1) {
@@ -512,6 +551,33 @@ export class CalendarioPage implements OnInit {
       hasQuorum: topDays.some((d) => d.isQuorumReached),
     };
   });
+
+  /** Mostra toast con meteo dettagliato (fondamentale per mobile dove il title non ha hover) */
+  async mostraInfoMeteo(
+    weather?: DailyWeatherForecast,
+    dayLabel?: string,
+    event?: Event
+  ): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!weather) return;
+
+    const toast = await this.toastCtrl.create({
+      header: `Meteo ${dayLabel ? dayLabel : ''} ${weather.iconEmoji}`,
+      message: `${weather.conditionDescription} • Max ${weather.tempMax}°C / Min ${weather.tempMin}°C • 💧 Rischio Pioggia: ${weather.rainProbability}%`,
+      duration: 3500,
+      position: 'top',
+      color: 'dark',
+      buttons: [
+        {
+          text: 'Chiudi',
+          role: 'cancel',
+        },
+      ],
+    });
+    await toast.present();
+  }
 
   // Toggle voto atleta per un giorno specifico ('yes' = Ci sono, 'maybe' = Forse)
   async toggleVotoGiorno(dateStr: string, type: 'yes' | 'maybe' = 'yes') {
@@ -562,69 +628,39 @@ export class CalendarioPage implements OnInit {
     };
 
     const count = day.voterCount || 0;
-    const subHeader =
-      count > 0
-        ? `Converti ${day.dayName} ${day.date} in partita ufficiale con i ${count} ${count === 1 ? 'atleta disponibile già inserito' : 'atleti disponibili già inseriti'} nei convocati!`
-        : `Crea subito la partita per ${day.dayName} ${day.date}. Potrai aggiungere i convocati appena creata!`;
+    const defaultCampo = 'Roma 6';
+    const campoMapsUrl = this.campiService.getGoogleMapsUrl(defaultCampo);
 
-    const alert = await this.alertCtrl.create({
-      header: count >= 10 ? 'Fissa Partita (Quorum Raggiunto!)' : 'Crea Partita da Calendario',
-      subHeader,
-      inputs: [
-        {
-          name: 'luogo',
-          type: 'text',
-          placeholder: 'Campo di gioco',
-          value: 'Roma 6',
-        },
-        {
-          name: 'orario',
-          type: 'time',
-          value: '21:00',
-        },
-      ],
-      buttons: [
-        {
-          text: 'Annulla',
-          role: 'cancel',
-        },
-        {
-          text: count > 0 ? `Crea (${count} convocati)` : 'Crea Partita',
-          handler: async (data) => {
-            try {
-              const campoMapsUrl = this.campiService.getGoogleMapsUrl(data.luogo || 'Roma 6');
-              const newMatchId = await this.availabilityService.convertDayToMatch(
-                day!,
-                data.luogo || 'Roma 6',
-                campoMapsUrl,
-                data.orario || '21:00'
-              );
-              if (newMatchId) {
-                const toast = await this.toastCtrl.create({
-                  message:
-                    count > 0
-                      ? `Partita creata! ${count} atleti confermati e convocati.`
-                      : 'Partita creata con successo!',
-                  duration: 2500,
-                  color: 'success',
-                  position: 'top',
-                });
-                await toast.present();
-                this.router.navigate(['/partite', newMatchId]);
-              }
-            } catch (err: any) {
-              const toast = await this.toastCtrl.create({
-                message: err.message || 'Errore nella creazione della partita',
-                duration: 3500,
-                color: 'danger',
-              });
-              await toast.present();
-            }
-          },
-        },
-      ],
-    });
-    await alert.present();
+    try {
+      const newMatchId = await this.availabilityService.convertDayToMatch(
+        day,
+        defaultCampo,
+        campoMapsUrl,
+        '21:00'
+      );
+
+      if (newMatchId) {
+        const toast = await this.toastCtrl.create({
+          message:
+            count > 0
+              ? `⚽ Partita avviata per ${day.date}! ${count} atleti nei convocati. Personalizza campo, maps e dettagli.`
+              : `⚽ Nuova partita avviata per ${day.date}! Scegli campo, maps e coordinate.`,
+          duration: 3000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+        this.router.navigate(['/partite', newMatchId]);
+      }
+    } catch (err: any) {
+      const toast = await this.toastCtrl.create({
+        message: err.message || 'Errore nella creazione della partita',
+        duration: 3500,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
   }
 
   // Condividi disponibilità su WhatsApp (Aperto a tutti gli atleti!)
@@ -675,9 +711,23 @@ export class CalendarioPage implements OnInit {
     return this.campiService.getGoogleMapsUrl(campo || 'Roma');
   }
 
-  getEtaCompleanno(dataNascita?: string): string | null {
+  getMatchConvocatiCount(m: any): number {
+    if (Array.isArray(m?.convocati) && m.convocati.length > 0) {
+      return m.convocati.length;
+    }
+    return (m?.teamA?.length || 0) + (m?.teamB?.length || 0);
+  }
+
+  getMatchConvocatiPreview(m: any): any[] {
+    if (Array.isArray(m?.convocati) && m.convocati.length > 0) {
+      return m.convocati;
+    }
+    return [...(m?.teamA || []), ...(m?.teamB || [])];
+  }
+
+  getEtaCompleanno(dataNascita?: string, targetDate?: Date): string | null {
     if (!dataNascita) return null;
-    const eta = calcolaEta(dataNascita);
-    return eta !== null ? `(${eta} anni)` : null;
+    const eta = calcolaEta(dataNascita, targetDate);
+    return eta !== null ? `(compie ${eta} anni)` : null;
   }
 }

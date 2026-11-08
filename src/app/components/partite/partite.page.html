@@ -420,9 +420,9 @@
                   {{ getFormatoLabel(m) }}
                 </div>
                 @if (m.luogo) {
-                  <div class="location-chip" [title]="m.luogo">
+                  <div class="location-chip" [title]="getLuogoDisplay(m)">
                     <ion-icon name="location-outline"></ion-icon>
-                    <span>{{ m.luogo }}</span>
+                    <span>{{ getLuogoDisplay(m) }}</span>
                   </div>
                   <a
                     [href]="getGoogleMapsUrl(m)"
@@ -585,6 +585,24 @@
                     <div class="expand-circle">
                       <ion-icon name="expand-outline"></ion-icon>
                     </div>
+                  </div>
+                </div>
+              }
+
+              <!-- ANTEPRIMA CONVOCATI PER MATCH NON CONCLUSO -->
+              @if (!m.matchConcluso && m.convocati?.length) {
+                <div class="match-convocati-summary-box">
+                  <div class="convocati-summary-header">
+                    <ion-icon name="people"></ion-icon>
+                    <span><strong>{{ m.convocati.length }} Convocati Ufficiali</strong> ({{ getFormatoLabel(m) }})</span>
+                  </div>
+                  <div class="convocati-chips-scroll">
+                    @for (c of m.convocati; track (c.id || c.nome) + '_' + $index) {
+                      <span class="convocato-chip-pill">
+                        <app-player-avatar [fotoUrl]="c.fotoUrl" [alt]="c.nome"></app-player-avatar>
+                        <span>{{ (c.nome || 'Giocatore').split(' ')[0] }}</span>
+                      </span>
+                    }
                   </div>
                 </div>
               }

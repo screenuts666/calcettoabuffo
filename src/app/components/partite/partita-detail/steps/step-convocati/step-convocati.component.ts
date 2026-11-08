@@ -98,14 +98,14 @@ export class StepConvocatiComponent {
     return null;
   });
 
-  /** Giocatori in dubbio ("Forse") */
+  /** Giocatori in dubbio ("Forse") non ancora convocati */
   readonly maybePlayers = computed<ConvocatoState[]>(() =>
-    this.state.tutti().filter((g) => g.rsvpStatus === 'maybe')
+    this.state.tutti().filter((g) => g.rsvpStatus === 'maybe' && !g.selezionato)
   );
 
-  /** Giocatori che hanno risposto "Non partecipo" */
+  /** Giocatori che hanno risposto "Non partecipo" non ancora convocati */
   readonly declinedPlayers = computed<ConvocatoState[]>(() =>
-    this.state.tutti().filter((g) => g.rsvpStatus === 'no')
+    this.state.tutti().filter((g) => g.rsvpStatus === 'no' && !g.selezionato)
   );
 
   /** Conteggio giocatori auto-inseriti tramite link invito */
@@ -143,22 +143,44 @@ export class StepConvocatiComponent {
 
   toggleSelezione(giocatore: ConvocatoState) {
     if (!this.isAdmin) return;
+    const nextSelected = !giocatore.selezionato;
     this.state.tutti.update((lista) =>
       lista.map((g) =>
         g.id === giocatore.id
           ? {
               ...g,
-              selezionato: !g.selezionato,
-              source: !g.selezionato
+              selezionato: nextSelected,
+              source: nextSelected
                 ? g.selfRegistered
                   ? 'self'
                   : 'mister'
                 : undefined,
+              rsvpStatus: nextSelected ? 'yes' : g.rsvpStatus === 'yes' ? null : g.rsvpStatus,
             }
           : g
       )
     );
-    this.state.triggerAutoSave();
+
+    // Allinea anche la mappa RSVP della partita affinché sia rintracciabile ovunque
+    const currentRsvp = { ...(this.state.rsvp() || {}) };
+    const rsvpKey = giocatore.linkedUid || ('player_' + giocatore.id);
+    if (nextSelected) {
+      currentRsvp[rsvpKey] = {
+        uid: giocatore.linkedUid || rsvpKey,
+        playerId: giocatore.id,
+        playerName: giocatore.nome,
+        status: 'confirmed',
+        source: 'mister',
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      if (currentRsvp[rsvpKey]?.source === 'mister') {
+        delete currentRsvp[rsvpKey];
+      }
+    }
+    this.state.rsvp.set(currentRsvp);
+
+    this.state.triggerAutoSave(true);
   }
 
   /**
@@ -425,12 +447,34 @@ export class StepConvocatiComponent {
     }
 
     this.state.tutti.update((lista) =>
-      lista.map((g) => ({
-        ...g,
-        selezionato: top14Ids.has(g.id),
-      }))
+      lista.map((g) => {
+        const isSelected = top14Ids.has(g.id);
+        return {
+          ...g,
+          selezionato: isSelected,
+          source: isSelected ? 'mister' : undefined,
+          rsvpStatus: isSelected ? 'yes' : g.rsvpStatus,
+        };
+      })
     );
-    this.state.triggerAutoSave();
+
+    const currentRsvp = { ...(this.state.rsvp() || {}) };
+    for (const g of tutti) {
+      const isSelected = top14Ids.has(g.id);
+      const rsvpKey = g.linkedUid || ('player_' + g.id);
+      if (isSelected) {
+        currentRsvp[rsvpKey] = {
+          uid: g.linkedUid || rsvpKey,
+          playerId: g.id,
+          playerName: g.nome,
+          status: 'confirmed',
+          source: 'mister',
+          updatedAt: new Date().toISOString(),
+        };
+      }
+    }
+    this.state.rsvp.set(currentRsvp);
+    this.state.triggerAutoSave(true);
 
     const toast = await this.toastCtrl.create({
       message: `⚡ DEV: Selezionati ${top14Ids.size} giocatori (Top Classifica) per 7 vs 7!`,

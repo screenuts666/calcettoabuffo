@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { Firestore, doc, docData, setDoc, updateDoc } from '@angular/fire/firestore';
+import { Timestamp, serverTimestamp } from 'firebase/firestore';
 import { AuthService } from './auth.service';
 import { StatsEngineService } from './stats-engine.service';
 import {
@@ -134,6 +135,16 @@ export class AvailabilityService {
     return null;
   });
 
+  /** Settimana ISO della data odierna */
+  readonly currentIsoWeekKey = computed<string>(() => {
+    return this.getIsoWeekKey(new Date());
+  });
+
+  /** Possibilità di navigare indietro: solo se la settimana attiva è futura rispetto a quella odierna */
+  readonly canGoToPreviousWeek = computed<boolean>(() => {
+    return this.activeWeekKey() > this.currentIsoWeekKey();
+  });
+
   /** Etichetta completa retrocompatibile */
   readonly activeWeekLabel = computed(() => {
     const tag = this.activeWeekTag();
@@ -170,11 +181,12 @@ export class AvailabilityService {
   }
 
   settimanaPrecedente(): void {
+    if (!this.canGoToPreviousWeek()) return;
     this.userHasManuallyChangedWeek = true;
     const cur = this.activeWeekKey();
     const days = this.generateWeekDays(cur);
-    const prevMon = new Date(days[0].date);
-    prevMon.setDate(prevMon.getDate() - 7);
+    const [y, m, d] = days[0].date.split('-').map(Number);
+    const prevMon = new Date(Date.UTC(y, m - 1, d - 7));
     this.activeWeekKey.set(this.getIsoWeekKey(prevMon));
   }
 
@@ -182,8 +194,8 @@ export class AvailabilityService {
     this.userHasManuallyChangedWeek = true;
     const cur = this.activeWeekKey();
     const days = this.generateWeekDays(cur);
-    const nextMon = new Date(days[0].date);
-    nextMon.setDate(nextMon.getDate() + 7);
+    const [y, m, d] = days[0].date.split('-').map(Number);
+    const nextMon = new Date(Date.UTC(y, m - 1, d + 7));
     this.activeWeekKey.set(this.getIsoWeekKey(nextMon));
   }
 
@@ -306,22 +318,33 @@ export class AvailabilityService {
   ): Promise<string | null> {
     if (!this.firestore || !this.auth.isSuperUser()) return null;
 
-    const weekKey = this.activeWeekKey();
+    const weekKey = this.getIsoWeekKey(new Date(day.date)) || this.activeWeekKey();
     const matchId = `match_${day.date.replace(/-/g, '')}_${Date.now().toString().slice(-4)}`;
     const matchDocRef = doc(this.firestore, `partite/${matchId}`);
 
     const allPlayers = this.statsEngine.giocatoriRaw() || [];
-    const convocatiIds: string[] = [];
+    const convocatiFull: any[] = [];
     const rsvpMap: Record<string, any> = {};
 
     for (const v of day.voters || []) {
       const p = allPlayers.find((g) => (v.playerId && g.id === v.playerId) || (g.linkedUid && g.linkedUid === v.uid));
       if (p) {
-        convocatiIds.push(p.id);
+        convocatiFull.push({
+          id: p.id,
+          nome: p.nome,
+          fotoUrl: p.fotoUrl || null,
+          soprannome: p.soprannome || null,
+          soprannomeAi: p.soprannomeAi || null,
+          ruoloPreferito: p.ruoloPreferito || null,
+          piedePreferito: p.piedePreferito || null,
+          selezionato: true,
+          source: 'mister',
+        });
       }
       rsvpMap[v.uid] = {
         uid: v.uid,
         playerId: p?.id || null,
+        playerName: p?.nome || 'Atleta',
         status: 'confirmed',
         updatedAt: new Date().toISOString(),
       };
@@ -332,18 +355,31 @@ export class AvailabilityService {
       rsvpMap[v.uid] = {
         uid: v.uid,
         playerId: p?.id || null,
+        playerName: p?.nome || 'Atleta',
         status: 'maybe',
         updatedAt: new Date().toISOString(),
       };
     }
 
+    const orarioPartita = orario || '21:00';
+    let dataOraTimestamp: any = null;
+    try {
+      const dt = new Date(`${day.date}T${orarioPartita}:00`);
+      if (!isNaN(dt.getTime())) {
+        dataOraTimestamp = Timestamp.fromDate(dt);
+      }
+    } catch {
+      // ignore
+    }
+
     const nuovaPartita: Partial<Partita> = {
       dataPartita: day.date,
-      orario: orario || '21:00',
+      orario: orarioPartita,
+      dataOra: dataOraTimestamp || serverTimestamp(),
       luogo: campoNome || 'Roma 6',
       campoGoogleMapsUrl: campoMapsUrl || null,
       formato: day.formatInfo?.format || 'calcetto',
-      convocati: convocatiIds,
+      convocati: convocatiFull,
       teamA: [],
       teamB: [],
       scoreA: 0,
@@ -351,9 +387,9 @@ export class AvailabilityService {
       matchConcluso: false,
       pagelleInserite: false,
       status: 'pronta',
-      step: 'convocati',
+      step: 'dettagli',
       rsvp: rsvpMap,
-      stagione: '2026-2027',
+      stagione: '2026/2027',
     };
 
     // Salva partita in Firestore
