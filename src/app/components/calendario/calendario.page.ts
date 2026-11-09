@@ -56,6 +56,8 @@ import {
   removeCircleOutline,
   layersOutline,
   checkboxOutline,
+  chevronDownOutline,
+  chevronUpOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 
@@ -222,6 +224,8 @@ export class CalendarioPage implements OnInit {
       removeCircleOutline,
       layersOutline,
       checkboxOutline,
+      chevronDownOutline,
+      chevronUpOutline,
     });
   }
 
@@ -694,6 +698,17 @@ export class CalendarioPage implements OnInit {
     return days[0];
   });
 
+  // Giorno attualmente espanso con il micro-accordion (single-expand: solo uno alla volta)
+  expandedDay = signal<string | null>(null);
+
+  toggleAccordionDay(dateStr: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    const current = this.expandedDay();
+    this.expandedDay.set(current === dateStr ? null : dateStr);
+  }
+
   /** Mostra elenco convocati in un alert dialog compatto e leggibile */
   async apriDettaglioVotanti(day: any, event?: Event): Promise<void> {
     if (event) {
@@ -807,8 +822,9 @@ export class CalendarioPage implements OnInit {
     }
     if (!weather) return;
 
+    const safeEmoji = (weather.iconEmoji && !weather.iconEmoji.includes('🌫')) ? weather.iconEmoji : '🌁';
     const toast = await this.toastCtrl.create({
-      header: `Meteo ${dayLabel ? dayLabel : ''} ${weather.iconEmoji}`,
+      header: `Meteo ${dayLabel ? dayLabel : ''} ${safeEmoji}`,
       message: `${weather.conditionDescription} • Max ${weather.tempMax}°C / Min ${weather.tempMin}°C • 💧 Rischio Pioggia: ${weather.rainProbability}%`,
       duration: 3500,
       position: 'top',

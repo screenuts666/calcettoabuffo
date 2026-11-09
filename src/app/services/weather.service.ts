@@ -9,6 +9,7 @@ export interface DailyWeatherForecast {
   rainProbability: number; // 0-100%
   conditionDescription: string;
   iconEmoji: string;
+  ionIcon?: string;
 }
 
 export interface DayWeather {
@@ -20,7 +21,7 @@ export interface DayWeather {
   conditionIcon: string;
 }
 
-const CACHE_KEY = 'calcetto_weather_rome_cache_v2';
+const CACHE_KEY = 'calcetto_weather_rome_cache_v3';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 ora
 
 @Injectable({
@@ -83,7 +84,7 @@ export class WeatherService {
         const min = Math.round(daily.temperature_2m_min?.[i] ?? 12);
         const rain = Math.round(daily.precipitation_probability_max?.[i] ?? 0);
 
-        const { label, icon } = this.interpretWmoCode(code);
+        const { label, icon, ionIcon } = this.interpretWmoCode(code);
 
         const forecastItem: DailyWeatherForecast = {
           date: dStr,
@@ -92,6 +93,7 @@ export class WeatherService {
           rainProbability: rain,
           conditionDescription: label,
           iconEmoji: icon,
+          ionIcon,
         };
 
         list.push(forecastItem);
@@ -108,17 +110,18 @@ export class WeatherService {
     }
   }
 
-  private interpretWmoCode(code: number): { label: string; icon: string } {
-    if (code === 0) return { label: 'Sereno', icon: '☀️' };
-    if (code === 1 || code === 2) return { label: 'Poco nuvoloso', icon: '🌤️' };
-    if (code === 3) return { label: 'Nuvoloso', icon: '☁️' };
-    if (code >= 45 && code <= 48) return { label: 'Nebbia', icon: '🌫️' };
-    if (code >= 51 && code <= 55) return { label: 'Pioggerella', icon: '🌦️' };
-    if (code >= 61 && code <= 65) return { label: 'Pioggia', icon: '🌧️' };
-    if (code >= 71 && code <= 77) return { label: 'Neve', icon: '❄️' };
-    if (code >= 80 && code <= 82) return { label: 'Rovescio', icon: '🌧️' };
-    if (code >= 95 && code <= 99) return { label: 'Temporale', icon: '⛈️' };
-    return { label: 'Variabile', icon: '⛅' };
+  private interpretWmoCode(code: number): { label: string; icon: string; ionIcon: string } {
+    if (code === 0) return { label: 'Sereno', icon: '☀️', ionIcon: 'sunny-outline' };
+    if (code === 1 || code === 2) return { label: 'Poco nuvoloso', icon: '🌤️', ionIcon: 'partly-sunny-outline' };
+    if (code === 3) return { label: 'Nuvoloso', icon: '☁️', ionIcon: 'cloudy-outline' };
+    if (code >= 45 && code <= 48) return { label: 'Nebbia', icon: '🌁', ionIcon: 'cloud-outline' };
+    if (code >= 51 && code <= 57) return { label: 'Pioggerella', icon: '🌦️', ionIcon: 'rainy-outline' };
+    if (code >= 61 && code <= 67) return { label: 'Pioggia', icon: '🌧️', ionIcon: 'rainy-outline' };
+    if (code >= 71 && code <= 77) return { label: 'Neve', icon: '❄️', ionIcon: 'snow-outline' };
+    if (code >= 80 && code <= 82) return { label: 'Rovescio', icon: '🌧️', ionIcon: 'thunderstorm-outline' };
+    if (code >= 85 && code <= 86) return { label: 'Neve', icon: '❄️', ionIcon: 'snow-outline' };
+    if (code >= 95 && code <= 99) return { label: 'Temporale', icon: '⛈️', ionIcon: 'thunderstorm-outline' };
+    return { label: 'Variabile', icon: '⛅', ionIcon: 'partly-sunny-outline' };
   }
 
   private loadCacheFromStorage(): void {
@@ -127,6 +130,11 @@ export class WeatherService {
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (parsed.timestamp && Date.now() - parsed.timestamp < CACHE_TTL_MS && parsed.data) {
+        for (const k of Object.keys(parsed.data)) {
+          if (parsed.data[k]?.iconEmoji?.includes('🌫')) {
+            parsed.data[k].iconEmoji = '🌁';
+          }
+        }
         this.weatherCache.set(parsed.data);
       }
     } catch {

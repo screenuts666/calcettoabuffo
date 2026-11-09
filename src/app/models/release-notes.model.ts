@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.50",
+    "date": "09/11/2026",
+    "title": "Micro-Accordion Disponibilità, Chip Presenti & Fix Icona Nebbia",
+    "userChanges": [
+      "📂 Micro-Accordion Giorno Espandibile: tocca la parte sinistra/centrale di un giorno qualsiasi della settimana per aprire un pannello compatto con l'elenco completo dei presenti sotto forma di chip con avatar e nome.",
+      "🔒 Single-Expand & Touch Target Separati: aprendo un giorno si chiude automaticamente il precedente mantenendo la schermata compatta; il checkbox di voto a destra e il tasto Crea restano separati e votabili con 1 tap immediato.",
+      "🌁 Fix Icona Nebbia Mancante: risolto il problema del quadrato bianco su Domenica e nei giorni con foschia/nebbia, ora mostrata con icona ad altissimo contrasto e leggibilità.",
+      "📊 Micro-Riepilogo Info & Meteo: stato del quorum (es. 'Mancano 2 al quorum' o 'Quorum raggiunto (+1 riserva)') e meteo esteso inline con percentuale di pioggia."
+    ],
+    "superUserChanges": [
+      "⚽ Azione Crea Contestuale nel Drawer: per Mister e Presidente compare l'opzione rapida 'Crea comunque partita per questo giorno' anche per giorni sotto quorum, qualora si voglia forzare l'apertura del match.",
+      "🧹 Cache Weather v3: invalidazione automatica dei vecchi codici meteo WMO 45-48 e sostituzione dinamica con icona affidabile su tutti i dispositivi."
+    ]
+  },
+  {
     "version": "2.0.49",
     "date": "09/11/2026",
     "title": "Condivisione One-Tap WhatsApp & Testi Ultra-Sintetici (Less is More)",

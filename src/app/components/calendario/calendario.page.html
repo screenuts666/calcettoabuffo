@@ -157,7 +157,7 @@
             </div>
           }
 
-          <!-- 7 RIGHE COMPATTE STILE SONDAGGIO WHATSAPP (ZERO-SCROLL) -->
+          <!-- 7 RIGHE COMPATTE STILE SONDAGGIO WHATSAPP CON MICRO-ACCORDION -->
           <div class="poll-week-stack">
             @for (day of activeWeekDaysList(); track day.dateStr) {
               <div
@@ -168,117 +168,181 @@
                 [class.is-top-voted]="day.isTopVoted && !day.isPast"
                 [class.has-quorum]="day.isQuorumReached && !day.isPast"
                 [class.voted-by-me]="day.isVotedByMe"
+                [class.is-expanded]="expandedDay() === day.dateStr"
                 [style.--poll-pct]="day.pollPercentage + '%'"
-                (click)="!day.isPast && toggleVotoGiorno(day.dateStr)"
               >
                 <!-- BARRA DI PROGRESSO SOTTILE IN BACKGROUND -->
                 <div class="poll-progress-bg"></div>
 
-                <!-- CORPO CENTRALE / INFO GIORNO & VOTI -->
-                <div class="poll-row-main">
-                  <!-- RIGA SUPERIORE: DATA, BADGE, METEO INLINE -->
-                  <div class="prm-top-line">
-                    <div class="prm-date-wrap">
-                      <span class="prm-day-label">{{ day.shortDateLabel }}</span>
-                      @if (day.isToday) {
-                        <span class="micro-badge today">OGGI</span>
-                      } @else if (day.isTomorrow) {
-                        <span class="micro-badge tomorrow">DOMANI</span>
+                <!-- RIGA PRINCIPALE SUPERIORE -->
+                <div class="poll-row-header">
+                  <!-- AREA SINISTRA / CENTRALE: CLICCA PER APRIRE/CHIUDERE ACCORDION -->
+                  <div
+                    class="poll-row-main"
+                    (click)="toggleAccordionDay(day.dateStr)"
+                    title="Tocca per vedere i dettagli e chi ha votato"
+                  >
+                    <!-- RIGA SUPERIORE: DATA, BADGE, METEO INLINE & CHEVRON -->
+                    <div class="prm-top-line">
+                      <div class="prm-date-wrap">
+                        <span class="prm-day-label">{{ day.shortDateLabel }}</span>
+                        @if (day.isToday) {
+                          <span class="micro-badge today">OGGI</span>
+                        } @else if (day.isTomorrow) {
+                          <span class="micro-badge tomorrow">DOMANI</span>
+                        }
+                        @if (day.isTopVoted && !day.isPast) {
+                          <span class="micro-badge top">🔥 TOP</span>
+                        }
+                      </div>
+
+                      <div class="prm-top-right-meta">
+                        <!-- METEO INLINE MINIMAL -->
+                        @if (mostraMeteo() && day.weather) {
+                          <div
+                            class="prm-weather-badge"
+                            [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '° / ' + day.weather.tempMin + '°)'"
+                          >
+                            <span class="prm-w-icon">{{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }}</span>
+                            <span class="prm-w-temps">{{ day.weather.tempMax }}°/{{ day.weather.tempMin }}°</span>
+                          </div>
+                        }
+
+                        <ion-icon
+                          class="prm-expand-chevron"
+                          [name]="expandedDay() === day.dateStr ? 'chevron-up-outline' : 'chevron-down-outline'"
+                        ></ion-icon>
+                      </div>
+                    </div>
+
+                    <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM -->
+                    <div class="prm-bottom-line">
+                      <div class="prm-voters-meta">
+                        @if (day.players.length > 0) {
+                          <div class="avatar-overlap-stack">
+                            @for (p of day.avatarSlice; track p.id) {
+                              <div class="stacked-avatar-item" [title]="p.nome">
+                                <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                              </div>
+                            }
+                            @if (day.extraCount > 0) {
+                              <span class="stacked-extra-pill">+{{ day.extraCount }}</span>
+                            }
+                          </div>
+                        }
+
+                        <span class="prm-count-text">
+                          @if (day.isPast) {
+                            <span class="past-text">Chiuso ({{ day.count }})</span>
+                          } @else if (day.isQuorumReached) {
+                            <strong class="quorum-text">{{ day.count }}/10 🟢 QUORUM</strong>
+                          } @else if (day.count > 0) {
+                            <span><strong>{{ day.count }}/10</strong> presenti</span>
+                          } @else {
+                            <span class="empty-voters">0 presenti</span>
+                          }
+                        </span>
+                      </div>
+
+                      <!-- PARTITA GIÀ FISSATA -->
+                      @if (day.matches.length > 0) {
+                        <button
+                          type="button"
+                          class="btn-row-match-link"
+                          (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
+                          title="Apri scheda partita ufficiale"
+                        >
+                          ⚽ Partita
+                        </button>
                       }
-                      @if (day.isTopVoted && !day.isPast) {
-                        <span class="micro-badge top">🔥 TOP</span>
+                    </div>
+                  </div>
+
+                  <!-- AZIONI DESTRA: CREA PARTITA IN RIGA (SOLO MISTER SU QUORUM) + CHECKBOX VOTO WHATSAPP (STOP PROPAGATION) -->
+                  <div class="poll-row-actions" (click)="$event.stopPropagation()">
+                    @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
+                      <button
+                        type="button"
+                        class="btn-row-create-match"
+                        (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                        title="Crea partita con tutti i convocati (Quorum raggiunto!)"
+                      >
+                        <ion-icon name="football-outline"></ion-icon>
+                        <span>Crea</span>
+                      </button>
+                    }
+
+                    <button
+                      type="button"
+                      class="btn-whatsapp-vote-check"
+                      [class.voted]="day.isVotedByMe"
+                      [disabled]="day.isPast"
+                      (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
+                      [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
+                    >
+                      @if (day.isVotedByMe) {
+                        <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
+                      } @else {
+                        <span class="check-ring-unvoted"></span>
+                      }
+                    </button>
+                  </div>
+                </div>
+
+                <!-- ── MICRO-ACCORDION DRAWER ESPANSO ── -->
+                @if (expandedDay() === day.dateStr) {
+                  <div class="poll-accordion-drawer" (click)="$event.stopPropagation()">
+                    <!-- 1. INFO RAPIDA STATO QUORUM / METEO ESTESO (1 sola riga sottile) -->
+                    <div class="drawer-meta-line">
+                      <span class="drawer-quorum-info">
+                        @if (day.isPast) {
+                          <span class="status-past">Chiuso ({{ day.count }} voti)</span>
+                        } @else if (day.count >= 10) {
+                          <span class="status-quorum">✅ Quorum raggiunto {{ day.count > 10 ? '(+' + (day.count - 10) + ' riserve)' : '(10/10)' }}</span>
+                        } @else {
+                          <span class="status-missing">Mancano <strong>{{ 10 - day.count }}</strong> al quorum (10)</span>
+                        }
+                      </span>
+
+                      @if (mostraMeteo() && day.weather) {
+                        <span class="drawer-weather-info">
+                          {{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }} {{ day.weather.conditionDescription }} • {{ day.weather.tempMax }}°/{{ day.weather.tempMin }}° • 💧 {{ day.weather.rainProbability }}%
+                        </span>
                       }
                     </div>
 
-                    <!-- METEO INLINE MINIMAL (POINTER-EVENTS NONE) -->
-                    @if (mostraMeteo() && day.weather) {
-                      <div
-                        class="prm-weather-badge"
-                        [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '° / ' + day.weather.tempMin + '°)'"
-                      >
-                        <span class="prm-w-icon">{{ day.weather.iconEmoji }}</span>
-                        <span class="prm-w-temps">{{ day.weather.tempMax }}°/{{ day.weather.tempMin }}°</span>
+                    <!-- 2. GRIGLIA/CHIPS DEI PRESENTI (CHI HA VOTATO) -->
+                    <div class="drawer-chips-wrap">
+                      @if (day.players.length > 0) {
+                        @for (p of day.players; track p.id) {
+                          <div class="presence-chip" [title]="p.nome">
+                            <div class="chip-avatar">
+                              <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                            </div>
+                            <span class="chip-name">{{ p.soprannome || p.nome }}</span>
+                          </div>
+                        }
+                      } @else {
+                        <span class="empty-presence-msg">Nessun presente registrato finora</span>
+                      }
+                    </div>
+
+                    <!-- 3. AZIONE CONTESTUALE MISTER (SOTTO QUORUM) -->
+                    @if (auth.isSuperUser() && !day.isPast && !day.isQuorumReached && day.matches.length === 0) {
+                      <div class="drawer-actions-row">
+                        <button
+                          type="button"
+                          class="btn-force-create-match"
+                          (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                          title="Forza apertura partita anche senza quorum"
+                        >
+                          <ion-icon name="football-outline"></ion-icon>
+                          <span>⚽ Crea comunque partita per questo giorno</span>
+                        </button>
                       </div>
                     }
                   </div>
-
-                  <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM -->
-                  <div class="prm-bottom-line">
-                    <div
-                      class="prm-voters-meta"
-                      (click)="day.players.length > 0 && apriDettaglioVotanti(day, $event)"
-                      [class.interactive]="day.players.length > 0"
-                      title="Tocca per vedere l'elenco dei presenti"
-                    >
-                      @if (day.players.length > 0) {
-                        <div class="avatar-overlap-stack">
-                          @for (p of day.avatarSlice; track p.id) {
-                            <div class="stacked-avatar-item" [title]="p.nome">
-                              <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                            </div>
-                          }
-                          @if (day.extraCount > 0) {
-                            <span class="stacked-extra-pill">+{{ day.extraCount }}</span>
-                          }
-                        </div>
-                      }
-
-                      <span class="prm-count-text">
-                        @if (day.isPast) {
-                          <span class="past-text">Chiuso ({{ day.count }})</span>
-                        } @else if (day.isQuorumReached) {
-                          <strong class="quorum-text">{{ day.count }}/10 🟢 QUORUM</strong>
-                        } @else if (day.count > 0) {
-                          <span><strong>{{ day.count }}/10</strong> presenti</span>
-                        } @else {
-                          <span class="empty-voters">0 presenti</span>
-                        }
-                      </span>
-                    </div>
-
-                    <!-- PARTITA GIÀ FISSATA -->
-                    @if (day.matches.length > 0) {
-                      <button
-                        type="button"
-                        class="btn-row-match-link"
-                        (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
-                        title="Apri scheda partita ufficiale"
-                      >
-                        ⚽ Partita
-                      </button>
-                    }
-                  </div>
-                </div>
-
-                <!-- AZIONI DESTRA: CREA PARTITA IN RIGA (SOLO MISTER SU QUORUM) + CHECKBOX VOTO WHATSAPP -->
-                <div class="poll-row-actions">
-                  @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
-                    <button
-                      type="button"
-                      class="btn-row-create-match"
-                      (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                      title="Crea partita con tutti i convocati (Quorum raggiunto!)"
-                    >
-                      <ion-icon name="football-outline"></ion-icon>
-                      <span>Crea</span>
-                    </button>
-                  }
-
-                  <button
-                    type="button"
-                    class="btn-whatsapp-vote-check"
-                    [class.voted]="day.isVotedByMe"
-                    [disabled]="day.isPast"
-                    (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
-                    [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
-                  >
-                    @if (day.isVotedByMe) {
-                      <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
-                    } @else {
-                      <span class="check-ring-unvoted"></span>
-                    }
-                  </button>
-                </div>
+                }
               </div>
             }
           </div>
@@ -351,7 +415,7 @@
                     <span class="day-number">{{ cell.dayNumber }}</span>
                     @if (mostraMeteo() && cell.weather) {
                       <span class="cell-weather-icon" [title]="cell.weather.conditionDescription + ' ' + cell.weather.tempMax + '°'">
-                        {{ cell.weather.iconEmoji }}
+                        {{ (cell.weather.iconEmoji && !cell.weather.iconEmoji.includes('🌫')) ? cell.weather.iconEmoji : '🌁' }}
                       </span>
                     }
                   </div>

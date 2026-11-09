@@ -335,18 +335,13 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       min-height: 52px;
-      padding: 6px 10px;
+      padding: 0;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      align-items: stretch;
       overflow: hidden;
-      cursor: pointer;
       user-select: none;
-      transition: border-color 0.2s ease, background-color 0.2s ease;
-
-      &:active {
-        background-color: rgba(255, 255, 255, 0.04);
-      }
+      transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 
       &.is-today {
         border-color: rgba(56, 189, 248, 0.5);
@@ -364,24 +359,41 @@
         border-color: rgba(16, 185, 129, 0.5);
       }
 
+      &.is-expanded {
+        border-color: rgba(56, 189, 248, 0.5);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+      }
+
       &.is-past {
         opacity: 0.45;
         filter: grayscale(0.25);
         cursor: default;
       }
 
-      /* PROGRESS FILL IN BACKGROUND STILE WHATSAPP */
-      .poll-progress-bg {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: var(--poll-pct, 0%);
-        background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.06) 100%);
-        pointer-events: none;
-        border-radius: 12px;
-        z-index: 1;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      /* RIGA PRINCIPALE SUPERIORE */
+      .poll-row-header {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 52px;
+        padding: 6px 10px;
+        width: 100%;
+        overflow: hidden;
+
+        /* PROGRESS FILL IN BACKGROUND STILE WHATSAPP */
+        .poll-progress-bg {
+          position: absolute;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          width: var(--poll-pct, 0%);
+          background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.06) 100%);
+          pointer-events: none;
+          border-radius: 12px;
+          z-index: 1;
+          transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
       }
 
       &.is-top-voted:not(.is-past) .poll-progress-bg {
@@ -397,6 +409,11 @@
         flex-direction: column;
         justify-content: center;
         gap: 3px;
+        cursor: pointer;
+
+        &:active {
+          opacity: 0.85;
+        }
 
         .prm-top-line {
           display: flex;
@@ -445,28 +462,40 @@
             }
           }
 
-          .prm-weather-badge {
-            pointer-events: none !important;
-            user-select: none;
-            display: inline-flex;
+          .prm-top-right-meta {
+            display: flex;
             align-items: center;
-            gap: 3px;
-            font-size: 0.7rem;
-            color: #94a3b8;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 1px 5px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 6px;
 
-            .prm-w-icon {
-              font-size: 0.8rem;
-              line-height: 1;
+            .prm-weather-badge {
+              pointer-events: none !important;
+              user-select: none;
+              display: inline-flex;
+              align-items: center;
+              gap: 3px;
+              font-size: 0.7rem;
+              color: #94a3b8;
+              background: rgba(255, 255, 255, 0.05);
+              padding: 1px 5px;
+              border-radius: 6px;
+              border: 1px solid rgba(255, 255, 255, 0.06);
+
+              .prm-w-icon {
+                font-size: 0.8rem;
+                line-height: 1;
+              }
+
+              .prm-w-temps {
+                font-size: 0.68rem;
+                font-weight: 600;
+                color: #cbd5e1;
+              }
             }
 
-            .prm-w-temps {
-              font-size: 0.68rem;
-              font-weight: 600;
-              color: #cbd5e1;
+            .prm-expand-chevron {
+              font-size: 0.85rem;
+              color: #94a3b8;
+              transition: transform 0.2s ease;
             }
           }
         }
@@ -482,13 +511,6 @@
             align-items: center;
             gap: 6px;
             min-width: 0;
-
-            &.interactive {
-              cursor: pointer;
-              &:active {
-                opacity: 0.8;
-              }
-            }
 
             .avatar-overlap-stack {
               display: inline-flex;
@@ -641,6 +663,131 @@
 
           &:hover .check-ring-unvoted {
             border-color: rgba(56, 189, 248, 0.65);
+          }
+        }
+      }
+
+      /* ── MICRO-ACCORDION DRAWER ESPANSO ── */
+      .poll-accordion-drawer {
+        position: relative;
+        z-index: 2;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.22);
+        padding: 8px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 120px;
+        animation: drawerSlideFade 180ms ease-out;
+
+        .drawer-meta-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          font-size: 0.72rem;
+          line-height: 1.2;
+
+          .drawer-quorum-info {
+            .status-past {
+              color: #64748b;
+            }
+            .status-quorum {
+              color: #10b981;
+              font-weight: 700;
+            }
+            .status-missing {
+              color: #94a3b8;
+              strong {
+                color: #f1f5f9;
+              }
+            }
+          }
+
+          .drawer-weather-info {
+            color: #cbd5e1;
+            font-size: 0.68rem;
+            font-weight: 500;
+            white-space: nowrap;
+          }
+        }
+
+        .drawer-chips-wrap {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          max-height: 62px;
+          overflow-y: auto;
+
+          .presence-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2px 7px 2px 3px;
+            font-size: 0.72rem;
+            color: #e2e8f0;
+            white-space: nowrap;
+
+            .chip-avatar {
+              width: 18px;
+              height: 18px;
+              border-radius: 50%;
+              overflow: hidden;
+              flex-shrink: 0;
+
+              app-player-avatar {
+                width: 100%;
+                height: 100%;
+                --avatar-size: 100%;
+              }
+            }
+
+            .chip-name {
+              font-weight: 600;
+              max-width: 90px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+          }
+
+          .empty-presence-msg {
+            font-size: 0.72rem;
+            color: #64748b;
+            font-style: italic;
+            padding: 2px 0;
+          }
+        }
+
+        .drawer-actions-row {
+          display: flex;
+          justify-content: flex-end;
+          padding-top: 1px;
+
+          .btn-force-create-match {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: transparent;
+            border: 1px dashed rgba(16, 185, 129, 0.45);
+            color: #34d399;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+
+            &:active {
+              background: rgba(16, 185, 129, 0.15);
+              border-color: rgba(16, 185, 129, 0.75);
+            }
+
+            ion-icon {
+              font-size: 0.78rem;
+            }
           }
         }
       }
@@ -978,5 +1125,16 @@
         }
       }
     }
+  }
+}
+
+@keyframes drawerSlideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
