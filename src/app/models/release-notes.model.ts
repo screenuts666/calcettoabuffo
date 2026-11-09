@@ -11,6 +11,44 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.63",
+    "date": "09/11/2026",
+    "title": "Allineamento Totale Box AI, Accordion Telecronaca, Orari Partita, Giorni Passati e Fix Condivisione",
+    "userChanges": [
+      "🔒 Disponibilità Giorni Passati Chiusi: i giorni trascorsi della settimana corrente rimangono consultabili per vedere chi era presente, ma con badge 'CHIUSO', styling attenuato e lucchetto di voto bloccato.",
+      "🎙️ Telecronaca Ignorante in Accordion Chiuso: il box della telecronaca nel Terzo Tempo è ora un elegante accordion compatto chiuso di default che non ruba spazio alla bacheca commenti, con pulsante di ascolto audio circolare e rigenerazione discreta.",
+      "🔗 Collegamenti Diretti Chimica & Duelli nel Report: le card 'Gemelli del Gol' e 'Bestia Nera' nelle statistiche post-partita sono ora interattive con freccia e portano direttamente alla scheda di Intesa di Coppia (/chimica) o al Confronto 1v1.",
+      "⏱️ Orari Inizio e Fine Match Minimali: nell'header del report partita compaiono gli orari reali 'Inizio: HH:mm' e 'Fine: HH:mm' (mostrato solo a gara conclusa), puliti ed eleganti.",
+      "🗺️ Piantina Tattica Nascosta: disabilitata temporaneamente la piantina tattica dalla sintesi match per una visuale più leggera e focalizzata su MVP, premi e marcatori.",
+      "💬 Condivisione WhatsApp Senza Link Duplicati: risolto il problema della condivisione su dispositivi mobili che inviava due volte lo stesso link della partita nel testo.",
+      "✨ Grafica AI Unificata in Tutta l'App: uniformati tutti i box di intelligenza artificiale (Pronostico pre-match, Matchmaking tattico, Terzo Tempo) con micro-header a riga singola e bottoni circolari minimali."
+    ],
+    "superUserChanges": [
+      "🛠️ Web Share API URL Deduplication: normalizzato l'invio a `navigator.share` per evitare duplicazioni del link se già formattato con emoji nel corpo del messaggio.",
+      "🏷️ Attribuzione ID Coppie per Report Partita: introdotto `playerIds: [p1.id, p2.id]` in `MatchReportChemistryItem` per abilitare la navigazione diretta verso `/chimica/:p1/:p2` e `/1v1/:p1/:p2`.",
+      "⚙️ Parametro Condizionale `showTacticalPitch`: preservata l'intera architettura di `TacticalPitchComponent` dietro flag di controllo disattivato."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "09/11/2026",
+    "title": "Allineamento Totale Box AI, Accordion Telecronaca, Orari Partita, Giorni Passati e Fix Condivisione",
+    "userChanges": [
+      "🔒 Disponibilità Giorni Passati Chiusi: i giorni trascorsi della settimana corrente rimangono consultabili per vedere chi era presente, ma con badge 'CHIUSO', styling attenuato e lucchetto di voto bloccato.",
+      "🎙️ Telecronaca Ignorante in Accordion Chiuso: il box della telecronaca nel Terzo Tempo è ora un elegante accordion compatto chiuso di default che non ruba spazio alla bacheca commenti, con pulsante di ascolto audio circolare e rigenerazione discreta.",
+      "🔗 Collegamenti Diretti Chimica & Duelli nel Report: le card 'Gemelli del Gol' e 'Bestia Nera' nelle statistiche post-partita sono ora interattive con freccia e portano direttamente alla scheda di Intesa di Coppia (/chimica) o al Confronto 1v1.",
+      "⏱️ Orari Inizio e Fine Match Minimali: nell'header del report partita compaiono gli orari reali 'Inizio: HH:mm' e 'Fine: HH:mm' (mostrato solo a gara conclusa), puliti ed eleganti.",
+      "🗺️ Piantina Tattica Nascosta: disabilitata temporaneamente la piantina tattica dalla sintesi match per una visuale più leggera e focalizzata su MVP, premi e marcatori.",
+      "💬 Condivisione WhatsApp Senza Link Duplicati: risolto il problema della condivisione su dispositivi mobili che inviava due volte lo stesso link della partita nel testo.",
+      "✨ Grafica AI Unificata in Tutta l'App: uniformati tutti i box di intelligenza artificiale (Pronostico pre-match, Matchmaking tattico, Terzo Tempo) con micro-header a riga singola e bottoni circolari minimali."
+    ],
+    "superUserChanges": [
+      "🛠️ Web Share API URL Deduplication: normalizzato l'invio a `navigator.share` per evitare duplicazioni del link se già formattato con emoji nel corpo del messaggio.",
+      "🏷️ Attribuzione ID Coppie per Report Partita: introdotto `playerIds: [p1.id, p2.id]` in `MatchReportChemistryItem` per abilitare la navigazione diretta verso `/chimica/:p1/:p2` e `/1v1/:p1/:p2`.",
+      "⚙️ Parametro Condizionale `showTacticalPitch`: preservata l'intera architettura di `TacticalPitchComponent` dietro flag di controllo disattivato."
+    ]
+  },
+  {
     "version": "2.0.62",
     "date": "09/11/2026",
     "title": "Mega Rework 1v1, Dettaglio Chimica, Scheda Profilo Giocatore & Rimozione Soprannomi AI",

@@ -309,8 +309,43 @@
       background: var(--app-surface-subtle);
       border: 1px solid var(--app-border-color);
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: transform 0.15s ease, border-color 0.15s ease;
+
+      .chem-card-content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .chem-chevron {
+        font-size: 1.15rem;
+        color: #64748b;
+        flex-shrink: 0;
+        transition: transform 0.15s ease, color 0.15s ease;
+      }
+
+      &.clickable {
+        cursor: pointer;
+
+        &:active {
+          transform: scale(0.985);
+        }
+
+        &:hover {
+          border-color: rgba(56, 189, 248, 0.4);
+
+          .chem-chevron {
+            color: #38bdf8;
+            transform: translateX(2px);
+          }
+        }
+      }
 
       .chem-badge-pill {
         font-size: 0.65rem;

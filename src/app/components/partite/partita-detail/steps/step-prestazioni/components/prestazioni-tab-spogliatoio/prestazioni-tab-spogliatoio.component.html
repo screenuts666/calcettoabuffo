@@ -1,82 +1,82 @@
-<!-- TELECRONACA IGNORANTE AI (FORMATO PODCAST & ANTEPRIMA COMPATTA) -->
-<div class="report-section-card cronaca-section-card">
-  <div class="section-card-header">
-    <div class="header-left">
-      <ion-icon name="mic-outline" class="section-icon mic-icon"></ion-icon>
-      <span class="section-title">Telecronaca Ignorante AI</span>
-    </div>
-    @if (cronacaAi) {
-      <div class="header-actions">
+<!-- TELECRONACA IGNORANTE AI (ACCORDION CHIUSO DI DEFAULT / PULSANTE DI CREAZIONE) -->
+@if (cronacaAi) {
+  <div class="report-section-card cronaca-section-card" [class.is-expanded]="isCronacaExpanded()">
+    <div class="section-card-header clickable-header" (click)="toggleCronaca()">
+      <div class="header-left">
+        <ion-icon name="sparkles" class="section-icon sparkle-icon"></ion-icon>
+        <span class="section-title">✨ Telecronaca AI</span>
+      </div>
+      <div class="header-actions" (click)="$event.stopPropagation()">
         <app-ai-tts-button
           [text]="cronacaAi"
           [id]="'cronaca-' + (matchId || 'temp')"
-          label="Ascolta"
-          shareTitle="Telecronaca Ignorante Partita"
+          [compact]="true"
+          [showWhatsAppShare]="false"
         ></app-ai-tts-button>
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="ai-icon-btn refresh-btn"
+            (click)="generateCronacaClick.emit(true)"
+            [disabled]="isGeneratingCronaca"
+            title="Rigenera la telecronaca con Gemini"
+          >
+            <ion-icon
+              name="refresh-outline"
+              [class.spin]="isGeneratingCronaca"
+            ></ion-icon>
+          </button>
+        }
         <button
           type="button"
-          class="ai-refresh-btn"
-          (click)="generateCronacaClick.emit(true)"
-          [disabled]="isGeneratingCronaca"
-          title="Rigenera la cronaca con Gemini"
+          class="ai-icon-btn chevron-btn"
+          (click)="toggleCronaca()"
+          [title]="isCronacaExpanded() ? 'Comprimi telecronaca' : 'Leggi telecronaca'"
         >
           <ion-icon
-            name="refresh-outline"
-            [class.spin]="isGeneratingCronaca"
+            [name]="isCronacaExpanded() ? 'chevron-up-outline' : 'chevron-down-outline'"
           ></ion-icon>
-          <span>{{ isGeneratingCronaca ? "Riscrivo..." : "Rigenera" }}</span>
         </button>
+      </div>
+    </div>
+
+    @if (isCronacaExpanded()) {
+      <div class="cronaca-body-wrap">
+        <div class="cronaca-content-box">
+          <div class="cronaca-bubble">
+            <div
+              class="cronaca-text"
+              [innerHTML]="formatAiMarkdown(cronacaAi)"
+            ></div>
+          </div>
+        </div>
       </div>
     }
   </div>
-
-  @if (cronacaAi) {
-    <div class="cronaca-body-wrap" [class.is-collapsed]="!isCronacaExpanded()">
-      <div class="cronaca-content-box">
-        <div class="cronaca-bubble">
-          <div
-            class="cronaca-text"
-            [innerHTML]="formatAiMarkdown(cronacaAi)"
-          ></div>
-        </div>
-      </div>
-      @if (!isCronacaExpanded()) {
-        <div class="cronaca-fade-overlay" (click)="toggleCronaca()"></div>
-      }
-    </div>
-
-    <button
-      type="button"
-      class="cronaca-expand-btn"
-      (click)="toggleCronaca()"
-      [attr.aria-expanded]="isCronacaExpanded()"
-    >
-      <span>{{ isCronacaExpanded() ? "Comprimi telecronaca" : "Leggi tutta la telecronaca" }}</span>
-      <ion-icon [name]="isCronacaExpanded() ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
-    </button>
-  } @else {
-    <div class="ai-empty-cronaca-compact">
-      <div class="empty-info">
-        <span class="empty-icon">📢</span>
-        <span class="empty-text">Nessuna telecronaca presente</span>
+} @else {
+  <div class="report-section-card cronaca-empty-card">
+    <div class="empty-header-row">
+      <div class="empty-left">
+        <ion-icon name="sparkles" class="section-icon sparkle-icon"></ion-icon>
+        <span class="section-title">✨ Telecronaca AI</span>
       </div>
       <button
         type="button"
-        class="ai-generate-cronaca-btn"
+        class="ai-create-action-btn"
         (click)="generateCronacaClick.emit(false)"
         [disabled]="isGeneratingCronaca"
       >
         @if (isGeneratingCronaca) {
           <ion-spinner name="crescent"></ion-spinner>
-          <span>Generazione in corso...</span>
+          <span>Scrittura in corso...</span>
         } @else {
-          <ion-icon name="sparkles"></ion-icon>
-          <span>Genera Telecronaca AI</span>
+          <ion-icon name="mic-outline"></ion-icon>
+          <span>Crea Telecronaca AI</span>
         }
       </button>
     </div>
-  }
-</div>
+  </div>
+}
 
 <!-- BACHECA TERZO TEMPO & COMMENTI COMMUNITY (IN PRIMO PIANO) -->
 @if (matchId) {

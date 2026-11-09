@@ -1322,6 +1322,7 @@ export class StatsEngineService {
               title: `${p1.nome} & ${p2.nome} (${teamName})`,
               description: `Intesa vincente: ${syn.winRateTogether}% di vittorie insieme (${syn.winsTogether}V su ${syn.matchesTogether} partite).`,
               players: [p1.nome, p2.nome],
+              playerIds: [p1.id, p2.id],
             });
           }
         }
@@ -1344,6 +1345,7 @@ export class StatsEngineService {
               title: `${pA.nome} vs ${pB.nome}`,
               description: `${pA.nome} è la bestia nera di ${pB.nome} (${nem.winsAgainst}V negli scontri diretti).`,
               players: [pA.nome, pB.nome],
+              playerIds: [pA.id, pB.id],
             });
           } else if (nem.opponentWinRate >= 65) {
             chemistryNotes.push({
@@ -1352,6 +1354,7 @@ export class StatsEngineService {
               title: `${pB.nome} vs ${pA.nome}`,
               description: `${pB.nome} domina il duello con ${pA.nome} (${nem.lossesAgainst} vittorie subite da ${pA.nome}).`,
               players: [pB.nome, pA.nome],
+              playerIds: [pB.id, pA.id],
             });
           }
         }

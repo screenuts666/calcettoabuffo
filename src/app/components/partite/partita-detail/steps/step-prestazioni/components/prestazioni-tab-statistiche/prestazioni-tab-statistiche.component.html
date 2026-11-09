@@ -132,10 +132,21 @@
 
     <div class="chemistry-notes-list">
       @for (chem of report.chemistryNotes; track (chem.title || "") + "_" + $index) {
-        <div class="chem-note-card" [ngClass]="'chem-' + chem.type">
-          <div class="chem-badge-pill">{{ chem.badge }}</div>
-          <div class="chem-note-title">{{ chem.title }}</div>
-          <div class="chem-note-desc">{{ chem.description }}</div>
+        <div
+          class="chem-note-card"
+          [ngClass]="'chem-' + chem.type"
+          [class.clickable]="chem.playerIds && chem.playerIds.length === 2"
+          (click)="apriDettaglioChimica(chem)"
+          [title]="chem.playerIds && chem.playerIds.length === 2 ? (chem.type === 'synergy' ? 'Tocca per aprire Intesa di Coppia' : 'Tocca per aprire Confronto 1v1') : ''"
+        >
+          <div class="chem-card-content">
+            <div class="chem-badge-pill">{{ chem.badge }}</div>
+            <div class="chem-note-title">{{ chem.title }}</div>
+            <div class="chem-note-desc">{{ chem.description }}</div>
+          </div>
+          @if (chem.playerIds && chem.playerIds.length === 2) {
+            <ion-icon name="chevron-forward-outline" class="chem-chevron"></ion-icon>
+          }
         </div>
       }
     </div>

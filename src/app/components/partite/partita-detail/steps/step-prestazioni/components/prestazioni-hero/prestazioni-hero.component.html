@@ -9,10 +9,22 @@
       <ion-icon name="location-outline"></ion-icon>
       <span>{{ luogo }}</span>
     </div>
-    <div class="meta-item duration-item">
-      <ion-icon name="stopwatch-outline"></ion-icon>
-      <span>{{ timerFormatted }}</span>
-    </div>
+    @if (orarioInizio) {
+      <div class="meta-item time-item">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>Inizio: {{ orarioInizio }}</span>
+        @if (orarioFine) {
+          <span class="meta-sep">·</span>
+          <span>Fine: {{ orarioFine }}</span>
+        }
+      </div>
+    }
+    @if (timerFormatted && !orarioFine) {
+      <div class="meta-item duration-item">
+        <ion-icon name="stopwatch-outline"></ion-icon>
+        <span>{{ timerFormatted }}</span>
+      </div>
+    }
     @if (meteo) {
       <div class="meta-item weather-item" [title]="meteo.label + (meteo.rainProbability ? ' • 💧 ' + meteo.rainProbability + '%' : '')">
         <span class="weather-icon">{{ meteo.emoji }}</span>

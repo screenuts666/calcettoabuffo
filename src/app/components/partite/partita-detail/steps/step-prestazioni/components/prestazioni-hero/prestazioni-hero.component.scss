@@ -35,6 +35,16 @@
         color: var(--app-accent-gold);
         ion-icon { color: var(--app-accent-gold); }
       }
+
+      &.time-item {
+        color: var(--app-accent-gold);
+        ion-icon { color: var(--app-accent-gold); }
+
+        .meta-sep {
+          opacity: 0.45;
+          margin: 0 1px;
+        }
+      }
     }
   }
 

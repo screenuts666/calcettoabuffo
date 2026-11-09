@@ -728,25 +728,34 @@
       flex-wrap: wrap;
     }
 
-    .tactical-refresh-btn {
+    .tactical-icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
       background: var(--app-surface-subtle);
       border: 1px solid var(--app-border-color);
       color: var(--app-text-secondary);
-      border-radius: 6px;
-      padding: 3px 8px;
-      font-size: 0.7rem;
-      font-weight: 700;
       display: inline-flex;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
       cursor: pointer;
+      transition: all 0.2s ease;
 
-      &:active {
-        transform: scale(0.96);
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
       }
 
-      ion-icon.spin {
-        animation: spin 1s linear infinite;
+      &:active {
+        transform: scale(0.92);
+      }
+
+      ion-icon {
+        font-size: 0.95rem;
+
+        &.spin {
+          animation: spin 1s linear infinite;
+        }
       }
     }
   }

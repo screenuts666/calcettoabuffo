@@ -169,7 +169,9 @@
                     <div class="prm-top-line">
                       <div class="prm-date-wrap">
                         <span class="prm-day-label">{{ day.shortDateLabel }}</span>
-                        @if (day.isToday) {
+                        @if (day.isPast) {
+                          <span class="micro-badge past">CHIUSO</span>
+                        } @else if (day.isToday) {
                           <span class="micro-badge today">OGGI</span>
                         } @else if (day.isTomorrow) {
                           <span class="micro-badge tomorrow">DOMANI</span>
@@ -254,20 +256,32 @@
 
                   <!-- AZIONI DESTRA: ESCLUSIVAMENTE IL CHECKBOX VOTO WHATSAPP (LARGHEZZA COSTANTE) -->
                   <div class="poll-row-actions" (click)="$event.stopPropagation()">
-                    <button
-                      type="button"
-                      class="btn-whatsapp-vote-check"
-                      [class.voted]="day.isVotedByMe"
-                      [disabled]="day.isPast"
-                      (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
-                      [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
-                    >
-                      @if (day.isVotedByMe) {
-                        <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
-                      } @else {
-                        <span class="check-ring-unvoted"></span>
-                      }
-                    </button>
+                    @if (day.isPast) {
+                      <div
+                        class="btn-whatsapp-vote-check is-past-lock"
+                        [title]="day.isVotedByMe ? 'Giorno passato (eri presente)' : 'Giorno passato (votazione chiusa)'"
+                      >
+                        @if (day.isVotedByMe) {
+                          <ion-icon name="checkmark-circle" class="check-icon-past-voted"></ion-icon>
+                        } @else {
+                          <ion-icon name="lock-closed-outline" class="lock-icon-past"></ion-icon>
+                        }
+                      </div>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-whatsapp-vote-check"
+                        [class.voted]="day.isVotedByMe"
+                        (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
+                        [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
+                      >
+                        @if (day.isVotedByMe) {
+                          <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
+                        } @else {
+                          <span class="check-ring-unvoted"></span>
+                        }
+                      </button>
+                    }
                   </div>
                 </div>
 

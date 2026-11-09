@@ -106,26 +106,24 @@
         <div class="tactical-analysis-box">
           <div class="tactical-header">
             <div class="tactical-badge">
-              <span class="sparkle-pill">✨ GEMINI AI</span>
-              <span class="tactical-title">🎙️ Disamina Tattica</span>
+              <span class="tactical-title">✨ Analisi Tattica AI</span>
             </div>
             @if (activeTacticalAnalysis()) {
               <div class="tactical-actions">
                 <app-ai-tts-button
                   [text]="activeTacticalAnalysis()!"
                   [id]="'tactical-' + activeProposal().id"
-                  label="Ascolta Tattica"
-                  shareTitle="Disamina Tattica Squadre"
+                  [compact]="true"
+                  [showWhatsAppShare]="false"
                 ></app-ai-tts-button>
                 <button
                   type="button"
-                  class="tactical-refresh-btn"
+                  class="tactical-icon-btn refresh-btn"
                   (click)="generaDisaminaTattica()"
                   [disabled]="isGeneratingTactical()"
-                  title="Rigenera disamina tattica"
+                  title="Rigenera analisi tattica"
                 >
                   <ion-icon name="refresh-outline" [class.spin]="isGeneratingTactical()"></ion-icon>
-                  <span>{{ isGeneratingTactical() ? 'Analisi...' : 'Rigenera AI' }}</span>
                 </button>
               </div>
             }

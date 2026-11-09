@@ -34,10 +34,13 @@ export class ShareService {
     // Verifica se la Web Share API è supportata (es. su mobile)
     if (typeof navigator !== 'undefined' && 'share' in navigator) {
       try {
+        // Se text include già l'URL (es. con emoji 👉 <url>), evitiamo di passare `url`
+        // separatamente a navigator.share per evitare che WhatsApp duplichi il link nel messaggio.
+        const shareUrl = url && !text.includes(url) ? url : undefined;
         await navigator.share({
           title,
           text,
-          url: url || undefined,
+          url: shareUrl,
         });
         return;
       } catch (err: any) {

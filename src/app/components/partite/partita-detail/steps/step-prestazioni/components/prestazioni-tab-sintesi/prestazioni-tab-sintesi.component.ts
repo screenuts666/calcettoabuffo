@@ -47,6 +47,11 @@ export class PrestazioniTabSintesiComponent {
   @Input() isAdmin: boolean = false;
   @Input() gkSummary?: { summaryA: string; summaryB: string } | null = null;
 
+  /**
+   * Mostra/nasconde la piantina tattica della squadra (temporaneamente disabilitata su richiesta UI, codice preservato).
+   */
+  readonly showTacticalPitch = false;
+
   @Output() shareClick = new EventEmitter<void>();
   @Output() editAssistClick = new EventEmitter<number>();
 

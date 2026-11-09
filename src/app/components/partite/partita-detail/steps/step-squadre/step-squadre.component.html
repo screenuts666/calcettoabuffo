@@ -328,8 +328,7 @@
     <div class="ai-pronostico-box">
       <div class="ai-box-header">
         <div class="ai-header-left">
-          <span class="ai-badge">✨ GEMINI AI</span>
-          <span class="ai-name">🔮 Il Pronostico del Mister</span>
+          <span class="ai-name">✨ Pronostico AI</span>
         </div>
 
         @if (state.pronosticoAi()) {
@@ -337,23 +336,20 @@
             <app-ai-tts-button
               [text]="state.pronosticoAi()!"
               [id]="'pronostico-squadre-' + (state.matchId() || 'temp')"
-              label="Ascolta Pronostico"
-              shareTitle="Pronostico del Mister Pre-Match"
+              [compact]="true"
+              [showWhatsAppShare]="false"
             ></app-ai-tts-button>
             <button
               type="button"
-              class="ai-refresh-btn"
+              class="ai-icon-btn refresh-btn"
               (click)="generaPronostico(true)"
               [disabled]="isGeneratingPronostico()"
-              title="Rigenera il pronostico con Gemini"
+              title="Rigenera pronostico con Gemini"
             >
               <ion-icon
                 name="refresh-outline"
                 [class.spin]="isGeneratingPronostico()"
               ></ion-icon>
-              <span>{{
-                isGeneratingPronostico() ? "Ricalcolo..." : "🔄 Rigenera"
-              }}</span>
             </button>
           </div>
         }

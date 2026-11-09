@@ -12,6 +12,7 @@ import {
   calendarOutline,
   locationOutline,
   stopwatchOutline,
+  timeOutline,
   logoWhatsapp,
   createOutline,
 } from 'ionicons/icons';
@@ -28,6 +29,8 @@ export class PrestazioniHeroComponent {
   @Input() dataPartita?: string;
   @Input() luogo?: string;
   @Input() timerFormatted?: string;
+  @Input() orarioInizio?: string | null;
+  @Input() orarioFine?: string | null;
   @Input() scoreA: number = 0;
   @Input() scoreB: number = 0;
   @Input() pagelleInserite: boolean = false;
@@ -46,6 +49,7 @@ export class PrestazioniHeroComponent {
       calendarOutline,
       locationOutline,
       stopwatchOutline,
+      timeOutline,
       logoWhatsapp,
       createOutline,
     });

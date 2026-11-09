@@ -86,6 +86,38 @@ export class StepPrestazioniComponent {
     };
   });
 
+  readonly orarioInizio = computed<string | null>(() => {
+    const started = this.state.startedAt();
+    if (started && typeof started === 'number') {
+      try {
+        return new Date(started).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        // fallback
+      }
+    }
+    const real = this.state.orarioInizioReale();
+    if (real) return real;
+    const ord = this.state.orario();
+    if (ord) return ord;
+    return null;
+  });
+
+  readonly orarioFine = computed<string | null>(() => {
+    const isConclusa = this.state.matchConcluso() || this.state.pagelleInserite() || this.state.status() === 'conclusa';
+    if (!isConclusa) return null;
+    const ended = this.state.endedAt();
+    if (ended && typeof ended === 'number') {
+      try {
+        return new Date(ended).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+      } catch {
+        // fallback
+      }
+    }
+    const real = this.state.orarioFineReale();
+    if (real) return real;
+    return null;
+  });
+
   // Navigazione a Schede (Sintesi, Pagelle, Spogliatoio & AI, Statistiche)
   activeTab = signal<'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'>('sintesi');
 

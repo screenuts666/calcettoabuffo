@@ -263,6 +263,7 @@ export interface MatchReportChemistryItem {
   description: string;
   badge: string;
   players: string[];
+  playerIds?: [string, string];
 }
 
 export interface MatchReportData {
