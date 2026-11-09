@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.44",
+    "date": "09/11/2026",
+    "title": "Contatore Presenze Visibile, Bordo Dorato Giorno Favorito & Simulatore DEV",
+    "userChanges": [
+      "🔢 Contatore Presenze Nitido sui 7 Giorni: visualizza all'istante quanti atleti hanno votato sotto a ciascun giorno della striscia settimanale con badge dedicato 'X/10', senza sovrapposizioni con l'indicatore di voto personale.",
+      "👑 Bordo Dorato per i Giorni Più Votati: il giorno (o i giorni in caso di parità di preferenze) con più voti riceve un evidenziatore ambra dorato glowing e l'icona fiamma, indicando chiaramente la data favorita dal gruppo.",
+      "✔️ Spunta Voto Personale Riorganizzata: la spunta verde del voto personale è ora posizionata nell'angolo superiore, garantendo massima leggibilità e separazione dal conteggio totale."
+    ],
+    "superUserChanges": [
+      "⚡ Simulatore Voti Compagni per Ambiente DEV: integrata barra dedicata sotto la striscia (esclusiva per DEV) con un click per simulare voti distribuiti realistici tra i compagni (pareggio al vertice e quorum) e pulsante di reset rapido.",
+      "🔥 Supporto Parità Multipla Top-Voted: refactoring del calcolo di isTopVoted per evidenziare correttamente tutti i giorni che condividono il massimo punteggio."
+    ]
+  },
+  {
     "version": "2.0.43",
     "date": "09/11/2026",
     "title": "Striscia Settimanale Ultra-Snella & Redesign Pulsante Crea Partita",

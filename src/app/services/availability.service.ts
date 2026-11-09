@@ -9,6 +9,7 @@ import {
   SeasonCalendarConfig,
 } from '../models/weekly-availability.model';
 import { getMatchFormatByPlayerCount, Partita } from '../models/partita.model';
+import { environment } from 'src/environments/environment';
 
 export function getLocalIsoDate(d: Date = new Date()): string {
   const y = d.getFullYear();
@@ -301,6 +302,131 @@ export class AvailabilityService {
         votes: {
           [user.uid]: athleteVote,
         },
+      },
+      { merge: true }
+    );
+  }
+
+  /**
+   * DEV ONLY: Simula voti realistici di altri compagni di squadra sui 7 giorni
+   * con numeri diversi per ogni giorno e con pareggio al vertice per testare i bordi multipli.
+   */
+  async simulaVotiCompagniDev(): Promise<void> {
+    if (environment.production || !this.firestore) return;
+
+    const weekKey = this.activeWeekKey();
+    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
+    const days = this.activeWeekDays();
+    if (days.length < 7) return;
+
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
+    const currentUid = this.auth.firebaseUser()?.uid;
+    const currentPid = this.auth.linkedPlayerId();
+
+    // Escludiamo l'utente correntemente loggato
+    const otherPlayers = allPlayers.filter(
+      (p) =>
+        (!currentPid || p.id !== currentPid) &&
+        (!currentUid || p.linkedUid !== currentUid)
+    );
+
+    // Assicuriamo un pool sufficiente di almeno 13 atleti per testare numeri alti (11+)
+    const playerPool = [...otherPlayers];
+    const mockNames = [
+      'Paolo C.',
+      'Matteo R.',
+      'Andrea M.',
+      'Umberto B.',
+      'Lollino',
+      'Cristiano C.',
+      'Daniele F.',
+      'Ayrton D.',
+      'Lorenzo T.',
+      'Tommaso R.',
+      'Gianluca M.',
+      'Simone V.',
+      'Federico G.',
+    ];
+    let mockIdx = 0;
+    while (playerPool.length < 13 && mockIdx < mockNames.length) {
+      playerPool.push({
+        id: `mock_player_${mockIdx}`,
+        nome: mockNames[mockIdx],
+        linkedUid: `mock_uid_${mockIdx}`,
+        fotoUrl: '',
+      } as any);
+      mockIdx++;
+    }
+
+    // Target numero di voti per giorno (Lun..Dom):
+    // Lun: 8, Mar: 3, Mer: 11 (Quorum!), Gio: 6, Ven: 11 (Quorum! Pareggio al vertice), Sab: 4, Dom: 2
+    const targetCounts = [8, 3, 11, 6, 11, 4, 2];
+
+    const currentDoc = this.activeWeekDoc();
+    const cleanVotes: Record<string, any> = {};
+
+    // Mantieni il voto reale dell'utente attivo se presente
+    if (currentUid && currentDoc?.votes?.[currentUid]) {
+      cleanVotes[currentUid] = currentDoc.votes[currentUid];
+    }
+
+    playerPool.forEach((player, pIdx) => {
+      const mockUid = player.linkedUid || `mock_dev_${player.id}`;
+      const availableDates: string[] = [];
+
+      days.forEach((day, dIdx) => {
+        const target = targetCounts[dIdx] || 0;
+        // Assegniamo i primi 'target' atleti per ciascun giorno (con rotazione per varietà di facce)
+        const offset = (pIdx + dIdx * 2) % playerPool.length;
+        if (offset < target) {
+          availableDates.push(day.date);
+        }
+      });
+
+      cleanVotes[mockUid] = {
+        uid: mockUid,
+        playerId: player.id,
+        displayName: player.nome,
+        photoURL: player.fotoUrl || null,
+        availableDates,
+        maybeDates: [],
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    const payload: Partial<WeeklyAvailabilityDoc> = {
+      weekKey,
+      startDate: days[0].date,
+      endDate: days[6].date,
+      seasonId: '2026-2027',
+      updatedAt: new Date().toISOString(),
+      votes: cleanVotes,
+    };
+
+    await setDoc(docRef, payload, { merge: true });
+  }
+
+  /**
+   * DEV ONLY: Azzera tutti i voti simulati tenendo solo il voto dell'utente reale se loggato.
+   */
+  async resetVotiCompagniDev(): Promise<void> {
+    if (environment.production || !this.firestore) return;
+
+    const weekKey = this.activeWeekKey();
+    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
+    const currentUid = this.auth.firebaseUser()?.uid;
+    const currentDoc = this.activeWeekDoc();
+
+    const cleanVotes: Record<string, any> = {};
+    if (currentUid && currentDoc?.votes?.[currentUid]) {
+      cleanVotes[currentUid] = currentDoc.votes[currentUid];
+    }
+
+    await setDoc(
+      docRef,
+      {
+        votes: cleanVotes,
+        updatedAt: new Date().toISOString(),
       },
       { merge: true }
     );

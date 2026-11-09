@@ -51,7 +51,9 @@ import {
   shieldCheckmark,
   radioButtonOff,
   people,
+  flash,
 } from 'ionicons/icons';
+import { environment } from 'src/environments/environment';
 
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
@@ -171,6 +173,7 @@ export class CalendarioPage implements OnInit {
       shieldCheckmark,
       radioButtonOff,
       people,
+      flash,
     });
   }
 
@@ -444,11 +447,9 @@ export class CalendarioPage implements OnInit {
     const allPlayers = this.statsEngine.giocatoriRaw();
     const todayStr = getLocalIsoDate();
 
-    // Identifica il massimo di preferenze per far risaltare il giorno più scelto tra quelli futuri
+    // Identifica il massimo di preferenze per far risaltare il giorno o i giorni con più voti (anche con pareggio)
     const upcomingSummaries = summaries.filter((s) => s.date >= todayStr);
     const maxVotes = Math.max(0, ...upcomingSummaries.map((s) => s.voterCount));
-    const topDaysCount = upcomingSummaries.filter((s) => s.voterCount === maxVotes).length;
-    const hasFavorite = maxVotes >= 2 && topDaysCount <= 2;
 
     return summaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
@@ -478,7 +479,7 @@ export class CalendarioPage implements OnInit {
 
       const isPast = s.date < todayStr;
       const isToday = s.date === todayStr;
-      const isTopVoted = !isPast && hasFavorite && s.voterCount === maxVotes;
+      const isTopVoted = !isPast && maxVotes > 0 && s.voterCount === maxVotes;
 
       const [y, m, d] = s.date.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
@@ -555,7 +556,9 @@ export class CalendarioPage implements OnInit {
   /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */
   readonly topVotedDayInfo = computed(() => {
     const days = this.activeWeekDaysList().filter((d) => !d.isPast);
-    const topDays = days.filter((d) => d.isTopVoted && d.count >= 2);
+    const maxVotes = Math.max(0, ...days.map((d) => d.count));
+    if (maxVotes === 0) return null;
+    const topDays = days.filter((d) => d.count === maxVotes);
     if (topDays.length === 0) return null;
     if (topDays.length === 1) {
       return {
@@ -566,10 +569,48 @@ export class CalendarioPage implements OnInit {
     }
     return {
       label: topDays.map((d) => d.dayLabel).join(' e '),
-      count: topDays[0].count,
+      count: maxVotes,
       hasQuorum: topDays.some((d) => d.isQuorumReached),
     };
   });
+
+  readonly isDevMode = !environment.production;
+
+  async simulaVotiCompagniDev(): Promise<void> {
+    try {
+      await this.availabilityService.simulaVotiCompagniDev();
+      const t = await this.toastCtrl.create({
+        message: '⚡ Voti compagni simulati con successo (numeri diversi per giorno)!',
+        duration: 2500,
+        color: 'success',
+        position: 'top',
+      });
+      await t.present();
+    } catch (e: any) {
+      const t = await this.toastCtrl.create({
+        message: e.message || 'Errore simulazione voti',
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await t.present();
+    }
+  }
+
+  async resetVotiCompagniDev(): Promise<void> {
+    try {
+      await this.availabilityService.resetVotiCompagniDev();
+      const t = await this.toastCtrl.create({
+        message: '↺ Voti simulati azzerati.',
+        duration: 2000,
+        color: 'medium',
+        position: 'top',
+      });
+      await t.present();
+    } catch {
+      // ignore
+    }
+  }
 
   /** Mostra toast con meteo dettagliato (fondamentale per mobile dove il title non ha hover) */
   async mostraInfoMeteo(

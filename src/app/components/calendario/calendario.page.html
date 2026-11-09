@@ -122,9 +122,18 @@
               [class.has-quorum]="day.isQuorumReached && !day.isPast"
               [class.voted-by-me]="day.isVotedByMe"
               (click)="onStripDayClick(day.dateStr)"
+              title="{{ day.dayLabelFull }}: {{ day.count }} voti. Tocca per selezionare / votare"
             >
               @if (day.isTopVoted && !day.isPast) {
-                <span class="pill-fire-badge">🔥</span>
+                <span class="pill-corner-badge fire" title="Giorno più votato!">🔥</span>
+              }
+
+              @if (day.isVotedByMe) {
+                <span class="pill-corner-badge vote" title="Hai votato presenza">✓</span>
+              }
+
+              @if (partiteByDate().get(day.dateStr)?.length) {
+                <span class="pill-corner-badge match" title="Partita ufficiale fissata">⚽</span>
               }
 
               <span class="pill-day-name">{{ day.dayName }}</span>
@@ -143,30 +152,42 @@
               @if (day.isPast) {
                 <span class="pill-past-tag">Passato</span>
               } @else {
-                <div class="pill-count-badge" [class.quorum]="day.isQuorumReached">
-                  <span class="pill-count-num">{{ day.count }}</span>
-                  <span class="pill-count-target">/10</span>
-                </div>
-              }
-
-              @if (!day.isPast && auth.isLoggedIn()) {
-                <span
-                  class="pill-my-vote"
-                  [class.yes]="day.isVotedByMe"
-                  [class.empty]="!day.isVotedByMe"
-                  [title]="day.isVotedByMe ? 'Presente (tocca per togliere)' : 'Tocca per votare presenza'"
+                <div
+                  class="pill-votes-badge"
+                  [class.quorum]="day.isQuorumReached"
+                  [class.top-voted]="day.isTopVoted"
+                  [class.has-votes]="day.count > 0"
                 >
-                  {{ day.isVotedByMe ? '✓' : '○' }}
-                </span>
-              } @else if (day.isVotedByMe) {
-                <span class="pill-my-vote yes" title="Hai confermato la presenza">✓</span>
-              }
-              @if (partiteByDate().get(day.dateStr)?.length) {
-                <span class="pill-has-match-badge" title="Partita ufficiale fissata">⚽</span>
+                  <ion-icon [name]="day.isQuorumReached ? 'football-outline' : 'people'"></ion-icon>
+                  <span class="pvb-num">{{ day.count }}</span>
+                </div>
               }
             </button>
           }
         </div>
+
+        @if (isDevMode) {
+          <div class="weekly-dev-simulation-bar">
+            <button
+              type="button"
+              class="btn-dev-simulate"
+              (click)="simulaVotiCompagniDev()"
+              title="Disponibile solo in ambiente DEV: simula voti di compagni diversi con numeri diversi per ogni giorno"
+            >
+              <ion-icon name="flash"></ion-icon>
+              <span>⚡ DEV: Simula Voti Compagni (Numeri Diversi)</span>
+            </button>
+            <button
+              type="button"
+              class="btn-dev-reset"
+              (click)="resetVotiCompagniDev()"
+              title="Azzera voti simulati"
+            >
+              <ion-icon name="refresh-outline"></ion-icon>
+              <span>Reset DEV</span>
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
