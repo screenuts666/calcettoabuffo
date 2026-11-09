@@ -83,6 +83,24 @@
         white-space: nowrap;
         letter-spacing: -0.01em;
       }
+
+      .micro-badge-week {
+        font-size: 0.6rem;
+        font-weight: 800;
+        padding: 2px 5px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        background: rgba(147, 51, 234, 0.2);
+        color: #c084fc;
+        border: 1px solid rgba(147, 51, 234, 0.35);
+
+        &.this-week {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border-color: rgba(16, 185, 129, 0.35);
+        }
+      }
     }
   }
 

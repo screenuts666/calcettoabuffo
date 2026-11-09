@@ -507,6 +507,11 @@
                 <div class="match-date">
                   <ion-icon name="calendar-outline"></ion-icon>
                   <span>{{ m.dataPartita | date:'dd/MM/yyyy' }}</span>
+                  @if (isMatchToday(m)) {
+                    <span class="micro-badge today">OGGI</span>
+                  } @else if (isMatchTomorrow(m)) {
+                    <span class="micro-badge tomorrow">DOMANI</span>
+                  }
                   @if (getOrariGaraDisplay(m); as orari) {
                     @if (orari.fullRangeStr) {
                       <span class="match-time-dot">·</span>

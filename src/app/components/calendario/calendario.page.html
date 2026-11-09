@@ -33,6 +33,9 @@
       <div class="dyn-nav-label-wrapper">
         <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'"></ion-icon>
         <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
+        @if (viewMode() === 'week' && availabilityService.activeWeekTag(); as tag) {
+          <span class="micro-badge-week" [class.this-week]="tag === 'Questa Settimana'">{{ tag === 'Questa Settimana' ? 'Questa' : 'Prossima' }}</span>
+        }
       </div>
 
       <button

@@ -259,12 +259,49 @@ export class PartitePage {
   }
 
   getFormatoLabel(m: any): string {
-    if (m?.formato) return m.formato;
-    const count =
-      (Array.isArray(m?.convocati) ? m.convocati.length : 0) ||
-      (Array.isArray(m?.teamA) ? m.teamA.length : 0) +
-        (Array.isArray(m?.teamB) ? m.teamB.length : 0);
+    const raw = (m?.formato || '').trim().toLowerCase();
+    if (raw === 'calcetto' || raw === 'calcio a 5' || raw === 'calcio_a_5') {
+      return 'Calcio a 5';
+    }
+    if (raw === 'calcio a 6' || raw === 'calcio_a_6') {
+      return 'Calcio a 6';
+    }
+    if (raw === 'calcio a 7' || raw === 'calcio_a_7') {
+      return 'Calcio a 7';
+    }
+    if (raw === 'calcio a 8' || raw === 'calcio_a_8') {
+      return 'Calcio a 8';
+    }
+    if (raw === 'calcio a 11' || raw === 'calcio_a_11') {
+      return 'Calcio a 11';
+    }
+
+    const count = this.calcolaNumeroGiocatori(m);
     return getMatchFormatByPlayerCount(count).label;
+  }
+
+  isMatchToday(m: any): boolean {
+    if (!m?.dataPartita) return false;
+    let d = (m.dataPartita || '').split('T')[0].trim();
+    if (d.includes('/')) {
+      const parts = d.split('/');
+      if (parts.length === 3) d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    const today = new Date().toISOString().split('T')[0];
+    return d === today;
+  }
+
+  isMatchTomorrow(m: any): boolean {
+    if (!m?.dataPartita) return false;
+    let d = (m.dataPartita || '').split('T')[0].trim();
+    if (d.includes('/')) {
+      const parts = d.split('/');
+      if (parts.length === 3) d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    return d === tomorrowStr;
   }
 
   getLuogoDisplay(m: any): string {
@@ -1041,10 +1078,14 @@ export class PartitePage {
   }
 
   calcolaNumeroGiocatori(m: any): number {
-    if (Array.isArray(m.convocati) && m.convocati.length > 0) {
-      return m.convocati.length;
+    const fromTeams = (m?.teamA?.length || 0) + (m?.teamB?.length || 0);
+    if (fromTeams > 0) {
+      return fromTeams;
     }
-    return (m.teamA?.length || 0) + (m.teamB?.length || 0);
+    if (Array.isArray(m?.convocati) && m.convocati.length > 0) {
+      return m.convocati.filter((c: any) => c?.selezionato !== false).length;
+    }
+    return 0;
   }
 
   getMarcatoriSquadra(

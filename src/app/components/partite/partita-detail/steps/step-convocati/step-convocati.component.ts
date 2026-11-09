@@ -183,6 +183,37 @@ export class StepConvocatiComponent {
    * Risposta Auto-RSVP del giocatore loggato ('yes' = Partecipo, 'maybe' = Forse, 'no' = Non partecipo).
    * Modificabile in qualsiasi momento finché la partita è nello step 'convocati'.
    */
+  async toggleMioRsvp(target: 'yes' | 'maybe'): Promise<void> {
+    const current = this.myRsvpStatus();
+    if (current === target) {
+      await this.impostaMioRsvp('no');
+    } else {
+      await this.impostaMioRsvp(target);
+    }
+  }
+
+  getMaybeNamesShort(): string {
+    const list = this.maybePlayers();
+    if (list.length === 0) return '';
+    const names = list.map((p) => p.soprannome || p.nome);
+    if (names.length <= 3) return names.join(', ');
+    return `${names.slice(0, 3).join(', ')} e altri ${names.length - 3}`;
+  }
+
+  sollecitaForseWhatsApp(): void {
+    const forse = this.maybePlayers();
+    if (forse.length === 0) return;
+    const names = forse.map((p) => p.soprannome || p.nome).join(', ');
+    const dataFmt = this.state.dataPartita() || 'la prossima gara';
+    const orario = this.state.orario() ? ` alle ${this.state.orario()}` : '';
+    const mId = this.state.matchId();
+    const link = mId ? `\n\nLink convocazioni: ${getMatchInviteDeepLink(mId)}` : '';
+
+    const text = `⚽ *Calcetto Abbuffo - Sollecito Convocazioni*\nCiao ragazzi! Per la partita del ${dataFmt}${orario} risultate ancora in forse:\n👉 ${names}\n\nConfermate se ci siete per chiudere le squadre! 💪${link}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+
   async impostaMioRsvp(status: 'yes' | 'maybe' | 'no') {
     if (this.isSavingRsvp() || this.state.step() !== 'convocati') return;
 
@@ -206,10 +237,10 @@ export class StepConvocatiComponent {
     try {
       await this.state.submitSelfRsvp(status);
       const messages: Record<'yes' | 'maybe' | 'no', string> = {
-        yes: '✅ Presenza confermata! Sei stato aggiunto automaticamente ai convocati.',
+        yes: '✅ Presenza confermata! Sei stato aggiunto ai convocati.',
         maybe:
-          '🤔 Risposta impostata su "Forse" (In dubbio). Puoi aggiornarla quando vuoi!',
-        no: '❌ Assenza registrata ("Non partecipo").',
+          '🤔 Risposta impostata su "Forse". Puoi confermare quando vuoi!',
+        no: '↺ Presenza rimossa dai convocati.',
       };
       const colors: Record<
         'yes' | 'maybe' | 'no',

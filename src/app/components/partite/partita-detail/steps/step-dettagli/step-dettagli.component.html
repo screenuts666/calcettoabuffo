@@ -201,6 +201,20 @@
             </div>
           }
         </div>
+
+        <!-- NOTE E DETTAGLI BORDOCAMPO OPZIONALI -->
+        <ion-item lines="none" class="elegant-input-item notes-compact-item ion-margin-top">
+          <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
+          <ion-textarea
+            label="Note Bordocampo (Opzionale)"
+            labelPlacement="stacked"
+            autoGrow="true"
+            rows="2"
+            placeholder="Es. Campo bagnato, maglie da portare, clima derby..."
+            [value]="state.commentoPartita()"
+            (ionInput)="aggiornaNote($event.detail.value || '')"
+          ></ion-textarea>
+        </ion-item>
       }
     </div>
   </div>
@@ -285,35 +299,7 @@
     </div>
   </div>
 
-  <!-- 4. SEZIONE RETROSCENA SPOGLIATOIO AI (OPZIONALE) -->
-  <div class="details-section-card ai-notes-section ion-margin-bottom">
-    <div class="section-card-header">
-      <span class="section-icon">🎙️</span>
-      <div class="section-header-text">
-        <div class="title-with-badge">
-          <h3 class="section-title">Retroscena Spogliatoio AI</h3>
-          <span class="optional-badge">Opzionale</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="section-card-body">
-      <ion-item lines="none" class="elegant-input-item">
-        <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
-        <ion-textarea
-          label="Note Pre-partita"
-          labelPlacement="stacked"
-          autoGrow="true"
-          rows="2"
-          placeholder="Es. Campo bagnato, lisci clamorosi, clima da derby..."
-          [value]="state.commentoPartita()"
-          (ionInput)="aggiornaNote($event.detail.value || '')"
-        ></ion-textarea>
-      </ion-item>
-    </div>
-  </div>
-
-  <!-- 5. PULSANTE / BARRA DI AVANZAMENTO CONTINUA -->
+  <!-- 4. PULSANTE / BARRA DI AVANZAMENTO CONTINUA -->
   <div class="bottom-action-container">
     @if (!state.isDettagliValidi()) {
       <div class="validation-hint">

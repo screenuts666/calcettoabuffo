@@ -236,26 +236,33 @@ export class AvailabilityService {
     this.activeWeekKey.set(this.calculateDefaultWeekKey());
   }
 
+  vaiASettimanaCorrente(): void {
+    this.userHasManuallyChangedWeek = false;
+    this.activeWeekKey.set(this.getIsoWeekKey(new Date()));
+  }
+
   /**
    * Calcola la settimana di default:
-   * Se c'è già una partita disputata questa settimana, oppure se oggi è nel weekend (Ven/Sab/Dom),
-   * passa automaticamente alla settimana successiva per iniziare a raccogliere presenze.
+   * Solo se siamo nel weekend (Sabato o Domenica) o se la gara settimanale è già stata giocata e conclusa,
+   * passa automaticamente alla settimana successiva per raccogliere i nuovi voti.
+   * Durante la settimana in corso (Lun-Ven prima della gara) rimane sempre sulla settimana corrente di OGGI.
    */
   calculateDefaultWeekKey(): string {
     const now = new Date();
     const currentWeekKey = this.getIsoWeekKey(now);
 
     const partite = this.statsEngine.partiteRaw?.() || [];
-    const hasMatchThisWeek = partite.some((m) => {
-      if (!m.dataPartita) return false;
+    const hasConcludedMatchThisWeek = partite.some((m) => {
+      if (!m.dataPartita || !m.matchConcluso) return false;
       const mDate = new Date(m.dataPartita);
       return !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey;
     });
 
     const dayOfWeek = now.getDay();
-    const isWeekendOrLateWeek = dayOfWeek === 0 || dayOfWeek >= 5; // Ven, Sab, Dom
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sabato o Domenica
+    const isLateWeekDone = dayOfWeek >= 5 && hasConcludedMatchThisWeek;
 
-    if (hasMatchThisWeek || isWeekendOrLateWeek) {
+    if (isWeekend || isLateWeekDone) {
       const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       return this.getIsoWeekKey(nextWeekDate);
     }

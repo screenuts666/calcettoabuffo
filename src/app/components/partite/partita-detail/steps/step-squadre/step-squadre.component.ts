@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonFab,
@@ -54,7 +54,7 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
     IonSpinner,
   ],
 })
-export class StepSquadreComponent {
+export class StepSquadreComponent implements OnInit {
   public state = inject(MatchStateService);
   private matchmakingService = inject(MatchmakingService);
   private statsEngine = inject(StatsEngineService);
@@ -62,6 +62,35 @@ export class StepSquadreComponent {
   private toastCtrl = inject(ToastController);
   private actionSheetCtrl = inject(ActionSheetController);
   private geminiService = inject(GeminiService);
+
+  ngOnInit() {
+    this.autoBalanceIfFirstTime();
+  }
+
+  private autoBalanceIfFirstTime() {
+    if (this.state.matchConcluso()) return;
+    const teamA = this.state.teamA();
+    const teamB = this.state.teamB();
+    const convocati = this.state.convocati();
+    const pool =
+      convocati.length >= 4
+        ? convocati
+        : teamA.length + teamB.length >= 4
+        ? [...teamA, ...teamB]
+        : [];
+
+    if (pool.length >= 4 && (teamA.length === 0 || teamB.length === 0)) {
+      const generated = this.matchmakingService.generateProposals(
+        pool,
+        this.state.stagione() || CURRENT_SEASON,
+      );
+      if (generated && generated.length > 0) {
+        this.state.teamA.set([...generated[0].teamA]);
+        this.state.teamB.set([...generated[0].teamB]);
+        this.state.triggerAutoSave(true);
+      }
+    }
+  }
 
   readonly formatAiMarkdown = formatAiMarkdown;
   isGeneratingPronostico = signal<boolean>(false);

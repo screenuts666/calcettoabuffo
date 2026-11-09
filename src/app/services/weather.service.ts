@@ -59,7 +59,13 @@ export class WeatherService {
       };
     }
 
-    const cleanDate = (dateStr || '').split('T')[0];
+    let cleanDate = (dateStr || '').split('T')[0].trim();
+    if (cleanDate.includes('/')) {
+      const parts = cleanDate.split('/');
+      if (parts.length === 3) {
+        cleanDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
     if (cleanDate && this.weatherCache()[cleanDate]) {
       return this.weatherCache()[cleanDate];
     }

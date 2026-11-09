@@ -342,7 +342,7 @@ export class CalendarioPage implements OnInit {
     const today = new Date();
     this.selectedMonth.set(new Date(today.getFullYear(), today.getMonth(), 1));
     this.selectedDateStr.set(getLocalIsoDate(today));
-    this.availabilityService.vaiASettimanaDefault();
+    this.availabilityService.vaiASettimanaCorrente();
   }
 
   readonly canNavigaPrecedente = computed(() => {
@@ -571,7 +571,9 @@ export class CalendarioPage implements OnInit {
         (currentUid && b.linkedUid === currentUid);
       if (isAMe && !isBMe) return -1;
       if (!isAMe && isBMe) return 1;
-      return (a.nome || '').localeCompare(b.nome || '');
+      const nameComp = (a.nome || '').localeCompare(b.nome || '');
+      if (nameComp !== 0) return nameComp;
+      return (a.id || '').localeCompare(b.id || '');
     });
   }
 

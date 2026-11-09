@@ -12,17 +12,16 @@
           <span class="irp-pill">📲 AUTO-CONVOCAZIONE & LINK INVITO</span>
           <div class="irp-counters">
             <span class="irp-cnt yes" title="Presenti / Confermati">
-              ✅ {{ state.totaleConvocati() }}
+              ✅ {{ state.totaleConvocati() }} Convocati
               @if (selfRegisteredCount() > 0) {
                 <small>({{ selfRegisteredCount() }} auto)</small>
               }
             </span>
-            <span class="irp-cnt maybe" title="In forse">
-              🤔 {{ maybePlayers().length }}
-            </span>
-            <span class="irp-cnt no" title="Non partecipano">
-              ❌ {{ declinedPlayers().length }}
-            </span>
+            @if (maybePlayers().length > 0) {
+              <span class="irp-cnt maybe" title="In forse">
+                🤔 {{ maybePlayers().length }} In forse
+              </span>
+            }
           </div>
         </div>
 
@@ -53,33 +52,51 @@
         </div>
       </div>
 
-      <!-- SCELTA RSVP MODIFICABILE -->
+      <!-- SE CI SONO GIOCATORI IN FORSE: STRISCIA SOLLECITO PER IL MISTER -->
+      @if (maybePlayers().length > 0) {
+        <div class="maybe-solicit-strip">
+          <div class="mss-left">
+            <span class="mss-icon">🤔</span>
+            <span class="mss-text">
+              <strong>{{ maybePlayers().length }} in forse:</strong> {{ getMaybeNamesShort() }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="btn-solicita-wa"
+            (click)="sollecitaForseWhatsApp()"
+            title="Manda sollecito rapido ai giocatori in forse su WhatsApp"
+          >
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <span>Sollecita</span>
+          </button>
+        </div>
+      }
+
+      <!-- SCELTA RSVP MODIFICABILE (1-TAP PER CONFERMARE O TOGLIERE LA PRESENZA) -->
       @if (auth.hasLinkedPlayer()) {
         <div class="irp-rsvp-box">
           <div class="irp-rsvp-prompt">
-            <span>La tua risposta:</span>
-            @if (myRsvpStatus(); as mySt) {
-              <span class="my-current-status" [attr.data-status]="mySt">
-                @if (mySt === 'yes') {
-                  ✓ Confermato
-                } @else if (mySt === 'maybe') {
-                  🤔 In forse
-                } @else {
-                  ❌ Assente
-                }
-              </span>
+            <span>La tua presenza:</span>
+            @if (myRsvpStatus() === 'yes') {
+              <span class="my-current-status" data-status="yes">✓ Confermato</span>
+            } @else if (myRsvpStatus() === 'maybe') {
+              <span class="my-current-status" data-status="maybe">🤔 In forse</span>
+            } @else {
+              <span class="my-current-status not-confirmed">Non confermato</span>
             }
           </div>
 
-          <div class="rsvp-3-buttons">
+          <div class="rsvp-2-buttons">
             <button
               type="button"
               class="rsvp-choice-btn yes"
               [class.active]="myRsvpStatus() === 'yes'"
               [disabled]="isSavingRsvp()"
-              (click)="impostaMioRsvp('yes')"
+              (click)="toggleMioRsvp('yes')"
+              [title]="myRsvpStatus() === 'yes' ? 'Tocca per togliere la presenza' : 'Conferma presenza'"
             >
-              <span>✅ Partecipo</span>
+              <span>{{ myRsvpStatus() === 'yes' ? '✓ Partecipo (Tocca per togliere)' : '✅ Partecipo' }}</span>
             </button>
 
             <button
@@ -87,19 +104,10 @@
               class="rsvp-choice-btn maybe"
               [class.active]="myRsvpStatus() === 'maybe'"
               [disabled]="isSavingRsvp()"
-              (click)="impostaMioRsvp('maybe')"
+              (click)="toggleMioRsvp('maybe')"
+              [title]="myRsvpStatus() === 'maybe' ? 'Tocca per togliere il dubbio' : 'Segnala che sei in dubbio'"
             >
-              <span>🤔 Forse</span>
-            </button>
-
-            <button
-              type="button"
-              class="rsvp-choice-btn no"
-              [class.active]="myRsvpStatus() === 'no'"
-              [disabled]="isSavingRsvp()"
-              (click)="impostaMioRsvp('no')"
-            >
-              <span>❌ Assente</span>
+              <span>{{ myRsvpStatus() === 'maybe' ? '🤔 In Forse (Tocca per togliere)' : '🤔 Forse' }}</span>
             </button>
           </div>
         </div>

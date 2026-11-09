@@ -690,6 +690,28 @@
     color: var(--ion-color-success);
   }
 
+  .micro-badge {
+    font-size: 0.58rem;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin-left: 5px;
+
+    &.today {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    &.tomorrow {
+      background: rgba(147, 51, 234, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(147, 51, 234, 0.4);
+    }
+  }
+
   .match-time-dot {
     color: var(--app-text-muted);
     opacity: 0.6;
