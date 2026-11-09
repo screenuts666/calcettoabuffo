@@ -195,7 +195,7 @@ export class StepConvocatiComponent {
   getMaybeNamesShort(): string {
     const list = this.maybePlayers();
     if (list.length === 0) return '';
-    const names = list.map((p) => p.soprannome || p.nome);
+    const names = list.map((p) => p.nome);
     if (names.length <= 3) return names.join(', ');
     return `${names.slice(0, 3).join(', ')} e altri ${names.length - 3}`;
   }
@@ -203,7 +203,7 @@ export class StepConvocatiComponent {
   sollecitaForseWhatsApp(): void {
     const forse = this.maybePlayers();
     if (forse.length === 0) return;
-    const names = forse.map((p) => p.soprannome || p.nome).join(', ');
+    const names = forse.map((p) => p.nome).join(', ');
     const dataFmt = this.state.dataPartita() || 'la prossima gara';
     const orario = this.state.orario() ? ` alle ${this.state.orario()}` : '';
     const mId = this.state.matchId();
