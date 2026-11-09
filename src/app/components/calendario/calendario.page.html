@@ -215,7 +215,7 @@
                       </div>
                     </div>
 
-                    <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM -->
+                    <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM + AZIONE CONTESTUALE -->
                     <div class="prm-bottom-line">
                       <div class="prm-voters-meta">
                         @if (day.players.length > 0) {
@@ -244,34 +244,34 @@
                         </span>
                       </div>
 
-                      <!-- PARTITA GIÀ FISSATA -->
-                      @if (day.matches.length > 0) {
-                        <button
-                          type="button"
-                          class="btn-row-match-link"
-                          (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
-                          title="Apri scheda partita ufficiale"
-                        >
-                          ⚽ Partita
-                        </button>
-                      }
+                      <!-- AZIONI CONTESTUALI RIGA INFERIORE (PARTITA GIÀ FISSATA O CREA MISTER SU QUORUM) -->
+                      <div class="prm-bottom-actions" (click)="$event.stopPropagation()">
+                        @if (day.matches.length > 0) {
+                          <button
+                            type="button"
+                            class="btn-row-match-link"
+                            (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
+                            title="Apri scheda partita ufficiale"
+                          >
+                            ⚽ Partita
+                          </button>
+                        } @else if (auth.isSuperUser() && day.isQuorumReached) {
+                          <button
+                            type="button"
+                            class="btn-row-create-match"
+                            (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                            title="Crea partita con tutti i convocati (Quorum raggiunto!)"
+                          >
+                            <ion-icon name="football-outline"></ion-icon>
+                            <span>Crea</span>
+                          </button>
+                        }
+                      </div>
                     </div>
                   </div>
 
-                  <!-- AZIONI DESTRA: CREA PARTITA IN RIGA (SOLO MISTER SU QUORUM) + CHECKBOX VOTO WHATSAPP (STOP PROPAGATION) -->
+                  <!-- AZIONI DESTRA: ESCLUSIVAMENTE IL CHECKBOX VOTO WHATSAPP (LARGHEZZA COSTANTE) -->
                   <div class="poll-row-actions" (click)="$event.stopPropagation()">
-                    @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
-                      <button
-                        type="button"
-                        class="btn-row-create-match"
-                        (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                        title="Crea partita con tutti i convocati (Quorum raggiunto!)"
-                      >
-                        <ion-icon name="football-outline"></ion-icon>
-                        <span>Crea</span>
-                      </button>
-                    }
-
                     <button
                       type="button"
                       class="btn-whatsapp-vote-check"

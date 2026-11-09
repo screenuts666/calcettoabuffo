@@ -1,5 +1,29 @@
 [
   {
+    "version": "2.0.51",
+    "date": "09/11/2026",
+    "title": "Allineamento Fisso Icone Meteo & Spostamento Pulsante Crea su Riga Inferiore",
+    "userChanges": [
+      "📏 Allineamento Perfetto Meteo: le icone e temperature meteo ora mantengono una colonna verticale fissa e rigorosa su tutti i 7 giorni, eliminando qualsiasi spostamento o disallineamento visivo.",
+      "🔘 Colonna Voto WhatsApp Indipendente: l'area destra con il checkbox di voto ha ora larghezza fissa (32px) costante per ogni giorno, garantendo una griglia pulita e simmetrica."
+    ],
+    "superUserChanges": [
+      "⚽ Tasto 'Crea' Riposizionato su Riga Inferiore: il pulsante 'Crea' per Mister/Presidente è stato spostato nella riga inferiore accanto al contatore quorum (stessa posizione di 'Partita'), evitando di comprimere la riga superiore o spostare il meteo."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "09/11/2026",
+    "title": "Allineamento Fisso Icone Meteo & Spostamento Pulsante Crea su Riga Inferiore",
+    "userChanges": [
+      "📏 Allineamento Perfetto Meteo: le icone e temperature meteo ora mantengono una colonna verticale fissa e rigorosa su tutti i 7 giorni, eliminando qualsiasi spostamento o disallineamento visivo.",
+      "🔘 Colonna Voto WhatsApp Indipendente: l'area destra con il checkbox di voto ha ora larghezza fissa (32px) costante per ogni giorno, garantendo una griglia pulita e simmetrica."
+    ],
+    "superUserChanges": [
+      "⚽ Tasto 'Crea' Riposizionato su Riga Inferiore: il pulsante 'Crea' per Mister/Presidente è stato spostato nella riga inferiore accanto al contatore quorum (stessa posizione di 'Partita'), evitando di comprimere la riga superiore o spostare il meteo."
+    ]
+  },
+  {
     "version": "2.0.50",
     "date": "09/11/2026",
     "title": "Micro-Accordion Disponibilità, Chip Presenti & Fix Icona Nebbia",

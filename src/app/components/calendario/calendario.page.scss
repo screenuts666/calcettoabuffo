@@ -472,13 +472,15 @@
               user-select: none;
               display: inline-flex;
               align-items: center;
+              justify-content: center;
               gap: 3px;
               font-size: 0.7rem;
               color: #94a3b8;
               background: rgba(255, 255, 255, 0.05);
-              padding: 1px 5px;
+              padding: 1px 6px;
               border-radius: 6px;
               border: 1px solid rgba(255, 255, 255, 0.06);
+              min-width: 66px;
 
               .prm-w-icon {
                 font-size: 0.8rem;
@@ -574,19 +576,50 @@
             }
           }
 
-          .btn-row-match-link {
-            background: rgba(16, 185, 129, 0.18);
-            border: 1px solid rgba(16, 185, 129, 0.45);
-            color: #34d399;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: transform 0.1s ease;
+          .prm-bottom-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
 
-            &:active {
-              transform: scale(0.94);
+            .btn-row-match-link {
+              background: rgba(16, 185, 129, 0.18);
+              border: 1px solid rgba(16, 185, 129, 0.45);
+              color: #34d399;
+              font-size: 0.65rem;
+              font-weight: 800;
+              padding: 2px 6px;
+              border-radius: 6px;
+              cursor: pointer;
+              transition: transform 0.1s ease;
+
+              &:active {
+                transform: scale(0.94);
+              }
+            }
+
+            .btn-row-create-match {
+              display: inline-flex;
+              align-items: center;
+              gap: 3px;
+              background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+              color: #ffffff;
+              border: 1px solid rgba(52, 211, 153, 0.5);
+              border-radius: 6px;
+              padding: 2px 7px;
+              font-size: 0.68rem;
+              font-weight: 800;
+              cursor: pointer;
+              box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+              transition: transform 0.12s ease;
+
+              ion-icon {
+                font-size: 0.8rem;
+              }
+
+              &:active {
+                transform: scale(0.94);
+              }
             }
           }
         }
@@ -597,33 +630,10 @@
         z-index: 2;
         display: flex;
         align-items: center;
-        gap: 6px;
+        justify-content: center;
+        width: 32px;
         flex-shrink: 0;
-        margin-left: 8px;
-
-        .btn-row-create-match {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          color: #ffffff;
-          border: 1px solid rgba(52, 211, 153, 0.5);
-          border-radius: 8px;
-          padding: 4px 8px;
-          font-size: 0.72rem;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
-          transition: transform 0.12s ease;
-
-          ion-icon {
-            font-size: 0.85rem;
-          }
-
-          &:active {
-            transform: scale(0.94);
-          }
-        }
+        margin-left: 6px;
 
         .btn-whatsapp-vote-check {
           width: 32px;
