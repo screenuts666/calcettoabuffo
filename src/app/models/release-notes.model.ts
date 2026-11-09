@@ -11,44 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.61",
+    "version": "2.0.62",
     "date": "09/11/2026",
-    "title": "Chiusura Istantanea Selettore Giocatore 1v1",
+    "title": "Mega Rework 1v1, Dettaglio Chimica, Scheda Profilo Giocatore & Rimozione Soprannomi AI",
     "userChanges": [
-      "⚡ Selezione & Chiusura Istantanea: toccando qualsiasi giocatore nella lista di selezione 1v1, la modale si chiude immediatamente e aggiorna la schermata del testa a testa senza dover premere manualmente la 'X'."
+      "✨ Rimozione Totale Soprannomi AI: ripulita tutta l'applicazione dai soprannomi fantasiosi generati dall'AI; preservati esclusivamente il nome reale e il soprannome manuale autentico del profilo.",
+      "🎲 Hub 1v1 & Matchup Casuale: introdotto l'Hub 1v1 con pulsante '🎲 1vs1 Casuale' e schede interattive con scontri storici frequenti e derby equilibrati a parità di MMR.",
+      "🔍 Selettore Rapido Giocatore Rinnovato: ricerca rapida dei giocatori per nome con avatar a dimensione corretta e chiusura istantanea della lista al tap sul giocatore.",
+      "🔗 Dettaglio Chimica di Coppia (/chimica/:p1/:p2): le coppie nella tab Chimica sono ora interattive e aprono una scheda completa con bilancio V-P-S insieme, gol combinati, impatto MMR e passaggio rapido all'1v1.",
+      "📱 Scheda Giocatore Riorganizzata: struttura ordinata su 3 tab interne ('Statistiche', 'Chimica & 1v1', 'Storico & Bilancio') con striscia regina a 4 KPI (MMR, Win Rate, Gol/Gara, Media Voto) e ultime 5 partite inline.",
+      "📝 Box AI Compatti (Scouting & Verdetto): relazioni e verdetti sintetici e taglienti (max 2-3 frasi), micro-header a riga singola con audio TTS circolare e toggle espandibile 'Leggi tutto'."
     ],
     "superUserChanges": [
-      "🎯 Imperative Modal Dismiss & Template Ref: agganciata la chiamata diretta pickerModal.dismiss() e ChangeDetectorRef per garantire la chiusura immediata e l'aggiornamento reattivo OnPush."
-    ]
-  },
-  {
-    "version": "2.0.60",
-    "date": "09/11/2026",
-    "title": "Fix Tag Ridondanti Chimica & Rework Selettore Giocatore 1v1",
-    "userChanges": [
-      "🏷️ Rimozione Tag Ridondanti: eliminata la duplicazione del tag 'Gemelli del Gol' nella schermata Dettaglio Chimica di Coppia, lasciando solo un badge pulito per la sinergia e lo status imbattuti.",
-      "🔍 Selettore Giocatore 1v1 Rinnovato: risolto completamente il bug per cui cliccando su un giocatore o su 'Cambia' nel confronto 1v1 si apriva una modale sballata con avatar giganti. Ora è presente un elenco elegante con searchbar integrata, avatar a dimensione corretta (44px) e selezione istantanea.",
-      "⚔️ Pulsante 1v1 Pulito: rimossa la doppia icona delle spade/frecce nel bottone di switch al confronto diretto."
-    ],
-    "superUserChanges": [
-      "🛠️ Modal Shell Scoping & Architecture: allineata la struttura interna della modale con ion-header, ion-toolbar e ion-content per prevenire overflow ed espansione incontrollata di app-player-avatar."
-    ]
-  },
-  {
-    "version": "2.0.59",
-    "date": "09/11/2026",
-    "title": "Rework Architetturale 1v1, Dettaglio Chimica, Scheda Giocatore & Pulizia AI",
-    "userChanges": [
-      "✨ Rimozione Completa Soprannomi AI: ripulita tutta l'applicazione dai vecchi soprannomi fantasiosi AI; visibili esclusivamente il nome reale e il soprannome manuale della rosa.",
-      "🎲 Hub 1v1 con Matchup Casuale & Sfide Dinamiche: nuova schermata principale 1v1 con il tasto '🎲 1vs1 Casuale' e schede interattive con scontri frequenti, rivalità storiche e derby equilibrati.",
-      "🔗 Dettaglio Chimica di Coppia (/chimica/:p1/:p2): le coppie della tab Chimica ora sono cliccabili e aprono una pagina dedicata con record V-P-S insieme, gol combinati, impatto MMR, storico partite e switch rapido all'1v1.",
-      "📱 Scheda Profilo Giocatore Gerarchica: organizzata in 3 tab pulite ('Statistiche', 'Chimica & 1v1', 'Storico & Bilancio') con striscia regina a 4 KPI (MMR, Win Rate, Gol/Gara, Media Voto) e ultime 5 partite inline.",
-      "📝 Box AI Ultra-Compatti & Rapidi: Scouting del Mister e Verdetto 1v1 ridotti a 2-3 frasi taglienti, con header pulito a riga singola, audio TTS circolare e testo espandibile con 'Leggi tutto'."
-    ],
-    "superUserChanges": [
-      "🧭 Dynamic Routing & Back Navigation: introdotte e mappate le rotte dinamiche /1v1/:p1/:p2, /confronto/:p1/:p2 e /chimica/:p1/:p2 con gestione della cronologia e tasto indietro integrato.",
+      "🧭 Rotte Dinamiche Dedicate & Cronologia: introdotte le rotte /1v1/:p1/:p2, /confronto/:p1/:p2 e /chimica/:p1/:p2 con gestione impeccabile del tasto Indietro (<).",
       "⚡ Prompt Gemini Ottimizzati: compattati i system prompt di scouting e 1v1 a max 220-280 caratteri, eliminando la generazione di nickname da API e Firestore.",
-      "🌐 Fix Icona Stagioni: corretta la registrazione di globeOutline per la pillola 'Tutte' nel filtro stagioni."
+      "🌐 Allineamento Icona Stagioni: corretta la registrazione dell'icona globo per la pillola 'Tutte'."
     ]
   },
   {
