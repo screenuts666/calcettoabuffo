@@ -28,6 +28,7 @@ import { ShareService } from '../../../../../services/share.service';
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
 import { AuthService } from '../../../../../services/auth.service';
+import { WeatherService } from '../../../../../services/weather.service';
 
 import { PrestazioniHeroComponent } from './components/prestazioni-hero/prestazioni-hero.component';
 import { PrestazioniTabSintesiComponent } from './components/prestazioni-tab-sintesi/prestazioni-tab-sintesi.component';
@@ -69,6 +70,21 @@ export class StepPrestazioniComponent {
   private actionSheetCtrl = inject(ActionSheetController);
   private router = inject(Router);
   private shareService = inject(ShareService);
+  private weatherService = inject(WeatherService);
+
+  readonly meteoInfo = computed(() => {
+    const d = this.state.dataPartita();
+    if (!d) return null;
+    const w = this.weatherService.getWeatherForDate(d);
+    if (!w) return null;
+    const emoji = (w.iconEmoji && !w.iconEmoji.includes('🌫')) ? w.iconEmoji : '🌁';
+    return {
+      emoji,
+      temp: `${w.tempMax}°`,
+      label: w.conditionDescription,
+      rainProbability: w.rainProbability,
+    };
+  });
 
   // Navigazione a Schede (Sintesi, Pagelle, Spogliatoio & AI, Statistiche)
   activeTab = signal<'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'>('sintesi');

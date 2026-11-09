@@ -13,6 +13,12 @@
       <ion-icon name="stopwatch-outline"></ion-icon>
       <span>{{ timerFormatted }}</span>
     </div>
+    @if (meteo) {
+      <div class="meta-item weather-item" [title]="meteo.label + (meteo.rainProbability ? ' • 💧 ' + meteo.rainProbability + '%' : '')">
+        <span class="weather-icon">{{ meteo.emoji }}</span>
+        <span>{{ meteo.temp }} {{ meteo.label }}</span>
+      </div>
+    }
   </div>
 
   <button

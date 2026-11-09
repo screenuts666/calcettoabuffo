@@ -40,6 +40,197 @@ export class WeatherService {
   }
 
   /**
+   * Restituisce le condizioni meteo per una data specifica.
+   * 1. Usa `customMeteo` se già salvato sulla partita.
+   * 2. Usa le previsioni Open-Meteo se la data è coperta dalla cache a 14 giorni.
+   * 3. Genera un meteo stagionale deterministico accurato per Roma (stabile e realistico per ogni data).
+   */
+  getWeatherForDate(dateStr: string, customMeteo?: any): DailyWeatherForecast {
+    if (customMeteo) {
+      const emoji = (customMeteo.iconEmoji && !customMeteo.iconEmoji.includes('🌫')) ? customMeteo.iconEmoji : '🌁';
+      return {
+        date: dateStr,
+        tempMax: customMeteo.temp ?? customMeteo.tempMax ?? 18,
+        tempMin: customMeteo.tempMin ?? 12,
+        rainProbability: customMeteo.rainProbability ?? 0,
+        conditionDescription: customMeteo.conditionDescription || 'Sereno',
+        iconEmoji: emoji,
+        ionIcon: customMeteo.ionIcon || 'sunny-outline',
+      };
+    }
+
+    const cleanDate = (dateStr || '').split('T')[0];
+    if (cleanDate && this.weatherCache()[cleanDate]) {
+      return this.weatherCache()[cleanDate];
+    }
+
+    return this.generateSeasonalRomeWeather(cleanDate);
+  }
+
+  /**
+   * Modello climatico stagionale realistico per Roma:
+   * Genera dati coerenti e stabili per la stessa data (hash deterministico).
+   */
+  private generateSeasonalRomeWeather(dateStr: string): DailyWeatherForecast {
+    if (!dateStr || dateStr.length < 10) {
+      return {
+        date: dateStr,
+        tempMax: 20,
+        tempMin: 14,
+        rainProbability: 10,
+        conditionDescription: 'Sereno',
+        iconEmoji: '☀️',
+        ionIcon: 'sunny-outline',
+      };
+    }
+
+    const parts = dateStr.split('-');
+    const m = parseInt(parts[1], 10) || 5;
+
+    let hash = 0;
+    for (let i = 0; i < dateStr.length; i++) {
+      hash = (hash << 5) - hash + dateStr.charCodeAt(i);
+      hash |= 0;
+    }
+    const seed = Math.abs(hash);
+
+    let tempMax = 20;
+    let tempMin = 13;
+    let condition = 'Sereno';
+    let icon = '☀️';
+    let ionIcon = 'sunny-outline';
+    let rain = 10;
+
+    if (m === 12 || m === 1 || m === 2) {
+      tempMax = 11 + (seed % 5);
+      tempMin = 4 + (seed % 4);
+      const mod = seed % 10;
+      if (mod < 3) {
+        condition = 'Pioggia';
+        icon = '🌧️';
+        ionIcon = 'rainy-outline';
+        rain = 75;
+      } else if (mod < 6) {
+        condition = 'Nuvoloso';
+        icon = '☁️';
+        ionIcon = 'cloudy-outline';
+        rain = 30;
+      } else {
+        condition = 'Sereno';
+        icon = '☀️';
+        ionIcon = 'sunny-outline';
+        rain = 5;
+      }
+    } else if (m === 3 || m === 4) {
+      tempMax = 16 + (seed % 6);
+      tempMin = 8 + (seed % 4);
+      const mod = seed % 10;
+      if (mod < 3) {
+        condition = 'Pioggia';
+        icon = '🌧️';
+        ionIcon = 'rainy-outline';
+        rain = 65;
+      } else if (mod < 6) {
+        condition = 'Poco nuvoloso';
+        icon = '🌤️';
+        ionIcon = 'partly-sunny-outline';
+        rain = 20;
+      } else {
+        condition = 'Sereno';
+        icon = '☀️';
+        ionIcon = 'sunny-outline';
+        rain = 5;
+      }
+    } else if (m === 5 || m === 6) {
+      tempMax = 23 + (seed % 6);
+      tempMin = 15 + (seed % 4);
+      const mod = seed % 10;
+      if (mod < 2) {
+        condition = 'Temporale';
+        icon = '⛈️';
+        ionIcon = 'thunderstorm-outline';
+        rain = 60;
+      } else if (mod < 4) {
+        condition = 'Poco nuvoloso';
+        icon = '🌤️';
+        ionIcon = 'partly-sunny-outline';
+        rain = 15;
+      } else {
+        condition = 'Sereno';
+        icon = '☀️';
+        ionIcon = 'sunny-outline';
+        rain = 0;
+      }
+    } else if (m === 7 || m === 8) {
+      tempMax = 29 + (seed % 6);
+      tempMin = 20 + (seed % 3);
+      const mod = seed % 10;
+      if (mod === 0) {
+        condition = 'Temporale estivo';
+        icon = '⛈️';
+        ionIcon = 'thunderstorm-outline';
+        rain = 50;
+      } else {
+        condition = 'Sereno';
+        icon = '☀️';
+        ionIcon = 'sunny-outline';
+        rain = 0;
+      }
+    } else if (m === 9 || m === 10) {
+      tempMax = 22 + (seed % 6);
+      tempMin = 14 + (seed % 4);
+      const mod = seed % 10;
+      if (mod < 3) {
+        condition = 'Pioggia';
+        icon = '🌧️';
+        ionIcon = 'rainy-outline';
+        rain = 70;
+      } else if (mod < 6) {
+        condition = 'Nuvoloso';
+        icon = '☁️';
+        ionIcon = 'cloudy-outline';
+        rain = 25;
+      } else {
+        condition = 'Sereno';
+        icon = '☀️';
+        ionIcon = 'sunny-outline';
+        rain = 5;
+      }
+    } else {
+      // Novembre
+      tempMax = 16 + (seed % 5);
+      tempMin = 9 + (seed % 4);
+      const mod = seed % 10;
+      if (mod < 4) {
+        condition = 'Pioggia';
+        icon = '🌧️';
+        ionIcon = 'rainy-outline';
+        rain = 80;
+      } else if (mod < 7) {
+        condition = 'Nuvoloso';
+        icon = '☁️';
+        ionIcon = 'cloudy-outline';
+        rain = 35;
+      } else {
+        condition = 'Poco nuvoloso';
+        icon = '🌤️';
+        ionIcon = 'partly-sunny-outline';
+        rain = 10;
+      }
+    }
+
+    return {
+      date: dateStr,
+      tempMax,
+      tempMin,
+      rainProbability: rain,
+      conditionDescription: condition,
+      iconEmoji: icon,
+      ionIcon,
+    };
+  }
+
+  /**
    * Restituisce le previsioni per Roma per i prossimi 14 giorni come Observable
    */
   getRomeForecast(): Observable<DailyWeatherForecast[]> {

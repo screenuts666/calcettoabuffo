@@ -186,9 +186,20 @@
           </div>
         </div>
       } @else if (state.dataPartita()) {
-        <div class="season-valid-pill">
-          <ion-icon name="sparkles-outline"></ion-icon>
-          <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
+        <div class="season-weather-row">
+          <div class="season-valid-pill">
+            <ion-icon name="sparkles-outline"></ion-icon>
+            <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
+          </div>
+          @if (meteoForecast(); as mf) {
+            <div class="weather-badge-pill" [title]="mf.conditionDescription + ' (' + mf.tempMax + '° / ' + mf.tempMin + '°)'">
+              <span class="w-emoji">{{ mf.iconEmoji }}</span>
+              <span class="w-info">{{ mf.tempMax }}°C {{ mf.conditionDescription }}</span>
+              @if (mf.rainProbability > 0) {
+                <span class="w-rain">💧 {{ mf.rainProbability }}%</span>
+              }
+            </div>
+          }
         </div>
       }
     </div>

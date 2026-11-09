@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonItem,
@@ -29,6 +29,7 @@ import {
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { CampiService } from '../../../../../services/campi.service';
+import { WeatherService } from '../../../../../services/weather.service';
 import { CampoDaGioco } from '../../../../../models/campo.model';
 import { getMatchFormatByPlayerCount } from '../../../../../models/partita.model';
 import {
@@ -60,6 +61,18 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 export class StepDettagliComponent {
   public state = inject(MatchStateService);
   public campiService = inject(CampiService);
+  public weatherService = inject(WeatherService);
+
+  readonly meteoForecast = computed(() => {
+    const d = this.state.dataPartita();
+    if (!d) return null;
+    const w = this.weatherService.getWeatherForDate(d);
+    if (!w) return null;
+    return {
+      ...w,
+      iconEmoji: (w.iconEmoji && !w.iconEmoji.includes('🌫')) ? w.iconEmoji : '🌁',
+    };
+  });
 
   readonly MIN_CURRENT_SEASON_DATE = MIN_CURRENT_SEASON_DATE;
   readonly CURRENT_SEASON = CURRENT_SEASON;

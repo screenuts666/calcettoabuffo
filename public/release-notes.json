@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.0.53",
+    "date": "09/11/2026",
+    "title": "Refactoring Tab Partite: Ricerca Naturale Mesi & Meteo, Doppia Statistica Gol e Card Svelte",
+    "userChanges": [
+      "🔍 Ricerca Naturale Avanzata: la barra di ricerca ora riconosce mesi in italiano (es. 'marzo', 'novembre', '2026'), condizioni meteo ('pioggia', 'sereno', 'nuvoloso'), formati di gioco (calcio a 5, 6, 7) e campetti, oltre a giocatori e marcatori.",
+      "🎯 Doppia Metrica Gol (Gara & Minuto): la pillola dei gol calcola con precisione sia la media gol per gara effettiva ('11.8/gara') sia il ritmo gol reale al minuto giocato ('0.21/min', ovvero 1 gol ogni ~4.8 minuti).",
+      "🌤️ Meteo nelle Card e nei Dettagli: condizioni meteo sintetiche (icona, temperatura e descrizione) visibili sia nell'anteprima della card partita sia nella scheda dettagli e nell'hero delle prestazioni.",
+      "⚡ Card Snelle & Zero Clutter: rimosso il link mappa superfluo dalla lista e nascosto il tag stagione ridondante quando il filtro stagione è attivo.",
+      "📱 Lista Più Fluida: rimossa la pesante piantina tattica dall'accordion della lista (riservata alla scheda completa) e introdotto il tasto rapido 'Scheda Partita' al posto del mega-bottone a fondo card."
+    ],
+    "superUserChanges": [
+      "🎛️ Cassetto Filtri Categorizzato: filtri avanzati suddivisi in Campetto, Formato e Meteo, con badge filtri attivi rimovibili singolarmente o azzerabili in blocco.",
+      "🌤️ WeatherService Deterministico: fallback meteorologico stagionale calibrato su Roma per arricchire coerentemente ogni data gara.",
+      "📐 Header Compattato: riduzione dei padding e margini verticali di selettore stagioni, dashboard KPI, barra ricerca e ordinamento per ottimizzare lo spazio visivo."
+    ]
+  },
+  {
     "version": "2.0.52",
     "date": "09/11/2026",
     "title": "Pillola Unificata Crea Match, Sync Voto Partita, Rotta /disponibilita & Zoom Ciclico",

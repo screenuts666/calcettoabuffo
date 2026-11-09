@@ -31,9 +31,9 @@
       <ion-icon name="football-outline"></ion-icon>
       <span><strong>{{ kpiStagione().totalePartite }}</strong> Gare</span>
     </div>
-    <div class="kpi-pill highlight" title="Gol totali (media per gara)">
+    <div class="kpi-pill highlight" [title]="kpiStagione().golTooltip">
       <ion-icon name="flame"></ion-icon>
-      <span><strong>{{ kpiStagione().totaleGol }}</strong> Gol <small>({{ kpiStagione().mediaGolPartita }}/m)</small></span>
+      <span><strong>{{ kpiStagione().totaleGol }}</strong> Gol <small>({{ kpiStagione().mediaGolPartita }}/gara • {{ kpiStagione().ritmoGolAlMinuto }}/min)</small></span>
     </div>
     <div class="kpi-pill" title="Assist totali registrati">
       <ion-icon name="flash"></ion-icon>
@@ -51,14 +51,14 @@
     }
   </div>
 
-  <!-- BARRA 2: SEARCH BOX RAPIDA -->
+  <!-- BARRA 2: SEARCH BOX RAPIDA (Mesi, Meteo, Formato, Campetto, Giocatori) -->
   <div class="search-section">
     <div class="search-box-wrap">
       <ion-icon name="search-outline" class="search-icon"></ion-icon>
       <input
         type="text"
         class="custom-search-input"
-        placeholder="Cerca per campetto, marcatore o giocatore..."
+        placeholder="Cerca mese (es. Marzo), meteo (pioggia), giocatore, campo..."
         [value]="searchQuery()"
         (input)="onSearchInput($event)"
       />
@@ -70,32 +70,58 @@
     </div>
   </div>
 
-  <!-- BARRA 3: CRITERI DI ORDINAMENTO + FILTRO CAMPETTO COLLASSABILE -->
+  <!-- BARRA 3: CRITERI DI ORDINAMENTO + FILTRI AVANZATI COLLASSABILI -->
   <div class="sort-bar">
-    <!-- Pulsante Filtro Campetto -->
+    <!-- Pulsante Filtri Avanzati -->
     <button
       type="button"
       class="filter-trigger-btn"
-      [class.active]="isFiltriCampettoOpen() || filtroCampetto() !== 'all'"
+      [class.active]="isFiltriCampettoOpen() || isAnyFilterActive()"
       (click)="toggleFiltriCampetto()"
-      title="Filtra per Campetto"
+      title="Filtri Avanzati (Campetto, Formato, Meteo)"
     >
       <ion-icon name="filter"></ion-icon>
-      @if (filtroCampetto() !== 'all') {
+      @if (isAnyFilterActive()) {
         <span class="filter-dot"></span>
       }
     </button>
 
-    @if (!isFiltriCampettoOpen() && activeFilterCampettoLabel(); as activeCampetto) {
-      <button
-        type="button"
-        class="active-filter-pill"
-        (click)="resetFiltroCampetto()"
-        title="Tocca per rimuovere il filtro campetto"
-      >
-        <span>{{ activeCampetto }}</span>
-        <ion-icon name="close-circle"></ion-icon>
-      </button>
+    @if (!isFiltriCampettoOpen() && isAnyFilterActive()) {
+      <div class="active-filters-chips-wrap">
+        @if (activeFilterCampettoLabel(); as activeCampetto) {
+          <button
+            type="button"
+            class="active-filter-pill"
+            (click)="resetFiltroCampetto()"
+            title="Tocca per rimuovere il filtro campetto"
+          >
+            <span>{{ activeCampetto }}</span>
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        }
+        @if (activeFilterFormatoLabel(); as activeFormato) {
+          <button
+            type="button"
+            class="active-filter-pill"
+            (click)="resetFiltroFormato()"
+            title="Tocca per rimuovere il filtro formato"
+          >
+            <span>{{ activeFormato }}</span>
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        }
+        @if (activeFilterMeteoLabel(); as activeMeteo) {
+          <button
+            type="button"
+            class="active-filter-pill"
+            (click)="resetFiltroMeteo()"
+            title="Tocca per rimuovere il filtro meteo"
+          >
+            <span>{{ activeMeteo }}</span>
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        }
+      </div>
     }
 
     <!-- Scroll Criteri di Ordinamento Partite -->
@@ -119,29 +145,111 @@
     </div>
   </div>
 
-  <!-- CASSETTO FILTRI CAMPETTO (Collassabile) -->
+  <!-- CASSETTO FILTRI AVANZATI (Campetto, Formato, Meteo) -->
   @if (isFiltriCampettoOpen()) {
     <div class="filter-drawer">
-      <div class="filter-scroll">
-        <button
-          type="button"
-          class="filter-chip"
-          [class.active]="filtroCampetto() === 'all'"
-          (click)="selezionaFiltroCampetto('all')"
-        >
-          Tutti i Campi
-        </button>
-        @for (camp of campettiDisponibili(); track camp + '_' + $index) {
+      <!-- SEZIONE 1: CAMPETTO -->
+      <div class="filter-drawer-group">
+        <span class="group-label">📍 Campetto:</span>
+        <div class="filter-scroll">
           <button
             type="button"
-            class="filter-chip campetto-chip"
-            [class.active]="filtroCampetto() === camp"
-            (click)="selezionaFiltroCampetto(camp)"
+            class="filter-chip"
+            [class.active]="filtroCampetto() === 'all'"
+            (click)="selezionaFiltroCampetto('all')"
           >
-            <ion-icon name="location-outline"></ion-icon>
-            <span>{{ camp }}</span>
+            Tutti i Campi
           </button>
-        }
+          @for (camp of campettiDisponibili(); track camp + '_' + $index) {
+            <button
+              type="button"
+              class="filter-chip campetto-chip"
+              [class.active]="filtroCampetto() === camp"
+              (click)="selezionaFiltroCampetto(camp)"
+            >
+              <ion-icon name="location-outline"></ion-icon>
+              <span>{{ camp }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- SEZIONE 2: FORMATO -->
+      <div class="filter-drawer-group">
+        <span class="group-label">⚽ Formato:</span>
+        <div class="filter-scroll">
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroFormato() === 'all'"
+            (click)="selezionaFiltroFormato('all')"
+          >
+            Tutti i Formati
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroFormato() === 'calcetto'"
+            (click)="selezionaFiltroFormato('calcetto')"
+          >
+            Calcio a 5
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroFormato() === 'calcio_a_6'"
+            (click)="selezionaFiltroFormato('calcio_a_6')"
+          >
+            Calcio a 6
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroFormato() === 'calcio_a_7'"
+            (click)="selezionaFiltroFormato('calcio_a_7')"
+          >
+            Calcio a 7
+          </button>
+        </div>
+      </div>
+
+      <!-- SEZIONE 3: METEO -->
+      <div class="filter-drawer-group">
+        <span class="group-label">🌤️ Meteo:</span>
+        <div class="filter-scroll">
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroMeteo() === 'all'"
+            (click)="selezionaFiltroMeteo('all')"
+          >
+            Tutti i Meteo
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroMeteo() === 'sereno'"
+            (click)="selezionaFiltroMeteo('sereno')"
+          >
+            ☀️ Sereno
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroMeteo() === 'nuvoloso'"
+            (click)="selezionaFiltroMeteo('nuvoloso')"
+          >
+            ☁️ Nuvoloso
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="filtroMeteo() === 'pioggia'"
+            (click)="selezionaFiltroMeteo('pioggia')"
+          >
+            🌧️ Pioggia
+          </button>
+        </div>
       </div>
     </div>
   }
@@ -413,9 +521,11 @@
                     }
                   }
                 </div>
-                <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
-                  {{ stagioneBadgeLabel(m) }}
-                </div>
+                @if (stagioneSelezionata() === ALL_SEASONS) {
+                  <div class="season-tag" [ngClass]="stagioneBadgeClass(m)">
+                    {{ stagioneBadgeLabel(m) }}
+                  </div>
+                }
                 <div class="format-tag">
                   {{ getFormatoLabel(m) }}
                 </div>
@@ -424,17 +534,6 @@
                     <ion-icon name="location-outline"></ion-icon>
                     <span>{{ getLuogoDisplay(m) }}</span>
                   </div>
-                  <a
-                    [href]="getGoogleMapsUrl(m)"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="maps-quick-link"
-                    (click)="$event.stopPropagation()"
-                    title="Apri indicazioni Google Maps"
-                  >
-                    <ion-icon name="navigate-outline"></ion-icon>
-                    <span>Mappa</span>
-                  </a>
                 }
               </div>
 
@@ -539,7 +638,7 @@
                 </div>
               }
 
-              <!-- RIGA MICRO-METADATI (Giocatori, Durata eff., Media voti) -->
+              <!-- RIGA MICRO-METADATI (Giocatori, Durata eff., Media voti, Meteo) -->
               <div class="match-micro-meta">
                 <span class="meta-item" title="Giocatori convocati / in campo">
                   <ion-icon name="people-outline"></ion-icon>
@@ -560,6 +659,13 @@
                   <span class="meta-item rating" title="Media pagelle gara">
                     <ion-icon name="star"></ion-icon>
                     <span>Media <strong>{{ calcolaVotiPartita(m).media }}</strong></span>
+                  </span>
+                }
+                @if (getMeteoPartita(m); as meteo) {
+                  <span class="meta-sep">·</span>
+                  <span class="meta-item weather" [title]="meteo.tooltip">
+                    <span class="weather-emoji">{{ meteo.emoji }}</span>
+                    <span>{{ meteo.temp }} {{ meteo.label }}</span>
                   </span>
                 }
                 @if (m.rotazionePortieri) {
@@ -607,37 +713,18 @@
                 </div>
               }
 
-              <!-- ACCORDION PIANTINA TATTICA COLLASSABILE -->
-              <div
-                class="pitch-accordion-bar"
-                (click)="$event.stopPropagation(); togglePiantina(m.id)"
-                [class.is-expanded]="isPiantinaAperta(m.id)"
-              >
-                <div class="accordion-bar-left">
-                  <span class="pitch-badge-icon">
-                    <ion-icon name="football-outline"></ion-icon>
-                  </span>
-                  <span class="accordion-title">Piantina Tattica</span>
-                  <span class="formation-pill">{{ getFormazioneLabel(m) }}</span>
-                </div>
-                <div class="accordion-bar-right">
-                  <span class="tap-hint-text">
-                    {{ isPiantinaAperta(m.id) ? 'Nascondi' : 'Vedi Schieramento' }}
-                  </span>
-                  <ion-icon
-                    [name]="isPiantinaAperta(m.id) ? 'chevron-up' : 'chevron-down'"
-                  ></ion-icon>
-                </div>
-              </div>
-
-              @if (isPiantinaAperta(m.id)) {
-                <div class="pitch-accordion-drawer" (click)="$event.stopPropagation()">
-                  <app-tactical-pitch [match]="m"></app-tactical-pitch>
-                </div>
-              }
-
-              <!-- RIGA 1: AZIONI RAPIDE SECONDARIE (Pillole che avvolgono senza tagliarsi mai) -->
+              <!-- AZIONI RAPIDE DELLA PARTITA (Pillole compatte ed essenziali) -->
               <div class="match-quick-pills">
+                <button
+                  type="button"
+                  class="action-pill detail-pill"
+                  (click)="$event.stopPropagation(); apriPartita(m)"
+                  title="Apri scheda dettagliata e pagelle del match"
+                >
+                  <ion-icon name="open-outline"></ion-icon>
+                  <span>Scheda Partita</span>
+                </button>
+
                 @if (haNote(m)) {
                   <button
                     type="button"
@@ -683,17 +770,6 @@
                   <span>Condividi</span>
                 </button>
               </div>
-
-              <!-- RIGA 2: CTA PRINCIPALE A TUTTA LARGHEZZA (IMPOSSIBILE DA SEGATI!) -->
-              <button
-                type="button"
-                class="open-detail-full-btn"
-                (click)="$event.stopPropagation(); apriPartita(m)"
-                title="Apri scheda dettagliata e pagelle del match"
-              >
-                <span>Apri Scheda Partita Completa</span>
-                <ion-icon name="chevron-forward"></ion-icon>
-              </button>
             </div>
           }
         </div>

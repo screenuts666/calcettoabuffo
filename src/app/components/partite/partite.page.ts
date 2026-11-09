@@ -76,15 +76,17 @@ import {
   shieldCheckmark,
   constructOutline,
   navigateOutline,
+  openOutline,
+  sunnyOutline,
 } from 'ionicons/icons';
 import { getMatchFormatByPlayerCount } from 'src/app/models/partita.model';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
 import { ShareService } from 'src/app/services/share.service';
-import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
 import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
 import { CampiService } from 'src/app/services/campi.service';
+import { WeatherService } from 'src/app/services/weather.service';
 import {
   CURRENT_SEASON,
   PREVIOUS_SEASON,
@@ -161,7 +163,6 @@ export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
     IonSpinner,
     IonButtons,
     ThemeToggleComponent,
-    TacticalPitchComponent,
     PlayerAvatarComponent,
   ],
 })
@@ -174,13 +175,13 @@ export class PartitePage {
   private auth = inject(AuthService);
   readonly trashService = inject(TrashService);
   readonly campiService = inject(CampiService);
+  readonly weatherService = inject(WeatherService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
   private shareService = inject(ShareService);
 
   highlightMatchId = signal<string | null>(null);
-  openedPitches = signal<Record<string, boolean>>({});
   openedMatches = signal<Record<string, boolean>>({});
   areAllExpanded = signal<boolean>(false);
 
@@ -217,19 +218,29 @@ export class PartitePage {
   ordineCrescente = signal<boolean>(false);
   searchQuery = signal<string>('');
   filtroCampetto = signal<string>('all');
+  filtroMeteo = signal<string>('all'); // 'all' | 'sereno' | 'nuvoloso' | 'pioggia'
+  filtroFormato = signal<string>('all'); // 'all' | 'calcetto' | 'calcio_a_6' | 'calcio_a_7'
   isFiltriCampettoOpen = signal<boolean>(false);
 
-  togglePiantina(matchId?: string) {
-    if (!matchId) return;
-    this.openedPitches.update((prev) => ({
-      ...prev,
-      [matchId]: !prev[matchId],
-    }));
-  }
+  readonly isAnyFilterActive = computed(() => {
+    return (
+      this.filtroCampetto() !== 'all' ||
+      this.filtroMeteo() !== 'all' ||
+      this.filtroFormato() !== 'all'
+    );
+  });
 
-  isPiantinaAperta(matchId?: string): boolean {
-    if (!matchId) return false;
-    return !!this.openedPitches()[matchId];
+  getMeteoPartita(m: any): { emoji: string; temp: string; label: string; tooltip: string } | null {
+    if (!m?.dataPartita) return null;
+    const w = this.weatherService.getWeatherForDate(m.dataPartita, m.meteo);
+    if (!w) return null;
+    const emoji = (w.iconEmoji && !w.iconEmoji.includes('🌫')) ? w.iconEmoji : '🌁';
+    return {
+      emoji,
+      temp: `${w.tempMax}°`,
+      label: w.conditionDescription,
+      tooltip: `Meteo: ${w.conditionDescription} • ${w.tempMax}° / ${w.tempMin}° • 💧 Rischio Pioggia: ${w.rainProbability}%`,
+    };
   }
 
   getFormazioneLabel(m: any): string {
@@ -357,11 +368,27 @@ export class PartitePage {
     const mediaVotiStagione =
       votiConteggio > 0 ? (votiSomma / votiConteggio).toFixed(1) : '-';
 
+    const totaleMinuti = Math.round(totaleSecondi / 60);
+    const ritmoGolAlMinuto =
+      totaleSecondi > 0 ? (totaleGol / (totaleSecondi / 60)).toFixed(2) : '0.00';
+    const minutiPerGol =
+      totaleGol > 0 && totaleSecondi > 0
+        ? ((totaleSecondi / 60) / totaleGol).toFixed(1)
+        : '-';
+
+    const golTooltip =
+      `${totaleGol} Gol Totali (${concluse.length} gare concluse, ${totaleMinuti} minuti giocati)\n` +
+      `• Media: ${mediaGolPartita} gol a gara\n` +
+      `• Ritmo: ${ritmoGolAlMinuto} gol/min (1 gol ogni ${minutiPerGol} minuti)`;
+
     return {
       totalePartite,
       partiteConcluse: concluse.length,
       totaleGol,
       mediaGolPartita,
+      ritmoGolAlMinuto,
+      minutiPerGol,
+      golTooltip,
       totaleAssist,
       totaleSecondi,
       tempoTotaleDisplay: formatTempoTotale(totaleSecondi),
@@ -386,37 +413,158 @@ export class PartitePage {
     return c === 'all' ? null : `📍 ${c}`;
   });
 
-  // Helper per filtrare un singolo match per testo e campetto
-  private matchSoddisfaFiltri(m: any, q: string, campetto: string): boolean {
+  activeFilterMeteoLabel = computed(() => {
+    const m = this.filtroMeteo();
+    if (m === 'all') return null;
+    if (m === 'sereno') return '☀️ Sereno';
+    if (m === 'nuvoloso') return '☁️ Nuvoloso';
+    if (m === 'pioggia') return '🌧️ Pioggia';
+    return m;
+  });
+
+  activeFilterFormatoLabel = computed(() => {
+    const f = this.filtroFormato();
+    if (f === 'all') return null;
+    if (f === 'calcetto') return '⚽ Calcio a 5';
+    if (f === 'calcio_a_6') return '⚽ Calcio a 6';
+    if (f === 'calcio_a_7') return '⚽ Calcio a 7';
+    return f;
+  });
+
+  // Helper per filtrare un singolo match con ricerca semantica avanzata (Mesi, Meteo, Formato, Campetto, Atleti)
+  private matchSoddisfaFiltri(
+    m: any,
+    q: string,
+    campetto: string,
+    filtroMeteo: string,
+    filtroFormato: string
+  ): boolean {
+    // 1. Filtro esplicito Campetto
     if (campetto !== 'all') {
       if ((m.luogo || '').trim().toLowerCase() !== campetto.toLowerCase()) {
         return false;
       }
     }
+
+    // 2. Filtro esplicito Formato
+    if (filtroFormato !== 'all') {
+      const fLabel = this.getFormatoLabel(m).toLowerCase();
+      if (filtroFormato === 'calcetto' && !fLabel.includes('5') && !fLabel.includes('calcetto')) {
+        return false;
+      }
+      if (filtroFormato === 'calcio_a_6' && !fLabel.includes('6')) {
+        return false;
+      }
+      if (filtroFormato === 'calcio_a_7' && !fLabel.includes('7')) {
+        return false;
+      }
+    }
+
+    // 3. Condizione meteo per il match
+    const meteo = this.weatherService.getWeatherForDate(m.dataPartita, m.meteo);
+    const condLower = (meteo?.conditionDescription || '').toLowerCase();
+
+    // 4. Filtro esplicito Meteo
+    if (filtroMeteo !== 'all') {
+      if (filtroMeteo === 'pioggia') {
+        const isRainy = condLower.includes('piogg') || condLower.includes('rovesc') || condLower.includes('temporale');
+        if (!isRainy) return false;
+      } else if (filtroMeteo === 'nuvoloso') {
+        const isCloudy = condLower.includes('nuvol') || condLower.includes('copert') || condLower.includes('variabile');
+        if (!isCloudy) return false;
+      } else if (filtroMeteo === 'sereno') {
+        const isSunny = condLower.includes('seren') || condLower.includes('sole');
+        if (!isSunny) return false;
+      }
+    }
+
+    // 5. Ricerca testuale naturale (Search Bar)
     if (!q) return true;
 
+    // A. Mesi e Date in Italiano
+    const dateStr = (m.dataPartita || '').split('T')[0];
+    let matchMeseData = false;
+    if (dateStr && dateStr.length >= 10) {
+      const parts = dateStr.split('-');
+      const year = parts[0];
+      const monthNum = parseInt(parts[1], 10);
+      const day = parts[2];
+
+      const mesiItaliani = [
+        '', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
+        'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'
+      ];
+      const mesiShort = [
+        '', 'gen', 'feb', 'mar', 'apr', 'mag', 'giu',
+        'lug', 'ago', 'set', 'ott', 'nov', 'dic'
+      ];
+
+      const nomeMese = mesiItaliani[monthNum] || '';
+      const nomeMeseShort = mesiShort[monthNum] || '';
+
+      if (
+        nomeMese.includes(q) ||
+        (q.length >= 3 && nomeMeseShort.startsWith(q)) ||
+        year.includes(q) ||
+        dateStr.includes(q) ||
+        `${day}/${parts[1]}`.includes(q) ||
+        `${parseInt(day, 10)} ${nomeMese}`.includes(q)
+      ) {
+        matchMeseData = true;
+      }
+    }
+
+    // B. Match Condizioni Meteo
+    const matchMeteoSearch =
+      condLower.includes(q) ||
+      (q.includes('piogg') && (condLower.includes('piogg') || condLower.includes('rovesc') || condLower.includes('temporale'))) ||
+      (q.includes('seren') && (condLower.includes('seren') || condLower.includes('sole'))) ||
+      (q.includes('nuvol') && (condLower.includes('nuvol') || condLower.includes('copert') || condLower.includes('variabile'))) ||
+      (q.includes('tempor') && condLower.includes('tempor')) ||
+      (q.includes('vento') && condLower.includes('vento')) ||
+      (q.includes('fredd') && (meteo.tempMax <= 13 || condLower.includes('fredd'))) ||
+      (q.includes('cald') && (meteo.tempMax >= 26 || condLower.includes('cald')));
+
+    // C. Match Formato
+    const fLabel = this.getFormatoLabel(m).toLowerCase();
+    const matchFormatoSearch =
+      fLabel.includes(q) ||
+      (q === 'calcetto' && (fLabel.includes('5') || fLabel.includes('calcetto'))) ||
+      (q.includes('calcio a 5') && fLabel.includes('5')) ||
+      (q.includes('calcio a 6') && fLabel.includes('6')) ||
+      (q.includes('calcio a 7') && fLabel.includes('7')) ||
+      (q === '5v5' && fLabel.includes('5')) ||
+      (q === '6v6' && fLabel.includes('6')) ||
+      (q === '7v7' && fLabel.includes('7'));
+
+    // D. Match Luogo / Campetto
     const matchLuogo = (m.luogo || '').toLowerCase().includes(q);
-    const matchData = (m.dataPartita || '').toLowerCase().includes(q);
-    const matchCommento = (m.commentoPartita || '').toLowerCase().includes(q);
-    const matchNotePortieri = (m.notePortieri || '').toLowerCase().includes(q);
+
+    // E. Match Giocatori, Convocati, Marcatori, Assist
+    const matchPlayer = [
+      ...(m.teamA || []),
+      ...(m.teamB || []),
+      ...(m.convocati || []),
+    ].some((p: any) => (p.nome || p.soprannome || '').toLowerCase().includes(q));
+
     const matchScorer = (m.eventiGol || []).some(
       (e: any) =>
         (e.nome || '').toLowerCase().includes(q) ||
         (e.assistNome || '').toLowerCase().includes(q),
     );
-    const matchPlayer = [
-      ...(m.teamA || []),
-      ...(m.teamB || []),
-      ...(m.convocati || []),
-    ].some((p: any) => (p.nome || '').toLowerCase().includes(q));
+
+    const matchNote =
+      (m.commentoPartita || '').toLowerCase().includes(q) ||
+      (m.notePortieri || '').toLowerCase().includes(q);
 
     return (
+      matchMeseData ||
+      matchMeteoSearch ||
+      matchFormatoSearch ||
       matchLuogo ||
-      matchData ||
-      matchCommento ||
-      matchNotePortieri ||
+      matchPlayer ||
       matchScorer ||
-      matchPlayer
+      matchNote
     );
   }
 
@@ -426,9 +574,11 @@ export class PartitePage {
     if (!list) return [];
     const q = this.searchQuery().toLowerCase().trim();
     const c = this.filtroCampetto();
+    const fm = this.filtroMeteo();
+    const ff = this.filtroFormato();
     return list
       .filter((m: any) => m.status === 'in_corso')
-      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff))
       .sort(
         (a: any, b: any) =>
           (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -440,9 +590,11 @@ export class PartitePage {
     if (!list) return [];
     const q = this.searchQuery().toLowerCase().trim();
     const c = this.filtroCampetto();
+    const fm = this.filtroMeteo();
+    const ff = this.filtroFormato();
     return list
       .filter((m: any) => m.status === 'da_definire')
-      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff))
       .sort(
         (a: any, b: any) =>
           (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -454,11 +606,13 @@ export class PartitePage {
     if (!list) return [];
     const q = this.searchQuery().toLowerCase().trim();
     const c = this.filtroCampetto();
+    const fm = this.filtroMeteo();
+    const ff = this.filtroFormato();
     return list
       .filter(
         (m: any) => m.status === 'pronta' || (!m.status && !m.matchConcluso),
       )
-      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff))
       .sort(
         (a: any, b: any) =>
           (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -470,12 +624,14 @@ export class PartitePage {
     if (!list) return [];
     const q = this.searchQuery().toLowerCase().trim();
     const c = this.filtroCampetto();
+    const fm = this.filtroMeteo();
+    const ff = this.filtroFormato();
     return list
       .filter(
         (m: any) =>
           (m.status === 'conclusa' || m.matchConcluso) && !m.pagelleInserite,
       )
-      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c))
+      .filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff))
       .sort(
         (a: any, b: any) =>
           (b.dataOra?.seconds ?? 0) - (a.dataOra?.seconds ?? 0),
@@ -506,9 +662,11 @@ export class PartitePage {
     const base = this.partiteArchiviateBase();
     const q = this.searchQuery().toLowerCase().trim();
     const c = this.filtroCampetto();
+    const fm = this.filtroMeteo();
+    const ff = this.filtroFormato();
 
-    // Filtra per testo e campetto
-    let list = base.filter((m: any) => this.matchSoddisfaFiltri(m, q, c));
+    // Filtra per testo, campetto, meteo e formato
+    let list = base.filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff));
 
     // Ordinamento in base al criterio selezionato
     const criterio = this.criterioOrdinamento();
@@ -632,6 +790,8 @@ export class PartitePage {
       chevronUp,
       swapVerticalOutline,
       shieldCheckmark,
+      openOutline,
+      sunnyOutline,
     });
 
     this.route.queryParams.subscribe((params) => {
@@ -663,6 +823,22 @@ export class PartitePage {
     this.filtroCampetto.set('all');
   }
 
+  selezionaFiltroMeteo(meteo: string) {
+    this.filtroMeteo.set(meteo);
+  }
+
+  resetFiltroMeteo() {
+    this.filtroMeteo.set('all');
+  }
+
+  selezionaFiltroFormato(formato: string) {
+    this.filtroFormato.set(formato);
+  }
+
+  resetFiltroFormato() {
+    this.filtroFormato.set('all');
+  }
+
   onSearchInput(ev: any) {
     this.searchQuery.set(ev?.target?.value || '');
   }
@@ -674,6 +850,8 @@ export class PartitePage {
   resetTuttiIFiltri() {
     this.searchQuery.set('');
     this.filtroCampetto.set('all');
+    this.filtroMeteo.set('all');
+    this.filtroFormato.set('all');
     this.criterioOrdinamento.set('data');
     this.ordineCrescente.set(false);
   }

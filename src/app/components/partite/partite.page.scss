@@ -137,6 +137,12 @@
     color: var(--app-text-muted);
   }
 
+  .kpi-metric-split {
+    color: var(--app-text-muted);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
   &.highlight {
     border-color: rgba(var(--app-primary-rgb), 0.3);
 
@@ -273,6 +279,32 @@
   }
 }
 
+.active-filters-chips-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  @include hide-scrollbar;
+  flex-shrink: 0;
+
+  .clear-all-filters-btn {
+    background: transparent;
+    border: none;
+    color: var(--app-text-muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+    padding: 2px 4px;
+
+    &:hover {
+      color: var(--app-accent-red, #ef4444);
+    }
+  }
+}
+
 .active-filter-pill {
   display: inline-flex;
   align-items: center;
@@ -344,13 +376,38 @@
 }
 
 // ==========================================
-// CASSETTO FILTRI CAMPETTO (Collassabile)
+// CASSETTO FILTRI AVANZATI (Campetto, Formato, Meteo)
 // ==========================================
 .filter-drawer {
   background: var(--app-surface-subtle);
-  padding: 6px 12px 8px 12px;
+  padding: 8px 12px 10px 12px;
   border-bottom: 1px solid var(--app-border-color);
   animation: fadeInDown 0.18s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-drawer-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .filter-group-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--app-text-muted);
+    min-width: 68px;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 0.8rem;
+    }
+  }
 }
 
 .filter-scroll {
@@ -1127,6 +1184,15 @@
       color: #c084fc;
       font-weight: 700;
     }
+
+    &.weather {
+      color: #38bdf8;
+      font-weight: 600;
+
+      .weather-emoji {
+        font-size: 0.85rem;
+      }
+    }
   }
 
   .meta-sep {
@@ -1402,6 +1468,20 @@
 
   ion-icon {
     font-size: 0.85rem;
+  }
+
+  &.detail-pill {
+    background: var(--app-primary-subtle);
+    color: var(--ion-color-success);
+    border-color: rgba(var(--app-primary-rgb), 0.35);
+
+    ion-icon {
+      color: var(--ion-color-success);
+    }
+
+    &:hover {
+      background: rgba(var(--app-primary-rgb), 0.25);
+    }
   }
 
   &.note-pill {
