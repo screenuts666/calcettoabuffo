@@ -98,13 +98,11 @@
           </div>
         }
 
-        <p class="section-subtitle">
-          @if (auth.isLoggedIn()) {
-            Vota i giorni della settimana con 1 tap (click per confermare, riclick per togliere):
-          } @else {
-            Disponibilità della settimana. Accedi con il tuo account atleta per votare.
-          }
-        </p>
+        @if (!auth.isLoggedIn()) {
+          <p class="section-subtitle">
+            Accedi per votare le tue disponibilità.
+          </p>
+        }
       </div>
 
       <!-- PROPOSTA A: STRISCIA A 7 GIORNI + SCHEDA FOCUS RAPIDA -->

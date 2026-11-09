@@ -11,6 +11,18 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.45",
+    "date": "09/11/2026",
+    "title": "Icona Nebbia Risolta & Pulizia Testi Ridondanti",
+    "userChanges": [
+      "🌁 Icona Nebbia Nitida & Visibile: sostituita l'emoji della nebbia che su Windows e mobile appariva come un riquadro bianco sbiadito con l'icona nitida ad alto contrasto, e aumentata la dimensione delle icone meteo con effetto ombra per la massima leggibilità.",
+      "🧹 Rimozione Testi Superflui: eliminata la didascalia ridondante di istruzioni sul voto per rendere la schermata settimanale ancora più pulita, snella e diretta."
+    ],
+    "superUserChanges": [
+      "🔄 Cache Meteo v2: aggiornata la chiave di cache in WeatherService per rinfrescare istantaneamente le icone aggiornate sui dispositivi degli utenti."
+    ]
+  },
+  {
     "version": "2.0.44",
     "date": "09/11/2026",
     "title": "Contatore Presenze Visibile, Bordo Dorato Giorno Favorito & Simulatore DEV",
