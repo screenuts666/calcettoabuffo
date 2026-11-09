@@ -785,37 +785,39 @@
     class="player-picker-modal"
   >
     <ng-template>
-      <div class="picker-modal-container">
-        <div class="picker-modal-header">
-          <div class="pmh-title">
-            <span>Scegli {{ pickerTarget() === 'A' ? 'Giocatore 1' : 'Giocatore 2' }}</span>
-          </div>
-          <button type="button" class="pmh-close-btn" (click)="chiudiSelettore()">
-            <ion-icon name="close"></ion-icon>
-          </button>
-        </div>
-
-        <div class="picker-search-bar">
-          <ion-icon name="search-outline"></ion-icon>
-          <input
-            type="text"
+      <ion-header class="ion-no-border picker-header">
+        <ion-toolbar class="picker-toolbar">
+          <ion-title>Scegli {{ pickerTarget() === 'A' ? 'Giocatore 1' : 'Giocatore 2' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="chiudiSelettore()" class="picker-close-btn" aria-label="Chiudi">
+              <ion-icon name="close" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+        <div class="picker-searchbar-wrapper">
+          <ion-searchbar
             placeholder="Cerca giocatore per nome..."
             [value]="pickerSearchQuery()"
-            (input)="aggiornaRicerca($event)"
-          />
+            (ionInput)="aggiornaRicerca($event)"
+            debounce="100"
+            class="picker-searchbar"
+          ></ion-searchbar>
         </div>
+      </ion-header>
 
-        <div class="picker-list">
+      <ion-content class="picker-modal-content">
+        <div class="picker-players-list">
           @for (g of giocatoriFiltrati(); track g.id) {
             <div
               class="picker-player-item"
               (click)="selezionaGiocatore(g)"
             >
-              <app-player-avatar
-                class="picker-avatar"
-                [fotoUrl]="g.fotoUrl"
-                [alt]="g.nome"
-              ></app-player-avatar>
+              <div class="picker-avatar-wrap">
+                <app-player-avatar
+                  [fotoUrl]="g.fotoUrl"
+                  [alt]="g.nome"
+                ></app-player-avatar>
+              </div>
 
               <div class="picker-player-meta">
                 <span class="picker-name"><b>{{ g.nome }}</b></span>
@@ -824,7 +826,7 @@
                 }
               </div>
 
-              <div class="picker-stats-pill">
+              <div class="picker-chevron">
                 <ion-icon name="chevron-forward"></ion-icon>
               </div>
             </div>
@@ -832,7 +834,7 @@
             <div class="empty-search-msg">Nessun giocatore trovato</div>
           }
         </div>
-      </div>
+      </ion-content>
     </ng-template>
   </ion-modal>
 </ion-content>

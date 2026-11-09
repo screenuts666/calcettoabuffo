@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.60",
+    "date": "09/11/2026",
+    "title": "Fix Tag Ridondanti Chimica & Rework Selettore Giocatore 1v1",
+    "userChanges": [
+      "🏷️ Rimozione Tag Ridondanti: eliminata la duplicazione del tag 'Gemelli del Gol' nella schermata Dettaglio Chimica di Coppia, lasciando solo un badge pulito per la sinergia e lo status imbattuti.",
+      "🔍 Selettore Giocatore 1v1 Rinnovato: risolto completamente il bug per cui cliccando su un giocatore o su 'Cambia' nel confronto 1v1 si apriva una modale sballata con avatar giganti. Ora è presente un elenco elegante con searchbar integrata, avatar a dimensione corretta (44px) e selezione istantanea.",
+      "⚔️ Pulsante 1v1 Pulito: rimossa la doppia icona delle spade/frecce nel bottone di switch al confronto diretto."
+    ],
+    "superUserChanges": [
+      "🛠️ Modal Shell Scoping & Architecture: allineata la struttura interna della modale con ion-header, ion-toolbar e ion-content per prevenire overflow ed espansione incontrollata di app-player-avatar."
+    ]
+  },
+  {
     "version": "2.0.59",
     "date": "09/11/2026",
     "title": "Rework Architetturale 1v1, Dettaglio Chimica, Scheda Giocatore & Pulizia AI",

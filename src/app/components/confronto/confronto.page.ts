@@ -92,6 +92,7 @@ import { AiTtsButtonComponent } from '../ai-tts-button/ai-tts-button.component';
     IonButton,
     IonIcon,
     IonModal,
+    IonSearchbar,
     IonSpinner,
     ThemeToggleComponent,
     AiTtsButtonComponent,
@@ -468,7 +469,7 @@ export class ConfrontoPage implements OnInit {
   }
 
   aggiornaRicerca(event: any) {
-    this.pickerSearchQuery.set(event.detail.value || '');
+    this.pickerSearchQuery.set(event.detail?.value !== undefined ? event.detail.value : (event.target?.value || ''));
   }
 
   // Condivisione su WhatsApp del confronto 1v1

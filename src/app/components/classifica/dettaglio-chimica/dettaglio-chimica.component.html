@@ -52,10 +52,10 @@
         @if (data.isUnbeaten) {
           <span class="duo-tag unbeaten">🔥 Imbattuti Insieme</span>
         }
-        @if (data.isBest) {
-          <span class="duo-tag best">🤝 Gemelli del Gol</span>
-        }
         <span class="duo-tag label">{{ data.affinitaLabel }}</span>
+        @if (data.isBest && !data.affinitaLabel.includes('Gemelli')) {
+          <span class="duo-tag best">⭐ Top Partner</span>
+        }
       </div>
     </div>
 
@@ -92,7 +92,7 @@
     <div class="action-1v1-wrap">
       <button type="button" class="btn-switch-1v1" (click)="vaiAlConfronto1v1()">
         <ion-icon name="swap-horizontal"></ion-icon>
-        <span>⚔️ Passa al Confronto 1v1 Contro ({{ player1.nome }} vs {{ player2.nome }})</span>
+        <span>Passa al Confronto 1v1 Contro ({{ player1.nome }} vs {{ player2.nome }})</span>
       </button>
     </div>
 

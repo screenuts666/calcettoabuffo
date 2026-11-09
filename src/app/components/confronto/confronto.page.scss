@@ -1505,106 +1505,147 @@
 // ==========================================
 // SELETTORE GIOCATORE MODAL
 // ==========================================
-.picker-modal-content {
-  padding: 16px;
-  background: var(--app-bg);
-  color: var(--app-text-primary);
+.player-picker-modal {
+  --height: 80vh;
+  --max-height: 640px;
+  --width: 94%;
+  --max-width: 460px;
+  --border-radius: 20px;
+  --background: var(--app-bg, #0b1120);
 
-  .picker-modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
+  &::part(content) {
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--app-bg, #0b1120);
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.1));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+}
 
-    h3 {
-      margin: 0;
-      font-size: 1.15rem;
+.picker-header {
+  background: var(--app-surface, #131d31);
+  border-bottom: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+
+  .picker-toolbar {
+    --background: transparent;
+    --color: var(--app-text-primary, #fff);
+
+    ion-title {
+      font-size: 1.05rem;
       font-weight: 800;
-      color: var(--app-text-primary);
+      letter-spacing: 0.3px;
     }
 
-    .modal-close-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: none;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--app-text-primary);
-      cursor: pointer;
+    .picker-close-btn {
+      --color: var(--app-text-secondary, #94a3b8);
+      font-size: 1.25rem;
     }
   }
+
+  .picker-searchbar-wrapper {
+    padding: 0 12px 10px 12px;
+
+    .picker-searchbar {
+      --background: rgba(255, 255, 255, 0.06);
+      --color: var(--app-text-primary, #fff);
+      --placeholder-color: var(--app-text-muted, #71717a);
+      --icon-color: var(--app-text-muted, #71717a);
+      --border-radius: 12px;
+      --box-shadow: none;
+      padding: 0;
+    }
+  }
+}
+
+.picker-modal-content {
+  --background: var(--app-bg, #0b1120);
+  --padding-top: 10px;
+  --padding-bottom: 20px;
+  --padding-start: 12px;
+  --padding-end: 12px;
 
   .picker-players-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    margin-top: 12px;
-    max-height: 60vh;
-    overflow-y: auto;
+    padding-bottom: 16px;
+  }
 
-    .picker-player-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 12px;
-      border-radius: 12px;
-      background: var(--app-card-bg);
-      border: 1px solid var(--app-card-border);
-      cursor: pointer;
-      transition: background 0.15s ease;
+  .picker-player-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 14px;
+    background: var(--app-card-bg, #1a2234);
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.06));
+    cursor: pointer;
+    transition: all 0.15s ease;
 
-      &:active {
-        background: var(--app-surface-hover);
-      }
+    &:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(45, 211, 111, 0.4);
+    }
 
-      .picker-avatar {
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
-        min-height: 44px;
-        max-width: 44px;
-        max-height: 44px;
-        border-radius: 50%;
-        overflow: hidden;
-        flex-shrink: 0;
+    .picker-avatar-wrap {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      max-width: 44px;
+      max-height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
 
-        app-player-avatar,
-        img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-          border-radius: 50%;
-        }
-      }
-
-      .picker-player-meta {
-        flex: 1;
-        min-width: 0;
-
-        .picker-name {
-          font-size: 0.95rem;
-          color: var(--app-text-primary);
-          display: block;
-        }
-
-        .picker-nick {
-          font-size: 0.75rem;
-          color: var(--app-text-muted);
-          font-style: italic;
-        }
-
-        .picker-nick-ai {
-          font-size: 0.68rem;
-          font-weight: 600;
-          font-style: italic;
-          color: var(--app-accent-purple);
-        }
+      app-player-avatar {
+        width: 44px !important;
+        height: 44px !important;
+        min-width: 44px !important;
+        min-height: 44px !important;
+        display: block;
       }
     }
+
+    .picker-player-meta {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+
+      .picker-name {
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: var(--app-text-primary, #fff);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .picker-nick {
+        font-size: 0.75rem;
+        font-style: italic;
+        color: var(--app-text-muted, #94a3b8);
+      }
+    }
+
+    .picker-chevron {
+      color: var(--app-text-muted, #71717a);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .empty-search-msg {
+    text-align: center;
+    padding: 30px 16px;
+    color: var(--app-text-muted, #71717a);
+    font-size: 0.85rem;
+    font-style: italic;
   }
 }
 
