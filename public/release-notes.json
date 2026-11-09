@@ -1,5 +1,27 @@
 [
   {
+    "version": "2.0.61",
+    "date": "09/11/2026",
+    "title": "Chiusura Istantanea Selettore Giocatore 1v1",
+    "userChanges": [
+      "⚡ Selezione & Chiusura Istantanea: toccando qualsiasi giocatore nella lista di selezione 1v1, la modale si chiude immediatamente e aggiorna la schermata del testa a testa senza dover premere manualmente la 'X'."
+    ],
+    "superUserChanges": [
+      "🎯 Imperative Modal Dismiss & Template Ref: agganciata la chiamata diretta pickerModal.dismiss() e ChangeDetectorRef per garantire la chiusura immediata e l'aggiornamento reattivo OnPush."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "09/11/2026",
+    "title": "Chiusura Istantanea Selettore Giocatore 1v1",
+    "userChanges": [
+      "⚡ Selezione & Chiusura Istantanea: toccando qualsiasi giocatore nella lista di selezione 1v1, la modale si chiude immediatamente e aggiorna la schermata del testa a testa senza dover premere manualmente la 'X'."
+    ],
+    "superUserChanges": [
+      "🎯 Imperative Modal Dismiss & Template Ref: agganciata la chiamata diretta pickerModal.dismiss() e ChangeDetectorRef per garantire la chiusura immediata e l'aggiornamento reattivo OnPush."
+    ]
+  },
+  {
     "version": "2.0.60",
     "date": "09/11/2026",
     "title": "Fix Tag Ridondanti Chimica & Rework Selettore Giocatore 1v1",

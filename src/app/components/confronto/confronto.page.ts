@@ -6,6 +6,8 @@ import {
   effect,
   OnInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -106,6 +108,9 @@ export class ConfrontoPage implements OnInit {
   private router = inject(Router);
   private location = inject(Location);
   private toastController = inject(ToastController);
+  private cdr = inject(ChangeDetectorRef);
+
+  @ViewChild('pickerModal') pickerModal?: IonModal;
 
   readonly formatAiMarkdown = formatAiMarkdown;
 
@@ -434,21 +439,36 @@ export class ConfrontoPage implements OnInit {
     this.pickerTarget.set(target);
     this.pickerSearchQuery.set('');
     this.isPickerOpen.set(true);
+    this.cdr.markForCheck();
   }
 
-  chiudiSelettore() {
+  async chiudiSelettore() {
     this.isPickerOpen.set(false);
+    this.cdr.markForCheck();
+    try {
+      await this.pickerModal?.dismiss();
+    } catch {
+      // ignore
+    }
   }
 
-  selezionaGiocatore(g: Giocatore) {
-    if (this.pickerTarget() === 'A') {
+  async selezionaGiocatore(g: Giocatore) {
+    const target = this.pickerTarget();
+    if (target === 'A') {
       this.playerAId.set(g.id);
     } else {
       this.playerBId.set(g.id);
     }
-    this.chiudiSelettore();
+    
+    // Chiudi istantaneamente la modale
+    await this.chiudiSelettore();
+
     if (this.viewMode() === 'detail') {
-      this.apriConfrontoCoppia(this.playerAId(), this.playerBId());
+      const idA = target === 'A' ? g.id : this.playerAId();
+      const idB = target === 'B' ? g.id : this.playerBId();
+      if (idA && idB && idA !== idB) {
+        this.apriConfrontoCoppia(idA, idB);
+      }
     }
   }
 

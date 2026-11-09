@@ -780,6 +780,7 @@
   <!-- MODALE SELETTORE RAPIDO GIOCATORE                        -->
   <!-- ======================================================== -->
   <ion-modal
+    #pickerModal
     [isOpen]="isPickerOpen()"
     (didDismiss)="chiudiSelettore()"
     class="player-picker-modal"
@@ -789,7 +790,7 @@
         <ion-toolbar class="picker-toolbar">
           <ion-title>Scegli {{ pickerTarget() === 'A' ? 'Giocatore 1' : 'Giocatore 2' }}</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="chiudiSelettore()" class="picker-close-btn" aria-label="Chiudi">
+            <ion-button (click)="chiudiSelettore(); pickerModal.dismiss()" class="picker-close-btn" aria-label="Chiudi">
               <ion-icon name="close" slot="icon-only"></ion-icon>
             </ion-button>
           </ion-buttons>
@@ -808,9 +809,10 @@
       <ion-content class="picker-modal-content">
         <div class="picker-players-list">
           @for (g of giocatoriFiltrati(); track g.id) {
-            <div
+            <button
+              type="button"
               class="picker-player-item"
-              (click)="selezionaGiocatore(g)"
+              (click)="selezionaGiocatore(g); pickerModal.dismiss()"
             >
               <div class="picker-avatar-wrap">
                 <app-player-avatar
@@ -829,7 +831,7 @@
               <div class="picker-chevron">
                 <ion-icon name="chevron-forward"></ion-icon>
               </div>
-            </div>
+            </button>
           } @empty {
             <div class="empty-search-msg">Nessun giocatore trovato</div>
           }
