@@ -552,6 +552,29 @@ export class CalendarioPage implements OnInit {
     this.selectedDateStr.set(dateStr);
   }
 
+  /**
+   * Ordina una lista di atleti in modo rigorosamente deterministico e stabile:
+   * 1. Se l'utente loggato ha votato, compare SEMPRE per primo (indice 0).
+   * 2. Tutti gli altri compagni mantengono un ordinamento alfabetico invariabile.
+   * Questo impedisce che le icone o le card dei giorni si muovano o scambino quando l'utente vota su un giorno qualsiasi.
+   */
+  private sortPlayersDeterministic(list: Giocatore[]): Giocatore[] {
+    const currentUid = this.auth.firebaseUser()?.uid;
+    const currentPid = this.auth.linkedPlayerId();
+
+    return [...list].sort((a, b) => {
+      const isAMe =
+        (currentPid && a.id === currentPid) ||
+        (currentUid && a.linkedUid === currentUid);
+      const isBMe =
+        (currentPid && b.id === currentPid) ||
+        (currentUid && b.linkedUid === currentUid);
+      if (isAMe && !isBMe) return -1;
+      if (!isAMe && isBMe) return 1;
+      return (a.nome || '').localeCompare(b.nome || '');
+    });
+  }
+
   // Dettaglio del giorno selezionato
   readonly selectedDayDetail = computed(() => {
     const dateStr = this.selectedDateStr();
@@ -579,27 +602,40 @@ export class CalendarioPage implements OnInit {
     const activeSummaries = this.availabilityService.daySummaries();
     const daySummary = activeSummaries.find((s) => s.date === dateStr);
     const allPlayers = this.statsEngine.giocatoriRaw();
-    const availablePlayers = (daySummary?.voters || [])
-      .map((v) =>
-        allPlayers.find(
+
+    const availablePlayers = this.sortPlayersDeterministic(
+      (daySummary?.voters || []).map((v) => {
+        const matched = allPlayers.find(
           (g) =>
             (v.playerId && g.id === v.playerId) ||
             (g.linkedUid && g.linkedUid === v.uid)
-        )
-      )
-      .filter((g): g is Giocatore => !!g);
+        );
+        if (matched) return matched;
+        return {
+          id: v.playerId || v.uid,
+          nome: v.displayName || 'Atleta',
+          fotoUrl: v.photoURL || null,
+        } as Giocatore;
+      })
+    );
 
     const isAvailableForMe = this.availabilityService.myVotedDates().includes(dateStr);
     const isMaybeForMe = this.availabilityService.myMaybeDates().includes(dateStr);
-    const maybePlayers = (daySummary?.maybeVoters || [])
-      .map((v) =>
-        allPlayers.find(
+    const maybePlayers = this.sortPlayersDeterministic(
+      (daySummary?.maybeVoters || []).map((v) => {
+        const matched = allPlayers.find(
           (g) =>
             (v.playerId && g.id === v.playerId) ||
             (g.linkedUid && g.linkedUid === v.uid)
-        )
-      )
-      .filter((g): g is Giocatore => !!g);
+        );
+        if (matched) return matched;
+        return {
+          id: v.playerId || v.uid,
+          nome: v.displayName || 'Atleta',
+          fotoUrl: v.photoURL || null,
+        } as Giocatore;
+      })
+    );
 
     return {
       date: d,
@@ -641,25 +677,37 @@ export class CalendarioPage implements OnInit {
     return summaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
 
-      const players = s.voters
-        .map((v) =>
-          allPlayers.find(
+      const players = this.sortPlayersDeterministic(
+        s.voters.map((v) => {
+          const matched = allPlayers.find(
             (g) =>
               (v.playerId && g.id === v.playerId) ||
               (g.linkedUid && g.linkedUid === v.uid)
-          )
-        )
-        .filter((g): g is Giocatore => !!g);
+          );
+          if (matched) return matched;
+          return {
+            id: v.playerId || v.uid,
+            nome: v.displayName || 'Atleta',
+            fotoUrl: v.photoURL || null,
+          } as Giocatore;
+        })
+      );
 
-      const maybePlayers = s.maybeVoters
-        .map((v) =>
-          allPlayers.find(
+      const maybePlayers = this.sortPlayersDeterministic(
+        s.maybeVoters.map((v) => {
+          const matched = allPlayers.find(
             (g) =>
               (v.playerId && g.id === v.playerId) ||
               (g.linkedUid && g.linkedUid === v.uid)
-          )
-        )
-        .filter((g): g is Giocatore => !!g);
+          );
+          if (matched) return matched;
+          return {
+            id: v.playerId || v.uid,
+            nome: v.displayName || 'Atleta',
+            fotoUrl: v.photoURL || null,
+          } as Giocatore;
+        })
+      );
 
       const isPast = s.date < todayStr;
       const isToday = s.date === todayStr;
@@ -683,7 +731,7 @@ export class CalendarioPage implements OnInit {
       const pollPercentage = Math.min(100, Math.round((s.voterCount / quorumTarget) * 100));
 
       const avatarSlice = players.slice(0, 4);
-      const extraCount = Math.max(0, players.length - 4);
+      const extraCount = Math.max(0, s.voterCount - avatarSlice.length);
 
       return {
         dateStr: s.date,

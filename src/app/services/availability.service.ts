@@ -70,6 +70,18 @@ export class AvailabilityService {
     const days = this.activeWeekDays();
     const allVotes = Object.values(doc?.votes || {});
 
+    const currentUid = this.auth.firebaseUser()?.uid;
+    const currentPid = this.auth.linkedPlayerId();
+
+    // Ordinamento deterministico stabile: l'utente loggato in testa, poi tutti in ordine alfabetico
+    allVotes.sort((a, b) => {
+      const isAMe = (currentUid && a.uid === currentUid) || (currentPid && a.playerId === currentPid);
+      const isBMe = (currentUid && b.uid === currentUid) || (currentPid && b.playerId === currentPid);
+      if (isAMe && !isBMe) return -1;
+      if (!isAMe && isBMe) return 1;
+      return (a.displayName || '').localeCompare(b.displayName || '') || (a.uid || '').localeCompare(b.uid || '');
+    });
+
     return days.map((d) => {
       const voters = allVotes.filter((v) => (v.availableDates || []).includes(d.date));
       const maybeVoters = allVotes.filter((v) => (v.maybeDates || []).includes(d.date));

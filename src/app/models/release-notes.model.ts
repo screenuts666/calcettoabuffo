@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.54",
+    "date": "09/11/2026",
+    "title": "Stabilità Avatar Stack Disponibilità & Ordinamento Deterministico",
+    "userChanges": [
+      "🛡️ Avatar Stack Stabile al 100%: risolto il problema per cui votando un giorno qualsiasi (es. Sabato), le icone avatar degli altri giorni della settimana (Lunedì, Martedì, ecc.) si muovevano, scambiavano o sparivano.",
+      "👤 Tuo Avatar Sempre al Primo Posto: nei giorni in cui hai espresso presenza, il tuo avatar compare sempre per primo a sinistra, seguito da tutti gli altri compagni in rigoroso ordine alfabetico invariabile.",
+      "⚡ Zero Sfarfallii o Salti Visivi: le micro-icone rimangono ferme e stabili, aggiornando unicamente la riga del giorno su cui hai effettivamente cliccato o fatto tap."
+    ],
+    "superUserChanges": [
+      "🧩 Deterministic Voters Sorting: applicato ordinamento stabile deterministico sia a livello di daySummaries in AvailabilityService sia in CalendarioPage, preservando tutti i profili e prevenendo re-render inutili di Angular."
+    ]
+  },
+  {
     "version": "2.0.53",
     "date": "09/11/2026",
     "title": "Refactoring Tab Partite: Ricerca Naturale Mesi & Meteo, Doppia Statistica Gol e Card Svelte",
