@@ -103,8 +103,7 @@ export type CriterioOrdinamentoPartite =
   | 'assist'
   | 'tempo'
   | 'mediaVoto'
-  | 'giocatori'
-  | 'campetto';
+  | 'giocatori';
 
 export interface CriterioPartitaOption {
   id: CriterioOrdinamentoPartite;
@@ -131,12 +130,6 @@ export const CRITERI_ORDINAMENTO_PARTITE: CriterioPartitaOption[] = [
     label: 'Giocatori',
     icon: 'people-outline',
     unit: 'GIOCATORI',
-  },
-  {
-    id: 'campetto',
-    label: 'Campetto',
-    icon: 'location-outline',
-    unit: 'CAMPO',
   },
 ];
 
@@ -742,12 +735,6 @@ export class PartitePage {
           diff = jb - ja;
           break;
         }
-        case 'campetto': {
-          const la = (a.luogo || '').trim().toLowerCase();
-          const lb = (b.luogo || '').trim().toLowerCase();
-          diff = la.localeCompare(lb);
-          return asc ? -diff : diff;
-        }
         case 'data':
         default: {
           const da =
@@ -1185,14 +1172,6 @@ export class PartitePage {
           etichetta: 'GIOCATORI',
           subText:
             teamA > 0 && teamB > 0 ? `${teamA} vs ${teamB}` : 'Convocati',
-          subType: 'neutral',
-        };
-      }
-      case 'campetto': {
-        return {
-          valore: '📍',
-          etichetta: 'CAMPETTO',
-          subText: m.luogo || 'Non spec.',
           subType: 'neutral',
         };
       }

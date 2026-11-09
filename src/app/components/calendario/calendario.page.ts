@@ -58,6 +58,7 @@ import {
   checkboxOutline,
   chevronDownOutline,
   chevronUpOutline,
+  trashOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 
@@ -253,6 +254,7 @@ export class CalendarioPage implements OnInit {
       checkboxOutline,
       chevronDownOutline,
       chevronUpOutline,
+      trashOutline,
     });
   }
 
@@ -901,6 +903,27 @@ export class CalendarioPage implements OnInit {
       await t.present();
     } catch {
       // ignore
+    }
+  }
+
+  async cancellaTuttiIVotiDev(): Promise<void> {
+    try {
+      await this.availabilityService.cancellaTuttiIVotiDev();
+      const t = await this.toastCtrl.create({
+        message: '🗑️ Tutti i voti della settimana sono stati azzerati (0 presenze).',
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+      });
+      await t.present();
+    } catch (e: any) {
+      const t = await this.toastCtrl.create({
+        message: e?.message || 'Errore durante la cancellazione dei voti',
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await t.present();
     }
   }
 

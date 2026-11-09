@@ -1,40 +1,18 @@
 [
   {
+    "version": "2.0.56",
+    "date": "09/11/2026",
+    "title": "Rimozione Ordinamento per Campetto & Bottone DEV Svuota Voti Settimana",
+    "userChanges": [
+      "✨ Criteri di Ordinamento Puliti: rimosso l'ordinamento per campetto dalle chip della lista Partite (il campetto resta disponibile come filtro per filtrare le gare giocate su uno specifico campo).",
+      "💾 Salvataggio Preferenze Garantito: ogni voto espresso nel calendario o nella partita viene sincronizzato e persistito istantaneamente su Firestore."
+    ],
+    "superUserChanges": [
+      "🗑️ Bottone DEV Svuota Voti: aggiunto un pulsante dedicato 'Cancella Tutti i Voti' nella barra DEV della pagina Disponibilità per azzerare completamente a 0 voti la settimana corrente durante i test."
+    ]
+  },
+  {
     "version": "2.0.55",
-    "date": "09/11/2026",
-    "title": "UX Convocazioni Semplificata, Auto-Bilanciamento Squadre AI, Badge Oggi/Domani & Meteo Match",
-    "userChanges": [
-      "🏷️ Badge 'OGGI' e 'DOMANI' Ovunque: le partite e i giorni del calendario mostrano chiare etichette temporali (OGGI celeste, DOMANI viola) per individuare al volo la gara imminente.",
-      "✅ Presenza 1-Tap Senza Clutter: eliminato il pulsante superfluo 'Assente' e il contatore negativo. Ora basta toccare '✅ Partecipo' per confermare o togliere la presenza con un tap.",
-      "🤔 Gestione Intelligente dei Forse: se sei in dubbio selezioni '🤔 Forse'. Il Mister ha a disposizione una nuova striscia dedicata con sollecito WhatsApp istantaneo per chiudere le convocazioni.",
-      "⚽ Formati di Gioco Unificati: visualizzazione sempre coerente e maiuscola per tutti i formati ('Calcio a 5', 'Calcio a 6', 'Calcio a 7') con conteggio effettivo e preciso dei giocatori in campo."
-    ],
-    "superUserChanges": [
-      "🤖 Auto-Bilanciamento Squadre AI al 1° Ingresso: entrando nello step Squadre di una partita con convocati, l'app applica automaticamente la proposta #1 raccomandata dall'algoritmo AI invece di lasciare una squadra vuota a 0.",
-      "🌤️ Meteo Dinamico in Gestione Match: le condizioni meteo (temperatura, icona, pioggia) si aggiornano in tempo reale in base alla data selezionata per la partita.",
-      "📝 Note Bordocampo Integrate: rimossa la pesante card separata 'Retroscena Spogliatoio AI', ora elegantemente integrata nelle coordinate del match come 'Note Bordocampo (Opzionale)'.",
-      "📅 Navigazione Settimana Perfetta: il tasto 'Oggi' riporta sempre alla settimana della data odierna e il tag contestuale indica 'Questa Settimana' o 'Prossima Settimana'."
-    ]
-  },
-  {
-    "version": "NEXT",
-    "date": "09/11/2026",
-    "title": "UX Convocazioni Semplificata, Auto-Bilanciamento Squadre AI, Badge Oggi/Domani & Meteo Match",
-    "userChanges": [
-      "🏷️ Badge 'OGGI' e 'DOMANI' Ovunque: le partite e i giorni del calendario mostrano chiare etichette temporali (OGGI celeste, DOMANI viola) per individuare al volo la gara imminente.",
-      "✅ Presenza 1-Tap Senza Clutter: eliminato il pulsante superfluo 'Assente' e il contatore negativo. Ora basta toccare '✅ Partecipo' per confermare o togliere la presenza con un tap.",
-      "🤔 Gestione Intelligente dei Forse: se sei in dubbio selezioni '🤔 Forse'. Il Mister ha a disposizione una nuova striscia dedicata con sollecito WhatsApp istantaneo per chiudere le convocazioni.",
-      "⚽ Formati di Gioco Unificati: visualizzazione sempre coerente e maiuscola per tutti i formati ('Calcio a 5', 'Calcio a 6', 'Calcio a 7') con conteggio effettivo e preciso dei giocatori in campo."
-    ],
-    "superUserChanges": [
-      "🤖 Auto-Bilanciamento Squadre AI al 1° Ingresso: entrando nello step Squadre di una partita con convocati, l'app applica automaticamente la proposta #1 raccomandata dall'algoritmo AI invece di lasciare una squadra vuota a 0.",
-      "🌤️ Meteo Dinamico in Gestione Match: le condizioni meteo (temperatura, icona, pioggia) si aggiornano in tempo reale in base alla data selezionata per la partita.",
-      "📝 Note Bordocampo Integrate: rimossa la pesante card separata 'Retroscena Spogliatoio AI', ora elegantemente integrata nelle coordinate del match come 'Note Bordocampo (Opzionale)'.",
-      "📅 Navigazione Settimana Perfetta: il tasto 'Oggi' riporta sempre alla settimana della data odierna e il tag contestuale indica 'Questa Settimana' o 'Prossima Settimana'."
-    ]
-  },
-  {
-    "version": "2.0.54",
     "date": "09/11/2026",
     "title": "Stabilità Avatar Stack Disponibilità & Ordinamento Deterministico",
     "userChanges": [

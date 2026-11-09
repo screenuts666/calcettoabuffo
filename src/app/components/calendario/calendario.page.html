@@ -123,18 +123,19 @@
                 type="button"
                 class="btn-dev-simulate"
                 (click)="simulaVotiCompagniDev()"
-                title="Simula voti distribuiti realistici"
+                title="Simula voti distribuiti realistici per testare quorum e pareggi"
               >
                 <ion-icon name="flash"></ion-icon>
                 <span>DEV: Simula Voti</span>
               </button>
               <button
                 type="button"
-                class="btn-dev-reset"
-                (click)="resetVotiCompagniDev()"
-                title="Azzera voti simulati"
+                class="btn-dev-clear-all"
+                (click)="cancellaTuttiIVotiDev()"
+                title="Azzera e cancella TUTTI i voti della settimana su Firestore"
               >
-                <ion-icon name="refresh-outline"></ion-icon>
+                <ion-icon name="trash-outline"></ion-icon>
+                <span>Cancella Tutti i Voti</span>
               </button>
             </div>
           }
