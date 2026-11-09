@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.48",
+    "date": "09/11/2026",
+    "title": "Disponibilità 'Zero-Scroll' Stile Sondaggio WhatsApp & Zoom Integrato",
+    "userChanges": [
+      "📲 Layout Zero-Scroll a 7 Righe Compatte: tutti i 7 giorni della settimana (Lun–Dom) sono visibili simultaneamente nello schermo senza dover scrollare, con altezza ottimizzata (~52px).",
+      "📊 Sondaggio Stile WhatsApp: barra di progresso sottile in background dinamica proporzionata al quorum e comodo checkbox circolare a destra per esprimere o togliere la presenza con 1 tap del pollice.",
+      "👥 Avatar Stack Sovrapposto & Dettaglio Voti: cerchietti sovrapposti con le foto dei primi convocati e contatore presenze; toccando i votanti si apre una comoda scheda con l'elenco nominativo completo.",
+      "✨ Top Bar Pulita: rimosso l'ingombro dello zoom dall'header per mostrare il titolo 'Disponibilità' per intero senza troncature."
+    ],
+    "superUserChanges": [
+      "🎛️ Segmented Control Zoom (S | M | A): selettore di scala temporale compatto integrato elegantemente a fianco del tasto 'Oggi' nella barra di navigazione del periodo, riservato a Mister e Presidente.",
+      "⚽ 'Crea Partita' Contestuale in Riga: rimossi i pulsanti ingombranti in cima alla pagina; l'azione per avviare il match compare esclusivamente dentro la riga del giorno che ha raggiunto il quorum."
+    ]
+  },
+  {
     "version": "2.0.47",
     "date": "09/11/2026",
     "title": "Tab Disponibilità Full-Screen, Zoom Gerarchico Mister & Fix Navigazione Partite",

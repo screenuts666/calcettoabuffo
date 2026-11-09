@@ -3,35 +3,6 @@
     <ion-title>Disponibilità</ion-title>
 
     <ion-buttons slot="end">
-      <!-- CONTROLLI ZOOM GERARCHICO (SOLO MISTER E PRESIDENTE) -->
-      @if (canUseZoom()) {
-        <div class="zoom-controls-bar" title="Zoom temporale (riservato al Mister e Presidente)">
-          <button
-            type="button"
-            class="btn-zoom"
-            [disabled]="!canZoomIn()"
-            (click)="zoomIn()"
-            title="Zoom In (Aumenta dettaglio)"
-          >
-            <ion-icon name="add-circle-outline"></ion-icon>
-          </button>
-
-          <span class="zoom-badge">
-            {{ viewMode() === 'week' ? 'Settimana' : (viewMode() === 'month' ? 'Mese' : 'Anno') }}
-          </span>
-
-          <button
-            type="button"
-            class="btn-zoom"
-            [disabled]="!canZoomOut()"
-            (click)="zoomOut()"
-            title="Zoom Out (Allarga panoramica)"
-          >
-            <ion-icon name="remove-circle-outline"></ion-icon>
-          </button>
-        </div>
-      }
-
       <!-- Condividi Disponibilità su WhatsApp -->
       <ion-button
         fill="clear"
@@ -48,40 +19,77 @@
 
   <!-- BARRA NAVIGAZIONE DINAMICA CONTESTUALE ALLO ZOOM -->
   <div class="cal-dynamic-nav-bar">
-    <button
-      type="button"
-      class="btn-dyn-nav"
-      [disabled]="!canNavigaPrecedente()"
-      [class.disabled]="!canNavigaPrecedente()"
-      (click)="navigaPrecedente()"
-      title="Precedente"
-    >
-      <ion-icon name="chevron-back"></ion-icon>
-    </button>
+    <div class="dyn-nav-controls">
+      <button
+        type="button"
+        class="btn-dyn-nav"
+        [disabled]="!canNavigaPrecedente()"
+        [class.disabled]="!canNavigaPrecedente()"
+        (click)="navigaPrecedente()"
+        title="Settimana precedente"
+      >
+        <ion-icon name="chevron-back"></ion-icon>
+      </button>
 
-    <div class="dyn-nav-label-wrapper">
-      <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'"></ion-icon>
-      <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
+      <div class="dyn-nav-label-wrapper">
+        <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'"></ion-icon>
+        <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
+      </div>
+
+      <button
+        type="button"
+        class="btn-dyn-nav"
+        (click)="navigaSuccessivo()"
+        title="Settimana successiva"
+      >
+        <ion-icon name="chevron-forward"></ion-icon>
+      </button>
     </div>
 
-    <button
-      type="button"
-      class="btn-dyn-nav"
-      (click)="navigaSuccessivo()"
-      title="Successivo"
-    >
-      <ion-icon name="chevron-forward"></ion-icon>
-    </button>
+    <div class="dyn-nav-actions">
+      <button
+        type="button"
+        class="btn-dyn-today"
+        (click)="navigaOggi()"
+        title="Torna ad oggi / settimana corrente"
+      >
+        <ion-icon name="today-outline"></ion-icon>
+        <span>Oggi</span>
+      </button>
 
-    <button
-      type="button"
-      class="btn-dyn-today"
-      (click)="navigaOggi()"
-      title="Torna ad oggi / settimana corrente"
-    >
-      <ion-icon name="today-outline"></ion-icon>
-      <span>Oggi</span>
-    </button>
+      <!-- ZOOM TEMPORALE S | M | A DEDICATO A MISTER E PRESIDENTE -->
+      @if (canUseZoom()) {
+        <div class="zoom-segmented-control" role="group" aria-label="Scala temporale">
+          <button
+            type="button"
+            class="btn-zoom-segment"
+            [class.active]="viewMode() === 'week'"
+            (click)="setViewMode('week')"
+            title="Vista Settimanale (Votazione)"
+          >
+            S
+          </button>
+          <button
+            type="button"
+            class="btn-zoom-segment"
+            [class.active]="viewMode() === 'month'"
+            (click)="setViewMode('month')"
+            title="Vista Mensile"
+          >
+            M
+          </button>
+          <button
+            type="button"
+            class="btn-zoom-segment"
+            [class.active]="viewMode() === 'year'"
+            (click)="setViewMode('year')"
+            title="Vista Annuale"
+          >
+            A
+          </button>
+        </div>
+      }
+    </div>
   </div>
 </ion-header>
 
@@ -109,16 +117,16 @@
   <!-- ======================================================== -->
   @if (!availabilityService.isSummerBreakActive()) {
     @switch (viewMode()) {
-      <!-- ── VISTA 1: SETTIMANA FULL-SCREEN (DEFAULT ATLETI & MISTER) ── -->
+      <!-- ── VISTA 1: SETTIMANA ZERO-SCROLL (STILE SONDAGGIO WHATSAPP) ── -->
       @case ('week') {
-        <div class="weekly-fullscreen-view">
-          <!-- TOP STATUS: TOP VOTED & QUICK CALLOUTS -->
+        <div class="weekly-poll-view">
+          <!-- STRISCIA SOTTILE FAVORITO E SOLLECITA -->
           @if (topVotedDayInfo(); as top) {
             <div class="week-top-callout">
               <div class="wtc-left">
                 <ion-icon name="flame" class="fire-icon"></ion-icon>
                 <span class="wtc-text">
-                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
+                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong>)
                   @if (top.hasQuorum) {
                     <span class="callout-quorum">⚽ Quorum!</span>
                   }
@@ -129,7 +137,7 @@
                 type="button"
                 class="btn-wa-sollecita"
                 (click)="condividiSuWhatsApp()"
-                title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
+                title="Invia riepilogo sul gruppo WhatsApp"
               >
                 <ion-icon name="logo-whatsapp"></ion-icon>
                 <span>Sollecita</span>
@@ -137,34 +145,17 @@
             </div>
           }
 
-          <!-- CREA PARTITA GENERALE PER MISTER SE QUORUM RAGGIUNTO IN SETTIMANA -->
-          @if (auth.isSuperUser() && daysWithQuorum().length > 0) {
-            <div class="weekly-quorum-create-bar">
-              @for (qDay of daysWithQuorum(); track qDay.dateStr) {
-                <button
-                  type="button"
-                  class="btn-quorum-create-match"
-                  (click)="fissaPartitaSlot(qDay.dateStr)"
-                  title="Crea partita ufficiale per {{ qDay.dayLabelFull }} con {{ qDay.count }} convocati"
-                >
-                  <ion-icon name="football-outline"></ion-icon>
-                  <span>Crea Partita {{ qDay.dayLabel }} ({{ qDay.count }} convocati)</span>
-                </button>
-              }
-            </div>
-          }
-
-          <!-- DEV SIMULATION BAR -->
+          <!-- DEV SIMULATION BAR COMPATTA -->
           @if (isDevMode) {
             <div class="weekly-dev-simulation-bar">
               <button
                 type="button"
                 class="btn-dev-simulate"
                 (click)="simulaVotiCompagniDev()"
-                title="Disponibile solo in ambiente DEV: simula voti di compagni diversi con numeri diversi per ogni giorno"
+                title="Simula voti distribuiti realistici"
               >
                 <ion-icon name="flash"></ion-icon>
-                <span>⚡ DEV: Simula Voti Compagni (Numeri Diversi)</span>
+                <span>DEV: Simula Voti</span>
               </button>
               <button
                 type="button"
@@ -173,123 +164,131 @@
                 title="Azzera voti simulati"
               >
                 <ion-icon name="refresh-outline"></ion-icon>
-                <span>Reset DEV</span>
               </button>
             </div>
           }
 
-          <!-- ELENCO VERTICALE DEI 7 GIORNI (CARD FULL-SCREEN) -->
-          <div class="week-days-cards-stack">
+          <!-- 7 RIGHE COMPATTE STILE SONDAGGIO WHATSAPP (ZERO-SCROLL) -->
+          <div class="poll-week-stack">
             @for (day of activeWeekDaysList(); track day.dateStr) {
               <div
-                class="week-day-card"
+                class="poll-day-row"
                 [class.is-today]="day.isToday"
                 [class.is-tomorrow]="day.isTomorrow"
                 [class.is-past]="day.isPast"
                 [class.is-top-voted]="day.isTopVoted && !day.isPast"
                 [class.has-quorum]="day.isQuorumReached && !day.isPast"
                 [class.voted-by-me]="day.isVotedByMe"
+                [style.--poll-pct]="day.pollPercentage + '%'"
+                (click)="!day.isPast && toggleVotoGiorno(day.dateStr)"
               >
-                <!-- TOP CARD: GIORNO, BADGE & METEO INLINE (POINTER-EVENTS: NONE) -->
-                <div class="card-top-row">
-                  <div class="card-date-col">
-                    <div class="card-day-title-row">
-                      <span class="card-day-name">{{ day.dayLabelFull }}</span>
+                <!-- BARRA DI PROGRESSO SOTTILE IN BACKGROUND -->
+                <div class="poll-progress-bg"></div>
+
+                <!-- CORPO CENTRALE / INFO GIORNO & VOTI -->
+                <div class="poll-row-main">
+                  <!-- RIGA SUPERIORE: DATA, BADGE, METEO INLINE -->
+                  <div class="prm-top-line">
+                    <div class="prm-date-wrap">
+                      <span class="prm-day-label">{{ day.shortDateLabel }}</span>
                       @if (day.isToday) {
-                        <span class="badge-status-pill today">OGGI</span>
+                        <span class="micro-badge today">OGGI</span>
                       } @else if (day.isTomorrow) {
-                        <span class="badge-status-pill tomorrow">DOMANI</span>
-                      } @else if (day.isPast) {
-                        <span class="badge-status-pill past">PASSATO</span>
+                        <span class="micro-badge tomorrow">DOMANI</span>
                       }
                       @if (day.isTopVoted && !day.isPast) {
-                        <span class="badge-status-pill top">🔥 FAVORITO</span>
-                      }
-                      @if (day.matches.length > 0) {
-                        <button
-                          type="button"
-                          class="badge-match-pill"
-                          (click)="apriPartita(day.matches[0].id)"
-                          title="Apri scheda partita ufficiale già fissata"
-                        >
-                          ⚽ PARTITA FISSATA
-                        </button>
+                        <span class="micro-badge top">🔥 TOP</span>
                       }
                     </div>
-                  </div>
 
-                  <!-- DATI METEO INLINE INFORMATIVI (NESSUN CLICK, POINTER-EVENTS NONE) -->
-                  @if (mostraMeteo() && day.weather) {
-                    <div class="card-weather-inline" [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '°)'">
-                      <span class="cw-icon">{{ day.weather.iconEmoji }}</span>
-                      <div class="cw-details">
-                        <span class="cw-temps"><strong>{{ day.weather.tempMax }}°</strong> / {{ day.weather.tempMin }}°</span>
-                        <span class="cw-label">{{ day.weather.conditionDescription }}</span>
+                    <!-- METEO INLINE MINIMAL (POINTER-EVENTS NONE) -->
+                    @if (mostraMeteo() && day.weather) {
+                      <div
+                        class="prm-weather-badge"
+                        [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '° / ' + day.weather.tempMin + '°)'"
+                      >
+                        <span class="prm-w-icon">{{ day.weather.iconEmoji }}</span>
+                        <span class="prm-w-temps">{{ day.weather.tempMax }}°/{{ day.weather.tempMin }}°</span>
                       </div>
-                    </div>
-                  }
-                </div>
-
-                <!-- RIGA PRESENZE: CONTATORE & AVATAR COMPAGNI -->
-                <div class="card-presence-body">
-                  <div class="presence-header-line" [class.quorum]="day.isQuorumReached && !day.isPast">
-                    <ion-icon name="people" [class.quorum-icon]="day.isQuorumReached && !day.isPast"></ion-icon>
-                    <span class="presence-count-label">
-                      @if (day.isPast) {
-                        Votazioni concluse ({{ day.count }} partecipanti)
-                      } @else if (day.isQuorumReached) {
-                        <strong>{{ day.count }} atleti presenti</strong> • <span class="quorum-badge-green">QUORUM RAGGIUNTO 🟢</span>
-                      } @else if (day.count > 0) {
-                        <strong>{{ day.count }} atleti presenti</strong> <span class="missing-text">(mancano {{ day.missingToQuorum }} al quorum)</span>
-                      } @else {
-                        Nessuna presenza ancora registrata
-                      }
-                    </span>
+                    }
                   </div>
 
-                  <!-- AVATAR COMPAGNI PRESENTI -->
-                  @if (day.players.length > 0) {
-                    <div class="players-avatar-list">
-                      @for (p of day.players; track p.id) {
-                        <div class="player-avatar-chip" [title]="p.nome">
-                          <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                          <span class="chip-name">{{ p.nome.split(' ')[0] }}</span>
+                  <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM -->
+                  <div class="prm-bottom-line">
+                    <div
+                      class="prm-voters-meta"
+                      (click)="day.players.length > 0 && apriDettaglioVotanti(day, $event)"
+                      [class.interactive]="day.players.length > 0"
+                      title="Tocca per vedere l'elenco dei presenti"
+                    >
+                      @if (day.players.length > 0) {
+                        <div class="avatar-overlap-stack">
+                          @for (p of day.avatarSlice; track p.id) {
+                            <div class="stacked-avatar-item" [title]="p.nome">
+                              <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                            </div>
+                          }
+                          @if (day.extraCount > 0) {
+                            <span class="stacked-extra-pill">+{{ day.extraCount }}</span>
+                          }
                         </div>
                       }
-                    </div>
-                  }
-                </div>
 
-                <!-- CONTROLLI RAPIDI DI VOTO (CTA ERGONOMICHE) -->
-                <div class="card-actions-footer">
-                  @if (day.isPast) {
-                    <div class="btn-vote-disabled-slot">
-                      <span>Votazioni chiuse</span>
+                      <span class="prm-count-text">
+                        @if (day.isPast) {
+                          <span class="past-text">Chiuso ({{ day.count }})</span>
+                        } @else if (day.isQuorumReached) {
+                          <strong class="quorum-text">{{ day.count }}/10 🟢 QUORUM</strong>
+                        } @else if (day.count > 0) {
+                          <span><strong>{{ day.count }}/10</strong> presenti</span>
+                        } @else {
+                          <span class="empty-voters">0 presenti</span>
+                        }
+                      </span>
                     </div>
-                  } @else {
-                    <button
-                      type="button"
-                      class="btn-vote-card-cta"
-                      [class.voted]="day.isVotedByMe"
-                      (click)="toggleVotoGiorno(day.dateStr)"
-                    >
-                      <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'add-circle-outline'"></ion-icon>
-                      <span>{{ day.isVotedByMe ? 'Ci Sei (Tocca per togliere)' : 'Sono Presente (1 tap)' }}</span>
-                    </button>
 
-                    <!-- CREA PARTITA: SOLO PER MISTER O PRESIDENTE E SOLO SE C'E' IL QUORUM -->
-                    @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
+                    <!-- PARTITA GIÀ FISSATA -->
+                    @if (day.matches.length > 0) {
                       <button
                         type="button"
-                        class="btn-card-create-match"
-                        (click)="fissaPartitaSlot(day.dateStr)"
-                        title="Crea partita ufficiale per questo giorno con tutti i convocati"
+                        class="btn-row-match-link"
+                        (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
+                        title="Apri scheda partita ufficiale"
                       >
-                        <ion-icon name="football-outline"></ion-icon>
-                        <span>Crea Partita ({{ day.count }} convocati)</span>
+                        ⚽ Partita
                       </button>
                     }
+                  </div>
+                </div>
+
+                <!-- AZIONI DESTRA: CREA PARTITA IN RIGA (SOLO MISTER SU QUORUM) + CHECKBOX VOTO WHATSAPP -->
+                <div class="poll-row-actions">
+                  @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
+                    <button
+                      type="button"
+                      class="btn-row-create-match"
+                      (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                      title="Crea partita con tutti i convocati (Quorum raggiunto!)"
+                    >
+                      <ion-icon name="football-outline"></ion-icon>
+                      <span>Crea</span>
+                    </button>
                   }
+
+                  <button
+                    type="button"
+                    class="btn-whatsapp-vote-check"
+                    [class.voted]="day.isVotedByMe"
+                    [disabled]="day.isPast"
+                    (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
+                    [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
+                  >
+                    @if (day.isVotedByMe) {
+                      <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
+                    } @else {
+                      <span class="check-ring-unvoted"></span>
+                    }
+                  </button>
                 </div>
               </div>
             }

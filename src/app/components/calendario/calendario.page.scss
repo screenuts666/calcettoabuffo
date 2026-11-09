@@ -5,61 +5,13 @@
 
   ion-title {
     font-weight: 800;
-    font-size: 1.2rem;
+    font-size: 1.18rem;
     letter-spacing: -0.02em;
   }
 }
 
-/* ─────────────────────────────────────────────────────────────
-   BARRA SUPERIORE ZOOM (ESCLUSIVO MISTER E PRESIDENTE)
-   ───────────────────────────────────────────────────────────── */
-.zoom-controls-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  padding: 3px 6px;
-  border-radius: 20px;
-  margin-right: 6px;
-
-  .btn-zoom {
-    background: transparent;
-    border: none;
-    color: #e2e8f0;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    cursor: pointer;
-    border-radius: 50%;
-    transition: background 0.15s ease, opacity 0.15s ease;
-
-    &:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.15);
-      color: #38bdf8;
-    }
-
-    &:disabled {
-      opacity: 0.25;
-      cursor: not-allowed;
-    }
-  }
-
-  .zoom-badge {
-    font-size: 0.72rem;
-    font-weight: 800;
-    color: #38bdf8;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 0 4px;
-  }
-}
-
 .share-wa-header-btn {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
   --color: #10b981;
 
@@ -76,71 +28,131 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 14px;
+  padding: 6px 12px;
   background: var(--ion-color-step-100, #1e293b);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  .btn-dyn-nav {
-    background: rgba(255, 255, 255, 0.08);
-    border: none;
-    color: #f8fafc;
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
+  .dyn-nav-controls {
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
+    gap: 6px;
+    min-width: 0;
 
-    &:active:not(:disabled) {
-      transform: scale(0.92);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    &:disabled,
-    &.disabled {
-      opacity: 0.3;
-      cursor: not-allowed;
-    }
-  }
-
-  .dyn-nav-label-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    ion-icon {
-      font-size: 1.15rem;
-      color: #10b981;
-    }
-
-    .dyn-nav-label {
-      margin: 0;
-      font-size: 1.02rem;
-      font-weight: 800;
+    .btn-dyn-nav {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
       color: #f8fafc;
-      letter-spacing: -0.01em;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.1s ease;
+
+      &:active:not(:disabled) {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      &:disabled,
+      &.disabled {
+        opacity: 0.25;
+        cursor: not-allowed;
+      }
+    }
+
+    .dyn-nav-label-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+
+      ion-icon {
+        font-size: 1rem;
+        color: #10b981;
+        flex-shrink: 0;
+      }
+
+      .dyn-nav-label {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 800;
+        color: #f8fafc;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+      }
     }
   }
 
-  .btn-dyn-today {
-    background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16, 185, 129, 0.35);
-    color: #34d399;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 700;
+  .dyn-nav-actions {
     display: flex;
     align-items: center;
-    gap: 4px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    gap: 6px;
+    flex-shrink: 0;
 
-    &:active {
-      background: rgba(16, 185, 129, 0.25);
+    .btn-dyn-today {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      ion-icon {
+        font-size: 0.95rem;
+      }
+
+      &:active {
+        background: rgba(16, 185, 129, 0.25);
+      }
+    }
+
+    /* SEGMENTED CONTROL MINIMALE S | M | A RISERVATO A MISTER E PRESIDENTE */
+    .zoom-segmented-control {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+
+      .btn-zoom-segment {
+        background: transparent;
+        border: none;
+        color: #94a3b8;
+        font-size: 0.72rem;
+        font-weight: 800;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &.active {
+          background: #10b981;
+          color: #ffffff;
+          box-shadow: 0 1px 4px rgba(16, 185, 129, 0.4);
+        }
+
+        &:hover:not(.active) {
+          color: #f8fafc;
+          background: rgba(255, 255, 255, 0.08);
+        }
+      }
     }
   }
 }
@@ -153,22 +165,22 @@
    BANNER PAUSA ESTIVA
    ───────────────────────────────────────────────────────────── */
 .summer-break-banner {
-  margin: 14px;
-  padding: 14px 16px;
+  margin: 10px 12px;
+  padding: 10px 14px;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.08));
   border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 14px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 
   .summer-break-content {
     display: flex;
     align-items: flex-start;
-    gap: 12px;
+    gap: 10px;
 
     .summer-icon {
-      font-size: 1.6rem;
+      font-size: 1.4rem;
       color: #f59e0b;
       margin-top: 2px;
     }
@@ -176,13 +188,13 @@
     .summer-text {
       strong {
         color: #f59e0b;
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         display: block;
         margin-bottom: 2px;
       }
       p {
         margin: 0;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         color: #e2e8f0;
       }
     }
@@ -193,53 +205,54 @@
     background: rgba(245, 158, 11, 0.25);
     border: 1px solid rgba(245, 158, 11, 0.45);
     color: #fbbf24;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 0.78rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.74rem;
     font-weight: 700;
     cursor: pointer;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   VISTA 1: SETTIMANA FULL-SCREEN (DEFAULT ATLETI & MISTER)
+   VISTA 1: SETTIMANA ZERO-SCROLL (STILE SONDAGGIO WHATSAPP)
    ───────────────────────────────────────────────────────────── */
-.weekly-fullscreen-view {
-  padding: 12px 14px;
+.weekly-poll-view {
+  padding: 6px 10px 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
 
   .week-top-callout {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px 14px;
-    background: rgba(251, 191, 36, 0.1);
-    border: 1px solid rgba(251, 191, 36, 0.3);
-    border-radius: 14px;
+    gap: 8px;
+    padding: 3px 8px;
+    min-height: 28px;
+    background: rgba(251, 191, 36, 0.08);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    border-radius: 8px;
 
     .wtc-left {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
+      gap: 5px;
+      font-size: 0.76rem;
       color: #e2e8f0;
 
       .fire-icon {
-        font-size: 1.25rem;
+        font-size: 1rem;
         color: #fbbf24;
         flex-shrink: 0;
       }
 
       .callout-quorum {
-        margin-left: 6px;
+        margin-left: 4px;
         background: rgba(16, 185, 129, 0.2);
         color: #34d399;
-        padding: 2px 6px;
-        border-radius: 6px;
-        font-size: 0.72rem;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 0.68rem;
         font-weight: 800;
       }
     }
@@ -248,20 +261,20 @@
       background: #10b981;
       color: #022c22;
       border: none;
-      padding: 6px 12px;
-      border-radius: 10px;
-      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
       font-weight: 800;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
       flex-shrink: 0;
-      transition: transform 0.15s ease;
+      transition: transform 0.12s ease;
 
       ion-icon {
-        font-size: 1rem;
+        font-size: 0.85rem;
       }
 
       &:active {
@@ -270,406 +283,366 @@
     }
   }
 
-  .weekly-quorum-create-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-
-    .btn-quorum-create-match {
-      width: 100%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-      color: #ffffff;
-      border: 1px solid rgba(52, 211, 153, 0.45);
-      border-radius: 12px;
-      padding: 10px 16px;
-      font-size: 0.88rem;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-      ion-icon {
-        font-size: 1.2rem;
-      }
-
-      &:hover {
-        filter: brightness(1.08);
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
-      }
-
-      &:active {
-        transform: scale(0.98);
-      }
-    }
-  }
-
   .weekly-dev-simulation-bar {
-    padding: 8px 10px;
-    background: rgba(245, 158, 11, 0.08);
-    border: 1px dashed rgba(245, 158, 11, 0.35);
-    border-radius: 12px;
+    padding: 2px 8px;
+    min-height: 26px;
+    background: rgba(245, 158, 11, 0.06);
+    border: 1px dashed rgba(245, 158, 11, 0.3);
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    flex-wrap: wrap;
 
     .btn-dev-simulate {
-      flex: 1;
-      background: rgba(245, 158, 11, 0.18);
-      border: 1px solid rgba(245, 158, 11, 0.4);
+      background: transparent;
+      border: none;
       color: #fbbf24;
-      font-size: 0.76rem;
-      font-weight: 800;
-      padding: 6px 12px;
-      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
+      gap: 4px;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 0.85rem;
+      }
+    }
+
+    .btn-dev-reset {
+      background: transparent;
+      border: none;
+      color: #f87171;
+      font-size: 0.68rem;
+      display: flex;
+      align-items: center;
       cursor: pointer;
 
       ion-icon {
         font-size: 0.95rem;
       }
     }
-
-    .btn-dev-reset {
-      background: rgba(239, 68, 68, 0.15);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #f87171;
-      font-size: 0.74rem;
-      font-weight: 700;
-      padding: 6px 10px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      cursor: pointer;
-    }
   }
 
-  /* ─────────────────────────────────────────────────────────────
-     ELENCO CARD SETTIMANALI (FULL-SCREEN VERTICALE)
-     ───────────────────────────────────────────────────────────── */
-  .week-days-cards-stack {
+  /* STACK RIGHE COMPATTE STILE SONDAGGIO (TUTTI I 7 GIORNI IN SCHERMATA) */
+  .poll-week-stack {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 5px;
 
-    .week-day-card {
+    .poll-day-row {
+      position: relative;
       background: var(--ion-color-step-50, #131c31);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 14px 16px;
+      border-radius: 12px;
+      min-height: 52px;
+      padding: 6px 10px;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
-      transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+
+      &:active {
+        background-color: rgba(255, 255, 255, 0.04);
+      }
 
       &.is-today {
-        border-color: rgba(56, 189, 248, 0.55);
-        box-shadow: 0 0 16px rgba(56, 189, 248, 0.18);
+        border-color: rgba(56, 189, 248, 0.5);
       }
 
       &.is-top-voted:not(.is-past) {
-        border: 2px solid #fbbf24 !important;
-        box-shadow: 0 0 16px rgba(251, 191, 36, 0.25) !important;
+        border-color: rgba(251, 191, 36, 0.6);
       }
 
       &.has-quorum:not(.is-past) {
-        border-color: rgba(16, 185, 129, 0.6);
+        border-color: rgba(16, 185, 129, 0.65);
       }
 
       &.voted-by-me:not(.is-past) {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--ion-color-step-50, #131c31) 100%);
+        border-color: rgba(16, 185, 129, 0.5);
       }
 
       &.is-past {
         opacity: 0.45;
         filter: grayscale(0.25);
-        background: rgba(15, 23, 42, 0.5);
-
-        .card-actions-footer {
-          pointer-events: none;
-        }
+        cursor: default;
       }
 
-      /* RIGA SUPERIORE: DATA + BADGES + METEO INFORMATIVO */
-      .card-top-row {
+      /* PROGRESS FILL IN BACKGROUND STILE WHATSAPP */
+      .poll-progress-bg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--poll-pct, 0%);
+        background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(16, 185, 129, 0.06) 100%);
+        pointer-events: none;
+        border-radius: 12px;
+        z-index: 1;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      &.is-top-voted:not(.is-past) .poll-progress-bg {
+        background: linear-gradient(90deg, rgba(251, 191, 36, 0.18) 0%, rgba(251, 191, 36, 0.06) 100%);
+      }
+
+      .poll-row-main {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        min-width: 0;
         display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 10px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 3px;
 
-        .card-date-col {
+        .prm-top-line {
           display: flex;
-          flex-direction: column;
-          gap: 4px;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
 
-          .card-day-title-row {
+          .prm-date-wrap {
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
+            min-width: 0;
 
-            .card-day-name {
-              font-size: 1.05rem;
+            .prm-day-label {
+              font-size: 0.86rem;
               font-weight: 800;
               color: #f8fafc;
-              letter-spacing: -0.01em;
+              white-space: nowrap;
             }
 
-            .badge-status-pill {
-              font-size: 0.65rem;
+            .micro-badge {
+              font-size: 0.58rem;
               font-weight: 800;
-              padding: 2px 7px;
-              border-radius: 8px;
+              padding: 1px 4px;
+              border-radius: 4px;
               text-transform: uppercase;
-              letter-spacing: 0.04em;
+              letter-spacing: 0.02em;
 
               &.today {
                 background: rgba(56, 189, 248, 0.2);
-                border: 1px solid rgba(56, 189, 248, 0.5);
                 color: #38bdf8;
+                border: 1px solid rgba(56, 189, 248, 0.4);
               }
 
               &.tomorrow {
                 background: rgba(147, 51, 234, 0.2);
-                border: 1px solid rgba(147, 51, 234, 0.5);
                 color: #c084fc;
-              }
-
-              &.past {
-                background: rgba(100, 116, 139, 0.2);
-                border: 1px solid rgba(100, 116, 139, 0.4);
-                color: #94a3b8;
+                border: 1px solid rgba(147, 51, 234, 0.4);
               }
 
               &.top {
-                background: rgba(245, 158, 11, 0.25);
-                border: 1px solid rgba(245, 158, 11, 0.6);
+                background: rgba(245, 158, 11, 0.2);
                 color: #fbbf24;
-              }
-            }
-
-            .badge-match-pill {
-              background: rgba(16, 185, 129, 0.2);
-              border: 1px solid rgba(16, 185, 129, 0.5);
-              color: #34d399;
-              font-size: 0.68rem;
-              font-weight: 800;
-              padding: 3px 8px;
-              border-radius: 8px;
-              cursor: pointer;
-              transition: transform 0.15s ease;
-
-              &:active {
-                transform: scale(0.95);
+                border: 1px solid rgba(245, 158, 11, 0.4);
               }
             }
           }
-        }
 
-        /* METEO INLINE INFORMATIVO: POINTER EVENTS DISABILITATI */
-        .card-weather-inline {
-          pointer-events: none !important;
-          user-select: none;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 10px;
-          padding: 4px 8px;
-          flex-shrink: 0;
-
-          .cw-icon {
-            font-size: 1.15rem;
-            line-height: 1;
-          }
-
-          .cw-details {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-
-            .cw-temps {
-              font-size: 0.74rem;
-              color: #cbd5e1;
-              strong {
-                color: #f8fafc;
-              }
-            }
-
-            .cw-label {
-              font-size: 0.65rem;
-              color: #94a3b8;
-            }
-          }
-        }
-      }
-
-      /* RIGA PRESENZE: CONTATORE & AVATAR */
-      .card-presence-body {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding: 8px 10px;
-        background: rgba(0, 0, 0, 0.15);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.04);
-
-        .presence-header-line {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.8rem;
-          color: #94a3b8;
-
-          ion-icon {
-            font-size: 1rem;
-            color: #94a3b8;
-
-            &.quorum-icon {
-              color: #10b981 !important;
-            }
-          }
-
-          .quorum-badge-green {
-            color: #10b981;
-            font-weight: 800;
-          }
-
-          .missing-text {
-            color: #64748b;
-          }
-
-          strong {
-            color: #f1f5f9;
-          }
-        }
-
-        .players-avatar-list {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-
-          .player-avatar-chip {
+          .prm-weather-badge {
+            pointer-events: none !important;
+            user-select: none;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            padding: 2px 7px 2px 3px;
-            border-radius: 14px;
-            font-size: 0.72rem;
-            color: #cbd5e1;
+            gap: 3px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1px 5px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
 
-            app-player-avatar {
-              width: 22px;
-              height: 22px;
+            .prm-w-icon {
+              font-size: 0.8rem;
+              line-height: 1;
             }
 
-            .chip-name {
+            .prm-w-temps {
+              font-size: 0.68rem;
               font-weight: 600;
+              color: #cbd5e1;
+            }
+          }
+        }
+
+        .prm-bottom-line {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+
+          .prm-voters-meta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+
+            &.interactive {
+              cursor: pointer;
+              &:active {
+                opacity: 0.8;
+              }
+            }
+
+            .avatar-overlap-stack {
+              display: inline-flex;
+              align-items: center;
+
+              .stacked-avatar-item {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 1.5px solid var(--ion-color-step-50, #131c31);
+                margin-left: -5px;
+                overflow: hidden;
+
+                &:first-child {
+                  margin-left: 0;
+                }
+
+                app-player-avatar {
+                  width: 100%;
+                  height: 100%;
+                  --avatar-size: 100%;
+                }
+              }
+
+              .stacked-extra-pill {
+                margin-left: -4px;
+                font-size: 0.58rem;
+                font-weight: 800;
+                background: rgba(255, 255, 255, 0.12);
+                color: #e2e8f0;
+                padding: 0 4px;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                line-height: 16px;
+                height: 16px;
+              }
+            }
+
+            .prm-count-text {
+              font-size: 0.72rem;
+              color: #94a3b8;
+              white-space: nowrap;
+
+              strong {
+                color: #f1f5f9;
+              }
+
+              .quorum-text {
+                color: #10b981;
+                font-weight: 800;
+              }
+
+              .past-text {
+                color: #64748b;
+              }
+
+              .empty-voters {
+                color: #64748b;
+                font-style: italic;
+              }
+            }
+          }
+
+          .btn-row-match-link {
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.45);
+            color: #34d399;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+
+            &:active {
+              transform: scale(0.94);
             }
           }
         }
       }
 
-      /* AZIONI VOTO: CTA GRANDI ED ERGONOMICHE */
-      .card-actions-footer {
+      .poll-row-actions {
+        position: relative;
+        z-index: 2;
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-left: 8px;
 
-        .btn-vote-disabled-slot {
-          padding: 8px 12px;
-          background: rgba(255, 255, 255, 0.04);
-          border-radius: 10px;
-          text-align: center;
-          font-size: 0.78rem;
-          color: #64748b;
-          font-weight: 700;
-        }
-
-        .btn-vote-card-cta {
-          width: 100%;
-          min-height: 44px;
-          padding: 10px 16px;
-          border-radius: 12px;
-          border: 1px solid rgba(56, 189, 248, 0.4);
-          background: rgba(56, 189, 248, 0.12);
-          color: #38bdf8;
-          font-size: 0.92rem;
-          font-weight: 800;
+        .btn-row-create-match {
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          gap: 8px;
+          gap: 4px;
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          color: #ffffff;
+          border: 1px solid rgba(52, 211, 153, 0.5);
+          border-radius: 8px;
+          padding: 4px 8px;
+          font-size: 0.72rem;
+          font-weight: 800;
           cursor: pointer;
-          transition: all 0.2s ease;
+          box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+          transition: transform 0.12s ease;
 
           ion-icon {
-            font-size: 1.25rem;
-          }
-
-          &:hover {
-            background: rgba(56, 189, 248, 0.2);
-            border-color: rgba(56, 189, 248, 0.6);
+            font-size: 0.85rem;
           }
 
           &:active {
-            transform: scale(0.98);
-          }
-
-          &.voted {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-            border-color: rgba(52, 211, 153, 0.5);
-            color: #ffffff;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-
-            ion-icon {
-              color: #ffffff;
-            }
+            transform: scale(0.94);
           }
         }
 
-        .btn-card-create-match {
-          width: 100%;
-          min-height: 40px;
-          padding: 8px 14px;
-          border-radius: 10px;
-          border: 1px solid rgba(251, 191, 36, 0.4);
-          background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
-          color: #fbbf24;
-          font-size: 0.84rem;
-          font-weight: 800;
-          display: inline-flex;
+        .btn-whatsapp-vote-check {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: transparent;
+          border: none;
+          padding: 0;
+          display: flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: transform 0.15s ease;
 
-          ion-icon {
-            font-size: 1.15rem;
+          &:active:not(:disabled) {
+            transform: scale(0.88);
           }
 
-          &:hover {
-            background: rgba(245, 158, 11, 0.3);
+          &:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
           }
 
-          &:active {
-            transform: scale(0.98);
+          .check-icon-voted {
+            font-size: 26px;
+            color: #10b981;
+            filter: drop-shadow(0 2px 5px rgba(16, 185, 129, 0.45));
+          }
+
+          .check-ring-unvoted {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.28);
+            transition: border-color 0.15s ease;
+          }
+
+          &:hover .check-ring-unvoted {
+            border-color: rgba(56, 189, 248, 0.65);
           }
         }
       }

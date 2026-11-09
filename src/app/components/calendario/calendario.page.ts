@@ -16,6 +16,7 @@ import {
   IonButton,
   IonIcon,
   ToastController,
+  AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -114,6 +115,7 @@ export class CalendarioPage implements OnInit {
   public campiService = inject(CampiService);
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
+  private alertCtrl = inject(AlertController);
 
   // Filtri calendario salvati in LocalStorage
   mostraPartitePassate = signal<boolean>(
@@ -319,9 +321,7 @@ export class CalendarioPage implements OnInit {
 
   readonly navigazioneHeaderLabel = computed(() => {
     if (this.viewMode() === 'week') {
-      const tag = this.availabilityService.activeWeekTag();
-      const range = this.availabilityService.activeWeekRangeLabel();
-      return tag ? `${range} (${tag})` : range;
+      return this.availabilityService.activeWeekRangeLabel();
     }
     if (this.viewMode() === 'month') {
       return this.meseAnnoLabel();
@@ -628,12 +628,25 @@ export class CalendarioPage implements OnInit {
       });
       const dayLabelFull = rawFull.charAt(0).toUpperCase() + rawFull.slice(1);
 
+      const shortMonth = dateObj.toLocaleDateString('it-IT', { month: 'short' }).replace('.', '');
+      const shortDateLabel = `${s.dayName} ${s.dayNumber} ${shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1)}`;
+
+      const quorumTarget = 10;
+      const pollPercentage = Math.min(100, Math.round((s.voterCount / quorumTarget) * 100));
+
+      const avatarSlice = players.slice(0, 4);
+      const extraCount = Math.max(0, players.length - 4);
+
       return {
         dateStr: s.date,
         dayName: s.dayName,
         dayNumber: s.dayNumber,
         dayLabel: `${s.dayName} ${s.dayNumber}`,
         dayLabelFull,
+        shortDateLabel,
+        pollPercentage,
+        avatarSlice,
+        extraCount,
         summary: s,
         isPast,
         isToday,
@@ -679,6 +692,32 @@ export class CalendarioPage implements OnInit {
     }
     return days[0];
   });
+
+  /** Mostra elenco convocati in un alert dialog compatto e leggibile */
+  async apriDettaglioVotanti(day: any, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!day.players || day.players.length === 0) return;
+
+    const namesList = day.players
+      .map((p: Giocatore, idx: number) => `<b>${idx + 1}.</b> ${p.nome}`)
+      .join('<br>');
+    const quorumMsg = day.isQuorumReached
+      ? '<br><br><span style="color:#10b981;font-weight:bold;">🟢 Quorum raggiunto (' +
+        day.count +
+        '/10)</span>'
+      : `<br><br><span style="color:#94a3b8;">Mancano ${day.missingToQuorum} atleti al quorum</span>`;
+
+    const alert = await this.alertCtrl.create({
+      header: day.dayLabelFull,
+      subHeader: `${day.count} presenze confermate`,
+      message: `${namesList}${quorumMsg}`,
+      buttons: ['Chiudi'],
+      cssClass: 'voters-detail-alert',
+    });
+    await alert.present();
+  }
 
   selezionaGiornoSettimana(dateStr: string): void {
     this.selectedWeekDayStr.set(dateStr);
