@@ -11,6 +11,18 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.57",
+    "date": "09/11/2026",
+    "title": "Sondaggio Settimanale Proiettato al Futuro & Storico Mese/Anno",
+    "userChanges": [
+      "📅 Sondaggio Settimanale Proiettato al Futuro: bloccata tassativamente la navigazione nel passato nella vista Settimana. Il sondaggio presenze non permette più di andare indietro prima della settimana corrente, evitando di visualizzare schermate con voti scaduti e disabilitati.",
+      "⏮️ Navigazione Mese e Anno Completa: per Mister e Presidente le viste Mese ed Anno possono navigare all'indietro fino alla prima partita disputata nella storia del club (Ottobre)."
+    ],
+    "superUserChanges": [
+      "🛡️ Controllo Temporale Differenziato: canNavigaPrecedente blocca a livello della settimana corrente solo la vista week (sondaggio), mentre per month e year applica il parsing completo delle date storiche per permettere la consultazione dello storico."
+    ]
+  },
+  {
     "version": "2.0.56",
     "date": "09/11/2026",
     "title": "Rimozione Ordinamento per Campetto & Bottone DEV Svuota Voti Settimana",

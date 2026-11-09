@@ -153,28 +153,31 @@ export class AvailabilityService {
     return this.getIsoWeekKey(new Date());
   });
 
-  /** Data della prima partita registrata nel sistema (per non navigare mai più indietro della storia reale) */
+  /** Data della prima partita registrata nel sistema (per non navigare mai più indietro della storia reale nelle viste Mese/Anno) */
   readonly earliestMatchDate = computed<string | null>(() => {
     const partite = this.statsEngine.partiteRaw() || [];
     const dates = partite
-      .map((p) => (p.dataPartita || p.dataOra || '').split('T')[0])
+      .map((p) => {
+        let d = (p.dataPartita || p.dataOra || '').split('T')[0].trim();
+        if (d.includes('/')) {
+          const parts = d.split('/');
+          if (parts.length === 3) {
+            d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+          }
+        }
+        return d;
+      })
       .filter((d) => d && d.length >= 10 && !isNaN(new Date(d).getTime()))
       .sort();
     return dates.length > 0 ? dates[0] : null;
   });
 
-  /** Settimana ISO limite minimo di navigazione: la settimana della prima partita (o quella odierna se non ci sono partite precedenti) */
-  readonly earliestAllowedWeekKey = computed<string>(() => {
-    const earliest = this.earliestMatchDate();
-    const currentKey = this.currentIsoWeekKey();
-    if (!earliest) return currentKey;
-    const earliestWeek = this.getIsoWeekKey(new Date(earliest));
-    return earliestWeek < currentKey ? earliestWeek : currentKey;
-  });
-
-  /** Possibilità di navigare indietro: fino alla prima partita registrata nella storia del club */
+  /**
+   * Possibilità di navigare indietro nel sondaggio settimanale:
+   * BLOCCATO tassativamente alla settimana corrente (nel sondaggio settimanale non si va nel passato dove i voti sono chiusi).
+   */
   readonly canGoToPreviousWeek = computed<boolean>(() => {
-    return this.activeWeekKey() > this.earliestAllowedWeekKey();
+    return this.activeWeekKey() > this.currentIsoWeekKey();
   });
 
   /** Etichetta completa retrocompatibile */
@@ -187,7 +190,7 @@ export class AvailabilityService {
     // Sincronizza la settimana di default non appena i dati delle partite arrivano da Firestore
     effect(() => {
       this.statsEngine.partiteRaw();
-      if (!this.userHasManuallyChangedWeek) {
+      if (!this.userHasManuallyChangedWeek || this.activeWeekKey() < this.currentIsoWeekKey()) {
         this.activeWeekKey.set(this.calculateDefaultWeekKey());
       }
     });
@@ -219,7 +222,10 @@ export class AvailabilityService {
     const days = this.generateWeekDays(cur);
     const [y, m, d] = days[0].date.split('-').map(Number);
     const prevMon = new Date(Date.UTC(y, m - 1, d - 7));
-    this.activeWeekKey.set(this.getIsoWeekKey(prevMon));
+    const targetKey = this.getIsoWeekKey(prevMon);
+    if (targetKey >= this.currentIsoWeekKey()) {
+      this.activeWeekKey.set(targetKey);
+    }
   }
 
   settimanaSuccessiva(): void {
