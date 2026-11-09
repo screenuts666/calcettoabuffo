@@ -551,47 +551,16 @@ export function formatMatchForWhatsApp(
  * Formatta il messaggio WhatsApp di disponibilità settimanale in modo sobrio,
  * professionale e senza emoji ridondanti.
  */
+/**
+ * Formatta il messaggio WhatsApp per sollecitare il sondaggio delle disponibilità settimanali.
+ * Versione super minimale e molto breve, senza alcun emote.
+ */
 export function formatWeeklyAvailabilityForWhatsApp(
-  daySummaries: { dayName: string; voterCount: number; maybeCount?: number; hasQuorum: boolean }[],
-  missingAthletes: string[]
+  _daySummaries?: { dayName: string; voterCount: number; maybeCount?: number; hasQuorum: boolean }[],
+  _missingAthletes?: string[]
 ): string {
-  const parts: string[] = [];
-  const fullDayNames: Record<string, string> = {
-    Lun: 'Lunedì',
-    Mar: 'Martedì',
-    Mer: 'Mercoledì',
-    Gio: 'Giovedì',
-    Ven: 'Venerdì',
-    Sab: 'Sabato',
-    Dom: 'Domenica',
-  };
-
-  parts.push('*CALCETTO ABBUFFO — DISPONIBILITÀ SETTIMANA*');
-  parts.push('');
-  parts.push('Ragazzi, votate i giorni in cui potete giocare:');
-  parts.push('');
-
-  for (const d of daySummaries) {
-    const nome = fullDayNames[d.dayName] || d.dayName;
-    const nota = d.hasQuorum
-      ? ' (quorum raggiunto)'
-      : d.voterCount >= 8
-        ? ' (quorum quasi raggiunto)'
-        : '';
-    const forseStr = d.maybeCount ? ` (+${d.maybeCount} in forse)` : '';
-    parts.push(`• ${nome}: ${d.voterCount} confermati${forseStr}${nota}`);
-  }
-
-  parts.push('');
-  parts.push('Vota qui le tue date (puoi sceglierne più di una):');
-  parts.push(`${getAppBaseUrl()}/calendario`);
-
-  if (missingAthletes.length > 0) {
-    parts.push('');
-    const preview = missingAthletes.slice(0, 5).join(', ');
-    const extra = missingAthletes.length > 5 ? ` e altri ${missingAthletes.length - 5}` : '';
-    parts.push(`Mancano all'appello: ${preview}${extra}`);
-  }
-
-  return parts.join('\n');
+  return [
+    'Ragazzi votate le disponibilità per la settimana:',
+    `${getAppBaseUrl()}/calendario`,
+  ].join('\n');
 }

@@ -11,6 +11,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.42",
+    "date": "09/11/2026",
+    "title": "Sondaggio Presenze Settimanali a 1 Click & Sollecito WhatsApp Minimale",
+    "userChanges": [
+      "👆 Voto Sondaggio a 1 Click: ora votare la disponibilità settimanale funziona esattamente come un sondaggio: 1 tap per 'Sono presente', un altro tap per togliere la presenza. Rimosso il tasto 'In forse' per la massima semplicità.",
+      "🟢 Voto Diretto dalla Striscia dei 7 Giorni: puoi votare all'istante toccando il cerchietto sotto ciascun giorno della striscia settimanale o attraverso il grande pulsante nella scheda del giorno.",
+      "📲 Sollecito WhatsApp Super Minimale: il pulsante 'Sollecita' ora invia un messaggio ultra-breve e senza alcun emote (2 righe con il link diretto al calendario), pulito e dritto al punto per il gruppo.",
+      "🧹 Rimossa Barra 'Mancano all'appello': rimosso il riepilogo in fondo al calendario settimanale per mantenere l'interfaccia leggera ed evitare ambiguità."
+    ],
+    "superUserChanges": [
+      "⚡ Flusso Voto Snellito: toggleVotoGiorno e onStripDayClick ottimizzati per transizioni reattive 1-tap su Firestore senza stati intermedi o opzione maybe nel sondaggio.",
+      "📱 Formatter WhatsApp Ultra-Conciso: funzione formatWeeklyAvailabilityForWhatsApp riscritta per output essenziale a 2 righe privo di emoji o elenchi prolissi."
+    ]
+  },
+  {
     "version": "2.0.41",
     "date": "08/11/2026",
     "title": "Convocati Manuali Blindati & Tracciabilità Totale Partita",

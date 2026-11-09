@@ -45,6 +45,7 @@ import {
   time,
   timeOutline,
   locationOutline,
+  people,
   peopleOutline,
   footballOutline,
   calendarClearOutline,

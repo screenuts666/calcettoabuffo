@@ -463,23 +463,41 @@
 
         .pill-my-vote {
           position: absolute;
-          bottom: -4px;
-          width: 14px;
-          height: 14px;
-          border-radius: 50%;
+          bottom: -6px;
+          min-width: 18px;
+          height: 18px;
+          border-radius: 9px;
+          padding: 0 4px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 0.6rem;
+          font-size: 0.65rem;
           font-weight: 900;
+          cursor: pointer;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          z-index: 2;
 
           &.yes {
             background: #10b981;
             color: #022c22;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.5);
           }
-          &.maybe {
-            background: #f59e0b;
-            color: #451a03;
+
+          &.empty {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px dashed rgba(255, 255, 255, 0.25);
+            color: #64748b;
+            font-size: 0.6rem;
+
+            &:hover {
+              border-color: #10b981;
+              color: #34d399;
+              transform: scale(1.15);
+            }
+          }
+
+          &:active {
+            transform: scale(0.9);
           }
         }
 
@@ -743,44 +761,71 @@
 
       .focus-actions-bar {
         display: flex;
-        gap: 8px;
+        width: 100%;
         margin-top: 4px;
 
-        .btn-focus-vote {
-          flex: 1;
+        .btn-focus-vote-single {
+          width: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          padding: 10px 14px;
-          border-radius: 12px;
-          font-size: 0.82rem;
+          gap: 10px;
+          padding: 12px 16px;
+          border-radius: 14px;
+          font-size: 0.9rem;
           font-weight: 800;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.06);
-          color: #f8fafc;
+          border: 1.5px solid rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.05);
+          color: #f1f5f9;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
           ion-icon {
-            font-size: 1.1rem;
+            font-size: 1.35rem;
+            color: #94a3b8;
+            transition: all 0.2s ease;
           }
 
-          &.yes {
-            &.active {
-              background: #10b981;
-              border-color: #10b981;
-              color: #022c22;
-              box-shadow: 0 3px 12px rgba(16, 185, 129, 0.35);
+          .btn-vote-text {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+
+            .btn-vote-main {
+              font-weight: 800;
+              letter-spacing: -0.01em;
+            }
+
+            .btn-vote-sub {
+              font-size: 0.72rem;
+              font-weight: 600;
+              color: #94a3b8;
             }
           }
 
-          &.maybe {
-            &.active {
-              background: rgba(245, 158, 11, 0.22);
-              border-color: #f59e0b;
-              color: #fbbf24;
-              box-shadow: 0 3px 12px rgba(245, 158, 11, 0.25);
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+          }
+
+          &.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-color: #10b981;
+            color: #022c22;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+
+            ion-icon {
+              color: #022c22;
+            }
+
+            .btn-vote-text {
+              .btn-vote-main {
+                color: #022c22;
+              }
+              .btn-vote-sub {
+                color: rgba(2, 44, 34, 0.75);
+              }
             }
           }
 
@@ -816,44 +861,6 @@
           transform: scale(0.97);
           filter: brightness(1.2);
         }
-      }
-    }
-  }
-
-  .missing-voters-bar {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-
-    .missing-label {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-
-    .missing-names {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      flex-wrap: wrap;
-
-      .missing-name-chip {
-        background: rgba(239, 68, 68, 0.12);
-        color: #fca5a5;
-        font-size: 0.72rem;
-        font-weight: 600;
-        padding: 2px 7px;
-        border-radius: 12px;
-      }
-
-      .missing-more-chip {
-        color: #94a3b8;
-        font-size: 0.72rem;
-        font-weight: 700;
       }
     }
   }
@@ -1428,34 +1435,44 @@
 
     .detail-vote-action-bar {
       display: flex;
-      gap: 8px;
+      width: 100%;
+      margin-top: 6px;
 
-      .btn-detail-vote {
-        flex: 1;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
-        padding: 10px;
-        border-radius: 12px;
-        font-size: 0.82rem;
-        font-weight: 700;
+      .btn-detail-vote-single {
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1.5px solid rgba(255, 255, 255, 0.12);
+        color: #e2e8f0;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 0.88rem;
+        font-weight: 800;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
-        &.yes.active {
-          background: #10b981;
-          color: #022c22;
-          border-color: #10b981;
+        ion-icon {
+          font-size: 1.25rem;
+          color: #94a3b8;
         }
 
-        &.maybe.active {
-          background: rgba(245, 158, 11, 0.25);
-          border-color: #f59e0b;
-          color: #fbbf24;
+        &:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.22);
+        }
+
+        &.active {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          color: #022c22;
+          border-color: #10b981;
+          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
+
+          ion-icon {
+            color: #022c22;
+          }
         }
 
         &:active {

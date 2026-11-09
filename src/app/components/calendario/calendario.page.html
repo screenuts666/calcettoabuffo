@@ -100,7 +100,7 @@
 
         <p class="section-subtitle">
           @if (auth.isLoggedIn()) {
-            Seleziona i giorni in cui puoi giocare (puoi sceglierne più di uno):
+            Vota i giorni della settimana con 1 tap (click per confermare, riclick per togliere):
           } @else {
             Disponibilità della settimana. Accedi con il tuo account atleta per votare.
           }
@@ -122,7 +122,7 @@
               [class.has-quorum]="day.isQuorumReached && !day.isPast"
               [class.voted-by-me]="day.isVotedByMe"
               [class.maybe-by-me]="day.isMaybeByMe"
-              (click)="selezionaGiornoSettimana(day.dateStr)"
+              (click)="onStripDayClick(day.dateStr)"
             >
               @if (day.isTopVoted && !day.isPast) {
                 <span class="pill-fire-badge">🔥</span>
@@ -150,10 +150,18 @@
                 </div>
               }
 
-              @if (day.isVotedByMe) {
-                <span class="pill-my-vote yes" title="Hai confermato (Ci sono)">✓</span>
-              } @else if (day.isMaybeByMe) {
-                <span class="pill-my-vote maybe" title="Hai votato In forse">?</span>
+              @if (!day.isPast && auth.isLoggedIn()) {
+                <span
+                  class="pill-my-vote"
+                  [class.yes]="day.isVotedByMe"
+                  [class.empty]="!day.isVotedByMe"
+                  (click)="toggleVotoPill(day.dateStr, $event)"
+                  [title]="day.isVotedByMe ? 'Presente (tocca per togliere)' : 'Tocca per votare presenza'"
+                >
+                  {{ day.isVotedByMe ? '✓' : '○' }}
+                </span>
+              } @else if (day.isVotedByMe) {
+                <span class="pill-my-vote yes" title="Hai confermato la presenza">✓</span>
               }
               @if (partiteByDate().get(day.dateStr)?.length) {
                 <span class="pill-has-match-badge" title="Partita ufficiale fissata">⚽</span>
@@ -238,29 +246,21 @@
               }
             </div>
 
-            <!-- BOTTONI DI VOTO (SOLO SE LOGGATO E NON PASSATO) -->
+            <!-- BOTTONE UNICO VOTO PRESENZA (1 CLICK: PRESENTE / NON PRESENTE) -->
             @if (auth.isLoggedIn() && !day.isPast) {
               <div class="focus-actions-bar">
                 <button
                   type="button"
-                  class="btn-focus-vote yes"
+                  class="btn-focus-vote-single"
                   [class.active]="day.isVotedByMe"
-                  (click)="toggleVotoGiorno(day.dateStr, 'yes')"
-                  title="Conferma la tua presenza (Ci sono)"
+                  (click)="toggleVotoGiorno(day.dateStr)"
+                  [title]="day.isVotedByMe ? 'Tocca per togliere la tua presenza' : 'Tocca per confermare la tua presenza'"
                 >
-                  <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-                  <span>{{ day.isVotedByMe ? '✅ Ci sei (Tocca per togliere)' : '⚽ Ci sono' }}</span>
-                </button>
-
-                <button
-                  type="button"
-                  class="btn-focus-vote maybe"
-                  [class.active]="day.isMaybeByMe"
-                  (click)="toggleVotoGiorno(day.dateStr, 'maybe')"
-                  title="Sei in forse per questo giorno"
-                >
-                  <ion-icon [name]="day.isMaybeByMe ? 'help-circle' : 'help-circle-outline'"></ion-icon>
-                  <span>{{ day.isMaybeByMe ? '🤔 Sei in forse (Tocca per togliere)' : '🤔 In forse' }}</span>
+                  <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
+                  <span class="btn-vote-text">
+                    <span class="btn-vote-main">{{ day.isVotedByMe ? 'Sono presente' : 'Sono presente' }}</span>
+                    <span class="btn-vote-sub">{{ day.isVotedByMe ? '(Tocca per togliere)' : '(1 tap per votare)' }}</span>
+                  </span>
                 </button>
               </div>
             }
@@ -280,21 +280,6 @@
           </div>
         }
       </div>
-
-      <!-- RIEPILOGO CHI MANCA ALL'APPELLO -->
-      @if (availabilityService.missingAthletes().length > 0) {
-        <div class="missing-voters-bar">
-          <span class="missing-label">Mancano all'appello:</span>
-          <div class="missing-names">
-            @for (name of availabilityService.missingAthletes().slice(0, 6); track name) {
-              <span class="missing-name-chip">{{ name }}</span>
-            }
-            @if (availabilityService.missingAthletes().length > 6) {
-              <span class="missing-more-chip">+{{ availabilityService.missingAthletes().length - 6 }}</span>
-            }
-          </div>
-        </div>
-      }
     </div>
   }
 
@@ -615,21 +600,13 @@
             <div class="detail-vote-action-bar">
               <button
                 type="button"
-                class="btn-detail-vote yes"
+                class="btn-detail-vote-single"
                 [class.active]="sel.isAvailableForMe"
-                (click)="toggleVotoGiorno(sel.dateStr, 'yes')"
+                (click)="toggleVotoGiorno(sel.dateStr)"
+                [title]="sel.isAvailableForMe ? 'Tocca per togliere presenza' : 'Tocca per confermare presenza'"
               >
-                <ion-icon [name]="sel.isAvailableForMe ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-                <span>{{ sel.isAvailableForMe ? '✅ Ci sei (Tocca per togliere)' : '⚽ Ci sono' }}</span>
-              </button>
-              <button
-                type="button"
-                class="btn-detail-vote maybe"
-                [class.active]="sel.isMaybeForMe"
-                (click)="toggleVotoGiorno(sel.dateStr, 'maybe')"
-              >
-                <ion-icon [name]="sel.isMaybeForMe ? 'help-circle' : 'help-circle-outline'"></ion-icon>
-                <span>{{ sel.isMaybeForMe ? '🤔 Sei in forse (Tocca per togliere)' : '🤔 In forse' }}</span>
+                <ion-icon [name]="sel.isAvailableForMe ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
+                <span>{{ sel.isAvailableForMe ? 'Sono presente (Tocca per togliere)' : 'Sono presente (1 tap per votare)' }}</span>
               </button>
             </div>
           }
