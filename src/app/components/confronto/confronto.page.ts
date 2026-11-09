@@ -7,7 +7,7 @@ import {
   OnInit,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
@@ -40,6 +40,8 @@ import {
   repeat,
   logoWhatsapp,
   chevronDown,
+  chevronForward,
+  arrowBack,
   checkmarkCircle,
   medal,
   remove,
@@ -50,6 +52,8 @@ import {
   timeOutline,
   refreshOutline,
   mic,
+  globeOutline,
+  diceOutline,
 } from 'ionicons/icons';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
@@ -88,8 +92,6 @@ import { AiTtsButtonComponent } from '../ai-tts-button/ai-tts-button.component';
     IonButton,
     IonIcon,
     IonModal,
-    IonSearchbar,
-    IonAvatar,
     IonSpinner,
     ThemeToggleComponent,
     AiTtsButtonComponent,
@@ -101,6 +103,7 @@ export class ConfrontoPage implements OnInit {
   private geminiService = inject(GeminiService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private toastController = inject(ToastController);
 
   readonly formatAiMarkdown = formatAiMarkdown;
@@ -115,6 +118,10 @@ export class ConfrontoPage implements OnInit {
   onImgError(event: Event) {
     handleAvatarError(event);
   }
+
+  // Vista attiva: Hub (griglia sfide dinamiche + casuale) o Dettaglio (faccia a faccia 1v1)
+  viewMode = signal<'hub' | 'detail'>('hub');
+  isAiTextExpanded = signal(false);
 
   // Giocatori selezionati
   playerAId = signal<string>('');
@@ -138,6 +145,16 @@ export class ConfrontoPage implements OnInit {
 
   stagioniDisponibili = computed(() => {
     return getStagioniDisponibili(this.partite() || []);
+  });
+
+  playerA = computed(() => {
+    const id = this.playerAId();
+    return (this.tuttiIGiocatori() || []).find((g) => g.id === id) || null;
+  });
+
+  playerB = computed(() => {
+    const id = this.playerBId();
+    return (this.tuttiIGiocatori() || []).find((g) => g.id === id) || null;
   });
 
   // Lista filtrata per la ricerca nel selettore rapido
@@ -168,6 +185,92 @@ export class ConfrontoPage implements OnInit {
     return this.confrontoService.getComparison(idA, idB, season);
   });
 
+  // SFIDE DINAMICHE PER L'HUB 1v1
+  dynamicMatchups = computed(() => {
+    const partite = this.partite() || [];
+    const giocatori = this.tuttiIGiocatori() || [];
+    if (giocatori.length < 2 || partite.length === 0) {
+      return { rivalita: [], frequenti: [], equilibrati: [] };
+    }
+
+    const gMap = new Map(giocatori.map((g) => [g.id, g]));
+    const pairOpponents = new Map<
+      string,
+      { p1Id: string; p2Id: string; p1Wins: number; draws: number; p2Wins: number; total: number }
+    >();
+
+    for (const p of partite) {
+      if (!p.pagelleInserite && !p.matchConcluso && p.status !== 'conclusa') continue;
+      const teamA = (p.teamA || []).map((x: any) => x.id);
+      const teamB = (p.teamB || []).map((x: any) => x.id);
+      const scoreA = Number(p.scoreA) || 0;
+      const scoreB = Number(p.scoreB) || 0;
+
+      for (const idA of teamA) {
+        for (const idB of teamB) {
+          if (!idA || !idB || idA === idB) continue;
+          const [p1, p2] = idA < idB ? [idA, idB] : [idB, idA];
+          const key = `${p1}_${p2}`;
+          let entry = pairOpponents.get(key);
+          if (!entry) {
+            entry = { p1Id: p1, p2Id: p2, p1Wins: 0, draws: 0, p2Wins: 0, total: 0 };
+            pairOpponents.set(key, entry);
+          }
+          entry.total++;
+          if (scoreA > scoreB) {
+            if (idA === p1) entry.p1Wins++;
+            else entry.p2Wins++;
+          } else if (scoreB > scoreA) {
+            if (idA === p1) entry.p2Wins++;
+            else entry.p1Wins++;
+          } else {
+            entry.draws++;
+          }
+        }
+      }
+    }
+
+    const allPairs = Array.from(pairOpponents.values())
+      .filter((pair) => gMap.has(pair.p1Id) && gMap.has(pair.p2Id))
+      .map((pair) => {
+        const g1 = gMap.get(pair.p1Id)!;
+        const g2 = gMap.get(pair.p2Id)!;
+        const mmr1 = (g1 as any).currentMmr ?? 1000;
+        const mmr2 = (g2 as any).currentMmr ?? 1000;
+        const deltaMmr = Math.abs(mmr1 - mmr2);
+        const diffWins = Math.abs(pair.p1Wins - pair.p2Wins);
+        return {
+          ...pair,
+          g1,
+          g2,
+          mmr1,
+          mmr2,
+          deltaMmr,
+          diffWins,
+        };
+      });
+
+    // 1. Scontri Più Frequenti (più match giocati da avversari)
+    const frequenti = [...allPairs]
+      .filter((p) => p.total >= 2)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 4);
+
+    // 2. Rivalità Calde & Bestie Nere
+    const rivalita = [...allPairs]
+      .filter((p) => p.total >= 2 && p.diffWins >= 1)
+      .sort((a, b) => b.diffWins * 2 + b.total - (a.diffWins * 2 + a.total))
+      .slice(0, 4);
+
+    // 3. Sfide Equilibrate per MMR
+    const equilibrati = [...allPairs]
+      .filter((p) => p.total >= 1 && p.deltaMmr <= 45)
+      .sort((a, b) => a.deltaMmr - b.deltaMmr || b.total - a.total)
+      .slice(0, 4);
+
+    return { rivalita, frequenti, equilibrati };
+  });
+
   constructor() {
     addIcons({
       swapHorizontal,
@@ -185,6 +288,8 @@ export class ConfrontoPage implements OnInit {
       repeat,
       logoWhatsapp,
       chevronDown,
+      chevronForward,
+      arrowBack,
       checkmarkCircle,
       medal,
       remove,
@@ -195,23 +300,11 @@ export class ConfrontoPage implements OnInit {
       timeOutline,
       refreshOutline,
       mic,
+      globeOutline,
+      diceOutline,
     });
 
-    effect(() => {
-      const list = this.tuttiIGiocatori() || [];
-      if (list.length < 2) return;
-
-      if (!this.playerAId()) {
-        this.playerAId.set(list[0].id);
-      }
-      if (!this.playerBId() || this.playerBId() === this.playerAId()) {
-        const second = list.find((g) => g.id !== this.playerAId());
-        if (second) {
-          this.playerBId.set(second.id);
-        }
-      }
-    });
-
+    // Effetto per caricamento verdetto cache
     effect(() => {
       const idA = this.playerAId();
       const idB = this.playerBId();
@@ -269,31 +362,70 @@ export class ConfrontoPage implements OnInit {
   }
 
   ngOnInit() {
-    // Leggi eventuali parametri dalla URL (?playerA=xyz&playerB=abc)
+    // 1. Parametri di rotta dinamica (/confronto/:p1/:p2 o /1v1/:p1/:p2)
+    this.route.paramMap.subscribe((params) => {
+      const p1 = params.get('p1');
+      const p2 = params.get('p2');
+      if (p1 && p2) {
+        this.playerAId.set(p1);
+        this.playerBId.set(p2);
+        this.viewMode.set('detail');
+        this.isAiTextExpanded.set(false);
+        return;
+      }
+    });
+
+    // 2. Query params (?playerA=xyz&playerB=abc)
     this.route.queryParams.subscribe((params) => {
       const qA = params['playerA'];
       const qB = params['playerB'];
 
-      const list = this.tuttiIGiocatori() || [];
-
-      if (qA && list.some((g) => g.id === qA)) {
+      if (qA && qB) {
         this.playerAId.set(qA);
-      }
-      if (qB && list.some((g) => g.id === qB)) {
         this.playerBId.set(qB);
-      }
-
-      // Se non sono impostati, seleziona i primi due giocatori della classifica
-      if (!this.playerAId() && list.length > 0) {
-        this.playerAId.set(list[0].id);
-      }
-      if (!this.playerBId() && list.length > 1) {
-        const second = list.find((g) => g.id !== this.playerAId());
-        if (second) {
-          this.playerBId.set(second.id);
-        }
+        this.viewMode.set('detail');
+        this.isAiTextExpanded.set(false);
       }
     });
+
+    // Se playerA e playerB non sono impostati, precompila con i primi due della classifica per il selettore
+    const list = this.tuttiIGiocatori() || [];
+    if (!this.playerAId() && list.length > 0) {
+      this.playerAId.set(list[0].id);
+    }
+    if (!this.playerBId() && list.length > 1) {
+      const second = list.find((g) => g.id !== this.playerAId());
+      if (second) {
+        this.playerBId.set(second.id);
+      }
+    }
+  }
+
+  toggleAiText() {
+    this.isAiTextExpanded.update((v) => !v);
+  }
+
+  tornaAllHub() {
+    this.viewMode.set('hub');
+    this.router.navigate(['/confronto']);
+  }
+
+  apriConfrontoCoppia(idA: string, idB: string) {
+    if (!idA || !idB || idA === idB) return;
+    this.playerAId.set(idA);
+    this.playerBId.set(idB);
+    this.viewMode.set('detail');
+    this.isAiTextExpanded.set(false);
+    this.router.navigate(['/confronto', idA, idB]);
+  }
+
+  vaiAConfrontoCasuale() {
+    const list = this.tuttiIGiocatori() || [];
+    if (list.length < 2) return;
+    const p1 = list[Math.floor(Math.random() * list.length)];
+    const others = list.filter((g) => g.id !== p1.id);
+    const p2 = others[Math.floor(Math.random() * others.length)];
+    this.apriConfrontoCoppia(p1.id, p2.id);
   }
 
   // Selettore rapido Giocatore
@@ -314,7 +446,9 @@ export class ConfrontoPage implements OnInit {
       this.playerBId.set(g.id);
     }
     this.chiudiSelettore();
-    this.aggiornaUrl();
+    if (this.viewMode() === 'detail') {
+      this.apriConfrontoCoppia(this.playerAId(), this.playerBId());
+    }
   }
 
   // Inverte Giocatore A e Giocatore B
@@ -323,19 +457,9 @@ export class ConfrontoPage implements OnInit {
     const b = this.playerBId();
     this.playerAId.set(b);
     this.playerBId.set(a);
-    this.aggiornaUrl();
-  }
-
-  private aggiornaUrl() {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: {
-        playerA: this.playerAId(),
-        playerB: this.playerBId(),
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    if (this.viewMode() === 'detail') {
+      this.apriConfrontoCoppia(b, a);
+    }
   }
 
   // Cambio stagione
@@ -354,46 +478,34 @@ export class ConfrontoPage implements OnInit {
 
     const pA = comp.playerA;
     const pB = comp.playerB;
-    const scontri = comp.scontriContro;
-    const intesa = comp.intesaInsieme;
+    const sc = comp.scontriContro;
+    const stg = this.stagioneSelezionata();
+    const stgLabel = stg === ALL_SEASONS ? 'Tutte le Stagioni' : `Stagione ${stg}`;
 
     const lines: string[] = [];
     lines.push(`⚔️ *CONFRONTO 1v1: ${pA.nome.toUpperCase()} vs ${pB.nome.toUpperCase()}* ⚔️`);
-    lines.push(``);
-    lines.push(`🛡️ *MMR Rating:* ${pA.currentMmr} (${pA.tier.badge}) vs ${pB.currentMmr} (${pB.tier.badge})`);
-    lines.push(`🏆 *Peak MMR:* ${pA.peakMmr} vs ${pB.peakMmr}`);
-    lines.push(`🥇 *Punti Legacy:* ${pA.puntiLegacy} vs ${pB.puntiLegacy}`);
-    lines.push(`⚽ *Gol Totali:* ${pA.golTotali} vs ${pB.golTotali}`);
-    lines.push(`⭐ *Media Voto:* ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '--'} vs ${pB.mediaVoto > 0 ? pB.mediaVoto.toFixed(2) : '--'}`);
-    lines.push(`🎖️ *Premi MVP:* ${pA.mvpCount} vs ${pB.mvpCount}`);
-    lines.push(``);
-
+    lines.push(`📅 *${stgLabel}*`);
+    lines.push('');
+    lines.push(`📊 *Bilancio Scontri Diretti (${sc.totalePartite} gare):*`);
+    lines.push(`• *${pA.nome}:* ${sc.vittorieA} vittorie (${sc.winRateA}%)`);
+    lines.push(`• *Pareggi:* ${sc.pareggi}`);
+    lines.push(`• *${pB.nome}:* ${sc.vittorieB} vittorie (${sc.winRateB}%)`);
+    lines.push(`🔥 *Bestia Nera:* ${sc.bestiaNeraText}`);
+    lines.push('');
     if (this.verdettoAi()) {
-      lines.push(`🎙️ *VERDETTO AI (Gemini Flash):*`);
+      lines.push('🎙️ *Verdetto AI:*');
       lines.push(`"${this.verdettoAi()}"`);
-      lines.push(``);
+      lines.push('');
     }
-
-    lines.push(`🔥 *Scontri Diretti da Avversari (${scontri.totalePartite} match):*`);
-    lines.push(`   • ${pA.nome}: ${scontri.vittorieA}V (${scontri.winRateA}%)`);
-    lines.push(`   • Pareggi: ${scontri.pareggi}`);
-    lines.push(`   • ${pB.nome}: ${scontri.vittorieB}V (${scontri.winRateB}%)`);
-    lines.push(`   • ${scontri.bestiaNeraText}`);
-    lines.push(``);
-    lines.push(`🤝 *Intesa Quando Giocano Insieme:*`);
-    lines.push(`   • ${intesa.affinitaEmoji} ${intesa.affinitaLabel} (${intesa.winRate}% vittorie su ${intesa.totalePartite} match)`);
-    lines.push(``);
-    lines.push(`🔗 *Guarda il testa a testa:* ${window.location.origin}/confronto?playerA=${pA.id}&playerB=${pB.id}`);
-    lines.push(``);
-    lines.push(`_Generato da Calcetto Abbuffo_ ⚽`);
+    lines.push(`🔗 *Guarda il testa a testa:* ${window.location.origin}/confronto/${pA.id}/${pB.id}`);
 
     const text = lines.join('\n');
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
 
     const toast = await this.toastController.create({
       message: 'Confronto 1v1 pronto per la condivisione WhatsApp!',
-      duration: 2000,
+      duration: 2500,
       color: 'success',
       position: 'bottom',
     });

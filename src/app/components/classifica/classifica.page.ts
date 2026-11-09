@@ -924,11 +924,21 @@ export class ClassificaPage {
     }
   }
 
+  apriDettaglioChimica(p1Id: string, p2Id: string) {
+    if (p1Id && p2Id) {
+      this.router.navigate(['/chimica', p1Id, p2Id]);
+    }
+  }
+
   apriConfronto(playerAId?: string, playerBId?: string) {
-    const queryParams: any = {};
-    if (playerAId) queryParams.playerA = playerAId;
-    if (playerBId) queryParams.playerB = playerBId;
-    this.router.navigate(['/confronto'], { queryParams });
+    if (playerAId && playerBId) {
+      this.router.navigate(['/confronto', playerAId, playerBId]);
+    } else {
+      const queryParams: any = {};
+      if (playerAId) queryParams.playerA = playerAId;
+      if (playerBId) queryParams.playerB = playerBId;
+      this.router.navigate(['/confronto'], { queryParams });
+    }
   }
 
   async condividiSuWhatsApp() {
@@ -970,9 +980,7 @@ export class ClassificaPage {
 
       const soprannome = g.soprannome
         ? ` ("${g.soprannome}")`
-        : g.soprannomeAi
-          ? ` ("${g.soprannomeAi}")`
-          : '';
+        : '';
       const formIcon =
         g.form.status === 'on_fire'
           ? ' 🔥'

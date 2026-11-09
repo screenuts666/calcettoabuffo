@@ -1,7 +1,7 @@
 <div class="convocati-container">
   <div class="search-header ion-padding">
     <div class="title-row">
-      <h2>{{ isAdmin ? 'Seleziona Giocatori' : 'Giocatori Convocati' }}</h2>
+      <h2>{{ isAdmin ? "Seleziona Giocatori" : "Giocatori Convocati" }}</h2>
       <div class="count-badge">{{ state.totaleConvocati() }} Convocati</div>
     </div>
 
@@ -58,7 +58,8 @@
           <div class="mss-left">
             <span class="mss-icon">🤔</span>
             <span class="mss-text">
-              <strong>{{ maybePlayers().length }} in forse:</strong> {{ getMaybeNamesShort() }}
+              <strong>{{ maybePlayers().length }} in forse:</strong>
+              {{ getMaybeNamesShort() }}
             </span>
           </div>
           <button
@@ -78,12 +79,18 @@
         <div class="irp-rsvp-box">
           <div class="irp-rsvp-prompt">
             <span>La tua presenza:</span>
-            @if (myRsvpStatus() === 'yes') {
-              <span class="my-current-status" data-status="yes">✓ Confermato</span>
-            } @else if (myRsvpStatus() === 'maybe') {
-              <span class="my-current-status" data-status="maybe">🤔 In forse</span>
+            @if (myRsvpStatus() === "yes") {
+              <span class="my-current-status" data-status="yes"
+                >✓ Confermato</span
+              >
+            } @else if (myRsvpStatus() === "maybe") {
+              <span class="my-current-status" data-status="maybe"
+                >🤔 In forse</span
+              >
             } @else {
-              <span class="my-current-status not-confirmed">Non confermato</span>
+              <span class="my-current-status not-confirmed"
+                >Non confermato</span
+              >
             }
           </div>
 
@@ -94,9 +101,17 @@
               [class.active]="myRsvpStatus() === 'yes'"
               [disabled]="isSavingRsvp()"
               (click)="toggleMioRsvp('yes')"
-              [title]="myRsvpStatus() === 'yes' ? 'Tocca per togliere la presenza' : 'Conferma presenza'"
+              [title]="
+                myRsvpStatus() === 'yes'
+                  ? 'Tocca per togliere la presenza'
+                  : 'Conferma presenza'
+              "
             >
-              <span>{{ myRsvpStatus() === 'yes' ? '✓ Partecipo (Tocca per togliere)' : '✅ Partecipo' }}</span>
+              <span>{{
+                myRsvpStatus() === "yes"
+                  ? "✓ Partecipo (Tocca per togliere)"
+                  : "✅ Partecipo"
+              }}</span>
             </button>
 
             <button
@@ -105,9 +120,17 @@
               [class.active]="myRsvpStatus() === 'maybe'"
               [disabled]="isSavingRsvp()"
               (click)="toggleMioRsvp('maybe')"
-              [title]="myRsvpStatus() === 'maybe' ? 'Tocca per togliere il dubbio' : 'Segnala che sei in dubbio'"
+              [title]="
+                myRsvpStatus() === 'maybe'
+                  ? 'Tocca per togliere il dubbio'
+                  : 'Segnala che sei in dubbio'
+              "
             >
-              <span>{{ myRsvpStatus() === 'maybe' ? '🤔 In Forse (Tocca per togliere)' : '🤔 Forse' }}</span>
+              <span>{{
+                myRsvpStatus() === "maybe"
+                  ? "🤔 In Forse (Tocca per togliere)"
+                  : "🤔 Forse"
+              }}</span>
             </button>
           </div>
         </div>
@@ -120,8 +143,8 @@
           <span>
             {{
               auth.isLoggedIn()
-                ? 'Associa la tua scheda giocatore per rispondere'
-                : 'Accedi per rispondere all\'invito'
+                ? "Associa la tua scheda giocatore per rispondere"
+                : "Accedi per rispondere all'invito"
             }}
           </span>
         </button>
@@ -130,7 +153,9 @@
       <!-- STRIP RAPIDA GIOCATORI "IN FORSE" -->
       @if (maybePlayers().length > 0) {
         <div class="maybe-players-strip">
-          <span class="maybe-strip-title">🤔 In dubbio ({{ maybePlayers().length }}):</span>
+          <span class="maybe-strip-title"
+            >🤔 In dubbio ({{ maybePlayers().length }}):</span
+          >
           @for (mp of maybePlayers(); track mp.id) {
             <span class="maybe-chip">{{ mp.nome }}</span>
           }
@@ -140,7 +165,11 @@
 
     @if (isDev && isAdmin) {
       <div class="dev-bulk-container">
-        <button type="button" class="dev-bulk-btn" (click)="selezionaPrimi14Classifica()">
+        <button
+          type="button"
+          class="dev-bulk-btn"
+          (click)="selezionaPrimi14Classifica()"
+        >
           <ion-icon name="flash-outline"></ion-icon>
           <span>DEV ⚡ Auto-seleziona Top 14 (7 vs 7)</span>
         </button>
@@ -159,10 +188,16 @@
 
   @if (state.convocati().length > 0) {
     <div class="selected-players-scroll">
-      @for (g of state.convocati(); track (g.id || g.nome) + '_' + $index) {
-        <div class="selected-chip" [class.is-self-registered]="g.selfRegistered">
+      @for (g of state.convocati(); track (g.id || g.nome) + "_" + $index) {
+        <div
+          class="selected-chip"
+          [class.is-self-registered]="g.selfRegistered"
+        >
           <div class="avatar-wrapper">
-            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+            <app-player-avatar
+              [fotoUrl]="g.fotoUrl"
+              [alt]="g.nome"
+            ></app-player-avatar>
             @if (g.selfRegistered) {
               <span
                 class="self-verified-dot"
@@ -184,7 +219,10 @@
   }
 
   <ion-list mode="ios" class="giocatori-list">
-    @for (g of state.giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
+    @for (
+      g of state.giocatoriFiltrati();
+      track (g.id || g.nome) + "_" + $index
+    ) {
       <ion-item
         (click)="isAdmin ? toggleSelezione(g) : null"
         lines="full"
@@ -193,7 +231,10 @@
         [class.is-declined-row]="g.rsvpStatus === 'no'"
       >
         <ion-avatar slot="start">
-          <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+          <app-player-avatar
+            [fotoUrl]="g.fotoUrl"
+            [alt]="g.nome"
+          ></app-player-avatar>
         </ion-avatar>
         <ion-label>
           <div class="player-name-with-badges">
@@ -206,14 +247,14 @@
                 <ion-icon name="checkmark-done-circle"></ion-icon>
                 <span>Confermato</span>
               </span>
-            } @else if (g.rsvpStatus === 'maybe') {
+            } @else if (g.rsvpStatus === "maybe") {
               <span
                 class="rsvp-inline-badge maybe-badge"
                 title="Il giocatore ha risposto Forse (In dubbio)"
               >
                 <span>🤔 Forse</span>
               </span>
-            } @else if (g.rsvpStatus === 'no') {
+            } @else if (g.rsvpStatus === "no") {
               <span
                 class="rsvp-inline-badge no-badge"
                 title="Il giocatore ha risposto Non partecipo"
@@ -223,7 +264,7 @@
             }
           </div>
           <p>
-            {{ g.soprannome ? '"' + g.soprannome + '"' : (g.soprannomeAi ? '"' + g.soprannomeAi + '"' : g.piedePreferito) }}
+            {{ g.soprannome ? '"' + g.soprannome + '"' : g.piedePreferito }}
           </p>
         </ion-label>
 
@@ -240,7 +281,7 @@
             slot="end"
             name="checkmark-circle"
             color="success"
-            style="font-size: 1.4rem;"
+            style="font-size: 1.4rem"
           ></ion-icon>
         }
       </ion-item>

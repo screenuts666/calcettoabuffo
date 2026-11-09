@@ -29,11 +29,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
-import {
-  collection,
-  query,
-  orderBy,
-} from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Firestore, collectionData } from '@angular/fire/firestore';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -132,7 +128,6 @@ export class RosaPage {
     return lista.filter((g) => {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
-      const soprannomeAi = (g.soprannomeAi || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
       const dataNascita = (g.dataNascita || '').toLowerCase();
       const piede = ((g.piedePreferito as string) || '').toLowerCase();
@@ -144,7 +139,6 @@ export class RosaPage {
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
-        soprannomeAi.includes(f) ||
         anno.includes(f) ||
         dataNascita.includes(f) ||
         piede.includes(f) ||
@@ -195,7 +189,7 @@ export class RosaPage {
         targets.map(async (pid) => {
           const phone = await this.auth.getPlayerPhoneNumber(pid);
           return { pid, phone };
-        })
+        }),
       ).then((results) => {
         const nextMap: Record<string, string> = {};
         for (const r of results) {

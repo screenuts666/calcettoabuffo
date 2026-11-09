@@ -72,35 +72,6 @@
   }
 }
 
-.player-nickname-ai-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  font-style: italic;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: var(--app-accent-purple-subtle);
-  border: 1px solid var(--app-accent-purple-border);
-  color: var(--app-accent-purple);
-}
-
-.ai-nick-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.72rem;
-  font-weight: 700;
-  font-style: normal;
-  padding: 1px 6px;
-  border-radius: 10px;
-  background: var(--app-accent-purple-subtle);
-  border: 1px solid var(--app-accent-purple-border);
-  color: var(--app-accent-purple);
-  margin-left: 6px;
-  vertical-align: middle;
-}
-
 .spacer-8 {
   height: 8px;
 }
@@ -1374,4 +1345,466 @@
   height: 50px;
   width: 100%;
   pointer-events: none;
+}
+
+// ==========================================
+// HEADER COMPATTO & STATUS STRIP
+// ==========================================
+.profile-header-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.player-shirt-num {
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #2dd36f;
+  margin-left: 4px;
+}
+
+.player-bio-text {
+  max-width: 440px;
+  margin: 4px auto 10px;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--app-text-secondary);
+}
+
+.my-player-tag {
+  margin: 2px 0 8px;
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(45, 211, 111, 0.16);
+    border: 1px solid rgba(45, 211, 111, 0.45);
+    color: #2dd36f;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+}
+
+.claim-player-box {
+  margin: 4px auto 10px;
+  max-width: 360px;
+  width: 100%;
+
+  .claim-player-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(45, 211, 111, 0.6);
+    background: rgba(45, 211, 111, 0.12);
+    color: #2dd36f;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+}
+
+.header-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.status-pill-tier {
+  .tier-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 16px;
+    border: 1.5px solid;
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+
+    &.unranked {
+      border-color: var(--app-tier-unranked, #71717a);
+      background: rgba(113, 113, 122, 0.15);
+      color: var(--app-tier-unranked, #a1a1aa);
+    }
+  }
+}
+
+.status-recent-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  padding: 3px 8px;
+  border-radius: 14px;
+
+  .recent-form-mini-lbl {
+    font-size: 0.68rem;
+    color: var(--app-text-muted, #71717a);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .recent-mini-balls {
+    display: flex;
+    gap: 3px;
+  }
+
+  .mini-ball {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.62rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+
+    &.win {
+      background: #2dd36f;
+    }
+    &.draw {
+      background: #fbbf24;
+      color: #000;
+    }
+    &.loss {
+      background: #ef4444;
+    }
+  }
+}
+
+.btn-fast-h2h {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.96);
+    background: rgba(168, 85, 247, 0.25);
+  }
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+}
+
+// ==========================================
+// 2. KPI PRINCIPALI A COLPO D'OCCHIO (QUEEN ROW)
+// ==========================================
+.kpi-queen-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.kpi-queen-card {
+  background: var(--app-card-bg, #1a2234);
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  .kpi-q-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-text-muted, #71717a);
+    margin-bottom: 2px;
+  }
+
+  .kpi-q-value {
+    font-size: 1.15rem;
+    font-weight: 900;
+    line-height: 1.1;
+
+    &.winrate-val {
+      color: #38bdf8;
+    }
+    &.goals-val {
+      color: #fbbf24;
+    }
+    &.rating-val {
+      color: #a855f7;
+    }
+  }
+
+  .kpi-q-sub {
+    font-size: 0.62rem;
+    color: var(--app-text-secondary, #94a3b8);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+
+    .kpi-delta {
+      font-weight: 700;
+      &.up {
+        color: #2dd36f;
+      }
+      &.down {
+        color: #ef4444;
+      }
+    }
+  }
+}
+
+// ==========================================
+// 3. SCOUTING AI COMPATTO
+// ==========================================
+.ai-scouting-compact-card {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(30, 27, 75, 0.3) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 14px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.ai-scouting-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+
+  .scouting-title-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    .scouting-badge-icon {
+      font-size: 0.95rem;
+    }
+
+    .scouting-badge-text {
+      font-size: 0.74rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #c084fc;
+    }
+  }
+
+  .scouting-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .scouting-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #c084fc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.85rem;
+
+      &:active {
+        transform: scale(0.92);
+      }
+
+      .spin {
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+}
+
+.scouting-compact-body {
+  .scouting-compact-text {
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--app-text-secondary, #cbd5e1);
+
+    &.clamped {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    p {
+      margin: 0 0 4px 0;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  .ai-expand-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #c084fc;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 0.75rem;
+    }
+  }
+}
+
+.scouting-compact-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .empty-hint {
+    font-size: 0.74rem;
+    color: var(--app-text-muted, #71717a);
+    font-style: italic;
+  }
+
+  .scouting-generate-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(168, 85, 247, 0.2);
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #c084fc;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+}
+
+// ==========================================
+// 4. TAB SEGMENT INTERNO GERARCHICO
+// ==========================================
+.profile-tabs-segment {
+  display: flex;
+  background: var(--app-surface-subtle, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  padding: 3px;
+  margin-bottom: 14px;
+  width: 100%;
+
+  .segment-tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 4px;
+    border-radius: 11px;
+    border: none;
+    background: transparent;
+    color: var(--app-text-muted, #71717a);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 0.95rem;
+    }
+
+    &.active {
+      background: var(--app-card-bg, #1a2234);
+      color: #2dd36f;
+      font-weight: 900;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    }
+  }
+}
+
+.tab-pane-content {
+  animation: fadeIn 0.25s ease-out;
+}
+
+// ==========================================
+// CHIMICA EXTRA ACTIONS & SHORTCUT
+// ==========================================
+.partner-chem-btn {
+  background: rgba(56, 189, 248, 0.14) !important;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+  color: #38bdf8 !important;
+
+  &:active {
+    background: rgba(56, 189, 248, 0.24) !important;
+  }
+}
+
+.chem-extra-pill {
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  ion-icon {
+    font-size: 0.8rem;
+    margin-left: auto;
+    opacity: 0.7;
+  }
+}
+
+.chem-shortcut-box {
+  margin-top: 14px;
+
+  .chem-shortcut-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px dashed rgba(168, 85, 247, 0.4);
+    color: #c084fc;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+
+    &:active {
+      background: rgba(168, 85, 247, 0.2);
+    }
+  }
 }

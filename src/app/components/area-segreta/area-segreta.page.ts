@@ -66,11 +66,7 @@ import {
   HARD_CLAMP_MAX,
   MIN_MATCHES_CHEMISTRY,
 } from 'src/app/services/stats-engine.service';
-import {
-  MMR_TIERS,
-  MmrTier,
-  UNRANKED_TIER,
-} from 'src/app/models/mmr.model';
+import { MMR_TIERS, MmrTier, UNRANKED_TIER } from 'src/app/models/mmr.model';
 import {
   SeasonEngineConfig,
   getDefaultSeasonConfig,
@@ -196,8 +192,16 @@ export interface MatchAuditSheet {
   baseDeltaB: number;
   movBonusA: number;
   movBonusB: number;
-  rowsA: (PlayerMatchAuditRow & { playerId: string; nome: string; fotoUrl: string })[];
-  rowsB: (PlayerMatchAuditRow & { playerId: string; nome: string; fotoUrl: string })[];
+  rowsA: (PlayerMatchAuditRow & {
+    playerId: string;
+    nome: string;
+    fotoUrl: string;
+  })[];
+  rowsB: (PlayerMatchAuditRow & {
+    playerId: string;
+    nome: string;
+    fotoUrl: string;
+  })[];
 }
 
 @Component({
@@ -585,7 +589,7 @@ export class AreaSegretaPage implements OnDestroy {
           handler: async (data) => {
             if (needsPin) {
               const unlocked = await this.authService.unlockVault(
-                data?.pin || ''
+                data?.pin || '',
               );
               if (!unlocked) {
                 const errToast = await this.toastCtrl.create({
@@ -918,11 +922,15 @@ export class AreaSegretaPage implements OnDestroy {
             : `Nuovo nella stagione = ${BASE_INITIAL_MMR}`;
 
       const currentMmr =
-        partiteGiocate > 0 && pMmr ? Math.round(pMmr.currentMmr) : seasonStartMmr;
+        partiteGiocate > 0 && pMmr
+          ? Math.round(pMmr.currentMmr)
+          : seasonStartMmr;
       const peakMmr =
         partiteGiocate > 0 && pMmr ? Math.round(pMmr.peakMmr) : seasonStartMmr;
       const lowestMmr =
-        partiteGiocate > 0 && pMmr ? Math.round(pMmr.lowestMmr) : seasonStartMmr;
+        partiteGiocate > 0 && pMmr
+          ? Math.round(pMmr.lowestMmr)
+          : seasonStartMmr;
       const netMmrGain = currentMmr - seasonStartMmr;
       const tier = partiteGiocate > 0 && pMmr ? pMmr.tier : UNRANKED_TIER;
 
@@ -955,7 +963,7 @@ export class AreaSegretaPage implements OnDestroy {
       return {
         id: g.id,
         nome: g.nome,
-        soprannome: g.soprannome || g.soprannomeAi,
+        soprannome: g.soprannome,
         fotoUrl: getAvatarUrl(g.fotoUrl),
         partiteGiocate,
         wins,
@@ -1068,14 +1076,16 @@ export class AreaSegretaPage implements OnDestroy {
         const gol =
           eventi.filter(
             (eg: any) =>
-              (eg.idAssegnato === pl.id || eg.nome === pl.nome) && !eg.isAutogoal,
+              (eg.idAssegnato === pl.id || eg.nome === pl.nome) &&
+              !eg.isAutogoal,
           ).length ||
           Number(pl.gol) ||
           0;
         const autogol =
           eventi.filter(
             (eg: any) =>
-              (eg.idAssegnato === pl.id || eg.nome === pl.nome) && eg.isAutogoal,
+              (eg.idAssegnato === pl.id || eg.nome === pl.nome) &&
+              eg.isAutogoal,
           ).length ||
           Number(pl.autogol) ||
           0;

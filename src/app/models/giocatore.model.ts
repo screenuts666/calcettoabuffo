@@ -29,8 +29,6 @@ export interface Giocatore {
   punti: number;
   mediaVoto: number;
   partiteGiocate: number;
-  soprannomeAi?: string; // Ultimo soprannome coniato dall'AI (aggiuntivo)
-  soprannomiAi?: string[]; // Storico/elenco di tutti i soprannomi coniati dall'AI
   scoutingReportAi?: string;
   aiUpdatedAt?: string;
 

@@ -1,5 +1,11 @@
 import { Injectable, inject, signal, computed, effect } from '@angular/core';
-import { Firestore, doc, docData, setDoc, updateDoc } from '@angular/fire/firestore';
+import {
+  Firestore,
+  doc,
+  docData,
+  setDoc,
+  updateDoc,
+} from '@angular/fire/firestore';
 import { Timestamp, serverTimestamp } from 'firebase/firestore';
 import { AuthService } from './auth.service';
 import { StatsEngineService } from './stats-engine.service';
@@ -75,16 +81,27 @@ export class AvailabilityService {
 
     // Ordinamento deterministico stabile: l'utente loggato in testa, poi tutti in ordine alfabetico
     allVotes.sort((a, b) => {
-      const isAMe = (currentUid && a.uid === currentUid) || (currentPid && a.playerId === currentPid);
-      const isBMe = (currentUid && b.uid === currentUid) || (currentPid && b.playerId === currentPid);
+      const isAMe =
+        (currentUid && a.uid === currentUid) ||
+        (currentPid && a.playerId === currentPid);
+      const isBMe =
+        (currentUid && b.uid === currentUid) ||
+        (currentPid && b.playerId === currentPid);
       if (isAMe && !isBMe) return -1;
       if (!isAMe && isBMe) return 1;
-      return (a.displayName || '').localeCompare(b.displayName || '') || (a.uid || '').localeCompare(b.uid || '');
+      return (
+        (a.displayName || '').localeCompare(b.displayName || '') ||
+        (a.uid || '').localeCompare(b.uid || '')
+      );
     });
 
     return days.map((d) => {
-      const voters = allVotes.filter((v) => (v.availableDates || []).includes(d.date));
-      const maybeVoters = allVotes.filter((v) => (v.maybeDates || []).includes(d.date));
+      const voters = allVotes.filter((v) =>
+        (v.availableDates || []).includes(d.date),
+      );
+      const maybeVoters = allVotes.filter((v) =>
+        (v.maybeDates || []).includes(d.date),
+      );
       const count = voters.length;
       const maybeCount = maybeVoters.length;
       const formatInfo = getMatchFormatByPlayerCount(count);
@@ -183,14 +200,19 @@ export class AvailabilityService {
   /** Etichetta completa retrocompatibile */
   readonly activeWeekLabel = computed(() => {
     const tag = this.activeWeekTag();
-    return tag ? `${this.activeWeekRangeLabel()} (${tag})` : this.activeWeekRangeLabel();
+    return tag
+      ? `${this.activeWeekRangeLabel()} (${tag})`
+      : this.activeWeekRangeLabel();
   });
 
   constructor() {
     // Sincronizza la settimana di default non appena i dati delle partite arrivano da Firestore
     effect(() => {
       this.statsEngine.partiteRaw();
-      if (!this.userHasManuallyChangedWeek || this.activeWeekKey() < this.currentIsoWeekKey()) {
+      if (
+        !this.userHasManuallyChangedWeek ||
+        this.activeWeekKey() < this.currentIsoWeekKey()
+      ) {
         this.activeWeekKey.set(this.calculateDefaultWeekKey());
       }
     });
@@ -261,7 +283,9 @@ export class AvailabilityService {
     const hasConcludedMatchThisWeek = partite.some((m) => {
       if (!m.dataPartita || !m.matchConcluso) return false;
       const mDate = new Date(m.dataPartita);
-      return !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey;
+      return (
+        !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey
+      );
     });
 
     const dayOfWeek = now.getDay();
@@ -279,7 +303,10 @@ export class AvailabilityService {
   /**
    * Toggle scelta giorno atleta: 'yes' (Ci sono) oppure 'maybe' (Forse).
    */
-  async toggleDayVote(date: string, type: 'yes' | 'maybe' = 'yes'): Promise<void> {
+  async toggleDayVote(
+    date: string,
+    type: 'yes' | 'maybe' = 'yes',
+  ): Promise<void> {
     const user = this.auth.firebaseUser();
     if (!user) return;
 
@@ -312,16 +339,23 @@ export class AvailabilityService {
    * Se l'atleta toglie la disponibilità ('no' / unchecked), viene rimosso dai convocati e il suo RSVP impostato a 'declined'.
    * Se l'atleta dà disponibilità ('yes'), viene aggiunto ai convocati e il suo RSVP impostato a 'confirmed'.
    */
-  async syncVoteWithActiveMatch(date: string, isVotedYes: boolean): Promise<void> {
+  async syncVoteWithActiveMatch(
+    date: string,
+    isVotedYes: boolean,
+  ): Promise<void> {
     if (!this.firestore) return;
     const user = this.auth.firebaseUser();
     if (!user) return;
     const currentPid = this.auth.linkedPlayerId();
-    const currentName = this.auth.displayName() || user.email?.split('@')[0] || 'Atleta';
+    const currentName =
+      this.auth.displayName() || user.email?.split('@')[0] || 'Atleta';
 
     const partite = this.statsEngine.partiteRaw() || [];
     const activeMatchesOnDate = partite.filter(
-      (m) => (m.dataPartita === date || (m.dataPartita && m.dataPartita.startsWith(date))) && !m.matchConcluso
+      (m) =>
+        (m.dataPartita === date ||
+          (m.dataPartita && m.dataPartita.startsWith(date))) &&
+        !m.matchConcluso,
     );
 
     for (const m of activeMatchesOnDate) {
@@ -337,7 +371,12 @@ export class AvailabilityService {
           const cId = typeof c === 'string' ? c : c?.id || c?.playerId;
           const cName = typeof c === 'object' ? c?.nome : null;
           if (currentPid && cId === currentPid) return false;
-          if (cName && currentName && cName.toLowerCase() === currentName.toLowerCase()) return false;
+          if (
+            cName &&
+            currentName &&
+            cName.toLowerCase() === currentName.toLowerCase()
+          )
+            return false;
           return true;
         });
 
@@ -355,19 +394,27 @@ export class AvailabilityService {
         const alreadyIn = convocati.some((c: any) => {
           const cId = typeof c === 'string' ? c : c?.id || c?.playerId;
           const cName = typeof c === 'object' ? c?.nome : null;
-          return (currentPid && cId === currentPid) || (cName && currentName && cName.toLowerCase() === currentName.toLowerCase());
+          return (
+            (currentPid && cId === currentPid) ||
+            (cName &&
+              currentName &&
+              cName.toLowerCase() === currentName.toLowerCase())
+          );
         });
 
         if (!alreadyIn) {
           const allPlayers = this.statsEngine.giocatoriRaw() || [];
-          const playerObj = allPlayers.find((p) => (currentPid && p.id === currentPid) || (p.linkedUid && p.linkedUid === user.uid));
+          const playerObj = allPlayers.find(
+            (p) =>
+              (currentPid && p.id === currentPid) ||
+              (p.linkedUid && p.linkedUid === user.uid),
+          );
           if (playerObj) {
             convocati.push({
               id: playerObj.id,
               nome: playerObj.nome,
               fotoUrl: playerObj.fotoUrl || null,
               soprannome: playerObj.soprannome || null,
-              soprannomeAi: playerObj.soprannomeAi || null,
               ruoloPreferito: playerObj.ruoloPreferito || null,
               piedePreferito: playerObj.piedePreferito || null,
               selezionato: true,
@@ -400,7 +447,11 @@ export class AvailabilityService {
   /**
    * Salva l'array delle date 'Ci sono' e 'Forse' dell'atleta su Firestore.
    */
-  async saveMyVotes(availableDates: string[], maybeDates: string[] = [], note?: string): Promise<void> {
+  async saveMyVotes(
+    availableDates: string[],
+    maybeDates: string[] = [],
+    note?: string,
+  ): Promise<void> {
     if (!this.firestore) return;
     const user = this.auth.firebaseUser();
     if (!user) return;
@@ -412,7 +463,8 @@ export class AvailabilityService {
     const athleteVote: any = {
       uid: user.uid,
       playerId: this.auth.linkedPlayerId() || null,
-      displayName: this.auth.displayName() || user.email?.split('@')[0] || 'Atleta',
+      displayName:
+        this.auth.displayName() || user.email?.split('@')[0] || 'Atleta',
       photoURL: this.auth.photoURL() || null,
       availableDates: availableDates || [],
       maybeDates: maybeDates || [],
@@ -439,7 +491,7 @@ export class AvailabilityService {
           [user.uid]: athleteVote,
         },
       },
-      { merge: true }
+      { merge: true },
     );
   }
 
@@ -463,7 +515,7 @@ export class AvailabilityService {
     const otherPlayers = allPlayers.filter(
       (p) =>
         (!currentPid || p.id !== currentPid) &&
-        (!currentUid || p.linkedUid !== currentUid)
+        (!currentUid || p.linkedUid !== currentUid),
     );
 
     // Assicuriamo un pool sufficiente di almeno 13 atleti per testare numeri alti (11+)
@@ -557,7 +609,7 @@ export class AvailabilityService {
         votes: {},
         updatedAt: new Date().toISOString(),
       },
-      { merge: true }
+      { merge: true },
     );
   }
 
@@ -583,7 +635,7 @@ export class AvailabilityService {
         votes: cleanVotes,
         updatedAt: new Date().toISOString(),
       },
-      { merge: true }
+      { merge: true },
     );
   }
 
@@ -595,11 +647,12 @@ export class AvailabilityService {
     day: DaySummary,
     campoNome: string,
     campoMapsUrl?: string,
-    orario = '21:00'
+    orario = '21:00',
   ): Promise<string | null> {
     if (!this.firestore || !this.auth.isSuperUser()) return null;
 
-    const weekKey = this.getIsoWeekKey(new Date(day.date)) || this.activeWeekKey();
+    const weekKey =
+      this.getIsoWeekKey(new Date(day.date)) || this.activeWeekKey();
     const matchId = `match_${day.date.replace(/-/g, '')}_${Date.now().toString().slice(-4)}`;
     const matchDocRef = doc(this.firestore, `partite/${matchId}`);
 
@@ -608,14 +661,17 @@ export class AvailabilityService {
     const rsvpMap: Record<string, any> = {};
 
     for (const v of day.voters || []) {
-      const p = allPlayers.find((g) => (v.playerId && g.id === v.playerId) || (g.linkedUid && g.linkedUid === v.uid));
+      const p = allPlayers.find(
+        (g) =>
+          (v.playerId && g.id === v.playerId) ||
+          (g.linkedUid && g.linkedUid === v.uid),
+      );
       if (p) {
         convocatiFull.push({
           id: p.id,
           nome: p.nome,
           fotoUrl: p.fotoUrl || null,
           soprannome: p.soprannome || null,
-          soprannomeAi: p.soprannomeAi || null,
           ruoloPreferito: p.ruoloPreferito || null,
           piedePreferito: p.piedePreferito || null,
           selezionato: true,
@@ -632,7 +688,11 @@ export class AvailabilityService {
     }
 
     for (const v of day.maybeVoters || []) {
-      const p = allPlayers.find((g) => (v.playerId && g.id === v.playerId) || (g.linkedUid && g.linkedUid === v.uid));
+      const p = allPlayers.find(
+        (g) =>
+          (v.playerId && g.id === v.playerId) ||
+          (g.linkedUid && g.linkedUid === v.uid),
+      );
       rsvpMap[v.uid] = {
         uid: v.uid,
         playerId: p?.id || null,
@@ -686,7 +746,7 @@ export class AvailabilityService {
         confirmedDate: day.date,
         updatedAt: new Date().toISOString(),
       },
-      { merge: true }
+      { merge: true },
     );
 
     return matchId;
@@ -697,7 +757,10 @@ export class AvailabilityService {
    */
   async toggleSummerBreak(enabled: boolean): Promise<void> {
     if (!this.firestore || !this.auth.isSuperUser()) return;
-    const cfgRef = doc(this.firestore, 'config_stagioni/season_calendar_config');
+    const cfgRef = doc(
+      this.firestore,
+      'config_stagioni/season_calendar_config',
+    );
     const nextCfg: SeasonCalendarConfig = {
       ...this.calendarConfig(),
       summerBreakEnabled: enabled,
@@ -709,7 +772,10 @@ export class AvailabilityService {
   private async loadSeasonConfig(): Promise<void> {
     if (!this.firestore) return;
     try {
-      const cfgRef = doc(this.firestore, 'config_stagioni/season_calendar_config');
+      const cfgRef = doc(
+        this.firestore,
+        'config_stagioni/season_calendar_config',
+      );
       docData(cfgRef).subscribe({
         next: (data) => {
           if (data) {
@@ -723,15 +789,21 @@ export class AvailabilityService {
   }
 
   private getIsoWeekKey(date: Date): string {
-    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const d = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
+    );
     const dayNum = d.getUTCDay() || 7;
     d.setUTCDate(d.getUTCDate() + 4 - dayNum);
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+    const weekNo = Math.ceil(
+      ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+    );
     return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, '0')}`;
   }
 
-  private generateWeekDays(weekKey: string): { date: string; dayName: any; dayNumber: number }[] {
+  private generateWeekDays(
+    weekKey: string,
+  ): { date: string; dayName: any; dayNumber: number }[] {
     const [yearStr, weekStr] = weekKey.split('-W');
     const year = parseInt(yearStr, 10);
     const week = parseInt(weekStr, 10);
@@ -739,7 +811,9 @@ export class AvailabilityService {
     // Calcolo esatto del lunedì ISO 8601 (il 4 gennaio cade sempre nella settimana 1)
     const jan4 = new Date(Date.UTC(year, 0, 4));
     const dayOfWeek = jan4.getUTCDay() || 7;
-    const isoMonday = new Date(Date.UTC(year, 0, 4 - (dayOfWeek - 1) + (week - 1) * 7));
+    const isoMonday = new Date(
+      Date.UTC(year, 0, 4 - (dayOfWeek - 1) + (week - 1) * 7),
+    );
 
     const dayNames = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'] as const;
     const days: { date: string; dayName: any; dayNumber: number }[] = [];
@@ -762,4 +836,3 @@ export class AvailabilityService {
     return days;
   }
 }
-

@@ -1,0 +1,335 @@
+.chimica-content {
+  --background: var(--app-page-bg, #0b0f17);
+  color: var(--app-text-primary, #f1f5f9);
+}
+
+.back-nav-btn {
+  --color: var(--app-text-primary, #f1f5f9);
+  font-size: 1.1rem;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 60vh;
+  gap: 12px;
+  color: var(--app-text-secondary, #94a3b8);
+}
+
+// --- HERO DUO CARD ---
+.chem-hero-card {
+  margin: 14px 14px 16px;
+  padding: 20px 16px;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9));
+  border: 1px solid rgba(45, 211, 111, 0.25);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.duo-avatars-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+
+  .duo-avatar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:active {
+      transform: scale(0.96);
+    }
+
+    app-player-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid rgba(45, 211, 111, 0.4);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+
+    .duo-name {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .duo-nick {
+      font-size: 0.75rem;
+      color: var(--app-text-secondary, #94a3b8);
+      font-style: italic;
+    }
+  }
+
+  .duo-center-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+
+    .link-emoji {
+      font-size: 1.8rem;
+      filter: drop-shadow(0 2px 8px rgba(45, 211, 111, 0.4));
+    }
+
+    .link-label {
+      font-size: 0.68rem;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #2dd36f;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.duo-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  .duo-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+
+    &.unbeaten {
+      background: rgba(239, 68, 68, 0.16);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #f87171;
+    }
+
+    &.best {
+      background: rgba(45, 211, 111, 0.16);
+      border: 1px solid rgba(45, 211, 111, 0.45);
+      color: #2dd36f;
+    }
+
+    &.label {
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+    }
+  }
+}
+
+// --- KPI GRID ---
+.chem-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 0 14px 16px;
+
+  .kpi-card {
+    background: var(--app-surface-card, #131d2e);
+    border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 14px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+
+    .kpi-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.6px;
+      color: var(--app-text-muted, #64748b);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 1.15rem;
+      font-weight: 900;
+      color: #fff;
+
+      &.text-success {
+        color: #2dd36f;
+      }
+      &.text-warning {
+        color: #fbbf24;
+      }
+      &.text-cyan {
+        color: #38bdf8;
+      }
+    }
+
+    .kpi-sub {
+      font-size: 0.7rem;
+      color: var(--app-text-secondary, #94a3b8);
+      margin-top: 2px;
+    }
+  }
+}
+
+// --- BOTTONE 1V1 CONTRO ---
+.action-1v1-wrap {
+  margin: 0 14px 20px;
+
+  .btn-switch-1v1 {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.18));
+    border: 1px solid rgba(168, 85, 247, 0.45);
+    color: #c084fc;
+    font-size: 0.85rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.1rem;
+    }
+
+    &:active {
+      transform: scale(0.98);
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.28), rgba(236, 72, 153, 0.28));
+    }
+  }
+}
+
+// --- PARTITE GIOCATE INSIEME ---
+.matches-together-section {
+  margin: 0 14px 30px;
+
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+
+    .heading-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-icon {
+        color: #2dd36f;
+        font-size: 1.1rem;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #fff;
+      }
+    }
+  }
+
+  .matches-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .match-item-card {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--app-surface-card, #131d2e);
+      border: 1px solid var(--app-border-color, rgba(255, 255, 255, 0.08));
+
+      &.win {
+        border-left: 3px solid #2dd36f;
+      }
+      &.draw {
+        border-left: 3px solid #fbbf24;
+      }
+      &.loss {
+        border-left: 3px solid #f87171;
+      }
+
+      .match-left {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        .match-result-badge {
+          font-size: 0.65rem;
+          font-weight: 900;
+          letter-spacing: 0.5px;
+
+          &.win {
+            color: #2dd36f;
+          }
+          &.draw {
+            color: #fbbf24;
+          }
+          &.loss {
+            color: #f87171;
+          }
+        }
+
+        .match-date {
+          font-size: 0.72rem;
+          color: var(--app-text-secondary, #94a3b8);
+        }
+      }
+
+      .match-center {
+        text-align: center;
+
+        .score-pill {
+          display: inline-block;
+          padding: 4px 10px;
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.4);
+          font-size: 0.95rem;
+          font-weight: 900;
+          color: #fff;
+        }
+      }
+
+      .match-right {
+        text-align: right;
+
+        .match-goals {
+          font-size: 0.72rem;
+          font-weight: 700;
+          color: #fbbf24;
+
+          small {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--app-text-muted, #64748b);
+            font-weight: normal;
+          }
+        }
+
+        .match-goals-none {
+          font-size: 0.7rem;
+          color: var(--app-text-muted, #64748b);
+        }
+      }
+    }
+
+    .empty-matches {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--app-text-muted, #64748b);
+      font-size: 0.85rem;
+    }
+  }
+}
+

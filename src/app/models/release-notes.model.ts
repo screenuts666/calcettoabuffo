@@ -11,6 +11,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.59",
+    "date": "09/11/2026",
+    "title": "Rework Architetturale 1v1, Dettaglio Chimica, Scheda Giocatore & Pulizia AI",
+    "userChanges": [
+      "✨ Rimozione Completa Soprannomi AI: ripulita tutta l'applicazione dai vecchi soprannomi fantasiosi AI; visibili esclusivamente il nome reale e il soprannome manuale della rosa.",
+      "🎲 Hub 1v1 con Matchup Casuale & Sfide Dinamiche: nuova schermata principale 1v1 con il tasto '🎲 1vs1 Casuale' e schede interattive con scontri frequenti, rivalità storiche e derby equilibrati.",
+      "🔗 Dettaglio Chimica di Coppia (/chimica/:p1/:p2): le coppie della tab Chimica ora sono cliccabili e aprono una pagina dedicata con record V-P-S insieme, gol combinati, impatto MMR, storico partite e switch rapido all'1v1.",
+      "📱 Scheda Profilo Giocatore Gerarchica: organizzata in 3 tab pulite ('Statistiche', 'Chimica & 1v1', 'Storico & Bilancio') con striscia regina a 4 KPI (MMR, Win Rate, Gol/Gara, Media Voto) e ultime 5 partite inline.",
+      "📝 Box AI Ultra-Compatti & Rapidi: Scouting del Mister e Verdetto 1v1 ridotti a 2-3 frasi taglienti, con header pulito a riga singola, audio TTS circolare e testo espandibile con 'Leggi tutto'."
+    ],
+    "superUserChanges": [
+      "🧭 Dynamic Routing & Back Navigation: introdotte e mappate le rotte dinamiche /1v1/:p1/:p2, /confronto/:p1/:p2 e /chimica/:p1/:p2 con gestione della cronologia e tasto indietro integrato.",
+      "⚡ Prompt Gemini Ottimizzati: compattati i system prompt di scouting e 1v1 a max 220-280 caratteri, eliminando la generazione di nickname da API e Firestore.",
+      "🌐 Fix Icona Stagioni: corretta la registrazione di globeOutline per la pillola 'Tutte' nel filtro stagioni."
+    ]
+  },
+  {
     "version": "2.0.58",
     "date": "09/11/2026",
     "title": "Flusso Accesso & Associazione Atleta Automatico per Disponibilità",

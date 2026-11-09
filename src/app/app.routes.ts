@@ -74,6 +74,32 @@ export const routes: Routes = [
       ).then((m) => m.SchedaGiocatoreComponent),
   },
   {
+    path: 'chimica/:p1/:p2',
+    loadComponent: () =>
+      import(
+        './components/classifica/dettaglio-chimica/dettaglio-chimica.component'
+      ).then((m) => m.DettaglioChimicaComponent),
+  },
+  {
+    path: '1v1/:p1/:p2',
+    loadComponent: () =>
+      import('./components/confronto/confronto.page').then(
+        (m) => m.ConfrontoPage
+      ),
+  },
+  {
+    path: '1v1',
+    redirectTo: 'confronto',
+    pathMatch: 'full',
+  },
+  {
+    path: 'confronto/:p1/:p2',
+    loadComponent: () =>
+      import('./components/confronto/confronto.page').then(
+        (m) => m.ConfrontoPage
+      ),
+  },
+  {
     path: '',
     loadChildren: () =>
       import('./components/tabs/tabs.routes').then((m) => m.routes),

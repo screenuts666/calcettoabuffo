@@ -22,201 +22,236 @@
       <p style="color: var(--ion-color-medium); margin-top: 14px;">Caricamento profilo giocatore...</p>
     </div>
   } @else {
-  <!-- AVATAR & HEADER PROFILO -->
-  <div
-    class="profile-avatar-wrapper"
-    [style.--tier-color]="prof?.tier?.color || '#888'"
-  >
-    <app-player-avatar
-      class="avatar-img"
-      [fotoUrl]="prof?.fotoUrl"
-      [alt]="prof?.nome"
-    ></app-player-avatar>
-    @if (prof?.form?.status === 'on_fire') {
-      <span class="avatar-form-badge on-fire">🔥</span>
-    } @else if (prof?.form?.status === 'in_crisis') {
-      <span class="avatar-form-badge in-crisis">❄️</span>
-    }
-  </div>
 
-  <h2 class="player-name">
-    {{ prof?.nome }}
-    @if (prof?.numeroMaglia !== undefined && prof?.numeroMaglia !== null && prof?.numeroMaglia !== '') {
-      <span style="font-size: 0.95rem; font-weight: 900; color: #2dd36f; margin-left: 4px;">#{{ prof.numeroMaglia }}</span>
-    }
-  </h2>
-
-  @if (isMyPlayer) {
-    <div style="margin: 4px 0 8px;">
-      <span
-        style="
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 3px 10px;
-          border-radius: 999px;
-          background: rgba(45, 211, 111, 0.16);
-          border: 1px solid rgba(45, 211, 111, 0.45);
-          color: #2dd36f;
-          font-size: 0.72rem;
-          font-weight: 800;
-        "
-      >
-        ⚽ La tua scheda giocatore
-      </span>
+  <!-- ============================================== -->
+  <!-- 1. HEADER COMPATTO PROFILO                    -->
+  <!-- ============================================== -->
+  <div class="profile-header-compact">
+    <div
+      class="profile-avatar-wrapper"
+      [style.--tier-color]="prof?.tier?.color || '#888'"
+    >
+      <app-player-avatar
+        class="avatar-img"
+        [fotoUrl]="prof?.fotoUrl"
+        [alt]="prof?.nome"
+      ></app-player-avatar>
+      @if (prof?.form?.status === 'on_fire') {
+        <span class="avatar-form-badge on-fire">🔥</span>
+      } @else if (prof?.form?.status === 'in_crisis') {
+        <span class="avatar-form-badge in-crisis">❄️</span>
+      }
     </div>
-  }
 
-  @if (canClaimThisPlayer) {
-    <div style="margin: 6px auto 12px; max-width: 360px;">
-      <button
-        type="button"
-        (click)="reclamaQuestoGiocatore()"
-        [disabled]="isClaiming()"
-        style="
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 10px 14px;
-          border-radius: 12px;
-          border: 1px dashed rgba(45, 211, 111, 0.6);
-          background: rgba(45, 211, 111, 0.12);
-          color: #2dd36f;
-          font-size: 0.8rem;
-          font-weight: 800;
-          cursor: pointer;
-        "
-      >
-        <span>🙋‍♂️ Sono io! Associa questo Giocatore al mio account</span>
+    <h2 class="player-name">
+      {{ prof?.nome }}
+      @if (prof?.numeroMaglia !== undefined && prof?.numeroMaglia !== null && prof?.numeroMaglia !== '') {
+        <span class="player-shirt-num">#{{ prof.numeroMaglia }}</span>
+      }
+    </h2>
+
+    @if (prof?.soprannome) {
+      <p class="player-nickname">"{{ prof.soprannome }}"</p>
+    }
+
+    @if (prof?.bio) {
+      <p class="player-bio-text">«{{ prof.bio }}»</p>
+    }
+
+    @if (isMyPlayer) {
+      <div class="my-player-tag">
+        <span>⚽ La tua scheda giocatore</span>
+      </div>
+    }
+
+    @if (canClaimThisPlayer) {
+      <div class="claim-player-box">
+        <button
+          type="button"
+          (click)="reclamaQuestoGiocatore()"
+          [disabled]="isClaiming()"
+          class="claim-player-btn"
+        >
+          <span>🙋‍♂️ Sono io! Associa questo Giocatore al mio account</span>
+        </button>
+      </div>
+    }
+
+    <!-- ROW RAPIDA: TIER + FORMA INLINE + TASTO 1v1 -->
+    <div class="header-status-strip">
+      <div class="status-pill-tier">
+        @if (prof?.isRanked && prof?.tier) {
+          <span
+            class="tier-badge-pill"
+            [style.border-color]="prof.tier.color"
+            [style.background]="prof.tier.color + '1a'"
+            [style.color]="prof.tier.color"
+          >
+            <ion-icon [name]="prof.tier.icon"></ion-icon>
+            <span>{{ prof.tier.badge }}</span>
+          </span>
+        } @else {
+          <span class="tier-badge-pill unranked">
+            <ion-icon name="hourglass-outline"></ion-icon>
+            <span>⏳ In Piazzamento</span>
+          </span>
+        }
+      </div>
+
+      @if (prof?.form?.recentForm?.length) {
+        <div class="status-recent-form" title="Forma ultime 5 partite">
+          <span class="recent-form-mini-lbl">Ultime:</span>
+          <div class="recent-mini-balls">
+            @for (res of prof.form.recentForm; track $index) {
+              <span
+                class="mini-ball"
+                [class.win]="res === 'W'"
+                [class.draw]="res === 'D'"
+                [class.loss]="res === 'L'"
+              >{{ res }}</span>
+            }
+          </div>
+        </div>
+      }
+
+      <button type="button" class="btn-fast-h2h" (click)="confronta()">
+        <ion-icon name="swap-horizontal"></ion-icon>
+        <span>⚔️ 1v1</span>
       </button>
     </div>
-  }
-
-  @if (prof?.soprannome && prof?.soprannomeAi && prof.soprannome !== prof.soprannomeAi) {
-    <div class="player-nickname-wrapper">
-      <span class="player-nickname">"{{ prof.soprannome }}"</span>
-      <span class="player-nickname-ai-tag" title="Soprannome aggiuntivo coniato da Gemini AI">
-        ✨ "{{ prof.soprannomeAi }}"
-      </span>
-    </div>
-  } @else if (prof?.soprannome) {
-    <p class="player-nickname">"{{ prof.soprannome }}"</p>
-  } @else if (prof?.soprannomeAi) {
-    <p class="player-nickname">
-      "{{ prof.soprannomeAi }}"
-      <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
-    </p>
-  } @else {
-    <div class="spacer-8"></div>
-  }
-
-  @if (prof?.bio) {
-    <p
-      style="
-        max-width: 440px;
-        margin: 4px auto 12px;
-        font-size: 0.8rem;
-        font-style: italic;
-        color: var(--app-text-secondary);
-      "
-    >
-      «{{ prof.bio }}»
-    </p>
-  }
-
-  <!-- TIER BADGE & FORMA HERO -->
-  <div class="hero-badges-row">
-    @if (prof?.isRanked && prof?.tier) {
-      <span
-        class="tier-badge-large"
-        [style.border-color]="prof.tier.color"
-        [style.background]="prof.tier.color + '1a'"
-        [style.color]="prof.tier.color"
-      >
-        <ion-icon [name]="prof.tier.icon"></ion-icon>
-        <span>{{ prof.tier.badge }}</span>
-      </span>
-    } @else {
-      <span class="tier-badge-large unranked-hero-badge placement-hero-badge">
-        <ion-icon name="hourglass-outline"></ion-icon>
-        <span>⏳ In Piazzamento</span>
-      </span>
-    }
-
-    @if (prof?.isRanked) {
-      @if (prof?.form?.status === 'on_fire') {
-        <span class="form-badge-large on-fire">
-          🔥 On Fire (+{{ prof.form.currentStreak }} vittorie)
-        </span>
-      } @else if (prof?.form?.status === 'in_crisis') {
-        <span class="form-badge-large in-crisis">
-          ❄️ In Crisi ({{ prof.form.currentStreak }} sconfitte)
-        </span>
-      } @else if ((prof?.form?.currentDrawStreak || 0) >= 2) {
-        <span class="form-badge-large draw-streak">
-          🤝 Pareggite (+{{ prof.form.currentDrawStreak }} pareggi)
-        </span>
-      } @else {
-        <span class="form-badge-large neutral">
-          ➖ Forma Costante
-        </span>
-      }
-    }
   </div>
 
-  <!-- SCOUTING REPORT AI CARD -->
-  <div class="ai-scouting-card">
-    <div class="ai-scouting-header">
-      <div class="scouting-title-wrap">
-        <span class="scouting-badge">✨ SCOUTING AI</span>
-        <span class="scouting-title">Relazione Segreta del Mister</span>
+  <!-- ============================================== -->
+  <!-- 2. KPI PRINCIPALI A COLPO D'OCCHIO (QUEEN ROW) -->
+  <!-- ============================================== -->
+  <div class="kpi-queen-row">
+    <!-- MMR Attuale -->
+    <div class="kpi-queen-card">
+      <div class="kpi-q-label">MMR</div>
+      <div
+        class="kpi-q-value"
+        [style.color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#a1a1aa'"
+      >
+        {{ prof?.isRanked ? (prof?.mmrVal ?? '—') : '—' }}
       </div>
-      @if (prof?.scoutingReportAi) {
-        <div class="scouting-header-actions">
+      <div class="kpi-q-sub">
+        @if (prof?.isRanked && prof?.lastDeltaDisplay) {
+          <span
+            class="kpi-delta"
+            [class.up]="prof?.trendDirection === 'up'"
+            [class.down]="prof?.trendDirection === 'down'"
+          >
+            {{ prof.lastDeltaDisplay }}
+          </span>
+        } @else if (prof?.isRanked) {
+          <span>Peak {{ prof?.peakMmr ?? prof?.mmrVal ?? '—' }}</span>
+        } @else {
+          <span>Seed {{ prof?.seasonStartMmr ?? 1000 }}</span>
+        }
+      </div>
+    </div>
+
+    <!-- Win Rate -->
+    <div class="kpi-queen-card">
+      <div class="kpi-q-label">WIN RATE</div>
+      <div class="kpi-q-value winrate-val">
+        {{ prof?.isRanked ? (prof?.winRate ?? 0) + '%' : '—' }}
+      </div>
+      <div class="kpi-q-sub">
+        {{ prof?.isRanked ? ((prof?.wins ?? 0) + 'V / ' + (prof?.partiteGiocate ?? 0) + 'G') : '0 gare' }}
+      </div>
+    </div>
+
+    <!-- Gol / Gara -->
+    <div class="kpi-queen-card">
+      <div class="kpi-q-label">GOL / GARA</div>
+      <div class="kpi-q-value goals-val">
+        {{ golPerPartita }}
+      </div>
+      <div class="kpi-q-sub">
+        {{ prof?.golTotali ?? 0 }} gol tot.
+      </div>
+    </div>
+
+    <!-- Media Voto -->
+    <div class="kpi-queen-card">
+      <div class="kpi-q-label">MEDIA VOTO</div>
+      <div class="kpi-q-value rating-val">
+        {{ prof?.mediaVotoDisplay || '—' }}
+      </div>
+      <div class="kpi-q-sub">
+        {{ prof?.assistTotali ?? 0 }} assist
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 3. SCOUTING AI COMPATTO                        -->
+  <!-- ============================================== -->
+  <div class="ai-scouting-compact-card">
+    <div class="ai-scouting-compact-header">
+      <div class="scouting-title-left">
+        <span class="scouting-badge-icon">✨</span>
+        <span class="scouting-badge-text">Scouting AI</span>
+      </div>
+
+      <div class="scouting-actions-right">
+        @if (prof?.scoutingReportAi) {
           <app-ai-tts-button
             [text]="prof!.scoutingReportAi!"
             [id]="'scouting-' + prof!.id"
+            [compact]="true"
+            [showWhatsAppShare]="false"
             label="Ascolta Scouting"
-            [shareTitle]="'Scouting Report - ' + prof!.nome"
           ></app-ai-tts-button>
+
           @if (isAdmin) {
             <button
               type="button"
-              class="scouting-refresh-btn"
+              class="scouting-icon-btn"
               (click)="generaScouting(true)"
               [disabled]="isGeneratingScouting()"
-              title="Rigenera Scouting Report con Gemini"
+              title="Rigenera Scouting Report AI"
             >
               <ion-icon name="refresh-outline" [class.spin]="isGeneratingScouting()"></ion-icon>
-              <span>{{ isGeneratingScouting() ? 'Scouting...' : '🔄 Rigenera AI' }}</span>
             </button>
           }
-        </div>
-      }
+        }
+      </div>
     </div>
 
     @if (prof?.scoutingReportAi) {
-      <div class="scouting-body">
-        <div class="scouting-text" [innerHTML]="formatAiMarkdown(prof.scoutingReportAi)"></div>
+      <div class="scouting-compact-body">
+        <div
+          class="scouting-compact-text"
+          [class.clamped]="!isAiTextExpanded()"
+          [innerHTML]="formatAiMarkdown(prof.scoutingReportAi)"
+        ></div>
+        <button
+          type="button"
+          class="ai-expand-toggle-btn"
+          (click)="toggleAiText()"
+        >
+          <span>{{ isAiTextExpanded() ? 'Mostra meno' : 'Leggi tutto' }}</span>
+          <ion-icon [name]="isAiTextExpanded() ? 'chevron-up' : 'chevron-down'"></ion-icon>
+        </button>
       </div>
     } @else {
-      <div class="scouting-empty">
-        <p class="scouting-empty-desc">Nessuna scheda scouting redatta per questo giocatore.</p>
+      <div class="scouting-compact-empty">
+        <span class="empty-hint">Nessuna scheda scouting redatta per questo giocatore.</span>
         @if (isAdmin) {
           <button
             type="button"
-            class="scouting-generate-btn"
+            class="scouting-generate-pill-btn"
             (click)="generaScouting(false)"
             [disabled]="isGeneratingScouting()"
           >
             @if (isGeneratingScouting()) {
               <ion-spinner name="crescent"></ion-spinner>
-              <span>Analisi stile e commenti in corso...</span>
+              <span>Generazione in corso...</span>
             } @else {
               <ion-icon name="sparkles"></ion-icon>
-              <span>📋 Genera Scouting Report AI</span>
+              <span>Genera Scouting AI</span>
             }
           </button>
         }
@@ -224,510 +259,495 @@
     }
   </div>
 
-  <!-- PULSANTE RAPIDO CONFRONTO 1v1 -->
-  <div class="h2h-btn-wrapper">
-    <button type="button" class="h2h-compare-btn" (click)="confronta()">
-      <ion-icon name="swap-horizontal"></ion-icon>
-      <span>⚔️ Confronto 1v1 Head-to-Head</span>
+  <!-- ============================================== -->
+  <!-- 4. TAB SEGMENT INTERNO GERARCHICO             -->
+  <!-- ============================================== -->
+  <div class="profile-tabs-segment">
+    <button
+      type="button"
+      class="segment-tab-btn"
+      [class.active]="activeTab() === 'stats'"
+      (click)="setActiveTab('stats')"
+    >
+      <ion-icon name="bar-chart-outline"></ion-icon>
+      <span>Statistiche</span>
+    </button>
+    <button
+      type="button"
+      class="segment-tab-btn"
+      [class.active]="activeTab() === 'chemistry'"
+      (click)="setActiveTab('chemistry')"
+    >
+      <ion-icon name="flash"></ion-icon>
+      <span>Chimica & 1v1</span>
+    </button>
+    <button
+      type="button"
+      class="segment-tab-btn"
+      [class.active]="activeTab() === 'history'"
+      (click)="setActiveTab('history')"
+    >
+      <ion-icon name="trophy"></ion-icon>
+      <span>Storico & Bilancio</span>
     </button>
   </div>
 
-  <!-- ULTIME 5 PARTITE (FORMA RECENTE) -->
-  @if (prof?.form?.recentForm?.length) {
-    <div class="recent-form-container">
-      <span class="recent-form-label">Ultime partite:</span>
-      <div class="recent-balls">
-        @for (res of prof.form.recentForm; track $index) {
-          <span
-            class="form-ball"
-            [class.win]="res === 'W'"
-            [class.draw]="res === 'D'"
-            [class.loss]="res === 'L'"
-            [title]="
-              res === 'W'
-                ? 'Vittoria'
-                : res === 'D'
-                  ? 'Pareggio'
-                  : 'Sconfitta'
-            "
-          >
-            {{ res }}
-          </span>
-        }
-      </div>
-    </div>
-  }
-
   <!-- ============================================== -->
-  <!-- STATISTICHE MOTORE MMR & PEAK PERFORMANCE       -->
+  <!-- 5. CONTENUTO TAB 1: STATISTICHE                -->
   <!-- ============================================== -->
-  <div class="section-badge-header">
-    <ion-icon name="shield" class="sec-icon mmr-icon"></ion-icon>
-    <span>Rating & MMR</span>
-  </div>
-
-  <div class="mmr-stats-grid">
-    <!-- MMR Attuale -->
-    <div
-      class="stat-box mmr-box"
-      [style.border-color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#71717a'"
-    >
-      <div class="stat-box-title">MMR ATTUALE</div>
-      <div
-        class="stat-box-num"
-        [style.color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#a1a1aa'"
-      >
-        {{ prof?.isRanked ? (prof?.mmrVal ?? '—') : '—' }}
+  @if (activeTab() === 'stats') {
+    <div class="tab-pane-content">
+      <!-- DETTAGLI RATING & MMR -->
+      <div class="section-badge-header">
+        <ion-icon name="shield" class="sec-icon mmr-icon"></ion-icon>
+        <span>Rating & MMR Dettagliato</span>
       </div>
-      @if (prof?.isRanked && prof?.lastDeltaDisplay) {
+
+      <div class="mmr-stats-grid">
         <div
-          class="stat-box-sub trend"
-          [class.up]="prof?.trendDirection === 'up'"
-          [class.down]="prof?.trendDirection === 'down'"
+          class="stat-box mmr-box"
+          [style.border-color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#71717a'"
         >
-          @if (prof?.trendDirection === 'up') {
-            <ion-icon name="arrow-up"></ion-icon>
-          } @else if (prof?.trendDirection === 'down') {
-            <ion-icon name="arrow-down"></ion-icon>
-          } @else {
-            <ion-icon name="remove"></ion-icon>
-          }
-          {{ prof.lastDeltaDisplay }} ultimo match
-        </div>
-      } @else if (prof?.isRanked) {
-        <div class="stat-box-sub">Nessun match recente</div>
-      } @else {
-        <div class="stat-box-sub placement-sub">Seed: <b>{{ prof?.seasonStartMmr ?? 1000 }}</b> (1 match per piazzarsi)</div>
-      }
-    </div>
-
-    <!-- Peak MMR Storico -->
-    <div class="stat-box peak-box">
-      <div class="stat-box-title">PEAK STORICO 🏔️</div>
-      <div class="stat-box-num peak-num">
-        {{ prof?.isRanked ? (prof?.peakMmr ?? prof?.mmrVal ?? '—') : '—' }}
-      </div>
-      <div class="stat-box-sub">{{ prof?.isRanked ? 'Massimo all-time' : 'Non piazzato' }}</div>
-    </div>
-
-    <!-- Win Rate -->
-    <div class="stat-box winrate-box">
-      <div class="stat-box-title">WIN RATE 📈</div>
-      <div class="stat-box-num">
-        {{ prof?.isRanked ? (prof?.winRate ?? 0) + '%' : '—' }}
-      </div>
-      <div class="stat-box-sub">
-        {{ prof?.isRanked ? ((prof?.wins ?? 0) + 'V su ' + (prof?.partiteGiocate ?? 0) + ' match') : '0 match giocati' }}
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================== -->
-  <!-- STATISTICHE PORTIERE A ROTAZIONE               -->
-  <!-- ============================================== -->
-  @if (prof?.portiereStats?.isClassificabile) {
-    <div class="section-badge-header">
-      <span class="sec-icon">🧤</span>
-      <span>Portiere a Rotazione</span>
-    </div>
-
-    <div class="mmr-stats-grid">
-      <div class="stat-box">
-        <div class="stat-box-title">MEDIA GOL SUBITI</div>
-        <div class="stat-box-num" style="color: #10b981">
-          {{ prof.portiereStats.mediaGolSubiti50m.toFixed(2) }}
-        </div>
-        <div class="stat-box-sub">Gol ogni 50 minuti</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-box-title">CLEAN SHEET 🛡️</div>
-        <div class="stat-box-num">
-          {{ prof.portiereStats.cleanSheetTurni }}
-        </div>
-        <div class="stat-box-sub">Turni a porta inviolata</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-box-title">TEMPO IN PORTA ⏱️</div>
-        <div class="stat-box-num">
-          {{ prof.portiereStats.minutiInPortaDisplay || (prof.portiereStats.minutiInPorta + "'") }}
-        </div>
-        <div class="stat-box-sub">{{ prof.portiereStats.turniInPorta }} turni ({{ prof.portiereStats.golSubiti }} gol subiti)</div>
-      </div>
-
-      @if (prof.portiereStats.parateIncredibili) {
-        <div class="stat-box">
-          <div class="stat-box-title">MIRACOLI ✨</div>
-          <div class="stat-box-num" style="color: #fbbf24">
-            {{ prof.portiereStats.parateIncredibili }}
-          </div>
-          <div class="stat-box-sub">Parate incredibili</div>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- ============================================== -->
-  <!-- ALBO D'ORO STAGIONI (SEASON BANNERS LoL STYLE) -->
-  <!-- ============================================== -->
-  @if (prof?.pastSeasonsBanners?.length) {
-    <div class="section-badge-header banner-header">
-      <ion-icon name="ribbon" class="sec-icon banner-icon"></ion-icon>
-      <span>Albo d'Oro Stagioni</span>
-    </div>
-
-    <div class="season-banners-scroller">
-      @for (banner of prof.pastSeasonsBanners; track (banner.season || banner.seasonId || '') + '_' + $index) {
-        <div
-          class="season-banner-card"
-          [style.--tier-accent]="banner.tier.color"
-        >
+          <div class="stat-box-title">MMR ATTUALE</div>
           <div
-            class="banner-crest"
-            [style.background]="banner.tier.color + '22'"
-            [style.border-color]="banner.tier.color"
+            class="stat-box-num"
+            [style.color]="prof?.isRanked ? (prof?.tier?.color || '#2dd36f') : '#a1a1aa'"
           >
-            <ion-icon [name]="banner.tier.icon" [style.color]="banner.tier.color"></ion-icon>
+            {{ prof?.isRanked ? (prof?.mmrVal ?? '—') : '—' }}
           </div>
-          <div class="banner-body">
-            <div class="banner-season-tag">Stagione {{ banner.season || banner.seasonLabel }}</div>
-            <div class="banner-tier-title" [style.color]="banner.tier.color">
-              {{ banner.tier.badge }}
-            </div>
-            <div class="banner-meta">
-              <span class="meta-mmr"><b>{{ banner.finalMmr }}</b> MMR</span>
-              @if (banner.rank || banner.rankPosition) {
-                <span class="meta-pos">#{{ banner.rank || banner.rankPosition }}</span>
+          @if (prof?.isRanked && prof?.lastDeltaDisplay) {
+            <div
+              class="stat-box-sub trend"
+              [class.up]="prof?.trendDirection === 'up'"
+              [class.down]="prof?.trendDirection === 'down'"
+            >
+              @if (prof?.trendDirection === 'up') {
+                <ion-icon name="arrow-up"></ion-icon>
+              } @else if (prof?.trendDirection === 'down') {
+                <ion-icon name="arrow-down"></ion-icon>
+              } @else {
+                <ion-icon name="remove"></ion-icon>
               }
-              <span class="meta-matches">{{ banner.partiteGiocate ?? banner.matchesPlayed }} match</span>
+              {{ prof.lastDeltaDisplay }} ultimo match
             </div>
-            @if ((banner.puntiClassici ?? banner.classicPoints) !== undefined) {
-              <div class="banner-classic-sub">
-                {{ banner.puntiClassici ?? banner.classicPoints }} Punti Classici
+          } @else if (prof?.isRanked) {
+            <div class="stat-box-sub">Nessun match recente</div>
+          } @else {
+            <div class="stat-box-sub placement-sub">Seed: <b>{{ prof?.seasonStartMmr ?? 1000 }}</b></div>
+          }
+        </div>
+
+        <div class="stat-box peak-box">
+          <div class="stat-box-title">PEAK STORICO 🏔️</div>
+          <div class="stat-box-num peak-num">
+            {{ prof?.isRanked ? (prof?.peakMmr ?? prof?.mmrVal ?? '—') : '—' }}
+          </div>
+          <div class="stat-box-sub">{{ prof?.isRanked ? 'Massimo all-time' : 'Non piazzato' }}</div>
+        </div>
+
+        <div class="stat-box winrate-box">
+          <div class="stat-box-title">WIN RATE 📈</div>
+          <div class="stat-box-num">
+            {{ prof?.isRanked ? (prof?.winRate ?? 0) + '%' : '—' }}
+          </div>
+          <div class="stat-box-sub">
+            {{ prof?.isRanked ? ((prof?.wins ?? 0) + 'V su ' + (prof?.partiteGiocate ?? 0) + ' match') : '0 match' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- PORTIERE A ROTAZIONE (SE CLASSIFICABILE) -->
+      @if (prof?.portiereStats?.isClassificabile) {
+        <div class="section-badge-header">
+          <span class="sec-icon">🧤</span>
+          <span>Portiere a Rotazione</span>
+        </div>
+
+        <div class="mmr-stats-grid">
+          <div class="stat-box">
+            <div class="stat-box-title">MEDIA GOL SUBITI</div>
+            <div class="stat-box-num" style="color: #10b981">
+              {{ prof.portiereStats.mediaGolSubiti50m.toFixed(2) }}
+            </div>
+            <div class="stat-box-sub">Gol ogni 50 minuti</div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-box-title">CLEAN SHEET 🛡️</div>
+            <div class="stat-box-num">
+              {{ prof.portiereStats.cleanSheetTurni }}
+            </div>
+            <div class="stat-box-sub">Turni a porta inviolata</div>
+          </div>
+
+          <div class="stat-box">
+            <div class="stat-box-title">TEMPO IN PORTA ⏱️</div>
+            <div class="stat-box-num">
+              {{ prof.portiereStats.minutiInPortaDisplay || (prof.portiereStats.minutiInPorta + "'") }}
+            </div>
+            <div class="stat-box-sub">{{ prof.portiereStats.turniInPorta }} turni ({{ prof.portiereStats.golSubiti }} gol subiti)</div>
+          </div>
+
+          @if (prof.portiereStats.parateIncredibili) {
+            <div class="stat-box">
+              <div class="stat-box-title">MIRACOLI ✨</div>
+              <div class="stat-box-num" style="color: #fbbf24">
+                {{ prof.portiereStats.parateIncredibili }}
               </div>
-            }
-          </div>
+              <div class="stat-box-sub">Parate incredibili</div>
+            </div>
+          }
         </div>
       }
-    </div>
-  }
 
-  <!-- ============================================== -->
-  <!-- SEZIONE CHIMICA DI COPPIA (PARTNER & NEMESI)   -->
-  <!-- ============================================== -->
-  <div class="section-badge-header chemistry-header">
-    <ion-icon name="flash" class="sec-icon chem-icon"></ion-icon>
-    <span>Chimica & Rivalità</span>
-  </div>
+      <!-- DATI FISICI E BIOMETRICI -->
+      <div class="section-badge-header">
+        <ion-icon name="fitness-outline" class="sec-icon"></ion-icon>
+        <span>Dati Fisici & Ruolo</span>
+      </div>
 
-  <div class="chemistry-duo-cards">
-    <!-- CARD 1: MIGLIOR PARTNER 🤝 -->
-    <div class="chem-card partner-highlight">
-      <div class="chem-card-header">
-        <span class="chem-icon-tag">🤝</span>
-        <div class="chem-title-wrap">
-          <div class="chem-role-title">Miglior Partner</div>
-          <div class="chem-role-subtitle">Gemello del Gol</div>
+      <div class="physical-info-bar">
+        <div class="info-block">
+          <div class="info-emoji">🎂</div>
+          <div class="info-value">{{ getDataNascitaDisplay(prof) }}</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-block">
+          <div class="info-emoji">👟</div>
+          <div class="info-value capitalize">
+            {{ prof?.piedePreferito || "--" }}
+          </div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-block">
+          <div class="info-emoji">📏</div>
+          <div class="info-value">{{ prof?.altezza ? prof.altezza : "--" }}</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-block">
+          <div class="info-emoji">⚖️</div>
+          <div class="info-value">{{ prof?.peso ? prof.peso : "--" }}</div>
+        </div>
+        <div class="info-divider"></div>
+        <div class="info-block">
+          <div class="info-emoji">⚽</div>
+          <div class="info-value capitalize">
+            {{ prof?.ruoloPreferito || "--" }}
+          </div>
         </div>
       </div>
 
-      @if (prof?.chemistry?.bestPartner; as partner) {
-        <div
-          class="chem-player-row"
-          (click)="apriGiocatore(partner.partnerId)"
-          title="Apri scheda di {{ partner.partnerNome }}"
-        >
-          <app-player-avatar
-            class="chem-avatar"
-            [fotoUrl]="partner.partnerFotoUrl"
-            [alt]="partner.partnerNome"
-          ></app-player-avatar>
-          <div class="chem-player-meta">
-            <div class="chem-player-name">
-              <b>{{ partner.partnerNome }}</b>
-              @if (partner.partnerSoprannome) {
-                <span>"{{ partner.partnerSoprannome }}"</span>
-              }
-            </div>
-            <div class="chem-percent win">
-              {{ partner.winRateTogether }}% Vittorie Insieme
-            </div>
-            @if (partner.avgMmrDeltaTogether !== undefined) {
-              <div class="chem-delta-together">
-                ⚡ Delta MMR medio: <b>{{ partner.avgMmrDeltaTogether >= 0 ? '+' : '' }}{{ partner.avgMmrDeltaTogether }} pt</b>/partita
+      <!-- DETTAGLI PERSONALI & BIO GOLIARDICA -->
+      @if (prof?.professione || prof?.origini || prof?.statoCivile || prof?.vizi || (canViewPhone && privatePhoneNumber())) {
+        <div class="section-badge-header">
+          <ion-icon name="person-circle-outline" class="sec-icon"></ion-icon>
+          <span>Info Personali & Contatti</span>
+        </div>
+
+        <div class="personal-bio-grid">
+          @if (canViewPhone && privatePhoneNumber()) {
+            <div
+              class="bio-pill"
+              style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08);"
+              title="Dato privato visibile esclusivamente al Mister e al giocatore proprietario"
+            >
+              <span class="bio-pill-icon">📞</span>
+              <div class="bio-pill-text" style="flex: 1;">
+                <span class="bio-pill-label" style="color: #38bdf8;">
+                  Telefono (🔒 Privato)
+                </span>
+                <span class="bio-pill-val" style="font-weight: 800;">
+                  {{ privatePhoneNumber() }}
+                </span>
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
+                  <a
+                    [href]="getTelUrl(privatePhoneNumber())"
+                    (click)="$event.stopPropagation()"
+                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
+                  >
+                    <ion-icon name="call-outline"></ion-icon>
+                    <span>Chiama</span>
+                  </a>
+                  <a
+                    [href]="getWhatsAppUrl(privatePhoneNumber())"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    (click)="$event.stopPropagation()"
+                    style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(37, 211, 102, 0.18); border: 1px solid rgba(37, 211, 102, 0.45); color: #25d366; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
+                  >
+                    <ion-icon name="logo-whatsapp"></ion-icon>
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
               </div>
-            }
-            <div class="chem-record-detail">
-              {{ partner.winsTogether }}V - {{ partner.drawsTogether }}P - {{ partner.lossesTogether }}S ({{ partner.matchesTogether }} match insieme)
             </div>
-          </div>
-        </div>
-        <div class="chem-actions-row">
-          <button
-            type="button"
-            class="chem-h2h-btn partner-btn"
-            (click)="confronta(partner.partnerId); $event.stopPropagation()"
-          >
-            <ion-icon name="swap-horizontal"></ion-icon>
-            <span>Confronta 1v1 con il Partner</span>
-          </button>
-        </div>
-      } @else {
-        <div class="chem-empty-state">
-          <span>Partite insieme insufficienti per determinare un partner (min. 2 match)</span>
+          }
+          @if (prof?.professione) {
+            <div class="bio-pill">
+              <span class="bio-pill-icon">💼</span>
+              <div class="bio-pill-text">
+                <span class="bio-pill-label">Mestiere</span>
+                <span class="bio-pill-val">{{ prof.professione }}</span>
+              </div>
+            </div>
+          }
+          @if (prof?.origini) {
+            <div class="bio-pill">
+              <span class="bio-pill-icon">📍</span>
+              <div class="bio-pill-text">
+                <span class="bio-pill-label">Origini</span>
+                <span class="bio-pill-val">{{ prof.origini }}</span>
+              </div>
+            </div>
+          }
+          @if (prof?.statoCivile) {
+            <div class="bio-pill">
+              <span class="bio-pill-icon">💍</span>
+              <div class="bio-pill-text">
+                <span class="bio-pill-label">Stato Civile</span>
+                <span class="bio-pill-val">{{ prof.statoCivile }}</span>
+              </div>
+            </div>
+          }
+          @if (prof?.vizi) {
+            <div class="bio-pill vizi-pill">
+              <span class="bio-pill-icon">🍺</span>
+              <div class="bio-pill-text">
+                <span class="bio-pill-label">Vizi & Abitudini</span>
+                <span class="bio-pill-val">{{ prof.vizi }}</span>
+              </div>
+            </div>
+          }
         </div>
       }
-    </div>
 
-    <!-- CARD 2: NEMESI 😈 -->
-    <div class="chem-card nemesis-highlight">
-      <div class="chem-card-header">
-        <span class="chem-icon-tag">😈</span>
-        <div class="chem-title-wrap">
-          <div class="chem-role-title">Nemesi</div>
-          <div class="chem-role-subtitle">Bestia Nera</div>
+      <!-- ALBO D'ORO STAGIONI (SEASON BANNERS) -->
+      @if (prof?.pastSeasonsBanners?.length) {
+        <div class="section-badge-header banner-header">
+          <ion-icon name="ribbon" class="sec-icon banner-icon"></ion-icon>
+          <span>Albo d'Oro Stagioni</span>
         </div>
-      </div>
 
-      @if (prof?.chemistry?.biggestNemesis; as nemesis) {
-        <div
-          class="chem-player-row"
-          (click)="apriGiocatore(nemesis.opponentId)"
-          title="Apri scheda di {{ nemesis.opponentNome }}"
-        >
-          <app-player-avatar
-            class="chem-avatar nemesis-avatar"
-            [fotoUrl]="nemesis.opponentFotoUrl"
-            [alt]="nemesis.opponentNome"
-          ></app-player-avatar>
-          <div class="chem-player-meta">
-            <div class="chem-player-name">
-              <b>{{ nemesis.opponentNome }}</b>
-              @if (nemesis.opponentSoprannome) {
-                <span>"{{ nemesis.opponentSoprannome }}"</span>
-              }
+        <div class="season-banners-scroller">
+          @for (banner of prof.pastSeasonsBanners; track (banner.season || banner.seasonId || '') + '_' + $index) {
+            <div
+              class="season-banner-card"
+              [style.--tier-accent]="banner.tier.color"
+            >
+              <div
+                class="banner-crest"
+                [style.background]="banner.tier.color + '22'"
+                [style.border-color]="banner.tier.color"
+              >
+                <ion-icon [name]="banner.tier.icon" [style.color]="banner.tier.color"></ion-icon>
+              </div>
+              <div class="banner-body">
+                <div class="banner-season-tag">Stagione {{ banner.season || banner.seasonLabel }}</div>
+                <div class="banner-tier-title" [style.color]="banner.tier.color">
+                  {{ banner.tier.badge }}
+                </div>
+                <div class="banner-meta">
+                  <span class="meta-mmr"><b>{{ banner.finalMmr }}</b> MMR</span>
+                  @if (banner.rank || banner.rankPosition) {
+                    <span class="meta-pos">#{{ banner.rank || banner.rankPosition }}</span>
+                  }
+                  <span class="meta-matches">{{ banner.partiteGiocate ?? banner.matchesPlayed }} match</span>
+                </div>
+                @if ((banner.puntiClassici ?? banner.classicPoints) !== undefined) {
+                  <div class="banner-classic-sub">
+                    {{ banner.puntiClassici ?? banner.classicPoints }} Punti Classici
+                  </div>
+                }
+              </div>
             </div>
-            <div class="chem-percent loss">
-              {{ nemesis.opponentWinRate }}% Sconfitte Contro
-            </div>
-            <div class="chem-record-detail">
-              {{ nemesis.lossesAgainst }} sconfitte su {{ nemesis.matchesAgainst }} scontri diretti
-            </div>
-          </div>
-        </div>
-        <div class="chem-actions-row">
-          <button
-            type="button"
-            class="chem-h2h-btn nemesis-btn"
-            (click)="confronta(nemesis.opponentId); $event.stopPropagation()"
-          >
-            <ion-icon name="swap-horizontal"></ion-icon>
-            <span>Confronta 1v1 con la Nemesi</span>
-          </button>
-        </div>
-      } @else {
-        <div class="chem-empty-state">
-          <span>Nessuna nemesi rilevata finora (min. 2 scontri diretti)</span>
-        </div>
-      }
-    </div>
-  </div>
-
-  <!-- Sinergie extra se presenti (Vittima Preferita o Coppia Difficile) -->
-  @if (prof?.chemistry?.favoriteVictim || prof?.chemistry?.worstPartner) {
-    <div class="chem-extra-row">
-      @if (prof?.chemistry?.favoriteVictim; as victim) {
-        <div
-          class="chem-extra-pill victim"
-          (click)="apriGiocatore(victim.opponentId)"
-        >
-          <span>🎯 Vittima preferita:</span>
-          <b>{{ victim.opponentNome }}</b>
-          <span>({{ victim.winRateAgainst }}% vittorie)</span>
-        </div>
-      }
-      @if (prof?.chemistry?.worstPartner; as worst) {
-        <div
-          class="chem-extra-pill struggle"
-          (click)="apriGiocatore(worst.partnerId)"
-        >
-          <span>💔 Intesa difficile:</span>
-          <b>{{ worst.partnerNome }}</b>
-          <span>({{ worst.winRateTogether }}% vittorie)</span>
+          }
         </div>
       }
     </div>
   }
 
   <!-- ============================================== -->
-  <!-- BARRA INFO FISICHE E BIOMETRICHE               -->
+  <!-- 6. CONTENUTO TAB 2: CHIMICA & 1v1              -->
   <!-- ============================================== -->
-  <div class="physical-info-bar">
-    <div class="info-block">
-      <div class="info-emoji">🎂</div>
-      <div class="info-value">{{ getDataNascitaDisplay(prof) }}</div>
-    </div>
-
-    <div class="info-divider"></div>
-
-    <div class="info-block">
-      <div class="info-emoji">👟</div>
-      <div class="info-value capitalize">
-        {{ prof?.piedePreferito || "--" }}
+  @if (activeTab() === 'chemistry') {
+    <div class="tab-pane-content">
+      <div class="section-badge-header chemistry-header">
+        <ion-icon name="flash" class="sec-icon chem-icon"></ion-icon>
+        <span>Chimica & Rivalità</span>
       </div>
-    </div>
 
-    <div class="info-divider"></div>
-
-    <div class="info-block">
-      <div class="info-emoji">📏</div>
-      <div class="info-value">{{ prof?.altezza ? prof.altezza : "--" }}</div>
-    </div>
-
-    <div class="info-divider"></div>
-
-    <div class="info-block">
-      <div class="info-emoji">⚖️</div>
-      <div class="info-value">{{ prof?.peso ? prof.peso : "--" }}</div>
-    </div>
-
-    <div class="info-divider"></div>
-
-    <div class="info-block">
-      <div class="info-emoji">⚽</div>
-      <div class="info-value capitalize">
-        {{ prof?.ruoloPreferito || "--" }}
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================== -->
-  <!-- DETTAGLI PERSONALI & BIO GOLIARDICA            -->
-  <!-- ============================================== -->
-  @if (prof?.professione || prof?.origini || prof?.statoCivile || prof?.vizi || (canViewPhone && privatePhoneNumber())) {
-    <div class="personal-bio-grid">
-      @if (canViewPhone && privatePhoneNumber()) {
-        <div
-          class="bio-pill"
-          style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08);"
-          title="Dato privato visibile esclusivamente al Mister e al giocatore proprietario"
-        >
-          <span class="bio-pill-icon">📞</span>
-          <div class="bio-pill-text" style="flex: 1;">
-            <span class="bio-pill-label" style="color: #38bdf8;">
-              Telefono (🔒 Privato)
-            </span>
-            <span class="bio-pill-val" style="font-weight: 800;">
-              {{ privatePhoneNumber() }}
-            </span>
-            <div style="display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-              <a
-                [href]="getTelUrl(privatePhoneNumber())"
-                (click)="$event.stopPropagation()"
-                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
-              >
-                <ion-icon name="call-outline"></ion-icon>
-                <span>Chiama</span>
-              </a>
-              <a
-                [href]="getWhatsAppUrl(privatePhoneNumber())"
-                target="_blank"
-                rel="noopener noreferrer"
-                (click)="$event.stopPropagation()"
-                style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 8px; background: rgba(37, 211, 102, 0.18); border: 1px solid rgba(37, 211, 102, 0.45); color: #25d366; text-decoration: none; font-size: 0.72rem; font-weight: 800;"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-                <span>WhatsApp</span>
-              </a>
+      <div class="chemistry-duo-cards">
+        <!-- MIGLIOR PARTNER 🤝 -->
+        <div class="chem-card partner-highlight">
+          <div class="chem-card-header">
+            <span class="chem-icon-tag">🤝</span>
+            <div class="chem-title-wrap">
+              <div class="chem-role-title">Miglior Partner</div>
+              <div class="chem-role-subtitle">Gemello del Gol</div>
             </div>
           </div>
+
+          @if (prof?.chemistry?.bestPartner; as partner) {
+            <div
+              class="chem-player-row"
+              (click)="apriGiocatore(partner.partnerId)"
+              title="Apri scheda di {{ partner.partnerNome }}"
+            >
+              <app-player-avatar
+                class="chem-avatar"
+                [fotoUrl]="partner.partnerFotoUrl"
+                [alt]="partner.partnerNome"
+              ></app-player-avatar>
+              <div class="chem-player-meta">
+                <div class="chem-player-name">
+                  <b>{{ partner.partnerNome }}</b>
+                  @if (partner.partnerSoprannome) {
+                    <span>"{{ partner.partnerSoprannome }}"</span>
+                  }
+                </div>
+                <div class="chem-percent win">
+                  {{ partner.winRateTogether }}% Vittorie Insieme
+                </div>
+                @if (partner.avgMmrDeltaTogether !== undefined) {
+                  <div class="chem-delta-together">
+                    ⚡ Delta MMR: <b>{{ partner.avgMmrDeltaTogether >= 0 ? '+' : '' }}{{ partner.avgMmrDeltaTogether }} pt</b>/partita
+                  </div>
+                }
+                <div class="chem-record-detail">
+                  {{ partner.winsTogether }}V - {{ partner.drawsTogether }}P - {{ partner.lossesTogether }}S ({{ partner.matchesTogether }} match)
+                </div>
+              </div>
+            </div>
+            <div class="chem-actions-row">
+              <button
+                type="button"
+                class="chem-h2h-btn partner-chem-btn"
+                (click)="apriDettaglioChimica(partner.partnerId); $event.stopPropagation()"
+              >
+                <ion-icon name="flash"></ion-icon>
+                <span>Dettaglio Chimica Coppia</span>
+              </button>
+              <button
+                type="button"
+                class="chem-h2h-btn partner-btn"
+                (click)="confronta(partner.partnerId); $event.stopPropagation()"
+              >
+                <ion-icon name="swap-horizontal"></ion-icon>
+                <span>1v1 Contro</span>
+              </button>
+            </div>
+          } @else {
+            <div class="chem-empty-state">
+              <span>Partite insieme insufficienti per determinare un partner (min. 2 match)</span>
+            </div>
+          }
         </div>
-      }
-      @if (prof?.professione) {
-        <div class="bio-pill">
-          <span class="bio-pill-icon">💼</span>
-          <div class="bio-pill-text">
-            <span class="bio-pill-label">Mestiere</span>
-            <span class="bio-pill-val">{{ prof.professione }}</span>
+
+        <!-- NEMESI 😈 -->
+        <div class="chem-card nemesis-highlight">
+          <div class="chem-card-header">
+            <span class="chem-icon-tag">😈</span>
+            <div class="chem-title-wrap">
+              <div class="chem-role-title">Nemesi</div>
+              <div class="chem-role-subtitle">Bestia Nera</div>
+            </div>
           </div>
+
+          @if (prof?.chemistry?.biggestNemesis; as nemesis) {
+            <div
+              class="chem-player-row"
+              (click)="apriGiocatore(nemesis.opponentId)"
+              title="Apri scheda di {{ nemesis.opponentNome }}"
+            >
+              <app-player-avatar
+                class="chem-avatar nemesis-avatar"
+                [fotoUrl]="nemesis.opponentFotoUrl"
+                [alt]="nemesis.opponentNome"
+              ></app-player-avatar>
+              <div class="chem-player-meta">
+                <div class="chem-player-name">
+                  <b>{{ nemesis.opponentNome }}</b>
+                  @if (nemesis.opponentSoprannome) {
+                    <span>"{{ nemesis.opponentSoprannome }}"</span>
+                  }
+                </div>
+                <div class="chem-percent loss">
+                  {{ nemesis.opponentWinRate }}% Sconfitte Contro
+                </div>
+                <div class="chem-record-detail">
+                  {{ nemesis.lossesAgainst }} sconfitte su {{ nemesis.matchesAgainst }} scontri diretti
+                </div>
+              </div>
+            </div>
+            <div class="chem-actions-row">
+              <button
+                type="button"
+                class="chem-h2h-btn nemesis-btn"
+                (click)="confronta(nemesis.opponentId); $event.stopPropagation()"
+              >
+                <ion-icon name="swap-horizontal"></ion-icon>
+                <span>Confronta 1v1 con la Nemesi</span>
+              </button>
+            </div>
+          } @else {
+            <div class="chem-empty-state">
+              <span>Nessuna nemesi rilevata finora (min. 2 scontri diretti)</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Sinergie extra -->
+      @if (prof?.chemistry?.favoriteVictim || prof?.chemistry?.worstPartner) {
+        <div class="chem-extra-row">
+          @if (prof?.chemistry?.favoriteVictim; as victim) {
+            <div
+              class="chem-extra-pill victim"
+              (click)="confronta(victim.opponentId)"
+              title="Clicca per aprire il confronto 1v1 con la vittima preferita"
+            >
+              <span>🎯 Vittima preferita:</span>
+              <b>{{ victim.opponentNome }}</b>
+              <span>({{ victim.winRateAgainst }}% vittorie)</span>
+              <ion-icon name="chevron-forward"></ion-icon>
+            </div>
+          }
+          @if (prof?.chemistry?.worstPartner; as worst) {
+            <div
+              class="chem-extra-pill struggle"
+              (click)="apriDettaglioChimica(worst.partnerId)"
+              title="Clicca per vedere la scheda coppia"
+            >
+              <span>💔 Intesa difficile:</span>
+              <b>{{ worst.partnerNome }}</b>
+              <span>({{ worst.winRateTogether }}% vittorie)</span>
+              <ion-icon name="chevron-forward"></ion-icon>
+            </div>
+          }
         </div>
       }
-      @if (prof?.origini) {
-        <div class="bio-pill">
-          <span class="bio-pill-icon">📍</span>
-          <div class="bio-pill-text">
-            <span class="bio-pill-label">Origini</span>
-            <span class="bio-pill-val">{{ prof.origini }}</span>
-          </div>
-        </div>
-      }
-      @if (prof?.statoCivile) {
-        <div class="bio-pill">
-          <span class="bio-pill-icon">💍</span>
-          <div class="bio-pill-text">
-            <span class="bio-pill-label">Stato Civile</span>
-            <span class="bio-pill-val">{{ prof.statoCivile }}</span>
-          </div>
-        </div>
-      }
-      @if (prof?.vizi) {
-        <div class="bio-pill vizi-pill">
-          <span class="bio-pill-icon">🍺</span>
-          <div class="bio-pill-text">
-            <span class="bio-pill-label">Vizi & Abitudini</span>
-            <span class="bio-pill-val">{{ prof.vizi }}</span>
-          </div>
-        </div>
-      }
+
+      <!-- SHORTCUT 1v1 CASUALE O GENERALE -->
+      <div class="chem-shortcut-box">
+        <button type="button" class="chem-shortcut-btn" (click)="confronta()">
+          <ion-icon name="swap-horizontal"></ion-icon>
+          <span>Apri Hub 1v1 & Tutte le Sfide</span>
+        </button>
+      </div>
     </div>
   }
 
   <!-- ============================================== -->
-  <!-- STATISTICHE CLASSICHE LEGACY                   -->
+  <!-- 7. CONTENUTO TAB 3: STORICO & BILANCIO         -->
   <!-- ============================================== -->
-  <div class="section-badge-header legacy-header">
-    <ion-icon name="trophy" class="sec-icon legacy-icon"></ion-icon>
-    <span>Punti Classici</span>
-  </div>
-
-  <ion-row class="ion-text-center">
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-success">
-        <ion-icon name="trophy" color="success" class="stat-icon"></ion-icon>
-        <div class="stat-label">Punti Classici</div>
-        <div class="stat-value text-success">{{ prof?.puntiDisplay }}</div>
+  @if (activeTab() === 'history') {
+    <div class="tab-pane-content">
+      <!-- BILANCIO PARTITE -->
+      <div class="section-badge-header">
+        <ion-icon name="people" class="sec-icon"></ion-icon>
+        <span>Bilancio Partite & Minuti</span>
       </div>
-    </ion-col>
 
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-primary">
-        <ion-icon name="analytics" color="primary" class="stat-icon"></ion-icon>
-        <div class="stat-label">Media Voto</div>
-        <div class="stat-value text-primary">
-          {{ prof?.mediaVotoDisplay }}
-        </div>
-      </div>
-    </ion-col>
-
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-warning">
-        <ion-icon name="football" color="warning" class="stat-icon"></ion-icon>
-        <div class="stat-label">Gol Fatti</div>
-        <div class="stat-value text-warning">{{ prof?.golTotali }}</div>
-      </div>
-    </ion-col>
-
-    <ion-col size="6" class="stat-col">
-      <div class="stat-card card-cyan">
-        <span class="stat-emoji-icon">👟</span>
-        <div class="stat-label">Assist Totali</div>
-        <div class="stat-value text-cyan">{{ prof?.assistTotali ?? 0 }}</div>
-      </div>
-    </ion-col>
-
-    <!-- BILANCIO PARTITE PARLANTE -->
-    <ion-col size="12" class="stat-col">
       <div class="stat-card card-dark card-bilancio">
         <div class="bilancio-header">
           <div class="bilancio-title-wrap">
@@ -786,11 +806,9 @@
           </div>
         }
       </div>
-    </ion-col>
 
-    <!-- MINUTI GIOCATI TOTALI -->
-    <ion-col size="12" class="stat-col">
-      <div class="stat-card card-dark card-minuti-banner">
+      <!-- MINUTI GIOCATI TOTALI -->
+      <div class="stat-card card-dark card-minuti-banner" style="margin-top: 12px;">
         <div class="minuti-banner-left">
           <ion-icon name="time-outline" color="primary" class="stat-icon"></ion-icon>
           <div>
@@ -802,10 +820,52 @@
           ⏱️ {{ prof?.minutiGiocatiDisplay || "0' 00\"" }}
         </div>
       </div>
-    </ion-col>
-  </ion-row>
 
-  <!-- SPACER INFERIORE PER SCROLL COMPLETO SENZA TAGLI -->
+      <!-- PUNTI CLASSICI LEGACY -->
+      <div class="section-badge-header legacy-header" style="margin-top: 20px;">
+        <ion-icon name="trophy" class="sec-icon legacy-icon"></ion-icon>
+        <span>Punti Classici & Dettagli Legacy</span>
+      </div>
+
+      <ion-row class="ion-text-center">
+        <ion-col size="6" class="stat-col">
+          <div class="stat-card card-success">
+            <ion-icon name="trophy" color="success" class="stat-icon"></ion-icon>
+            <div class="stat-label">Punti Classici</div>
+            <div class="stat-value text-success">{{ prof?.puntiDisplay }}</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="stat-col">
+          <div class="stat-card card-primary">
+            <ion-icon name="analytics" color="primary" class="stat-icon"></ion-icon>
+            <div class="stat-label">Media Voto</div>
+            <div class="stat-value text-primary">
+              {{ prof?.mediaVotoDisplay }}
+            </div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="stat-col">
+          <div class="stat-card card-warning">
+            <ion-icon name="football" color="warning" class="stat-icon"></ion-icon>
+            <div class="stat-label">Gol Fatti</div>
+            <div class="stat-value text-warning">{{ prof?.golTotali }}</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="stat-col">
+          <div class="stat-card card-cyan">
+            <span class="stat-emoji-icon">👟</span>
+            <div class="stat-label">Assist Totali</div>
+            <div class="stat-value text-cyan">{{ prof?.assistTotali ?? 0 }}</div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </div>
+  }
+
+  <!-- SPACER INFERIORE -->
   <div class="profile-scroll-bottom-spacer"></div>
   }
 </ion-content>

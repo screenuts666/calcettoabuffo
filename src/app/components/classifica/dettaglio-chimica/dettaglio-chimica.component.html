@@ -1,0 +1,144 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="tornaIndietro()" class="back-nav-btn" aria-label="Torna indietro">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>🤝 Intesa di Coppia</ion-title>
+    <ion-buttons slot="end">
+      <app-theme-toggle></app-theme-toggle>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="chimica-content">
+  @if (!p1() || !p2() || !chimicaData()) {
+    <div class="loading-state">
+      <ion-spinner name="crescent" color="success"></ion-spinner>
+      <p>Caricamento dati intesa di coppia...</p>
+    </div>
+  } @else {
+    @let data = chimicaData()!;
+    @let player1 = p1()!;
+    @let player2 = p2()!;
+
+    <!-- HERO CARD INTESA DI COPPIA -->
+    <div class="chem-hero-card">
+      <div class="duo-avatars-row">
+        <div class="duo-avatar-item" (click)="vaiAllaScheda(player1.id)" title="Scheda {{ player1.nome }}">
+          <app-player-avatar [fotoUrl]="player1.fotoUrl" [alt]="player1.nome"></app-player-avatar>
+          <span class="duo-name">{{ player1.nome }}</span>
+          @if (player1.soprannome) {
+            <span class="duo-nick">"{{ player1.soprannome }}"</span>
+          }
+        </div>
+
+        <div class="duo-center-link">
+          <span class="link-emoji">{{ data.affinitaEmoji || '🤝' }}</span>
+          <span class="link-label">INSIEME</span>
+        </div>
+
+        <div class="duo-avatar-item" (click)="vaiAllaScheda(player2.id)" title="Scheda {{ player2.nome }}">
+          <app-player-avatar [fotoUrl]="player2.fotoUrl" [alt]="player2.nome"></app-player-avatar>
+          <span class="duo-name">{{ player2.nome }}</span>
+          @if (player2.soprannome) {
+            <span class="duo-nick">"{{ player2.soprannome }}"</span>
+          }
+        </div>
+      </div>
+
+      <div class="duo-status-bar">
+        @if (data.isUnbeaten) {
+          <span class="duo-tag unbeaten">🔥 Imbattuti Insieme</span>
+        }
+        @if (data.isBest) {
+          <span class="duo-tag best">🤝 Gemelli del Gol</span>
+        }
+        <span class="duo-tag label">{{ data.affinitaLabel }}</span>
+      </div>
+    </div>
+
+    <!-- KPI STRIP DI COPPIA -->
+    <div class="chem-kpi-grid">
+      <div class="kpi-card winrate">
+        <span class="kpi-label">WIN RATE INSIEME</span>
+        <span class="kpi-value text-success">{{ data.winRate }}%</span>
+        <span class="kpi-sub">{{ data.wins }} vittorie su {{ data.total }} match</span>
+      </div>
+
+      <div class="kpi-card record">
+        <span class="kpi-label">BILANCIO V-P-S</span>
+        <span class="kpi-value">{{ data.wins }}V · {{ data.draws }}P · {{ data.losses }}S</span>
+        <span class="kpi-sub">{{ data.total }} partite da compagni</span>
+      </div>
+
+      <div class="kpi-card goals">
+        <span class="kpi-label">GOL COMBINATI</span>
+        <span class="kpi-value text-warning">⚽ {{ data.golCombinati }}</span>
+        <span class="kpi-sub">{{ player1.nome }}: {{ data.golP1 }} · {{ player2.nome }}: {{ data.golP2 }}</span>
+      </div>
+
+      <div class="kpi-card mmr">
+        <span class="kpi-label">IMPATTO MMR MEDIO</span>
+        <span class="kpi-value text-cyan">
+          {{ data.avgMmrDeltaTogether !== undefined ? ((data.avgMmrDeltaTogether >= 0 ? '+' : '') + data.avgMmrDeltaTogether) : '±0.0' }}
+        </span>
+        <span class="kpi-sub">pt / gara giocando insieme</span>
+      </div>
+    </div>
+
+    <!-- BOTTONE RAPIDO: PASSA AL CONFRONTO 1V1 -->
+    <div class="action-1v1-wrap">
+      <button type="button" class="btn-switch-1v1" (click)="vaiAlConfronto1v1()">
+        <ion-icon name="swap-horizontal"></ion-icon>
+        <span>⚔️ Passa al Confronto 1v1 Contro ({{ player1.nome }} vs {{ player2.nome }})</span>
+      </button>
+    </div>
+
+    <!-- ELENCO DELLE PARTITE GIOCATE INSIEME -->
+    <div class="matches-together-section">
+      <div class="section-heading">
+        <div class="heading-left">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <h3>Partite Giocate Insieme ({{ data.matches.length }})</h3>
+        </div>
+      </div>
+
+      <div class="matches-list">
+        @for (m of data.matches; track m.id + '_' + $index) {
+          <div class="match-item-card" [class.win]="m.result === 'W'" [class.draw]="m.result === 'D'" [class.loss]="m.result === 'L'">
+            <div class="match-left">
+              <span class="match-result-badge" [class.win]="m.result === 'W'" [class.draw]="m.result === 'D'" [class.loss]="m.result === 'L'">
+                {{ m.result === 'W' ? 'VITTORIA' : (m.result === 'D' ? 'PAREGGIO' : 'SCONFITTA') }}
+              </span>
+              <span class="match-date">{{ m.data }}</span>
+            </div>
+
+            <div class="match-center">
+              <span class="score-pill">
+                {{ m.scoreTeam }} - {{ m.scoreOpponents }}
+              </span>
+            </div>
+
+            <div class="match-right">
+              @if ((m.golA || 0) + (m.golB || 0) > 0) {
+                <span class="match-goals">
+                  ⚽ {{ (m.golA || 0) + (m.golB || 0) }} gol
+                  <small>({{ player1.nome }}: {{ m.golA || 0 }}, {{ player2.nome }}: {{ m.golB || 0 }})</small>
+                </span>
+              } @else {
+                <span class="match-goals-none">0 gol</span>
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-matches">
+            <p>Nessun match disputato nella stessa squadra finora.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</ion-content>
+

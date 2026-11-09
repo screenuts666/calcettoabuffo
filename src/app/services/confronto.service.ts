@@ -371,7 +371,9 @@ export class ConfrontoService {
           statsRes.allTime.get(g.id);
 
     const allTimeMmrStats = statsRes.allTime.get(g.id);
-    const currentMmr = mmrStats ? Math.round(mmrStats.currentMmr) : BASE_INITIAL_MMR;
+    const currentMmr = mmrStats
+      ? Math.round(mmrStats.currentMmr)
+      : BASE_INITIAL_MMR;
     const peakMmr = allTimeMmrStats
       ? Math.round(allTimeMmrStats.peakMmr)
       : currentMmr;
@@ -438,7 +440,9 @@ export class ConfrontoService {
             (eg: any) =>
               eg.assistId === g.id ||
               (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
-          ).length || (playerObj.assist || 0);
+          ).length ||
+          playerObj.assist ||
+          0;
 
         golTotali += golFatti;
         assistTotali += assistFatti;
@@ -469,20 +473,19 @@ export class ConfrontoService {
     const mediaGol = partiteGiocate > 0 ? golTotali / partiteGiocate : 0;
     const mediaAssist = partiteGiocate > 0 ? assistTotali / partiteGiocate : 0;
     const winRate =
-      partiteGiocate > 0
-        ? Math.round((wins / partiteGiocate) * 1000) / 10
-        : 0;
+      partiteGiocate > 0 ? Math.round((wins / partiteGiocate) * 1000) / 10 : 0;
 
     const isRanked = partiteGiocate > 0;
     const tier = isRanked
-      ? (mmrStats ? mmrStats.tier : getMmrTier(currentMmr))
+      ? mmrStats
+        ? mmrStats.tier
+        : getMmrTier(currentMmr)
       : UNRANKED_TIER;
 
     return {
       id: g.id,
       nome: g.nome,
       soprannome: g.soprannome,
-      soprannomeAi: g.soprannomeAi,
       annoNascita: g.annoNascita,
       peso: g.peso,
       altezza: g.altezza,

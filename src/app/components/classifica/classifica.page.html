@@ -261,8 +261,6 @@
               <span class="player-name">{{ g.nome }}</span>
               @if (g.soprannome) {
                 <span class="nickname-span">"{{ g.soprannome }}"</span>
-              } @else if (g.soprannomeAi) {
-                <span class="nickname-span ai-nick">"{{ g.soprannomeAi }}"</span>
               }
 
               <span
@@ -531,7 +529,7 @@
 
         <div class="chem-compact-list">
           @for (duo of topDuos(); track (duo.p1Id || '') + '_' + (duo.p2Id || '') + '_' + $index; let i = $index) {
-            <div class="chem-row-card partner-card" (click)="apriDettagliPerId(duo.p1Id)">
+            <div class="chem-row-card partner-card clickable-chem-card" (click)="apriDettaglioChimica(duo.p1Id, duo.p2Id)">
               <!-- POSIZIONE RANK -->
               <div class="chem-rank" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
                 <span class="rank-num">#{{ i + 1 }}</span>
@@ -592,20 +590,25 @@
                 </div>
               </div>
 
-              <!-- HERO STAT BADGE A DESTRA -->
-              <div class="chem-hero-badge">
-                <span class="hero-val">{{ duo.winRate }}%</span>
-                <span class="hero-lbl">VITTORIE</span>
-                @if (duo.avgDeltaTogether !== undefined) {
-                  <span
-                    class="hero-sub"
-                    [class.positive]="duo.avgDeltaTogether >= 0"
-                    [class.negative]="duo.avgDeltaTogether < 0"
-                    title="Impatto medio MMR guadagnato a partita giocando insieme"
-                  >
-                    {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} MMR/gara
-                  </span>
-                }
+              <!-- HERO STAT BADGE A DESTRA + CHEVRON -->
+              <div class="chem-right-actions">
+                <div class="chem-hero-badge">
+                  <span class="hero-val">{{ duo.winRate }}%</span>
+                  <span class="hero-lbl">VITTORIE</span>
+                  @if (duo.avgDeltaTogether !== undefined) {
+                    <span
+                      class="hero-sub"
+                      [class.positive]="duo.avgDeltaTogether >= 0"
+                      [class.negative]="duo.avgDeltaTogether < 0"
+                      title="Impatto medio MMR guadagnato a partita giocando insieme"
+                    >
+                      {{ duo.avgDeltaTogether >= 0 ? '+' : '' }}{{ duo.avgDeltaTogether }} MMR/gara
+                    </span>
+                  }
+                </div>
+                <div class="chem-chevron-link" title="Dettaglio Chimica Coppia">
+                  <ion-icon name="chevron-forward"></ion-icon>
+                </div>
               </div>
             </div>
           } @empty {

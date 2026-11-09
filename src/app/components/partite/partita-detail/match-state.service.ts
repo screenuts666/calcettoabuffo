@@ -55,7 +55,12 @@ export type ConvocatoState = Giocatore & {
 export function sanitizeForFirestore<T>(data: T): T {
   if (data === undefined) return null as any;
   if (data === null || typeof data !== 'object') return data;
-  if (data instanceof Date || (data as any)?.toMillis || (data as any)?._seconds) return data;
+  if (
+    data instanceof Date ||
+    (data as any)?.toMillis ||
+    (data as any)?._seconds
+  )
+    return data;
   if (Array.isArray(data)) {
     return data.map((item) => sanitizeForFirestore(item)) as any;
   }
@@ -103,7 +108,7 @@ export class MatchStateService {
   private autoSaveTimer?: any;
 
   step = signal<'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'>(
-    'dettagli'
+    'dettagli',
   );
   status = signal<TMatchStatus>('da_definire');
   filtro = signal<string>('');
@@ -142,7 +147,7 @@ export class MatchStateService {
   rotazionePortieri = signal<RotazionePortieri | null>(null);
 
   convocati = computed(() =>
-    this.tutti().filter((g) => g?.selezionato === true)
+    this.tutti().filter((g) => g?.selezionato === true),
   );
   totaleConvocati = computed(() => this.convocati().length);
   giocatoriFiltrati = computed(() => {
@@ -151,14 +156,12 @@ export class MatchStateService {
     return this.tutti().filter((g) => {
       const nome = (g.nome || '').toLowerCase();
       const soprannome = (g.soprannome || '').toLowerCase();
-      const soprannomeAi = (g.soprannomeAi || '').toLowerCase();
       const anno = (g.annoNascita || '').toString();
       const piede = ((g.piedePreferito as string) || '').toLowerCase();
       const ruolo = ((g.ruoloPreferito as string) || '').toLowerCase();
       return (
         nome.includes(f) ||
         soprannome.includes(f) ||
-        soprannomeAi.includes(f) ||
         anno.includes(f) ||
         piede.includes(f) ||
         ruolo.includes(f)
@@ -185,7 +188,7 @@ export class MatchStateService {
       this.luogo().trim() !== '' &&
       this.dataPartita() !== '' &&
       this.orario() !== '' &&
-      this.isDataStagioneValida()
+      this.isDataStagioneValida(),
   );
 
   messaggioEquilibrio = computed(() => {
@@ -207,7 +210,7 @@ export class MatchStateService {
     () =>
       this.rotazionePortieri()?.durataTurnoMinuti ||
       this.soundSettings?.config().gkTurnMinutes ||
-      5
+      5,
   );
 
   durataTurnoSecondi = computed(() => {
@@ -235,24 +238,24 @@ export class MatchStateService {
   });
 
   modalitaPortieriA = computed<ModalitaPortiere>(
-    () => this.rotazionePortieri()?.modalitaA || 'rotazione'
+    () => this.rotazionePortieri()?.modalitaA || 'rotazione',
   );
   modalitaPortieriB = computed<ModalitaPortiere>(
-    () => this.rotazionePortieri()?.modalitaB || 'rotazione'
+    () => this.rotazionePortieri()?.modalitaB || 'rotazione',
   );
   portiereFissoAId = computed<string | null>(
-    () => this.rotazionePortieri()?.portiereFissoAId || null
+    () => this.rotazionePortieri()?.portiereFissoAId || null,
   );
   portiereFissoBId = computed<string | null>(
-    () => this.rotazionePortieri()?.portiereFissoBId || null
+    () => this.rotazionePortieri()?.portiereFissoBId || null,
   );
 
   portieriInfoA = computed<PortiereTeamInfo>(() =>
-    this.buildPortieriTeamInfo('A')
+    this.buildPortieriTeamInfo('A'),
   );
 
   portieriInfoB = computed<PortiereTeamInfo>(() =>
-    this.buildPortieriTeamInfo('B')
+    this.buildPortieriTeamInfo('B'),
   );
 
   private buildPortieriTeamInfo(team: 'A' | 'B'): PortiereTeamInfo {
@@ -280,7 +283,7 @@ export class MatchStateService {
       const fixedId =
         configuredFixedId ||
         players.find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
         )?.id ||
         players[0]?.id;
       const fixedPlayer =
@@ -359,7 +362,10 @@ export class MatchStateService {
     const current = this.rotazionePortieri() || {
       teamA: this.teamA().map((p) => p.id),
       teamB: this.teamB().map((p) => p.id),
-      durataTurnoMinuti: this.rotazionePortieri()?.durataTurnoMinuti || this.soundSettings?.config().gkTurnMinutes || 5,
+      durataTurnoMinuti:
+        this.rotazionePortieri()?.durataTurnoMinuti ||
+        this.soundSettings?.config().gkTurnMinutes ||
+        5,
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
     };
@@ -368,7 +374,7 @@ export class MatchStateService {
       let fissoId = current.portiereFissoAId;
       if (modalita === 'fisso' && !fissoId) {
         const pureGk = this.teamA().find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
         );
         fissoId = pureGk?.id || this.teamA()[0]?.id || null;
       }
@@ -381,7 +387,7 @@ export class MatchStateService {
       let fissoId = current.portiereFissoBId;
       if (modalita === 'fisso' && !fissoId) {
         const pureGk = this.teamB().find(
-          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
+          (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
         );
         fissoId = pureGk?.id || this.teamB()[0]?.id || null;
       }
@@ -429,7 +435,7 @@ export class MatchStateService {
     const defaultFissoA =
       current?.portiereFissoAId ||
       this.teamA().find(
-        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
+        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
       )?.id ||
       teamAIds[0] ||
       null;
@@ -437,7 +443,7 @@ export class MatchStateService {
     const defaultFissoB =
       current?.portiereFissoBId ||
       this.teamB().find(
-        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere
+        (p) => (p as any).ruoloPreferito === RuoloPreferito.Portiere,
       )?.id ||
       teamBIds[0] ||
       null;
@@ -599,11 +605,14 @@ export class MatchStateService {
     this.endedAt.set(now);
     this.isTimerRunning.set(false);
 
-    const start = this.startedAt() || this.timerStartAt() || (now - (this.cronometro() * 1000));
+    const start =
+      this.startedAt() || this.timerStartAt() || now - this.cronometro() * 1000;
     const durataSec = Math.max(0, Math.floor((now - start) / 1000));
-    const durataFinale = this.accumulatedTime() > 0 && !this.startedAt()
-      ? this.accumulatedTime() + Math.max(0, Math.floor((now - (this.timerStartAt() || now)) / 1000))
-      : durataSec;
+    const durataFinale =
+      this.accumulatedTime() > 0 && !this.startedAt()
+        ? this.accumulatedTime() +
+          Math.max(0, Math.floor((now - (this.timerStartAt() || now)) / 1000))
+        : durataSec;
 
     this.cronometro.set(durataFinale);
     this.accumulatedTime.set(durataFinale);
@@ -661,7 +670,7 @@ export class MatchStateService {
     giocatore: PlayerPerformance,
     teamVantaggio: 'A' | 'B',
     isAutogoal: boolean,
-    assistMan: PlayerPerformance | null = null
+    assistMan: PlayerPerformance | null = null,
   ): Promise<{ evento: EventoGol; portiereSubitoNome: string | null }> {
     const defendingTeam = teamVantaggio === 'A' ? 'B' : 'A';
     const portiereInfo =
@@ -688,8 +697,10 @@ export class MatchStateService {
       this.scoreB.update((s) => s + 1);
     }
 
-    const updateScorer = <T extends { id: string; gol?: number; autogol?: number }>(
-      lista: T[]
+    const updateScorer = <
+      T extends { id: string; gol?: number; autogol?: number },
+    >(
+      lista: T[],
     ): T[] =>
       lista.map((g) =>
         g.id === giocatore.id
@@ -698,7 +709,7 @@ export class MatchStateService {
               gol: (g.gol || 0) + (isAutogoal ? 0 : 1),
               autogol: (g.autogol || 0) + (isAutogoal ? 1 : 0),
             }
-          : g
+          : g,
       );
 
     this.tutti.update((l) => updateScorer(l as any) as ConvocatoState[]);
@@ -707,7 +718,7 @@ export class MatchStateService {
 
     if (assistMan && !isAutogoal) {
       const updateAssist = <T extends { id: string; assist?: number }>(
-        lista: T[]
+        lista: T[],
       ): T[] =>
         lista.map((g) =>
           g.id === assistMan.id
@@ -715,7 +726,7 @@ export class MatchStateService {
                 ...g,
                 assist: (g.assist || 0) + 1,
               }
-            : g
+            : g,
         );
 
       this.tutti.update((l) => updateAssist(l as any) as ConvocatoState[]);
@@ -747,22 +758,19 @@ export class MatchStateService {
         const removeGol = <
           T extends { id: string; gol?: number; autogol?: number },
         >(
-          lista: T[]
+          lista: T[],
         ): T[] =>
           lista.map((g) =>
             g.id === rimosso.idAssegnato
               ? {
                   ...g,
-                  gol: Math.max(
-                    0,
-                    (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)
-                  ),
+                  gol: Math.max(0, (g.gol || 0) - (rimosso.isAutogoal ? 0 : 1)),
                   autogol: Math.max(
                     0,
-                    (g.autogol || 0) - (rimosso.isAutogoal ? 1 : 0)
+                    (g.autogol || 0) - (rimosso.isAutogoal ? 1 : 0),
                   ),
                 }
-              : g
+              : g,
           );
 
         this.tutti.update((l) => removeGol(l as any) as ConvocatoState[]);
@@ -771,7 +779,7 @@ export class MatchStateService {
 
         if (rimosso.assistId) {
           const removeAssist = <T extends { id: string; assist?: number }>(
-            lista: T[]
+            lista: T[],
           ): T[] =>
             lista.map((g) =>
               g.id === rimosso.assistId
@@ -779,7 +787,7 @@ export class MatchStateService {
                     ...g,
                     assist: Math.max(0, (g.assist || 0) - 1),
                   }
-                : g
+                : g,
             );
 
           this.tutti.update((l) => removeAssist(l as any) as ConvocatoState[]);
@@ -817,42 +825,65 @@ export class MatchStateService {
           this.isTimerRunning.set(data.isTimerRunning || false);
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
-          const startMs = data.startedAt
-            ?? (data.inizioPartita?.toMillis ? data.inizioPartita.toMillis() : data.inizioPartita?.seconds ? data.inizioPartita.seconds * 1000 : null)
-            ?? data.timerStartAt
-            ?? null;
-          const endMs = data.endedAt
-            ?? (data.finePartita?.toMillis ? data.finePartita.toMillis() : data.finePartita?.seconds ? data.finePartita.seconds * 1000 : null)
-            ?? data.finishedAt
-            ?? null;
+          const startMs =
+            data.startedAt ??
+            (data.inizioPartita?.toMillis
+              ? data.inizioPartita.toMillis()
+              : data.inizioPartita?.seconds
+                ? data.inizioPartita.seconds * 1000
+                : null) ??
+            data.timerStartAt ??
+            null;
+          const endMs =
+            data.endedAt ??
+            (data.finePartita?.toMillis
+              ? data.finePartita.toMillis()
+              : data.finePartita?.seconds
+                ? data.finePartita.seconds * 1000
+                : null) ??
+            data.finishedAt ??
+            null;
 
           this.startedAt.set(startMs);
           this.endedAt.set(endMs);
           if (data.orarioInizioReale) {
             this.orarioInizioReale.set(data.orarioInizioReale);
           } else if (startMs) {
-            this.orarioInizioReale.set(new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(startMs)));
+            this.orarioInizioReale.set(
+              new Intl.DateTimeFormat('it-IT', {
+                timeZone: 'Europe/Rome',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(startMs)),
+            );
           }
           if (data.orarioFineReale) {
             this.orarioFineReale.set(data.orarioFineReale);
           } else if (endMs) {
-            this.orarioFineReale.set(new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs)));
+            this.orarioFineReale.set(
+              new Intl.DateTimeFormat('it-IT', {
+                timeZone: 'Europe/Rome',
+                hour: '2-digit',
+                minute: '2-digit',
+              }).format(new Date(endMs)),
+            );
           }
           this.status.set(data.status || 'da_definire');
           // Allarme cambio consentito solo se il timer è attivo e la partita ha superato la durata del primo turno
           const turnSec = this.durataTurnoSecondi();
-          const isPastFirstTurn = (data.cronometro || this.cronometro() || 0) >= turnSec;
+          const isPastFirstTurn =
+            (data.cronometro || this.cronometro() || 0) >= turnSec;
           this.cambioAttivo.set(
-            data.isTimerRunning && isPastFirstTurn ? (data.cambioAttivo || false) : false
+            data.isTimerRunning && isPastFirstTurn
+              ? data.cambioAttivo || false
+              : false,
           );
           this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.fotoUrl.set(data.fotoUrl || null);
           this.fotoPath.set(data.fotoPath || null);
           this.pronosticoAi.set(data.pronosticoAi || null);
           this.cronacaAi.set(data.cronacaAi || null);
-          this.commentoPartita.set(
-            data.commentoPartita || data.commento || ''
-          );
+          this.commentoPartita.set(data.commentoPartita || data.commento || '');
           if (data.campoGoogleMapsUrl) {
             this.campoGoogleMapsUrl.set(data.campoGoogleMapsUrl);
           }
@@ -866,7 +897,7 @@ export class MatchStateService {
           if (Array.isArray(data.convocati) || data.rsvp) {
             this.reconcileConvocatiWithRsvp(
               data.convocati || [],
-              data.rsvp || this.rsvp() || {}
+              data.rsvp || this.rsvp() || {},
             );
           }
 
@@ -898,7 +929,7 @@ export class MatchStateService {
    */
   reconcileConvocatiWithRsvp(
     savedConvocati: any[],
-    rsvpMap: Record<string, MatchRsvpEntry>
+    rsvpMap: Record<string, MatchRsvpEntry>,
   ) {
     const entries = Object.values(rsvpMap || {}).filter(Boolean);
     const savedMap = new Map<string, any>();
@@ -920,21 +951,22 @@ export class MatchStateService {
       list.map((g) => {
         const rsvpEntry = entries.find(
           (e) =>
-            e.playerId === g.id ||
-            (!!g.linkedUid && e.uid === g.linkedUid)
+            e.playerId === g.id || (!!g.linkedUid && e.uid === g.linkedUid),
         );
         const normStatus = normalizeRsvpStatus(rsvpEntry?.status);
-        const saved = savedMap.get(g.id) || savedMap.get(g.nome?.toLowerCase().trim());
+        const saved =
+          savedMap.get(g.id) || savedMap.get(g.nome?.toLowerCase().trim());
 
         const isDeclined = normStatus === 'no';
-        const isSelected = !isDeclined && (Boolean(saved) || normStatus === 'yes');
+        const isSelected =
+          !isDeclined && (Boolean(saved) || normStatus === 'yes');
         const isSelf = Boolean(
           (normStatus === 'yes' &&
             (rsvpEntry?.selfRegistered ||
               rsvpEntry?.source === 'self' ||
               !!rsvpEntry?.respondedVia)) ||
-            saved?.selfRegistered ||
-            saved?.source === 'self'
+          saved?.selfRegistered ||
+          saved?.source === 'self',
         );
 
         return {
@@ -944,7 +976,7 @@ export class MatchStateService {
           source: isSelf ? 'self' : isSelected ? 'mister' : undefined,
           rsvpStatus: isSelected ? 'yes' : normStatus,
         };
-      })
+      }),
     );
   }
 
@@ -968,7 +1000,11 @@ export class MatchStateService {
     if (!['yes', 'maybe', 'no'].includes(status)) {
       throw new Error('Parametro stato RSVP non valido.');
     }
-    const mId = this.matchId() ? this.matchId()!.replace(/[^a-zA-Z0-9_-]/g, '').trim() : null;
+    const mId = this.matchId()
+      ? this.matchId()!
+          .replace(/[^a-zA-Z0-9_-]/g, '')
+          .trim()
+      : null;
     const user = this.auth.firebaseUser();
     const playerId = this.auth.linkedPlayerId();
 
@@ -980,7 +1016,7 @@ export class MatchStateService {
       this.matchConcluso()
     ) {
       throw new Error(
-        'Le convocazioni per questa partita sono chiuse o non hai un giocatore associato.'
+        'Le convocazioni per questa partita sono chiuse o non hai un giocatore associato.',
       );
     }
 
@@ -1015,8 +1051,8 @@ export class MatchStateService {
               source: 'self',
               rsvpStatus: status,
             }
-          : g
-      )
+          : g,
+      ),
     );
 
     const updatedConvocati = this.convocati();
@@ -1111,11 +1147,13 @@ export class MatchStateService {
 
       if (isMatchingId && isRecent && !snap.matchConcluso) {
         if (snap.luogo) this.luogo.set(snap.luogo);
-        if (snap.campoGoogleMapsUrl) this.campoGoogleMapsUrl.set(snap.campoGoogleMapsUrl);
+        if (snap.campoGoogleMapsUrl)
+          this.campoGoogleMapsUrl.set(snap.campoGoogleMapsUrl);
         if (snap.formato) this.formato.set(snap.formato);
         if (snap.orario) this.orario.set(snap.orario);
         if (snap.dataPartita) this.dataPartita.set(snap.dataPartita);
-        if (Array.isArray(snap.tutti) && snap.tutti.length > 0) this.tutti.set(snap.tutti);
+        if (Array.isArray(snap.tutti) && snap.tutti.length > 0)
+          this.tutti.set(snap.tutti);
         if (snap.teamA && snap.teamA.length > 0) this.teamA.set(snap.teamA);
         if (snap.teamB && snap.teamB.length > 0) this.teamB.set(snap.teamB);
         if (typeof snap.scoreA === 'number') this.scoreA.set(snap.scoreA);
@@ -1129,8 +1167,7 @@ export class MatchStateService {
           this.timerStartAt.set(snap.timerStartAt);
         if (typeof snap.startedAt !== 'undefined')
           this.startedAt.set(snap.startedAt);
-        if (typeof snap.endedAt !== 'undefined')
-          this.endedAt.set(snap.endedAt);
+        if (typeof snap.endedAt !== 'undefined') this.endedAt.set(snap.endedAt);
         if (typeof snap.orarioInizioReale === 'string')
           this.orarioInizioReale.set(snap.orarioInizioReale);
         if (typeof snap.orarioFineReale === 'string')
@@ -1146,7 +1183,7 @@ export class MatchStateService {
 
         console.log(
           '🔄 Snapshot locale ripristinato con successo per il match:',
-          snap.matchId || 'nuova'
+          snap.matchId || 'nuova',
         );
         this.syncStatus.notifyLocalSave();
         return true;
@@ -1177,7 +1214,7 @@ export class MatchStateService {
   }
 
   cambiaStep(
-    nuovoStep: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'
+    nuovoStep: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni',
   ) {
     if (nuovoStep === 'squadre') {
       this.sincronizzaConvocatiInSquadre();
@@ -1191,7 +1228,11 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     // Se la partita non ha ancora un ID Firestore e non ci sono modifiche significative, non creare record vuoti
-    if (!this.matchId() && this.totaleConvocati() === 0 && !this.luogo().trim()) {
+    if (
+      !this.matchId() &&
+      this.totaleConvocati() === 0 &&
+      !this.luogo().trim()
+    ) {
       return;
     }
 
@@ -1202,12 +1243,15 @@ export class MatchStateService {
 
     if (immediate) {
       this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
-        (err) => console.warn('Errore auto-salvataggio immediato:', err)
+        (err) => console.warn('Errore auto-salvataggio immediato:', err),
       );
     } else {
       this.autoSaveTimer = setTimeout(() => {
-        this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
-          (err) => console.warn('Errore auto-salvataggio debounced:', err)
+        this.salvaInDatabase(
+          this.pagelleInserite(),
+          this.matchConcluso(),
+        ).catch((err) =>
+          console.warn('Errore auto-salvataggio debounced:', err),
         );
       }, 700);
     }
@@ -1219,7 +1263,7 @@ export class MatchStateService {
       this.autoSaveTimer = undefined;
       return this.salvaInDatabase(
         this.pagelleInserite(),
-        this.matchConcluso()
+        this.matchConcluso(),
       ).catch((err) => console.warn('Errore flush auto-salvataggio:', err));
     }
     return Promise.resolve();
@@ -1227,7 +1271,7 @@ export class MatchStateService {
 
   async salvaInDatabase(
     pagelleInseriteFlag: boolean,
-    matchConclusoFlag: boolean = false
+    matchConclusoFlag: boolean = false,
   ) {
     if (!this.auth.isSuperUser()) return;
     if (
@@ -1236,7 +1280,7 @@ export class MatchStateService {
       !isStagioneCorrente({ dataPartita: this.dataPartita() })
     ) {
       throw new Error(
-        `Non è possibile aggiungere partite della stagione non corrente. La nuova stagione è ${CURRENT_SEASON} (dal ${MIN_CURRENT_SEASON_DATE}).`
+        `Non è possibile aggiungere partite della stagione non corrente. La nuova stagione è ${CURRENT_SEASON} (dal ${MIN_CURRENT_SEASON_DATE}).`,
       );
     }
 
@@ -1249,10 +1293,18 @@ export class MatchStateService {
     const startMs = this.startedAt();
     const endMs = this.endedAt();
     const orarioInizioStr = startMs
-      ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(startMs))
+      ? new Intl.DateTimeFormat('it-IT', {
+          timeZone: 'Europe/Rome',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(startMs))
       : null;
     const orarioFineStr = endMs
-      ? new Intl.DateTimeFormat('it-IT', { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit' }).format(new Date(endMs))
+      ? new Intl.DateTimeFormat('it-IT', {
+          timeZone: 'Europe/Rome',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(new Date(endMs))
       : null;
 
     const orarioStr = this.orario() || '21:00';
@@ -1272,7 +1324,6 @@ export class MatchStateService {
       id: g.id,
       nome: g.nome || 'Giocatore',
       soprannome: g.soprannome || null,
-      soprannomeAi: g.soprannomeAi || null,
       fotoUrl: g.fotoUrl || null,
       ruoloPreferito: (g.ruoloPreferito as string) || null,
       piedePreferito: (g.piedePreferito as string) || null,
@@ -1308,11 +1359,13 @@ export class MatchStateService {
       dataOra: dataOraTimestamp || serverTimestamp(),
       luogo: this.luogo(),
       campoGoogleMapsUrl:
-        (this.luogo() ? this.campiService?.getGoogleMapsUrl(this.luogo()) : null) ||
+        (this.luogo()
+          ? this.campiService?.getGoogleMapsUrl(this.luogo())
+          : null) ||
         this.campoGoogleMapsUrl() ||
         (this.luogo()
           ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              this.luogo()
+              this.luogo(),
             )}`
           : null),
       formato: getMatchFormatByPlayerCount(this.convocati().length).label,
@@ -1355,7 +1408,7 @@ export class MatchStateService {
       if (this.matchId()) {
         await updateDoc(
           doc(this.firestore, `partite/${this.matchId()}`),
-          payload
+          payload,
         );
       } else {
         const docRef = await addDoc(collection(this.firestore, 'partite'), {
@@ -1377,13 +1430,12 @@ export class MatchStateService {
     } catch (err) {
       console.warn(
         'Salvataggio Firestore non riuscito online (i dati rimangono comunque salvi in locale):',
-        err
+        err,
       );
       this.syncStatus.notifySyncError();
     }
   }
 
-  
   aggiornaParataIncredibile(playerId: string, delta: number) {
     this.parateIncredibili.update((map) => {
       const next = { ...(map || {}) };
@@ -1397,13 +1449,17 @@ export class MatchStateService {
       return next;
     });
     this.salvaSnapshotLocale();
-    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(err => console.warn(err));
+    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
+      (err) => console.warn(err),
+    );
   }
 
   salvaNotePortieri(note: string) {
     this.notePortieri.set(note.trim() || null);
     this.salvaSnapshotLocale();
-    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(err => console.warn(err));
+    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
+      (err) => console.warn(err),
+    );
   }
 
   resetMatchState() {

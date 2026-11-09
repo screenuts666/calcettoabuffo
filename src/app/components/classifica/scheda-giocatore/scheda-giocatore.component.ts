@@ -63,6 +63,13 @@ import {
   checkmarkCircle,
   callOutline,
   logoWhatsapp,
+  volumeHighOutline,
+  chevronDown,
+  chevronUp,
+  chevronForward,
+  barChartOutline,
+  fitnessOutline,
+  personCircleOutline,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -76,10 +83,7 @@ import { TtsService } from 'src/app/services/tts.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../../ai-tts-button/ai-tts-button.component';
-import {
-  getAvatarUrl,
-  handleAvatarError,
-} from 'src/app/utils/avatar-utils';
+import { getAvatarUrl, handleAvatarError } from 'src/app/utils/avatar-utils';
 import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.component';
 import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component';
 
@@ -122,6 +126,25 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
 
   isClaiming = signal<boolean>(false);
   privatePhoneNumber = signal<string | null>(null);
+
+  // Tab di navigazione interna gerarchica
+  activeTab = signal<'stats' | 'chemistry' | 'history'>('stats');
+  isAiTextExpanded = signal<boolean>(false);
+
+  toggleAiText() {
+    this.isAiTextExpanded.update((v) => !v);
+  }
+
+  setActiveTab(tab: 'stats' | 'chemistry' | 'history') {
+    this.activeTab.set(tab);
+  }
+
+  get golPerPartita(): string {
+    const p = this.prof?.partiteGiocate || 0;
+    if (!p) return '0.0';
+    const g = this.prof?.golTotali || 0;
+    return (g / p).toFixed(1);
+  }
 
   @Input() set prof(val: GiocatoreConPunti | any) {
     this._inputProf.set(val || null);
@@ -196,39 +219,46 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
 
   constructor() {
     addIcons({
-      close,
+      createOutline,
+      hourglassOutline,
+      swapHorizontal,
+      refreshOutline,
+      sparkles,
+      barChartOutline,
+      flash,
       trophy,
+      shield,
+      arrowUp,
+      arrowDown,
+      remove,
+      fitnessOutline,
+      personCircleOutline,
+      callOutline,
+      logoWhatsapp,
+      ribbon,
+      chevronForward,
+      people,
+      timeOutline,
       analytics,
       football,
-      people,
-      shield,
+      close,
       shieldOutline,
       medal,
-      ribbon,
       diamond,
       flame,
       snow,
       heart,
       skull,
-      flash,
       trendingUp,
       trendingDown,
-      remove,
-      arrowUp,
-      arrowDown,
-      swapHorizontal,
-      sparkles,
-      refreshOutline,
       documentTextOutline,
       helpCircleOutline,
-      hourglassOutline,
       arrowBack,
-      createOutline,
       cloudDoneOutline,
-      timeOutline,
       checkmarkCircle,
-      callOutline,
-      logoWhatsapp,
+      volumeHighOutline,
+      chevronDown,
+      chevronUp,
     });
 
     effect(() => {
@@ -236,7 +266,10 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
       const canSee = this.auth.canViewPlayerPhone(p);
       if (p?.id && canSee) {
         this.auth.getPlayerPhoneNumber(p.id).then((phone) => {
-          if (this.profileData()?.id === p.id && this.auth.canViewPlayerPhone(p)) {
+          if (
+            this.profileData()?.id === p.id &&
+            this.auth.canViewPlayerPhone(p)
+          ) {
             this.privatePhoneNumber.set(phone);
           }
         });
@@ -281,7 +314,7 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
       await toast.present();
     } catch (err: any) {
       const toast = await this.toastCtrl.create({
-        message: err?.message || 'Errore durante l\'associazione del giocatore.',
+        message: err?.message || "Errore durante l'associazione del giocatore.",
         duration: 3000,
         color: 'danger',
         position: 'bottom',
@@ -301,7 +334,7 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
       const notes: string[] = [];
       for (const p of allMatches) {
         const pl = [...(p.teamA || []), ...(p.teamB || [])].find(
-          (x: any) => x.id === this.prof.id
+          (x: any) => x.id === this.prof.id,
         );
         if (pl?.note && pl.note.trim()) {
           notes.push(pl.note.trim());
@@ -312,14 +345,13 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
         this.prof,
         this.prof,
         notes,
-        force
+        force,
       );
 
-      this.prof.soprannomeAi = res.nickname;
       this.prof.scoutingReportAi = res.scouting;
 
       const toast = await this.toastCtrl.create({
-        message: '📋 Scouting Report e Soprannome AI salvati!',
+        message: '📋 Scouting Report AI salvato con successo!',
         duration: 2500,
         color: 'success',
         position: 'bottom',
@@ -347,7 +379,17 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
     }
   }
 
+  apriDettaglioChimica(partnerId?: string) {
+    if (this.prof?.id && partnerId) {
+      this.router.navigate(['/chimica', this.prof.id, partnerId]);
+    }
+  }
+
   confronta(opponentId?: string) {
+    if (this.prof?.id && opponentId) {
+      this.router.navigate(['/confronto', this.prof.id, opponentId]);
+      return;
+    }
     const queryParams: any = {};
     if (this.prof?.id) {
       queryParams.playerA = this.prof.id;

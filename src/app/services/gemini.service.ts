@@ -242,12 +242,8 @@ export class GeminiService {
     const altezza = p.altezza ? `${p.altezza}cm` : '';
 
     const tags: string[] = [];
-    if (p.soprannome && p.soprannomeAi && p.soprannome !== p.soprannomeAi) {
-      tags.push(`soprannome: "${p.soprannome}" (alias spogliatoio AI: "${p.soprannomeAi}")`);
-    } else if (p.soprannome) {
+    if (p.soprannome) {
       tags.push(`soprannome: "${p.soprannome}"`);
-    } else if (p.soprannomeAi) {
-      tags.push(`soprannome AI: "${p.soprannomeAi}"`);
     }
     if (p.mmr) tags.push(`MMR: ${p.mmr}`);
     tags.push(`Ruolo: ${ruolo}`);
@@ -498,22 +494,21 @@ export class GeminiService {
   // =========================================================================
 
   /**
-   * Genera o recupera dalla cache Firestore lo Scouting Report e Soprannome AI per un giocatore.
-   * Caching intelligente su `giocatori/{id}` con i campi `soprannomeAi` e `scoutingReportAi`.
+   * Genera o recupera dalla cache Firestore lo Scouting Report per un giocatore.
+   * Caching intelligente su `giocatori/{id}` con il campo `scoutingReportAi`.
    */
   async getOrGeneratePlayerScouting(
     giocatore: Giocatore,
     profile: any,
     recentNotes: string[] = [],
     forceRegenerate = false,
-  ): Promise<{ nickname: string; scouting: string }> {
+  ): Promise<{ scouting: string }> {
     if (
       !forceRegenerate &&
       giocatore.scoutingReportAi &&
       giocatore.scoutingReportAi.trim().length > 0
     ) {
       return {
-        nickname: giocatore.soprannomeAi || '',
         scouting: giocatore.scoutingReportAi,
       };
     }
@@ -527,48 +522,28 @@ export class GeminiService {
 
     const rawResult = await this.callGemini(userPrompt, systemPrompt);
 
-    let nickname = '';
-    let scouting = rawResult;
-
-    const nickMatch = rawResult.match(/SOPRANNOME:\s*(.+)/i);
+    let scouting = rawResult.trim();
     const scoutMatch = rawResult.match(/SCOUTING:\s*([\s\S]+)/i);
-
-    if (nickMatch && nickMatch[1]) {
-      nickname = nickMatch[1].replace(/["']/g, '').trim();
-    }
     if (scoutMatch && scoutMatch[1]) {
       scouting = scoutMatch[1].trim();
     }
-
-    // Accumula nello storico dei soprannomi AI senza duplicati
-    const existingList: string[] = Array.isArray((giocatore as any).soprannomiAi)
-      ? [...(giocatore as any).soprannomiAi]
-      : [];
-    if (nickname && !existingList.includes(nickname)) {
-      existingList.push(nickname);
-    }
+    // Rimuove eventuali etichette o virgolette residue
+    scouting = scouting.replace(/^(SCOUTING:\s*|["'])/i, '').replace(/["']$/g, '').trim();
 
     // Caching intelligente su Firestore (documento giocatore)
-    // NOTA: il campo `soprannome` manuale NON viene MAI toccato o sovrascritto!
     if (giocatore.id) {
       try {
         await updateDoc(doc(this.firestore, `giocatori/${giocatore.id}`), {
-          soprannomeAi: nickname,
-          soprannomiAi: existingList,
           scoutingReportAi: scouting,
           aiUpdatedAt: new Date().toISOString(),
         });
-        giocatore.soprannomeAi = nickname;
-        giocatore.soprannomiAi = existingList;
         giocatore.scoutingReportAi = scouting;
       } catch (e) {
         console.warn('Errore salvataggio scouting su Firestore:', e);
       }
     }
 
-    // Ritorna l'alias AI generato (il soprannome manuale resta intatto su giocatore.soprannome)
     return {
-      nickname,
       scouting,
     };
   }

@@ -26,140 +26,158 @@
         <div class="counter-badge">
           <ion-icon name="people"></ion-icon>
           @if (filtro().trim()) {
-            <span>Trovati <b>{{ giocatoriFiltrati().length }}</b> su {{ tuttiIGiocatori().length }} giocatori</span>
+          <span
+            >Trovati <b>{{ giocatoriFiltrati().length }}</b> su {{
+            tuttiIGiocatori().length }} giocatori</span
+          >
           } @else {
-            <span><b>{{ tuttiIGiocatori().length }}</b> giocatori in rosa</span>
+          <span><b>{{ tuttiIGiocatori().length }}</b> giocatori in rosa</span>
           }
         </div>
       </div>
 
       <!-- BANNER ISCRIZIONE DIRETTA IN ROSA (PER UTENTI SENZA SCHEDA GIOCATORE) -->
       @if (auth.isAuthenticated() && !auth.hasLinkedPlayer()) {
-        <div
-          style="
-            margin-top: 10px;
-            padding: 12px 14px;
-            border-radius: 14px;
-            background: rgba(16, 185, 129, 0.12);
-            border: 1px solid rgba(16, 185, 129, 0.38);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-          "
-        >
-          <div style="flex: 1; min-width: 180px;">
-            <div style="font-size: 0.82rem; font-weight: 800; color: #10b981;">
-              ⚽ Non hai ancora una scheda collegata!
-            </div>
-            <div style="font-size: 0.74rem; color: var(--app-text-secondary); margin-top: 2px;">
-              Tocca il tuo nome nella lista se sei già presente, oppure aggiungiti ora in rosa.
-            </div>
+      <div
+        style="
+          margin-top: 10px;
+          padding: 12px 14px;
+          border-radius: 14px;
+          background: rgba(16, 185, 129, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.38);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        "
+      >
+        <div style="flex: 1; min-width: 180px">
+          <div style="font-size: 0.82rem; font-weight: 800; color: #10b981">
+            ⚽ Non hai ancora una scheda collegata!
           </div>
-          <button
-            type="button"
-            (click)="creaMiaSchedaInRosa()"
+          <div
             style="
-              padding: 8px 14px;
-              border-radius: 10px;
-              border: none;
-              background: #10b981;
-              color: #04130b;
-              font-weight: 800;
-              font-size: 0.78rem;
-              cursor: pointer;
-              white-space: nowrap;
+              font-size: 0.74rem;
+              color: var(--app-text-secondary);
+              margin-top: 2px;
             "
           >
-            ➕ Crea la mia Scheda
-          </button>
+            Tocca il tuo nome nella lista se sei già presente, oppure aggiungiti
+            ora in rosa.
+          </div>
         </div>
+        <button
+          type="button"
+          (click)="creaMiaSchedaInRosa()"
+          style="
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: none;
+            background: #10b981;
+            color: #04130b;
+            font-weight: 800;
+            font-size: 0.78rem;
+            cursor: pointer;
+            white-space: nowrap;
+          "
+        >
+          ➕ Crea la mia Scheda
+        </button>
+      </div>
       }
 
       <!-- CESTINO 24 ORE GIOCATORI (SOLO MISTER) -->
       @if (isAdmin && trashService.deletedPlayers().length > 0) {
+      <div
+        style="
+          margin-top: 10px;
+          padding: 10px 12px;
+          border-radius: 14px;
+          background: rgba(245, 158, 11, 0.11);
+          border: 1px dashed rgba(245, 158, 11, 0.45);
+        "
+      >
         <div
           style="
-            margin-top: 10px;
-            padding: 10px 12px;
-            border-radius: 14px;
-            background: rgba(245, 158, 11, 0.11);
-            border: 1px dashed rgba(245, 158, 11, 0.45);
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #f59e0b;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span>🗑️ Cestino Giocatori (Ripristino entro 24h)</span>
+          <span>{{ trashService.deletedPlayers().length }}</span>
+        </div>
+        @for (item of trashService.deletedPlayers(); track item.id) {
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 9px;
+            background: rgba(0, 0, 0, 0.18);
+            margin-top: 4px;
+            font-size: 0.76rem;
           "
         >
           <div
             style="
-              font-size: 0.75rem;
-              font-weight: 800;
-              color: #f59e0b;
-              margin-bottom: 6px;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             "
           >
-            <span>🗑️ Cestino Giocatori (Ripristino entro 24h)</span>
-            <span>{{ trashService.deletedPlayers().length }}</span>
+            <strong>{{ item.label }}</strong>
+            <span style="opacity: 0.72; font-size: 0.7rem; margin-left: 6px">
+              ⏳ {{ trashService.formatRemainingTime(item.expiresAt) }}
+            </span>
           </div>
-          @for (item of trashService.deletedPlayers(); track item.id) {
-            <div
+          <div
+            style="display: flex; align-items: center; gap: 6px; flex-shrink: 0"
+          >
+            <button
+              type="button"
+              (click)="trashService.restoreItem(item.id)"
               style="
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 8px;
-                padding: 6px 8px;
-                border-radius: 9px;
-                background: rgba(0, 0, 0, 0.18);
-                margin-top: 4px;
-                font-size: 0.76rem;
+                padding: 4px 10px;
+                border-radius: 8px;
+                border: 1px solid rgba(16, 185, 129, 0.5);
+                background: rgba(16, 185, 129, 0.18);
+                color: #10b981;
+                font-weight: 800;
+                font-size: 0.72rem;
+                cursor: pointer;
               "
             >
-              <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <strong>{{ item.label }}</strong>
-                <span style="opacity: 0.72; font-size: 0.7rem; margin-left: 6px;">
-                  ⏳ {{ trashService.formatRemainingTime(item.expiresAt) }}
-                </span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                <button
-                  type="button"
-                  (click)="trashService.restoreItem(item.id)"
-                  style="
-                    padding: 4px 10px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(16, 185, 129, 0.5);
-                    background: rgba(16, 185, 129, 0.18);
-                    color: #10b981;
-                    font-weight: 800;
-                    font-size: 0.72rem;
-                    cursor: pointer;
-                  "
-                >
-                  ↩️ Ripristina
-                </button>
-                <button
-                  type="button"
-                  (click)="trashService.permanentlyDeleteItem(item.id)"
-                  title="Elimina definitivamente"
-                  style="
-                    padding: 4px 8px;
-                    border-radius: 8px;
-                    border: 1px solid rgba(239, 68, 68, 0.4);
-                    background: rgba(239, 68, 68, 0.14);
-                    color: #ef4444;
-                    font-weight: 800;
-                    font-size: 0.72rem;
-                    cursor: pointer;
-                  "
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          }
+              ↩️ Ripristina
+            </button>
+            <button
+              type="button"
+              (click)="trashService.permanentlyDeleteItem(item.id)"
+              title="Elimina definitivamente"
+              style="
+                padding: 4px 8px;
+                border-radius: 8px;
+                border: 1px solid rgba(239, 68, 68, 0.4);
+                background: rgba(239, 68, 68, 0.14);
+                color: #ef4444;
+                font-weight: 800;
+                font-size: 0.72rem;
+                cursor: pointer;
+              "
+            >
+              ✕
+            </button>
+          </div>
         </div>
+        }
+      </div>
       }
     </div>
 
@@ -174,29 +192,34 @@
     <ion-list mode="ios" class="giocatori-list">
       @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
       <ion-item-sliding #slidingItem>
-        <ion-item lines="full" class="player-item" (click)="apriDettagliGiocatore(g)">
+        <ion-item
+          lines="full"
+          class="player-item"
+          (click)="apriDettagliGiocatore(g)"
+        >
           <ion-avatar slot="start">
-            <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+            <app-player-avatar
+              [fotoUrl]="g.fotoUrl"
+              [alt]="g.nome"
+            ></app-player-avatar>
           </ion-avatar>
           <ion-label>
             <div class="name-row">
               <h3>{{ g.nome }}</h3>
               @if (g.numeroMaglia !== null && g.numeroMaglia !== undefined) {
-                <span class="detail-pill">#{{ g.numeroMaglia }}</span>
-              }
-              @if (isMyPlayer(g.id)) {
-                <span class="detail-pill" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 800;">⚽ Tu</span>
-              }
-              @if (g.soprannome) {
-                <span class="nickname">"{{ g.soprannome }}"</span>
-                @if (g.soprannomeAi && g.soprannomeAi !== g.soprannome) {
-                  <span class="ai-nick-extra" [title]="'Soprannome spogliatoio AI: ' + g.soprannomeAi">
-                    ✨ "{{ g.soprannomeAi }}"
-                  </span>
-                }
-              } @else if (g.soprannomeAi) {
-                <span class="nickname">"{{ g.soprannomeAi }}"</span>
-                <span class="ai-nick-tag" title="Soprannome coniato da Gemini AI">✨ AI</span>
+              <span class="detail-pill">#{{ g.numeroMaglia }}</span>
+              } @if (isMyPlayer(g.id)) {
+              <span
+                class="detail-pill"
+                style="
+                  background: rgba(16, 185, 129, 0.15);
+                  color: #10b981;
+                  font-weight: 800;
+                "
+                >⚽ Tu</span
+              >
+              } @if (g.soprannome) {
+              <span class="nickname">"{{ g.soprannome }}"</span>
               }
             </div>
             <div class="player-stats">
@@ -206,43 +229,83 @@
               <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
             </div>
             @let playerPhone = canViewPhone(g) ? getPhoneForPlayer(g.id) : null;
-            @if (playerPhone || g.professione || g.origini || g.statoCivile || g.vizi) {
-              <div class="player-details-row">
-                @if (playerPhone) {
-                  <span
-                    class="detail-pill"
-                    style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-weight: 700; gap: 6px; padding: 2px 6px;"
-                    title="Numero privato visibile solo al Mister e al giocatore proprietario"
-                    (click)="$event.stopPropagation()"
-                  >
-                    <span>🔒 {{ playerPhone }}</span>
-                    <a
-                      [href]="getTelUrl(playerPhone)"
-                      (click)="$event.stopPropagation()"
-                      title="Chiama {{ g.nome }}"
-                      style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; text-decoration: none; font-size: 0.68rem; font-weight: 800;"
-                    >
-                      <ion-icon name="call-outline" style="font-size: 0.78rem;"></ion-icon>
-                      <span>Chiama</span>
-                    </a>
-                    <a
-                      [href]="getWhatsAppUrl(playerPhone)"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      (click)="$event.stopPropagation()"
-                      title="Invia messaggio WhatsApp a {{ g.nome }}"
-                      style="display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 5px; background: rgba(37, 211, 102, 0.2); border: 1px solid rgba(37, 211, 102, 0.4); color: #25d366; text-decoration: none; font-size: 0.68rem; font-weight: 800;"
-                    >
-                      <ion-icon name="logo-whatsapp" style="font-size: 0.78rem;"></ion-icon>
-                      <span>WA</span>
-                    </a>
-                  </span>
-                }
-                @if (g.professione) { <span class="detail-pill">💼 {{ g.professione }}</span> }
-                @if (g.origini) { <span class="detail-pill">📍 {{ g.origini }}</span> }
-                @if (g.statoCivile) { <span class="detail-pill">💍 {{ g.statoCivile }}</span> }
-                @if (g.vizi) { <span class="detail-pill vizi-pill">🍺 {{ g.vizi }}</span> }
-              </div>
+            @if (playerPhone || g.professione || g.origini || g.statoCivile ||
+            g.vizi) {
+            <div class="player-details-row">
+              @if (playerPhone) {
+              <span
+                class="detail-pill"
+                style="
+                  background: rgba(56, 189, 248, 0.12);
+                  color: #38bdf8;
+                  border: 1px solid rgba(56, 189, 248, 0.35);
+                  font-weight: 700;
+                  gap: 6px;
+                  padding: 2px 6px;
+                "
+                title="Numero privato visibile solo al Mister e al giocatore proprietario"
+                (click)="$event.stopPropagation()"
+              >
+                <span>🔒 {{ playerPhone }}</span>
+                <a
+                  [href]="getTelUrl(playerPhone)"
+                  (click)="$event.stopPropagation()"
+                  title="Chiama {{ g.nome }}"
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 3px;
+                    padding: 2px 6px;
+                    border-radius: 5px;
+                    background: rgba(56, 189, 248, 0.2);
+                    color: #38bdf8;
+                    text-decoration: none;
+                    font-size: 0.68rem;
+                    font-weight: 800;
+                  "
+                >
+                  <ion-icon
+                    name="call-outline"
+                    style="font-size: 0.78rem"
+                  ></ion-icon>
+                  <span>Chiama</span>
+                </a>
+                <a
+                  [href]="getWhatsAppUrl(playerPhone)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  (click)="$event.stopPropagation()"
+                  title="Invia messaggio WhatsApp a {{ g.nome }}"
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 3px;
+                    padding: 2px 6px;
+                    border-radius: 5px;
+                    background: rgba(37, 211, 102, 0.2);
+                    border: 1px solid rgba(37, 211, 102, 0.4);
+                    color: #25d366;
+                    text-decoration: none;
+                    font-size: 0.68rem;
+                    font-weight: 800;
+                  "
+                >
+                  <ion-icon
+                    name="logo-whatsapp"
+                    style="font-size: 0.78rem"
+                  ></ion-icon>
+                  <span>WA</span>
+                </a>
+              </span>
+              } @if (g.professione) {
+              <span class="detail-pill">💼 {{ g.professione }}</span> } @if
+              (g.origini) {
+              <span class="detail-pill">📍 {{ g.origini }}</span> } @if
+              (g.statoCivile) {
+              <span class="detail-pill">💍 {{ g.statoCivile }}</span> } @if
+              (g.vizi) {
+              <span class="detail-pill vizi-pill">🍺 {{ g.vizi }}</span> }
+            </div>
             }
           </ion-label>
         </ion-item>

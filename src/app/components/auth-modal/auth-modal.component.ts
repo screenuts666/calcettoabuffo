@@ -125,8 +125,7 @@ export class AuthModalComponent implements OnInit {
     return list.filter(
       (g) =>
         (g.nome || '').toLowerCase().includes(q) ||
-        (g.soprannome || '').toLowerCase().includes(q) ||
-        (g.soprannomeAi || '').toLowerCase().includes(q)
+        (g.soprannome || '').toLowerCase().includes(q)
     );
   });
 

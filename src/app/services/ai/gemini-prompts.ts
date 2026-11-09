@@ -299,25 +299,20 @@ export function buildConfrontoVerdettoPrompts(
   const bioA = formatPlayerBio(pA);
   const bioB = formatPlayerBio(pB);
 
-  const systemPrompt = `Sei l'unico giudice supremo e telecronista delle rivalità storiche al campetto (stile confronto vintage retro condito dalla comicità romana verace di spogliatoio e cinismo tagliente).
-REGOLE:
-- PARLA SOLO TU: Singola voce narrante in prima persona. Nessun dialogo né copione teatrale.
-- NESSUN EFFETTO: Solo testo parlato direttamente al microfono, senza titoli né preamboli.
-- Distruggi chi sta sotto nei numeri (scontri diretti, MMR, gol, media voto) ed eleggi il padrone assoluto della sfida con un verdetto secco e mortificante ("qui non c'è partita: siamo di fronte a una vera e propria paternità calcistica", "quando lo vede in campo gli tremano i parastinchi", "bestia nera certificata dall'ufficio sinistri").
-- ZERO CRINGE: Volgare e pungente al punto giusto ("s'è fatto mette sotto", "pippa ar sugo", "annamo a raccoglie i cocci"), ma con eleganza cinica e intelligenza satirica.
-- STRUTTURA IN 2 PARAGRAFI:
-  1° Paragrafo: Il massacro numerico impietoso (scontri diretti, bestia nera, divario di rendimento e intesa quando giocano insieme).
-  2° Paragrafo: La sentenza definitiva senza appello su chi comanda e chi deve portare le borracce e stare muto.`;
+  const systemPrompt = `Sei il commentatore più cinico e tagliente delle rivalità da campetto di periferia (mix tra telecronista vintage disilluso e bar sport romano).
+REGOLE FERREE:
+- MASSIMO 2-3 FRASI secche, taglienti e sintetiche (massimo 220-280 caratteri totali). ZERO papiri, zero convenevoli o saluti.
+- Singola voce narrante in prima persona, nessun titolo o preambolo.
+- Distruggi chi sta sotto nei numeri (scontri diretti, MMR, gol) ed eleggi senza pietà il padrone del campetto e la vittima sacrificale.
+- Romanesco asciutto e pungente ("s'è fatto mette sotto", "pippa ar sugo", "paternità calcistica"), elegante e satirico.`;
 
-  const userPrompt = `Emetti il verdetto definitivo al vetriolo in stile confronto retro / spogliatoio romano verace su questa rivalità 1v1:
-- Giocatore 1: ${bioA}
-  [MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, Media Voto: ${pA.mediaVoto > 0 ? pA.mediaVoto.toFixed(2) : '-'}, MVP: ${pA.mvpCount}]
-- Giocatore 2: ${bioB}
-  [MMR ${pB.currentMmr} ${pB.tier.badge}, Peak ${pB.peakMmr}, Gol: ${pB.golTotali}, Media Voto: ${pB.mediaVoto > 0 ? pB.mediaVoto.toFixed(2) : '-'}, MVP: ${pB.mvpCount}]
-${diffEtaStr ? `- Divario Anagrafico: ${diffEtaStr}\n` : ''}${diffPesoStr ? `- Bilancia: ${diffPesoStr}\n` : ''}- Scontri Diretti da avversari (${scontri.totalePartite} match): ${pA.nome} ${scontri.vittorieA}V - ${scontri.pareggi}P - ${scontri.vittorieB}V ${pB.nome}. Bestia Nera: "${scontri.bestiaNeraText}".
-- Rendimento quando giocano insieme (${intesa.totalePartite} match): ${intesa.affinitaEmoji} "${intesa.affinitaLabel}" (${intesa.winRate}% vittorie).
+  const userPrompt = `Emetti il verdetto definitivo al vetriolo (massimo 2-3 frasi taglienti, max 250 caratteri) su questa rivalità 1v1:
+- Giocatore 1: ${bioA} [MMR ${pA.currentMmr} ${pA.tier.badge}, Peak ${pA.peakMmr}, Gol: ${pA.golTotali}, MVP: ${pA.mvpCount}]
+- Giocatore 2: ${bioB} [MMR ${pB.currentMmr} ${pB.tier.badge}, Peak ${pB.peakMmr}, Gol: ${pB.golTotali}, MVP: ${pB.mvpCount}]
+${diffEtaStr ? `- Anagrafe: ${diffEtaStr}\n` : ''}${diffPesoStr ? `- Bilancia: ${diffPesoStr}\n` : ''}- Scontri Diretti (${scontri.totalePartite} gare): ${pA.nome} ${scontri.vittorieA}V - ${scontri.pareggi}P - ${scontri.vittorieB}V ${pB.nome}. Bestia Nera: "${scontri.bestiaNeraText}".
+- Insieme (${intesa.totalePartite} gare): ${intesa.affinitaEmoji} "${intesa.affinitaLabel}" (${intesa.winRate}% vittorie).
 
-Spara il verdetto definitivo senza filtri e sancisci chi è il padrone del campetto e chi è la vittima sacrificale designata!`;
+Spara il verdetto definitivo in max 2-3 frasi senza filtri!`;
 
   return { systemPrompt, userPrompt };
 }
@@ -350,33 +345,24 @@ export function buildPlayerScoutingPrompts(
   const pesoStr = giocatore.peso ? `${giocatore.peso} kg` : 'N.D.';
   const altezzaStr = giocatore.altezza ? `${giocatore.altezza} cm` : 'N.D.';
 
-  const systemPrompt = `Sei l'osservatore e commentatore più cinico del calcio di periferia (un mix tra talent scout disilluso di FIFA vintage, bar sport romano verace e Grok in modalità scatenata).
-STILE E REGOLE:
-- Redigi la scheda confidenziale di questo giocatore di calcetto di borgata con distacco professionale e ferocia comica naturale.
-- ROMANESCO ASCIUTTO & PUNGENTE: Nessun cliché da macchietta, solo verità taglienti su stile di gioco, limiti atletici (trattati con ironia tecnica, non battute da asilo) e fissazioni tattiche ridicole.
-- INTEGRAZIONE VITA REALE A SPOT: sfrutta con ferocia comica il mestiere, il quartiere, lo stato civile e i suoi vizi dichiarati (fumo, alcool, vita sregolata) spiegando come distruggono la sua tenuta fisica in campo.
-- FORMATO OBBLIGATORIO (esattamente 2 righe):
-SOPRANNOME: [Un soprannome calcistico romano, tagliente, ironico o beffardo in perfetto stile spogliatoio verace, max 3-4 parole. NOTA FONDAMENTALE: Se il giocatore ha già un soprannome manuale ufficiale, questo nuovo soprannome fungerà da alias aggiuntivo/divertente di spogliatoio e NON dovrà pretendere di sostituire quello ufficiale]
-SCOUTING: [3-4 frasi da telecronista d'epoca disilluso: stile di gioco improbabile, colpo tipico fallimentare, tenuta atletica reale e un avvertimento spassionato ai compagni di squadra che dovranno giocarci insieme]`;
+  const systemPrompt = `Sei un talent scout disilluso e cinico del calcio di borgata romana.
+REGOLE FERREE:
+- MASSIMO 2-3 FRASI secche, taglienti e sintetiche (massimo 220-280 caratteri totali). ZERO papiri, zero saluti o titoli.
+- NESSUN SOPRANNOME generato o suggerito: redigi solo la micro-relazione scout sullo stile di gioco.
+- Romanesco asciutto e pungente: stile di gioco improbabile, limite fisico/tecnico comico e tenuta atletica reale legata a vizi/mestiere.`;
 
-  const userPrompt = `Crea lo scouting report e soprannome in stile osservatore disilluso e spogliatoio romano per:
-- Nome: ${giocatore.nome} (Soprannome ufficiale manuale: "${giocatore.soprannome || 'Nessuno'}" - NON cancellarlo o sostituirlo, proponi un alias aggiuntivo)
+  const userPrompt = `Scrivi la micro-relazione scouting (massimo 2-3 frasi taglienti, max 250 caratteri, NESSUN SOPRANNOME) per:
+- Nome: ${giocatore.nome}${giocatore.soprannome ? ' ("' + giocatore.soprannome + '")' : ''}
 - Ruolo: ${giocatore.ruoloPreferito || 'Jolly'} | Piede: ${giocatore.piedePreferito || 'Destro'}
 - Età: ${etaStr} | Peso: ${pesoStr} | Altezza: ${altezzaStr}
 - Mestiere: ${giocatore.professione || 'Non dichiarato'}
-- Origini: ${giocatore.origini || 'Periferia romana'}
-- Stato Civile: ${giocatore.statoCivile || 'Non dichiarato'}
-- Vizi e abitudini (alcool, fumo, sostanze): ${giocatore.vizi || 'Sospetto bevitore del weekend'}
+- Vizi/abitudini: ${giocatore.vizi || 'Sospetto bevitore del weekend'}
 - Rating MMR: ${mmr} (${tier}) | Stato di Forma: ${streak}
-- Statistiche: ${partite} partite disputate, ${gol} gol fatti, ${mediaVoto} media voto, ${winRate}% win rate
-- Gemello del Gol: ${gemello}
-- Bestia Nera: ${bestiaNera}
-- Note e commenti ricevuti dai compagni:
-${recentNotes.length > 0 ? recentNotes.map((n) => `• "${n}"`).join('\n') : 'Nessuna nota registrata'}
+- Rendimento: ${partite} gare, ${gol} gol, ${mediaVoto} media voto, ${winRate}% win rate
+- Gemello: ${gemello} | Bestia Nera: ${bestiaNera}
+${recentNotes.length > 0 ? `- Note compagni: "${recentNotes[0]}"` : ''}
 
-Segui rigorosamente il formato:
-SOPRANNOME: ...
-SCOUTING: ...`;
+Restituisci direttamente ed esclusivamente le 2-3 frasi di scouting.`;
 
   return { systemPrompt, userPrompt };
 }

@@ -5,7 +5,11 @@ import { collection, doc, setDoc } from 'firebase/firestore';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Giocatore, GiocatoreConPunti, PortiereStats } from '../models/giocatore.model';
+import {
+  Giocatore,
+  GiocatoreConPunti,
+  PortiereStats,
+} from '../models/giocatore.model';
 import { Partita } from '../models/partita.model';
 import {
   MmrCalculationResult,
@@ -78,36 +82,40 @@ export class StatsEngineService {
 
     this.giocatoriRaw = this.firestore
       ? toSignal<Giocatore[], Giocatore[]>(
-        (collectionData(collection(this.firestore, 'giocatori'), {
-          idField: 'id',
-        }) as Observable<Giocatore[]>).pipe(catchError(() => of([] as Giocatore[]))),
-        { initialValue: [] },
-      )
+          (
+            collectionData(collection(this.firestore, 'giocatori'), {
+              idField: 'id',
+            }) as Observable<Giocatore[]>
+          ).pipe(catchError(() => of([] as Giocatore[]))),
+          { initialValue: [] },
+        )
       : signal<Giocatore[]>([]);
 
     this.partiteRaw = this.firestore
       ? toSignal<Partita[], Partita[]>(
-        (collectionData(collection(this.firestore, 'partite'), {
-          idField: 'id',
-        }) as Observable<Partita[]>).pipe(catchError(() => of([] as Partita[]))),
-        { initialValue: [] },
-      )
+          (
+            collectionData(collection(this.firestore, 'partite'), {
+              idField: 'id',
+            }) as Observable<Partita[]>
+          ).pipe(catchError(() => of([] as Partita[]))),
+          { initialValue: [] },
+        )
       : signal<Partita[]>([]);
 
     this.seasonConfigsRaw = this.firestore
       ? toSignal<SeasonEngineConfig[], SeasonEngineConfig[]>(
-        (
-          collectionData(collection(this.firestore, 'stagioni'), {
-            idField: 'docId',
-          }) as Observable<SeasonEngineConfig[]>
-        ).pipe(
-          catchError((err) => {
-            console.warn('Fallback default season config (stagioni):', err);
-            return of([] as SeasonEngineConfig[]);
-          }),
-        ),
-        { initialValue: [] },
-      )
+          (
+            collectionData(collection(this.firestore, 'stagioni'), {
+              idField: 'docId',
+            }) as Observable<SeasonEngineConfig[]>
+          ).pipe(
+            catchError((err) => {
+              console.warn('Fallback default season config (stagioni):', err);
+              return of([] as SeasonEngineConfig[]);
+            }),
+          ),
+          { initialValue: [] },
+        )
       : signal<SeasonEngineConfig[]>([]);
 
     this.seasonConfigsMap = computed<Map<string, SeasonEngineConfig>>(() => {
@@ -116,7 +124,11 @@ export class StatsEngineService {
         for (const raw of this.seasonConfigsRaw() || []) {
           const sId = raw.seasonId || docIdToSeason(raw.docId);
           if (sId) {
-            map.set(sId, { ...getDefaultSeasonConfig(sId), ...raw, seasonId: sId });
+            map.set(sId, {
+              ...getDefaultSeasonConfig(sId),
+              ...raw,
+              seasonId: sId,
+            });
           }
         }
       } catch {
@@ -142,12 +154,9 @@ export class StatsEngineService {
       const res = this.statsResult();
       return Array.from(res.allTime.values())
         .filter((s) => s.partiteGiocate > 0)
-        .sort(
-          (a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate,
-        );
+        .sort((a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate);
     });
   }
-
 
   /**
    * Restituisce la classifica MMR per una stagione specifica (o ALL_SEASONS)
@@ -236,7 +245,6 @@ export class StatsEngineService {
     await setDoc(doc(this.firestore, `stagioni/${docId}`), payload, {
       merge: true,
     });
-  
   }
 
   /**
@@ -281,8 +289,14 @@ export class StatsEngineService {
         let matchSec = 3000;
         if (typeof p.cronometro === 'number' && p.cronometro > 0) {
           matchSec = p.cronometro;
-        } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
-          matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
+        } else if (
+          typeof p.accumulatedTime === 'number' &&
+          p.accumulatedTime > 0
+        ) {
+          matchSec =
+            p.accumulatedTime > 10000
+              ? Math.round(p.accumulatedTime / 1000)
+              : p.accumulatedTime;
         }
         if (matchSec > 21600) {
           matchSec = 3600; // Capping di sicurezza (> 6 ore)
@@ -324,7 +338,9 @@ export class StatsEngineService {
             (eg: any) =>
               eg.assistId === g.id ||
               (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
-          ).length || (playerObj.assist || 0);
+          ).length ||
+          playerObj.assist ||
+          0;
 
         golTotali += golFatti;
         assistTotali += assistFatti;
@@ -351,33 +367,29 @@ export class StatsEngineService {
     const isRanked = partiteGiocate > 0;
     const seasonStartMmr = playerMmr?.seasonStartMmr ?? BASE_INITIAL_MMR;
     const mmrVal =
-      isRanked && playerMmr
-        ? Math.round(playerMmr.currentMmr)
-        : seasonStartMmr;
+      isRanked && playerMmr ? Math.round(playerMmr.currentMmr) : seasonStartMmr;
     const mmrDisplay = isRanked ? mmrVal.toString() : '—';
     const tier = isRanked && playerMmr ? playerMmr.tier : UNRANKED_TIER;
     const peakMmr = isRanked
-      ? (allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? mmrVal))
+      ? (allTimeMmr?.peakMmr ?? playerMmr?.currentMmr ?? mmrVal)
       : 0;
     const pastSeasonsBanners =
-      playerMmr?.pastSeasonsBanners ||
-      allTimeMmr?.pastSeasonsBanners ||
-      [];
+      playerMmr?.pastSeasonsBanners || allTimeMmr?.pastSeasonsBanners || [];
     const form =
       isRanked && playerMmr?.form
         ? playerMmr.form
         : {
-          currentStreak: 0,
-          currentDrawStreak: 0,
-          bestDrawStreak: 0,
-          status: 'neutral' as const,
-          statusLabel: 'Costante',
-          emoji: '➖',
-          multiplier: 1.0,
-          bestWinStreak: 0,
-          worstLossStreak: 0,
-          recentForm: [],
-        };
+            currentStreak: 0,
+            currentDrawStreak: 0,
+            bestDrawStreak: 0,
+            status: 'neutral' as const,
+            statusLabel: 'Costante',
+            emoji: '➖',
+            multiplier: 1.0,
+            bestWinStreak: 0,
+            worstLossStreak: 0,
+            recentForm: [],
+          };
 
     const history = isRanked ? playerMmr?.history || [] : [];
     const lastMatch = history.length > 0 ? history[history.length - 1] : null;
@@ -399,9 +411,7 @@ export class StatsEngineService {
 
     const chemistry = statsRes.chemistry.get(g.id);
     const winRate =
-      partiteGiocate > 0
-        ? Math.round((wins / partiteGiocate) * 1000) / 10
-        : 0;
+      partiteGiocate > 0 ? Math.round((wins / partiteGiocate) * 1000) / 10 : 0;
 
     const portiereStats = StatsEngineService.calculateGoalkeeperStatsForPlayer(
       g.id,
@@ -442,7 +452,6 @@ export class StatsEngineService {
       portiereStats,
     };
   }
-
 
   /**
    * Prevede l'esito di un match ipotetico dati gli ID dei giocatori delle due squadre
@@ -531,8 +540,7 @@ export class StatsEngineService {
         !!rot && (Array.isArray(rot.teamA) || Array.isArray(rot.teamB));
       const durataTurno = rot?.durataTurnoMinuti || 5;
       const durataTurnoSec = durataTurno * 60;
-      let cronometroTotale =
-        p.cronometro || (p.accumulatedTime ?? 0) || 3000;
+      let cronometroTotale = p.cronometro || (p.accumulatedTime ?? 0) || 3000;
       if (cronometroTotale > 21600) cronometroTotale = 3600; // Capping di sicurezza (> 6 ore)
 
       let playerTeam: 'A' | 'B' | null = null;
@@ -552,7 +560,12 @@ export class StatsEngineService {
       }
 
       if (!playerTeam) continue;
-      const parateMatch = p.parateIncredibili?.[playerId] || (playerTeam === 'A' ? p.teamA : p.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+      const parateMatch =
+        p.parateIncredibili?.[playerId] ||
+        (playerTeam === 'A' ? p.teamA : p.teamB)?.find(
+          (x: any) => x.id === playerId,
+        )?.parateIncredibili ||
+        0;
       parateIncredibili += parateMatch;
 
       const modalita =
@@ -573,7 +586,10 @@ export class StatsEngineService {
           Math.ceil(cronometroTotale / durataTurnoSec),
         );
         const secondiEffettivi = cronometroTotale;
-        minutiInPorta += secondiEffettivi > 0 ? Math.max(1, Math.round(secondiEffettivi / 60)) : 0;
+        minutiInPorta +=
+          secondiEffettivi > 0
+            ? Math.max(1, Math.round(secondiEffettivi / 60))
+            : 0;
         turniInPorta += totalTurni;
 
         const teamAvversario = playerTeam === 'A' ? 'B' : 'A';
@@ -623,7 +639,10 @@ export class StatsEngineService {
               (turno + 1) * durataTurnoSec,
             );
             const secondiEffettivi = Math.max(0, fineSec - inizioSec);
-            minutiInPorta += secondiEffettivi > 0 ? Math.max(1, Math.round(secondiEffettivi / 60)) : 0;
+            minutiInPorta +=
+              secondiEffettivi > 0
+                ? Math.max(1, Math.round(secondiEffettivi / 60))
+                : 0;
             const eventi = p.eventiGol || [];
 
             const golNelTurno = eventi.filter((eg: any) => {
@@ -642,7 +661,7 @@ export class StatsEngineService {
 
               if (eg.portiereSubitoId) {
                 if (eg.portiereSubitoId !== playerId) return false;
-                return eg.tempo ? isInThisTurn : (turno === playerIndices[0]);
+                return eg.tempo ? isInThisTurn : turno === playerIndices[0];
               }
 
               return isInThisTurn;
@@ -656,7 +675,9 @@ export class StatsEngineService {
         }
 
         if (matchTurniGiocati > 0) {
-          const totalAvvGol = (p.eventiGol || []).filter((eg: any) => eg.teamVantaggio === teamAvversario).length;
+          const totalAvvGol = (p.eventiGol || []).filter(
+            (eg: any) => eg.teamVantaggio === teamAvversario,
+          ).length;
           if (totalAvvGol > 0 && matchGolSubiti > totalAvvGol) {
             matchGolSubiti = totalAvvGol;
           }
@@ -706,7 +727,14 @@ export class StatsEngineService {
     playerId: string,
     match: Partita,
     playerTeam: 'A' | 'B',
-  ): { turniGiocati: number; golSubiti: number; cleanSheetTurni: number; parateIncredibili: number; minutiInPorta: number; minutiInPortaDisplay: string } {
+  ): {
+    turniGiocati: number;
+    golSubiti: number;
+    cleanSheetTurni: number;
+    parateIncredibili: number;
+    minutiInPorta: number;
+    minutiInPortaDisplay: string;
+  } {
     const emptyResult = {
       turniGiocati: 0,
       golSubiti: 0,
@@ -754,7 +782,12 @@ export class StatsEngineService {
       }).length;
 
       const cleanSheetTurni = golSubiti === 0 ? totalTurni : 0;
-      const parateIncredibili = match.parateIncredibili?.[playerId] || (playerTeam === 'A' ? match.teamA : match.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+      const parateIncredibili =
+        match.parateIncredibili?.[playerId] ||
+        (playerTeam === 'A' ? match.teamA : match.teamB)?.find(
+          (x: any) => x.id === playerId,
+        )?.parateIncredibili ||
+        0;
       const minutiInPortaFisso = Math.max(1, Math.round(cronometroTotale / 60));
       return {
         turniGiocati: totalTurni,
@@ -788,7 +821,10 @@ export class StatsEngineService {
       if (playerIndices.includes(idxInOrder)) {
         turniGiocati++;
         const inizioSec = turno * durataTurnoSec;
-        const fineSec = Math.min(cronometroTotale, (turno + 1) * durataTurnoSec);
+        const fineSec = Math.min(
+          cronometroTotale,
+          (turno + 1) * durataTurnoSec,
+        );
 
         const golNelTurno = eventi.filter((eg: any) => {
           if (eg.teamVantaggio !== teamAvversario) return false;
@@ -806,7 +842,7 @@ export class StatsEngineService {
 
           if (eg.portiereSubitoId) {
             if (eg.portiereSubitoId !== playerId) return false;
-            return eg.tempo ? isInThisTurn : (turno === playerIndices[0]);
+            return eg.tempo ? isInThisTurn : turno === playerIndices[0];
           }
 
           return isInThisTurn;
@@ -819,11 +855,18 @@ export class StatsEngineService {
       }
     }
 
-    const totalAvvGol = eventi.filter((eg: any) => eg.teamVantaggio === teamAvversario).length;
+    const totalAvvGol = eventi.filter(
+      (eg: any) => eg.teamVantaggio === teamAvversario,
+    ).length;
     if (totalAvvGol > 0 && golSubiti > totalAvvGol) {
       golSubiti = totalAvvGol;
     }
-    const parateIncredibili = match.parateIncredibili?.[playerId] || (playerTeam === 'A' ? match.teamA : match.teamB)?.find((x: any) => x.id === playerId)?.parateIncredibili || 0;
+    const parateIncredibili =
+      match.parateIncredibili?.[playerId] ||
+      (playerTeam === 'A' ? match.teamA : match.teamB)?.find(
+        (x: any) => x.id === playerId,
+      )?.parateIncredibili ||
+      0;
     const minutiInPorta = turniGiocati * durataTurno;
     return {
       turniGiocati,
@@ -868,10 +911,10 @@ export class StatsEngineService {
           'portiere';
         const stats = fixedP
           ? StatsEngineService.calculateGoalkeeperStatsForMatch(
-            fixedP.id,
-            match,
-            team,
-          )
+              fixedP.id,
+              match,
+              team,
+            )
           : { golSubiti: 0, turniGiocati: 1, cleanSheetTurni: 0 };
 
         const tag = isDiRuolo ? '👑 Portiere di Ruolo' : '🧤 Portiere Fisso';
@@ -943,18 +986,18 @@ export class StatsEngineService {
       const avgA =
         teamA.length > 0
           ? teamA.reduce(
-            (sum: number, p: any) =>
-              sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
-            0,
-          ) / teamA.length
+              (sum: number, p: any) =>
+                sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
+              0,
+            ) / teamA.length
           : BASE_INITIAL_MMR;
       const avgB =
         teamB.length > 0
           ? teamB.reduce(
-            (sum: number, p: any) =>
-              sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
-            0,
-          ) / teamB.length
+              (sum: number, p: any) =>
+                sum + (allTime.get(p.id)?.currentMmr ?? BASE_INITIAL_MMR),
+              0,
+            ) / teamB.length
           : BASE_INITIAL_MMR;
       odds = StatsEngineService.calculateOdds(avgA, avgB);
     }
@@ -1034,7 +1077,8 @@ export class StatsEngineService {
         const goalDiffSigned = team === 'A' ? scoreA - scoreB : scoreB - scoreA;
         const sign = goalDiffSigned > 0 ? 1 : goalDiffSigned < 0 ? -1 : 0;
         const movBonus =
-          sign * Math.min(5, Math.round(Math.log2(Math.abs(goalDiffSigned) + 1) * 2));
+          sign *
+          Math.min(5, Math.round(Math.log2(Math.abs(goalDiffSigned) + 1) * 2));
 
         const voteBonus =
           votoNum > 0
@@ -1043,7 +1087,9 @@ export class StatsEngineService {
         const netGoals = Math.max(0, golCount - autogolCount);
         const contributionBonus = Math.min(
           4,
-          Math.floor(netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr),
+          Math.floor(
+            netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr,
+          ),
         );
 
         let gkBonus = 0;
@@ -1064,38 +1110,58 @@ export class StatsEngineService {
               gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
             }
             if (gkMatch.parateIncredibili > 0) {
-              gkBonus += gkMatch.parateIncredibili * (mCfg.bonusParataIncredibile ?? 1.0);
+              gkBonus +=
+                gkMatch.parateIncredibili *
+                (mCfg.bonusParataIncredibile ?? 1.0);
             }
           }
         }
 
         let rawDelta =
           baseTeamDelta + movBonus + voteBonus + contributionBonus + gkBonus;
-        if (mmrBefore >= 1200 && rawDelta > 0) rawDelta = Math.round(rawDelta * 0.75);
-        if (mmrBefore >= 1250 && rawDelta < 0) rawDelta = Math.round(rawDelta * 1.15);
+        if (mmrBefore >= 1200 && rawDelta > 0)
+          rawDelta = Math.round(rawDelta * 0.75);
+        if (mmrBefore >= 1250 && rawDelta < 0)
+          rawDelta = Math.round(rawDelta * 1.15);
 
         const isPlacement = (pStats?.partiteGiocate ?? 0) === 0;
         if (isPlacement) {
           mmrDelta = Math.max(
             PLACEMENT_CLAMP_MIN,
-            Math.min(PLACEMENT_CLAMP_MAX, Math.round(rawDelta * PLACEMENT_MULTIPLIER)),
+            Math.min(
+              PLACEMENT_CLAMP_MAX,
+              Math.round(rawDelta * PLACEMENT_MULTIPLIER),
+            ),
           );
         } else {
-          mmrDelta = Math.max(HARD_CLAMP_MIN, Math.min(HARD_CLAMP_MAX, Math.round(rawDelta)));
+          mmrDelta = Math.max(
+            HARD_CLAMP_MIN,
+            Math.min(HARD_CLAMP_MAX, Math.round(rawDelta)),
+          );
         }
       }
 
-      const mmrAfter = deltaObj ? deltaObj.mmrAfter : Math.max(100, mmrBefore + mmrDelta);
+      const mmrAfter = deltaObj
+        ? deltaObj.mmrAfter
+        : Math.max(100, mmrBefore + mmrDelta);
 
       const resultPoints = won ? 2 : draw ? 1 : 0;
       const legacyDelta =
-        Math.round((2 + resultPoints + golCount - autogolCount + assistCount * 0.5 + votoNum) * 10) /
-        10;
+        Math.round(
+          (2 +
+            resultPoints +
+            golCount -
+            autogolCount +
+            assistCount * 0.5 +
+            votoNum) *
+            10,
+        ) / 10;
 
       const onFireTransition =
         deltaObj?.onFireTransition ??
         (pStats?.form?.status === 'on_fire' ? 'maintained' : 'none');
-      const streakAfter = deltaObj?.streakAfter ?? (pStats?.form?.currentStreak ?? 0);
+      const streakAfter =
+        deltaObj?.streakAfter ?? pStats?.form?.currentStreak ?? 0;
 
       return {
         id: p.id,
@@ -1104,7 +1170,10 @@ export class StatsEngineService {
         fotoUrl: getAvatarUrl(p.fotoUrl || pStats?.fotoUrl),
         team,
         voto:
-          p.voto !== undefined && p.voto !== null && !isNaN(Number(p.voto)) && Number(p.voto) > 0
+          p.voto !== undefined &&
+          p.voto !== null &&
+          !isNaN(Number(p.voto)) &&
+          Number(p.voto) > 0
             ? Number(p.voto)
             : undefined,
         note: (p.note || '').trim(),
@@ -1122,54 +1191,80 @@ export class StatsEngineService {
       };
     };
 
-    const playersA: MatchReportPlayer[] = teamA.map((p: any) => mapPlayer(p, 'A', aWon, isDraw));
-    const playersB: MatchReportPlayer[] = teamB.map((p: any) => mapPlayer(p, 'B', bWon, isDraw));
+    const playersA: MatchReportPlayer[] = teamA.map((p: any) =>
+      mapPlayer(p, 'A', aWon, isDraw),
+    );
+    const playersB: MatchReportPlayer[] = teamB.map((p: any) =>
+      mapPlayer(p, 'B', bWon, isDraw),
+    );
     const allReportPlayers: MatchReportPlayer[] = [...playersA, ...playersB];
 
     // Spostamenti Medi di Squadra
     const teamAvgMmrDeltaA =
       playersA.length > 0
         ? Math.round(
-          playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersA.length,
-        )
+            playersA.reduce(
+              (sum: number, p: MatchReportPlayer) => sum + p.mmrDelta,
+              0,
+            ) / playersA.length,
+          )
         : 0;
     const teamAvgMmrDeltaB =
       playersB.length > 0
         ? Math.round(
-          playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.mmrDelta, 0) / playersB.length,
-        )
+            playersB.reduce(
+              (sum: number, p: MatchReportPlayer) => sum + p.mmrDelta,
+              0,
+            ) / playersB.length,
+          )
         : 0;
 
     const teamLegacyDeltaA =
       playersA.length > 0
         ? Math.round(
-          (playersA.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
-            playersA.length) *
-          10,
-        ) / 10
+            (playersA.reduce(
+              (sum: number, p: MatchReportPlayer) => sum + p.legacyDelta,
+              0,
+            ) /
+              playersA.length) *
+              10,
+          ) / 10
         : 0;
     const teamLegacyDeltaB =
       playersB.length > 0
         ? Math.round(
-          (playersB.reduce((sum: number, p: MatchReportPlayer) => sum + p.legacyDelta, 0) /
-            playersB.length) *
-          10,
-        ) / 10
+            (playersB.reduce(
+              (sum: number, p: MatchReportPlayer) => sum + p.legacyDelta,
+              0,
+            ) /
+              playersB.length) *
+              10,
+          ) / 10
         : 0;
 
     // Voti Medi Squadra
-    const votiA: number[] = playersA.filter((p: MatchReportPlayer) => (p.voto ?? 0) > 0).map((p: MatchReportPlayer) => p.voto!);
+    const votiA: number[] = playersA
+      .filter((p: MatchReportPlayer) => (p.voto ?? 0) > 0)
+      .map((p: MatchReportPlayer) => p.voto!);
     const votoMedioA =
       votiA.length > 0
-        ? Math.round((votiA.reduce((sum: number, v: number) => sum + v, 0) / votiA.length) * 10) /
-        10
+        ? Math.round(
+            (votiA.reduce((sum: number, v: number) => sum + v, 0) /
+              votiA.length) *
+              10,
+          ) / 10
         : 0;
 
-    const votiB: number[] = playersB.filter((p: MatchReportPlayer) => (p.voto ?? 0) > 0).map((p: MatchReportPlayer) => p.voto!);
+    const votiB: number[] = playersB
+      .filter((p: MatchReportPlayer) => (p.voto ?? 0) > 0)
+      .map((p: MatchReportPlayer) => p.voto!);
     const votoMedioB =
       votiB.length > 0
-        ? Math.round((votiB.reduce((sum: number, v: number) => sum + v, 0) / votiB.length) * 10) /
-        10
+        ? Math.round(
+            (votiB.reduce((sum: number, v: number) => sum + v, 0) /
+              votiB.length) *
+              10,
+          ) / 10
         : 0;
 
     // 4. MVP del Match e Peggiore (goliardico)
@@ -1187,7 +1282,10 @@ export class StatsEngineService {
 
       if (sortedByVote.length > 1 && mvp) {
         const lowestCandidate = sortedByVote[sortedByVote.length - 1];
-        if (lowestCandidate.id !== mvp.id && (lowestCandidate.voto ?? 0) <= 6.0) {
+        if (
+          lowestCandidate.id !== mvp.id &&
+          (lowestCandidate.voto ?? 0) <= 6.0
+        ) {
           worst = lowestCandidate;
         }
       }
@@ -1295,7 +1393,10 @@ export class StatsEngineService {
   }
 
   getEmptyMatchReport(): MatchReportData {
-    const emptyOdds = StatsEngineService.calculateOdds(BASE_INITIAL_MMR, BASE_INITIAL_MMR);
+    const emptyOdds = StatsEngineService.calculateOdds(
+      BASE_INITIAL_MMR,
+      BASE_INITIAL_MMR,
+    );
     return {
       scoreA: 0,
       scoreB: 0,
@@ -1470,7 +1571,9 @@ export class StatsEngineService {
         if (pStats && pStats.partiteGiocate > 0) {
           const seasonPlayersSorted = Array.from(sMap!.values())
             .filter((p) => p.partiteGiocate > 0)
-            .sort((a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate);
+            .sort(
+              (a, b) => b.currentMmr - a.currentMmr || b.winRate - a.winRate,
+            );
           const rankIndex = seasonPlayersSorted.findIndex(
             (p) => p.giocatoreId === playerId,
           );
@@ -1638,7 +1741,6 @@ export class StatsEngineService {
       const teamDeltaA = mCfg.kFactor * (actualScoreA - expectedA);
       const teamDeltaB = mCfg.kFactor * (actualScoreB - expectedB);
 
-
       // 3. Fattore Scarto Gol (Margin of Victory Smorzato, tra -5 e +5):
       const goalDiffA = scoreA - scoreB;
       const signA = goalDiffA > 0 ? 1 : goalDiffA < 0 ? -1 : 0;
@@ -1683,7 +1785,13 @@ export class StatsEngineService {
         const voto = Number(pPerf.voto) || 0;
         let ratingBonus = 0;
         if (voto > 0) {
-          ratingBonus = Math.max(-8, Math.min(10, Math.round((voto - mCfg.votoNeutro) * mCfg.votoMoltiplicatore)));
+          ratingBonus = Math.max(
+            -8,
+            Math.min(
+              10,
+              Math.round((voto - mCfg.votoNeutro) * mCfg.votoMoltiplicatore),
+            ),
+          );
         }
 
         const eventi = match.eventiGol || [];
@@ -1692,26 +1800,34 @@ export class StatsEngineService {
             (eg: any) =>
               (eg.idAssegnato === pPerf.id || eg.nome === pPerf.nome) &&
               !eg.isAutogoal,
-          ).length || (pPerf.gol || 0);
+          ).length ||
+          pPerf.gol ||
+          0;
 
         const autogolCount =
           eventi.filter(
             (eg: any) =>
               (eg.idAssegnato === pPerf.id || eg.nome === pPerf.nome) &&
               eg.isAutogoal,
-          ).length || (pPerf.autogol || 0);
+          ).length ||
+          pPerf.autogol ||
+          0;
 
         const assistCount =
           eventi.filter(
             (eg: any) =>
               eg.assistId === pPerf.id ||
               (!eg.assistId && eg.assistNome && eg.assistNome === pPerf.nome),
-          ).length || (pPerf.assist || 0);
+          ).length ||
+          pPerf.assist ||
+          0;
 
         const netGoals = Math.max(0, golCount - autogolCount);
         const contributionBonus = Math.min(
           4,
-          Math.floor(netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr),
+          Math.floor(
+            netGoals * mCfg.pesoGolMmr + assistCount * mCfg.pesoAssistMmr,
+          ),
         );
 
         // 5. Streak Bonus Moderato (On Fire >= 3V / In Crisi >= 3L):
@@ -1749,7 +1865,9 @@ export class StatsEngineService {
               gkBonus = Math.max(-5, -2 - (gkMatch.golSubiti - 2));
             }
             if (gkMatch.parateIncredibili > 0) {
-              gkBonus += gkMatch.parateIncredibili * (mCfg.bonusParataIncredibile ?? 1.0);
+              gkBonus +=
+                gkMatch.parateIncredibili *
+                (mCfg.bonusParataIncredibile ?? 1.0);
             }
           }
         }
@@ -1824,7 +1942,8 @@ export class StatsEngineService {
         const isOnFireAfter = stats.form.status === 'on_fire';
         const streakAfter = stats.form.currentStreak;
 
-        let onFireTransition: 'entered' | 'exited' | 'maintained' | 'none' = 'none';
+        let onFireTransition: 'entered' | 'exited' | 'maintained' | 'none' =
+          'none';
         if (!wasOnFire && isOnFireAfter) onFireTransition = 'entered';
         else if (wasOnFire && !isOnFireAfter) onFireTransition = 'exited';
         else if (wasOnFire && isOnFireAfter) onFireTransition = 'maintained';
@@ -1858,14 +1977,15 @@ export class StatsEngineService {
             streakBonus,
             eliteBrakeApplied,
             placementMultiplierApplied: isPlacement,
-            total: Math.round(
-              (ratingBonus +
-                contributionBonus +
-                streakBonus +
-                movBonus +
-                eliteBrakeApplied) *
-              10,
-            ) / 10,
+            total:
+              Math.round(
+                (ratingBonus +
+                  contributionBonus +
+                  streakBonus +
+                  movBonus +
+                  eliteBrakeApplied) *
+                  10,
+              ) / 10,
           },
           streakBefore,
           streakAfter,
@@ -2096,7 +2216,12 @@ export class StatsEngineService {
       // 3. Conteggio gol con assist tra compagni di squadra (Gemelli del Gol)
       const eventi = match.eventiGol || [];
       for (const eg of eventi) {
-        if (!eg.isAutogoal && eg.idAssegnato && eg.assistId && eg.idAssegnato !== eg.assistId) {
+        if (
+          !eg.isAutogoal &&
+          eg.idAssegnato &&
+          eg.assistId &&
+          eg.idAssegnato !== eg.assistId
+        ) {
           const entry1 = getPairEntry(eg.idAssegnato);
           if (entry1.together.has(eg.assistId)) {
             const t1 = entry1.together.get(eg.assistId)!;
@@ -2168,7 +2293,7 @@ export class StatsEngineService {
           playerId,
           partnerId,
           partnerNome: pMeta?.nome || 'Sconosciuto',
-          partnerSoprannome: pMeta?.soprannome || pMeta?.soprannomeAi,
+          partnerSoprannome: pMeta?.soprannome,
           partnerFotoUrl: getAvatarUrl(pMeta?.fotoUrl),
           matchesTogether: t.matches,
           winsTogether: t.wins,
@@ -2187,14 +2312,12 @@ export class StatsEngineService {
         const winRateAgainst =
           ag.matches > 0 ? Math.round((ag.wins / ag.matches) * 1000) / 10 : 0;
         const oppWinRate =
-          ag.matches > 0
-            ? Math.round((ag.losses / ag.matches) * 1000) / 10
-            : 0;
+          ag.matches > 0 ? Math.round((ag.losses / ag.matches) * 1000) / 10 : 0;
         allNemesis.push({
           playerId,
           opponentId: oppId,
           opponentNome: oMeta?.nome || 'Sconosciuto',
-          opponentSoprannome: oMeta?.soprannome || oMeta?.soprannomeAi,
+          opponentSoprannome: oMeta?.soprannome,
           opponentFotoUrl: getAvatarUrl(oMeta?.fotoUrl),
           matchesAgainst: ag.matches,
           winsAgainst: ag.wins,
@@ -2227,7 +2350,9 @@ export class StatsEngineService {
       const bestPartner = sortedSynergiesDesc[0] || null;
 
       // Incubo di Coppia 💔 (Peggior sinergia: minor winRateTogether)
-      const sortedSynergiesAsc = [...(qualifiedSynergies.length > 0 ? qualifiedSynergies : allSynergies)].sort(
+      const sortedSynergiesAsc = [
+        ...(qualifiedSynergies.length > 0 ? qualifiedSynergies : allSynergies),
+      ].sort(
         (a, b) =>
           a.winRateTogether - b.winRateTogether ||
           b.matchesTogether - a.matchesTogether,
@@ -2236,7 +2361,9 @@ export class StatsEngineService {
         sortedSynergiesAsc.length > 1 ? sortedSynergiesAsc[0] : null;
 
       // Bestia Nera 😈 (Nemesi peggiore: massimo opponentWinRate, poi partite giocate)
-      const sortedNemesisDesc = [...(qualifiedNemesis.length > 0 ? qualifiedNemesis : allNemesis)].sort(
+      const sortedNemesisDesc = [
+        ...(qualifiedNemesis.length > 0 ? qualifiedNemesis : allNemesis),
+      ].sort(
         (a, b) =>
           b.opponentWinRate - a.opponentWinRate ||
           b.matchesAgainst - a.matchesAgainst,
@@ -2244,7 +2371,9 @@ export class StatsEngineService {
       const biggestNemesis = sortedNemesisDesc[0] || null;
 
       // Vittima Preferita 🎯 (Avversario più battuto: massimo winRateAgainst)
-      const sortedVictimsDesc = [...(qualifiedNemesis.length > 0 ? qualifiedNemesis : allNemesis)].sort(
+      const sortedVictimsDesc = [
+        ...(qualifiedNemesis.length > 0 ? qualifiedNemesis : allNemesis),
+      ].sort(
         (a, b) =>
           b.winRateAgainst - a.winRateAgainst ||
           b.matchesAgainst - a.matchesAgainst,
