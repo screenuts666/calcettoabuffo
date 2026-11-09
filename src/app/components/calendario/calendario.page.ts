@@ -51,6 +51,10 @@ import {
   radioButtonOff,
   people,
   flash,
+  addCircleOutline,
+  removeCircleOutline,
+  layersOutline,
+  checkboxOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 
@@ -66,6 +70,8 @@ import { Giocatore } from '../../models/giocatore.model';
 import { Partita, getMatchFormatByPlayerCount } from '../../models/partita.model';
 import { DaySummary } from '../../models/weekly-availability.model';
 import { formatWeeklyAvailabilityForWhatsApp } from '../../utils/whatsapp-formatter';
+
+export type CalendarViewMode = 'week' | 'month' | 'year';
 
 export interface CalendarDayCell {
   date: Date;
@@ -120,6 +126,47 @@ export class CalendarioPage implements OnInit {
     localStorage.getItem('cal_mostra_compleanni') !== 'false'
   );
 
+  // Modalità di visualizzazione: default 'week' (focus disponibilità a tutta altezza)
+  viewMode = signal<CalendarViewMode>('week');
+
+  // Solo Mister e Presidente possono utilizzare lo zoom gerarchico
+  readonly canUseZoom = computed(() => this.auth.isSuperUser());
+
+  // Livello di zoom (0 = settimana, 1 = mese, 2 = anno)
+  readonly zoomLevel = computed<number>(() => {
+    switch (this.viewMode()) {
+      case 'week': return 0;
+      case 'month': return 1;
+      case 'year': return 2;
+    }
+  });
+
+  readonly canZoomIn = computed(() => this.canUseZoom() && this.zoomLevel() > 0);
+  readonly canZoomOut = computed(() => this.canUseZoom() && this.zoomLevel() < 2);
+
+  zoomIn() {
+    if (!this.canZoomIn()) return;
+    if (this.viewMode() === 'year') {
+      this.viewMode.set('month');
+    } else if (this.viewMode() === 'month') {
+      this.viewMode.set('week');
+    }
+  }
+
+  zoomOut() {
+    if (!this.canZoomOut()) return;
+    if (this.viewMode() === 'week') {
+      this.viewMode.set('month');
+    } else if (this.viewMode() === 'month') {
+      this.viewMode.set('year');
+    }
+  }
+
+  setViewMode(mode: CalendarViewMode) {
+    if (!this.canUseZoom() && mode !== 'week') return;
+    this.viewMode.set(mode);
+  }
+
   // Mese visualizzato attualmente (primo giorno del mese)
   selectedMonth = signal<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -168,6 +215,10 @@ export class CalendarioPage implements OnInit {
       radioButtonOff,
       people,
       flash,
+      addCircleOutline,
+      removeCircleOutline,
+      layersOutline,
+      checkboxOutline,
     });
   }
 
@@ -220,6 +271,107 @@ export class CalendarioPage implements OnInit {
     const today = new Date();
     this.selectedMonth.set(new Date(today.getFullYear(), today.getMonth(), 1));
     this.selectedDateStr.set(today.toISOString().split('T')[0]);
+  }
+
+  annoPrecedente() {
+    const d = this.selectedMonth();
+    this.selectedMonth.set(new Date(d.getFullYear() - 1, d.getMonth(), 1));
+  }
+
+  annoSuccessivo() {
+    const d = this.selectedMonth();
+    this.selectedMonth.set(new Date(d.getFullYear() + 1, d.getMonth(), 1));
+  }
+
+  navigaPrecedente() {
+    if (this.viewMode() === 'week') {
+      this.availabilityService.settimanaPrecedente();
+    } else if (this.viewMode() === 'month') {
+      this.mesePrecedente();
+    } else {
+      this.annoPrecedente();
+    }
+  }
+
+  navigaSuccessivo() {
+    if (this.viewMode() === 'week') {
+      this.availabilityService.settimanaSuccessiva();
+    } else if (this.viewMode() === 'month') {
+      this.meseSuccessivo();
+    } else {
+      this.annoSuccessivo();
+    }
+  }
+
+  navigaOggi() {
+    const today = new Date();
+    this.selectedMonth.set(new Date(today.getFullYear(), today.getMonth(), 1));
+    this.selectedDateStr.set(getLocalIsoDate(today));
+    this.availabilityService.vaiASettimanaDefault();
+  }
+
+  readonly canNavigaPrecedente = computed(() => {
+    if (this.viewMode() === 'week') {
+      return this.availabilityService.canGoToPreviousWeek();
+    }
+    return true;
+  });
+
+  readonly navigazioneHeaderLabel = computed(() => {
+    if (this.viewMode() === 'week') {
+      const tag = this.availabilityService.activeWeekTag();
+      const range = this.availabilityService.activeWeekRangeLabel();
+      return tag ? `${range} (${tag})` : range;
+    }
+    if (this.viewMode() === 'month') {
+      return this.meseAnnoLabel();
+    }
+    return `${this.selectedMonth().getFullYear()}`;
+  });
+
+  // Panoramica dei 12 mesi per la vista Anno (riservata a Mister/Presidente)
+  readonly yearMonthsOverview = computed(() => {
+    const currentYear = this.selectedMonth().getFullYear();
+    const allMatches = this.statsEngine.partiteRaw() || [];
+    const today = new Date();
+    const currentMonthIdx =
+      today.getFullYear() === currentYear ? today.getMonth() : -1;
+
+    const months = [];
+    for (let m = 0; m < 12; m++) {
+      const d = new Date(currentYear, m, 1);
+      const mStr = String(m + 1).padStart(2, '0');
+      const monthPrefix = `${currentYear}-${mStr}`;
+
+      const monthMatches = allMatches.filter((p) =>
+        (p.dataPartita || '').startsWith(monthPrefix)
+      );
+      const conclusi = monthMatches.filter((p) => p.matchConcluso).length;
+      const inProgramma = monthMatches.length - conclusi;
+
+      const monthName = d.toLocaleDateString('it-IT', { month: 'long' });
+      months.push({
+        monthIndex: m,
+        monthName: monthName.charAt(0).toUpperCase() + monthName.slice(1),
+        monthDate: d,
+        matchesCount: monthMatches.length,
+        conclusi,
+        inProgramma,
+        isCurrentMonth: m === currentMonthIdx,
+      });
+    }
+    return months;
+  });
+
+  selezionaMeseEZoom(monthIndex: number) {
+    const year = this.selectedMonth().getFullYear();
+    this.selectedMonth.set(new Date(year, monthIndex, 1));
+    this.viewMode.set('month');
+  }
+
+  selezionaGiornoEZoom(cell: CalendarDayCell) {
+    this.selezionaGiorno(cell);
+    this.viewMode.set('week');
   }
 
   // Label Mese / Anno
@@ -430,6 +582,9 @@ export class CalendarioPage implements OnInit {
     const myMaybe = this.availabilityService.myMaybeDates();
     const allPlayers = this.statsEngine.giocatoriRaw();
     const todayStr = getLocalIsoDate();
+    const tomorrowDate = new Date();
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrowStr = getLocalIsoDate(tomorrowDate);
 
     // Identifica il massimo di preferenze per far risaltare il giorno o i giorni con più voti (anche con pareggio)
     const upcomingSummaries = summaries.filter((s) => s.date >= todayStr);
@@ -460,7 +615,9 @@ export class CalendarioPage implements OnInit {
 
       const isPast = s.date < todayStr;
       const isToday = s.date === todayStr;
+      const isTomorrow = s.date === tomorrowStr;
       const isTopVoted = !isPast && maxVotes > 0 && s.voterCount === maxVotes;
+      const matches = this.partiteByDate().get(s.date) || [];
 
       const [y, m, d] = s.date.split('-').map(Number);
       const dateObj = new Date(y, m - 1, d);
@@ -480,6 +637,8 @@ export class CalendarioPage implements OnInit {
         summary: s,
         isPast,
         isToday,
+        isTomorrow,
+        matches,
         count: s.voterCount,
         maybeCount: s.maybeCount,
         isQuorumReached: s.hasQuorum,
@@ -695,7 +854,9 @@ export class CalendarioPage implements OnInit {
           position: 'top',
         });
         await toast.present();
-        this.router.navigate(['/partite', newMatchId]);
+        this.router.navigate(['/partite', newMatchId], {
+          queryParams: { returnUrl: '/calendario' },
+        });
       }
     } catch (err: any) {
       const toast = await this.toastCtrl.create({
@@ -749,7 +910,9 @@ export class CalendarioPage implements OnInit {
 
   apriPartita(matchId?: string) {
     if (!matchId) return;
-    this.router.navigate(['/partite', matchId]);
+    this.router.navigate(['/partite', matchId], {
+      queryParams: { returnUrl: '/calendario' },
+    });
   }
 
   getGoogleMapsUrl(campo?: string): string {

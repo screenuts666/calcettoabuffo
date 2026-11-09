@@ -554,102 +554,102 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.state.cambiaStep(step);
   }
 
+  tornaIndietroDestinazione() {
+    if (this.isAdmin) {
+      this.state.flushAutoSave();
+      this.state.salvaSnapshotLocale();
+    }
+    const returnUrl =
+      this.route.snapshot.queryParamMap.get('returnUrl') ||
+      (history.state && history.state.returnUrl);
+    if (returnUrl) {
+      this.router.navigateByUrl(returnUrl);
+    } else if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/partite']);
+    }
+  }
+
   async gestisciIndietro() {
     if (!this.isAdmin) {
-      this.router.navigate(['/partite']);
+      this.tornaIndietroDestinazione();
       return;
     }
 
     const currentStep = this.state.step();
 
+    // Se siamo al primo step di configurazione o su match concluso a prestazioni, usciamo tornando all'origine
     if (
       currentStep === 'dettagli' ||
       (this.state.matchConcluso() && currentStep === 'prestazioni')
     ) {
-      this.tornaAPartite();
+      this.tornaIndietroDestinazione();
       return;
     }
 
-    let prevStepName = '';
-    let prevStepTarget: 'dettagli' | 'convocati' | 'squadre' | 'match' | null =
-      null;
-
-    switch (currentStep) {
-      case 'convocati':
-        prevStepName = 'Coordinate Match';
-        prevStepTarget = 'dettagli';
-        break;
-      case 'squadre':
-        prevStepName = 'Giocatori Convocati';
-        prevStepTarget = 'convocati';
-        break;
-      case 'match':
-        prevStepName = 'Formazioni & Squadre';
-        prevStepTarget = 'squadre';
-        break;
-      case 'prestazioni':
-        prevStepName = 'Tabellone Match';
-        prevStepTarget = 'match';
-        break;
+    // Step intermedi: scala allo step precedente senza uscire dal flusso
+    if (currentStep === 'convocati') {
+      this.state.cambiaStep('dettagli');
+      return;
     }
 
-    const isMatchInProgress =
-      currentStep === 'match' &&
-      !this.state.matchConcluso() &&
-      (this.state.isTimerRunning() ||
-        this.state.cronometro() > 0 ||
-        this.state.eventiGol().length > 0);
+    if (currentStep === 'squadre') {
+      this.state.cambiaStep('convocati');
+      return;
+    }
 
-    const actionSheet = await this.actionSheetCtrl.create({
-      header: 'Dove vuoi tornare?',
-      subHeader: isMatchInProgress
-        ? 'La partita in corso rimane attiva e riapribile'
-        : undefined,
-      buttons: [
-        {
-          text: isMatchInProgress
-            ? 'Torna alla Lista Partite (Match salvato)'
-            : 'Torna alla Lista Partite',
-          icon: 'list-outline',
-          handler: () => {
-            this.tornaAPartite();
-          },
-        },
-        ...(prevStepTarget
-          ? [
-              {
-                text: isMatchInProgress
-                  ? `Step precedente (Resetta Match e torna a ${prevStepName})`
-                  : `Step precedente (${prevStepName})`,
-                icon: 'arrow-back-outline',
-                role: isMatchInProgress ? ('destructive' as const) : undefined,
-                handler: () => {
-                  if (isMatchInProgress) {
-                    this.confermaTornaASquadre();
-                  } else {
-                    this.state.cambiaStep(prevStepTarget!);
-                  }
-                },
+    if (currentStep === 'prestazioni' && !this.state.matchConcluso()) {
+      this.state.cambiaStep('match');
+      return;
+    }
+
+    if (currentStep === 'match') {
+      const isMatchInProgress =
+        !this.state.matchConcluso() &&
+        (this.state.isTimerRunning() ||
+          this.state.cronometro() > 0 ||
+          this.state.eventiGol().length > 0);
+
+      if (isMatchInProgress) {
+        const actionSheet = await this.actionSheetCtrl.create({
+          header: 'Partita in corso',
+          subHeader: 'Il match rimane attivo e salvato in tempo reale',
+          buttons: [
+            {
+              text: 'Esci dal Match (Salva e Torna indietro)',
+              icon: 'arrow-back-outline',
+              handler: () => {
+                this.tornaIndietroDestinazione();
               },
-            ]
-          : []),
-        {
-          text: 'Resta qui (Annulla)',
-          icon: 'close-outline',
-          role: 'cancel',
-        },
-      ],
-    });
+            },
+            {
+              text: 'Resetta Match e torna a Formazioni & Squadre',
+              icon: 'refresh-outline',
+              role: 'destructive',
+              handler: () => {
+                this.confermaTornaASquadre();
+              },
+            },
+            {
+              text: 'Resta nel Match',
+              icon: 'close-outline',
+              role: 'cancel',
+            },
+          ],
+        });
+        await actionSheet.present();
+      } else {
+        this.state.cambiaStep('squadre');
+      }
+      return;
+    }
 
-    await actionSheet.present();
+    this.tornaIndietroDestinazione();
   }
 
   tornaAPartite() {
-    if (this.isAdmin) {
-      this.state.flushAutoSave();
-      this.state.salvaSnapshotLocale();
-    }
-    this.router.navigate(['/partite']);
+    this.tornaIndietroDestinazione();
   }
 
   async confermaTornaASquadre() {

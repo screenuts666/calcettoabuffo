@@ -1,7 +1,37 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="cal-main-toolbar">
-    <ion-title>Calendario</ion-title>
+    <ion-title>Disponibilità</ion-title>
+
     <ion-buttons slot="end">
+      <!-- CONTROLLI ZOOM GERARCHICO (SOLO MISTER E PRESIDENTE) -->
+      @if (canUseZoom()) {
+        <div class="zoom-controls-bar" title="Zoom temporale (riservato al Mister e Presidente)">
+          <button
+            type="button"
+            class="btn-zoom"
+            [disabled]="!canZoomIn()"
+            (click)="zoomIn()"
+            title="Zoom In (Aumenta dettaglio)"
+          >
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </button>
+
+          <span class="zoom-badge">
+            {{ viewMode() === 'week' ? 'Settimana' : (viewMode() === 'month' ? 'Mese' : 'Anno') }}
+          </span>
+
+          <button
+            type="button"
+            class="btn-zoom"
+            [disabled]="!canZoomOut()"
+            (click)="zoomOut()"
+            title="Zoom Out (Allarga panoramica)"
+          >
+            <ion-icon name="remove-circle-outline"></ion-icon>
+          </button>
+        </div>
+      }
+
       <!-- Condividi Disponibilità su WhatsApp -->
       <ion-button
         fill="clear"
@@ -15,6 +45,44 @@
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- BARRA NAVIGAZIONE DINAMICA CONTESTUALE ALLO ZOOM -->
+  <div class="cal-dynamic-nav-bar">
+    <button
+      type="button"
+      class="btn-dyn-nav"
+      [disabled]="!canNavigaPrecedente()"
+      [class.disabled]="!canNavigaPrecedente()"
+      (click)="navigaPrecedente()"
+      title="Precedente"
+    >
+      <ion-icon name="chevron-back"></ion-icon>
+    </button>
+
+    <div class="dyn-nav-label-wrapper">
+      <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'"></ion-icon>
+      <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
+    </div>
+
+    <button
+      type="button"
+      class="btn-dyn-nav"
+      (click)="navigaSuccessivo()"
+      title="Successivo"
+    >
+      <ion-icon name="chevron-forward"></ion-icon>
+    </button>
+
+    <button
+      type="button"
+      class="btn-dyn-today"
+      (click)="navigaOggi()"
+      title="Torna ad oggi / settimana corrente"
+    >
+      <ion-icon name="today-outline"></ion-icon>
+      <span>Oggi</span>
+    </button>
+  </div>
 </ion-header>
 
 <ion-content class="cal-content ion-padding-bottom">
@@ -37,496 +105,367 @@
   }
 
   <!-- ======================================================== -->
-  <!-- HERO WIDGET: DISPONIBILITÀ SETTIMANA ("QUANDO GIOCHIAMO?") -->
+  <!-- VISTE DINAMICHE A 3 LIVELLI (GERARCHIA ZOOM)              -->
   <!-- ======================================================== -->
   @if (!availabilityService.isSummerBreakActive()) {
-    <div class="weekly-availability-section">
-      <div class="section-top-header">
-        <div class="section-header-top-row">
-          <div class="availability-badge">
-            <span class="live-pulse-dot"></span>
-            <span>Quando Giochiamo?</span>
-            @if (availabilityService.activeWeekTag(); as tag) {
-              <span class="week-tag-pill">{{ tag }}</span>
-            }
-          </div>
-
-          <button
-            type="button"
-            class="btn-wa-sollecita"
-            (click)="condividiSuWhatsApp()"
-            title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
-          >
-            <ion-icon name="logo-whatsapp"></ion-icon>
-            <span>Sollecita</span>
-          </button>
-        </div>
-
-        <div class="section-week-nav">
-          <button
-            type="button"
-            class="btn-week-chevron"
-            [disabled]="!availabilityService.canGoToPreviousWeek()"
-            [class.disabled]="!availabilityService.canGoToPreviousWeek()"
-            (click)="availabilityService.settimanaPrecedente()"
-            title="Settimana precedente"
-          >
-            <ion-icon name="chevron-back"></ion-icon>
-          </button>
-          <h2 class="section-week-label">
-            {{ availabilityService.activeWeekRangeLabel() }}
-          </h2>
-          <button
-            type="button"
-            class="btn-week-chevron"
-            (click)="availabilityService.settimanaSuccessiva()"
-            title="Settimana successiva"
-          >
-            <ion-icon name="chevron-forward"></ion-icon>
-          </button>
-        </div>
-
-        @if (topVotedDayInfo(); as top) {
-          <div class="top-voted-callout">
-            <ion-icon name="flame" class="fire-icon"></ion-icon>
-            <span>
-              Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
-              @if (top.hasQuorum) {
-                <span class="callout-quorum">⚽ Quorum!</span>
-              }
-            </span>
-          </div>
-        }
-
-        @if (!auth.isLoggedIn()) {
-          <p class="section-subtitle">
-            Accedi per votare le tue disponibilità.
-          </p>
-        }
-      </div>
-
-      <!-- PROPOSTA A: STRISCIA A 7 GIORNI + SCHEDA FOCUS RAPIDA -->
-      <div class="weekly-strip-wrapper">
-        <!-- STRISCIA COMPATTA A 7 PILLOLE VERTICALI -->
-        <div class="weekly-strip-grid">
-          @for (day of activeWeekDaysList(); track day.dateStr) {
-            <button
-              type="button"
-              class="strip-day-pill"
-              [class.active]="selectedDateStr() === day.dateStr"
-              [class.is-past]="day.isPast"
-              [class.is-today]="day.isToday"
-              [class.is-top-voted]="day.isTopVoted && !day.isPast"
-              [class.has-quorum]="day.isQuorumReached && !day.isPast"
-              [class.voted-by-me]="day.isVotedByMe"
-              (click)="onStripDayClick(day.dateStr)"
-              title="{{ day.dayLabelFull }}: {{ day.count }} voti. Tocca per selezionare / votare"
-            >
-              @if (day.isTopVoted && !day.isPast) {
-                <span class="pill-corner-badge fire" title="Giorno più votato!">🔥</span>
-              }
-
-              @if (day.isVotedByMe) {
-                <span class="pill-corner-badge vote" title="Hai votato presenza">✓</span>
-              }
-
-              @if (partiteByDate().get(day.dateStr)?.length) {
-                <span class="pill-corner-badge match" title="Partita ufficiale fissata">⚽</span>
-              }
-
-              <span class="pill-day-name">{{ day.dayName }}</span>
-              <span class="pill-day-number">{{ day.dayNumber }}</span>
-
-              @if (mostraMeteo() && day.weather) {
-                <span
-                  class="pill-weather-icon"
-                  (click)="mostraInfoMeteo(day.weather, day.dayLabelFull, $event)"
-                  [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '°)'"
-                >
-                  {{ day.weather.iconEmoji }}
+    @switch (viewMode()) {
+      <!-- ── VISTA 1: SETTIMANA FULL-SCREEN (DEFAULT ATLETI & MISTER) ── -->
+      @case ('week') {
+        <div class="weekly-fullscreen-view">
+          <!-- TOP STATUS: TOP VOTED & QUICK CALLOUTS -->
+          @if (topVotedDayInfo(); as top) {
+            <div class="week-top-callout">
+              <div class="wtc-left">
+                <ion-icon name="flame" class="fire-icon"></ion-icon>
+                <span class="wtc-text">
+                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong> {{ top.count === 1 ? 'atleta' : 'atleti' }})
+                  @if (top.hasQuorum) {
+                    <span class="callout-quorum">⚽ Quorum!</span>
+                  }
                 </span>
-              }
+              </div>
 
-              @if (day.isPast) {
-                <span class="pill-past-tag">Passato</span>
-              } @else {
-                <div
-                  class="pill-votes-badge"
-                  [class.quorum]="day.isQuorumReached"
-                  [class.top-voted]="day.isTopVoted"
-                  [class.has-votes]="day.count > 0"
-                >
-                  <ion-icon name="people"></ion-icon>
-                  <span class="pvb-num">{{ day.count }}</span>
-                </div>
-              }
-            </button>
-          }
-        </div>
-
-        <!-- PULSANTINO CREA PARTITA (SOLO MISTER / PRESIDENTE E SOLO SE C'E' QUORUM) -->
-        @if (auth.isSuperUser() && daysWithQuorum().length > 0) {
-          <div class="weekly-quorum-create-bar">
-            @for (qDay of daysWithQuorum(); track qDay.dateStr) {
               <button
                 type="button"
-                class="btn-quorum-create-match"
-                (click)="fissaPartitaSlot(qDay.dateStr)"
-                title="Crea partita ufficiale per {{ qDay.dayLabelFull }} con {{ qDay.count }} convocati"
+                class="btn-wa-sollecita"
+                (click)="condividiSuWhatsApp()"
+                title="Invia riepilogo sul gruppo WhatsApp per sollecitare i compagni"
               >
-                <ion-icon name="football-outline"></ion-icon>
-                <span>Crea Partita {{ qDay.dayLabel }} ({{ qDay.count }} convocati)</span>
+                <ion-icon name="logo-whatsapp"></ion-icon>
+                <span>Sollecita</span>
               </button>
-            }
-          </div>
-        }
-
-        @if (isDevMode) {
-          <div class="weekly-dev-simulation-bar">
-            <button
-              type="button"
-              class="btn-dev-simulate"
-              (click)="simulaVotiCompagniDev()"
-              title="Disponibile solo in ambiente DEV: simula voti di compagni diversi con numeri diversi per ogni giorno"
-            >
-              <ion-icon name="flash"></ion-icon>
-              <span>⚡ DEV: Simula Voti Compagni (Numeri Diversi)</span>
-            </button>
-            <button
-              type="button"
-              class="btn-dev-reset"
-              (click)="resetVotiCompagniDev()"
-              title="Azzera voti simulati"
-            >
-              <ion-icon name="refresh-outline"></ion-icon>
-              <span>Reset DEV</span>
-            </button>
-          </div>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- ======================================================== -->
-  <!-- CALENDARIO MENSILE INTERATTIVO (COESO E CONSISTENTE)     -->
-  <!-- ======================================================== -->
-  <div class="monthly-calendar-container">
-    <!-- CONTROLLI NAVIGAZIONE MESE COLLEGATI AL CALENDARIO -->
-    <div class="month-nav-bar">
-      <button type="button" class="nav-month-btn" (click)="mesePrecedente()" title="Mese precedente">
-        <ion-icon name="chevron-back"></ion-icon>
-      </button>
-      <div class="current-month-display">
-        <ion-icon name="calendar-outline" class="month-icon"></ion-icon>
-        <span class="month-title">{{ meseAnnoLabel() }}</span>
-      </div>
-      <button type="button" class="nav-month-btn" (click)="meseSuccessivo()" title="Mese successivo">
-        <ion-icon name="chevron-forward"></ion-icon>
-      </button>
-      <button type="button" class="btn-today" (click)="vaiAOggi()" title="Torna a oggi">
-        <ion-icon name="today-outline"></ion-icon>
-        <span>Oggi</span>
-      </button>
-    </div>
-
-    <!-- FILTRI TOGGLE (PARTITE, METEO, LUNA, COMPLEANNI) -->
-    <div class="filters-pills-bar">
-      <button
-        type="button"
-        class="filter-pill"
-        [class.active]="mostraPartitePassate()"
-        (click)="toggleFiltro('partite')"
-      >
-        <ion-icon name="football-outline"></ion-icon>
-        <span>Partite</span>
-      </button>
-
-      <button
-        type="button"
-        class="filter-pill"
-        [class.active]="mostraMeteo()"
-        (click)="toggleFiltro('meteo')"
-      >
-        <ion-icon name="sunny-outline"></ion-icon>
-        <span>Meteo</span>
-      </button>
-
-      <button
-        type="button"
-        class="filter-pill"
-        [class.active]="mostraCompleanni()"
-        (click)="toggleFiltro('compleanni')"
-      >
-        <ion-icon name="gift-outline"></ion-icon>
-        <span>Compleanni</span>
-      </button>
-    </div>
-
-    <div class="calendar-card">
-      <!-- INTESTAZIONE GIORNI DELLA SETTIMANA -->
-      <div class="weekdays-grid">
-        <div class="weekday-header">Lun</div>
-        <div class="weekday-header">Mar</div>
-        <div class="weekday-header">Mer</div>
-        <div class="weekday-header">Gio</div>
-        <div class="weekday-header">Ven</div>
-        <div class="weekday-header weekend">Sab</div>
-        <div class="weekday-header weekend">Dom</div>
-      </div>
-
-      <!-- CELLE DEI GIORNI -->
-      <div class="days-matrix-grid">
-        @for (cell of calendarGrid(); track cell.dateStr) {
-          <div
-            class="calendar-day-cell"
-            [class.other-month]="!cell.isCurrentMonth"
-            [class.today]="cell.isToday"
-            [class.selected]="cell.isSelected"
-            [class.has-match]="cell.matches.length > 0"
-            [class.has-birthday]="cell.birthdays.length > 0"
-            (click)="selezionaGiorno(cell)"
-          >
-            <!-- RIGA NUMERO GIORNO + PICCOLO METEO -->
-            <div class="day-cell-top">
-              <span class="day-number">{{ cell.dayNumber }}</span>
-              @if (mostraMeteo() && cell.weather) {
-                <span class="cell-weather-icon" [title]="cell.weather.conditionDescription + ' ' + cell.weather.tempMax + '°'">
-                  {{ cell.weather.iconEmoji }}
-                </span>
-              }
             </div>
+          }
 
-            <!-- INDICATORI CONTENUTO NELLA CELLA -->
-            <div class="cell-indicators">
-              <!-- PARTITE -->
-              @if (cell.matches.length > 0 && (mostraPartitePassate() || !cell.isPast)) {
-                @for (m of cell.matches; track m.id) {
-                  <div
-                    class="cell-match-badge"
-                    [class.conclusa]="m.matchConcluso"
-                    [class.in-programma]="!m.matchConcluso"
-                    [title]="(m.luogo || 'Partita') + (m.matchConcluso ? ' (' + m.scoreA + '-' + m.scoreB + ')' : '')"
-                  >
-                    <span class="badge-ball">⚽</span>
-                    @if (m.matchConcluso) {
-                      <span class="badge-score">{{ m.scoreA }}-{{ m.scoreB }}</span>
-                    } @else {
-                      <span class="badge-time">{{ m.orario || 'Gara' }}</span>
-                    }
-                  </div>
-                }
-              }
-
-              <!-- COMPLEANNI -->
-              @if (mostraCompleanni() && cell.birthdays.length > 0) {
-                @for (b of cell.birthdays.slice(0, 1); track b.id) {
-                  <div class="cell-bday-badge" [title]="'Compleanno di ' + b.nome">
-                    <span>🎂</span>
-                    <span class="bday-name">{{ b.nome }}</span>
-                  </div>
-                }
-              }
-
-              <!-- DISPONIBILITÀ QUORUM -->
-              @if (cell.voteCount && cell.voteCount > 0 && cell.matches.length === 0) {
-                <div
-                  class="cell-quorum-dot"
-                  [class.ready]="cell.isQuorumReached"
-                  [title]="cell.voteCount + ' giocatori disponibili'"
+          <!-- CREA PARTITA GENERALE PER MISTER SE QUORUM RAGGIUNTO IN SETTIMANA -->
+          @if (auth.isSuperUser() && daysWithQuorum().length > 0) {
+            <div class="weekly-quorum-create-bar">
+              @for (qDay of daysWithQuorum(); track qDay.dateStr) {
+                <button
+                  type="button"
+                  class="btn-quorum-create-match"
+                  (click)="fissaPartitaSlot(qDay.dateStr)"
+                  title="Crea partita ufficiale per {{ qDay.dayLabelFull }} con {{ qDay.count }} convocati"
                 >
-                  <span class="dot-count">{{ cell.voteCount }}</span>
-                </div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  </div>
-
-  <!-- ======================================================== -->
-  <!-- DETTAGLIO DEL GIORNO SELEZIONATO                         -->
-  <!-- ======================================================== -->
-  @if (selectedDayDetail(); as sel) {
-    <div class="day-detail-panel">
-      <div class="detail-panel-header">
-        <div class="detail-header-left">
-          <ion-icon name="calendar-outline" class="detail-header-icon"></ion-icon>
-          <div>
-            <h3 class="detail-date-title">{{ sel.dateFormatted }}</h3>
-            @if (sel.isToday) {
-              <span class="today-tag">OGGI</span>
-            }
-          </div>
-        </div>
-
-        <!-- METEO & LUNA IN HEADER DETTAGLIO -->
-        <div class="detail-header-meta">
-          @if (sel.weather) {
-            <div
-              class="weather-box-detail"
-              (click)="mostraInfoMeteo(sel.weather, sel.dateFormatted, $event)"
-              [title]="sel.weather.conditionDescription"
-            >
-              <span class="w-emoji">{{ sel.weather.iconEmoji }}</span>
-              <div class="w-temps">
-                <strong>{{ sel.weather.tempMax }}°</strong>
-                <small>/ {{ sel.weather.tempMin }}°</small>
-              </div>
-              <span class="w-desc">{{ sel.weather.conditionDescription }}</span>
-              @if (sel.weather.rainProbability > 20) {
-                <span class="w-rain">💧{{ sel.weather.rainProbability }}%</span>
+                  <ion-icon name="football-outline"></ion-icon>
+                  <span>Crea Partita {{ qDay.dayLabel }} ({{ qDay.count }} convocati)</span>
+                </button>
               }
             </div>
           }
-        </div>
-      </div>
 
-      <!-- COMPLEANNI DEL GIORNO -->
-      @if (sel.birthdays.length > 0) {
-        <div class="detail-birthdays-section">
-          @for (b of sel.birthdays; track b.id) {
-            <div class="birthday-card">
-              <span class="bday-big-icon">🎂</span>
-              <div class="bday-info">
-                <strong>Tanti auguri a {{ b.nome }}!</strong>
-                <p>{{ sel.isToday ? 'Oggi è il suo compleanno' : 'Festeggia il suo compleanno' }} {{ getEtaCompleanno(b.dataNascita, sel.date) }}</p>
-              </div>
+          <!-- DEV SIMULATION BAR -->
+          @if (isDevMode) {
+            <div class="weekly-dev-simulation-bar">
+              <button
+                type="button"
+                class="btn-dev-simulate"
+                (click)="simulaVotiCompagniDev()"
+                title="Disponibile solo in ambiente DEV: simula voti di compagni diversi con numeri diversi per ogni giorno"
+              >
+                <ion-icon name="flash"></ion-icon>
+                <span>⚡ DEV: Simula Voti Compagni (Numeri Diversi)</span>
+              </button>
+              <button
+                type="button"
+                class="btn-dev-reset"
+                (click)="resetVotiCompagniDev()"
+                title="Azzera voti simulati"
+              >
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>Reset DEV</span>
+              </button>
             </div>
           }
-        </div>
-      }
 
-      <!-- PARTITE DEL GIORNO -->
-      @if (sel.matches.length > 0) {
-        <div class="detail-matches-section">
-          <h4 class="sub-section-title">
-            <ion-icon name="football-outline"></ion-icon>
-            Partite
-          </h4>
-          @for (m of sel.matches; track m.id) {
-            <div class="detail-match-card" (click)="apriPartita(m.id)">
-              <div class="match-card-top">
-                <span class="match-status-badge" [class.done]="m.matchConcluso">
-                  {{ m.matchConcluso ? 'Conclusa' : 'In Programma' }}
-                </span>
-                <span class="match-time-slot">
-                  <ion-icon name="time-outline"></ion-icon>
-                  {{ m.orario || '21:00' }}
-                </span>
-              </div>
+          <!-- ELENCO VERTICALE DEI 7 GIORNI (CARD FULL-SCREEN) -->
+          <div class="week-days-cards-stack">
+            @for (day of activeWeekDaysList(); track day.dateStr) {
+              <div
+                class="week-day-card"
+                [class.is-today]="day.isToday"
+                [class.is-tomorrow]="day.isTomorrow"
+                [class.is-past]="day.isPast"
+                [class.is-top-voted]="day.isTopVoted && !day.isPast"
+                [class.has-quorum]="day.isQuorumReached && !day.isPast"
+                [class.voted-by-me]="day.isVotedByMe"
+              >
+                <!-- TOP CARD: GIORNO, BADGE & METEO INLINE (POINTER-EVENTS: NONE) -->
+                <div class="card-top-row">
+                  <div class="card-date-col">
+                    <div class="card-day-title-row">
+                      <span class="card-day-name">{{ day.dayLabelFull }}</span>
+                      @if (day.isToday) {
+                        <span class="badge-status-pill today">OGGI</span>
+                      } @else if (day.isTomorrow) {
+                        <span class="badge-status-pill tomorrow">DOMANI</span>
+                      } @else if (day.isPast) {
+                        <span class="badge-status-pill past">PASSATO</span>
+                      }
+                      @if (day.isTopVoted && !day.isPast) {
+                        <span class="badge-status-pill top">🔥 FAVORITO</span>
+                      }
+                      @if (day.matches.length > 0) {
+                        <button
+                          type="button"
+                          class="badge-match-pill"
+                          (click)="apriPartita(day.matches[0].id)"
+                          title="Apri scheda partita ufficiale già fissata"
+                        >
+                          ⚽ PARTITA FISSATA
+                        </button>
+                      }
+                    </div>
+                  </div>
 
-              <!-- SCORE O LUOGO -->
-              <div class="match-middle-info">
-                @if (m.matchConcluso) {
-                  <div class="score-row">
-                    <span class="team-a">Bianchi <strong>{{ m.scoreA }}</strong></span>
-                    <span class="score-separator">-</span>
-                    <span class="team-b"><strong>{{ m.scoreB }}</strong> Neri</span>
-                  </div>
-                } @else {
-                  <div class="upcoming-place">
-                    <ion-icon name="location-outline"></ion-icon>
-                    <strong>{{ campiService.normalizzaNomeCampo(m.luogo) }}</strong>
-                  </div>
-                  @if (getMatchConvocatiCount(m) > 0) {
-                    <div class="match-convocati-preview">
-                      <div class="convocati-badge-line">
-                        <ion-icon name="people-outline"></ion-icon>
-                        <span><strong>{{ getMatchConvocatiCount(m) }} Convocati Ufficiali</strong></span>
-                      </div>
-                      <div class="convocati-avatars-row">
-                        @for (p of getMatchConvocatiPreview(m); track (p.id || p.nome) + '_' + $index) {
-                          <div class="convocato-mini-chip" [title]="p.nome">
-                            <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                            <span>{{ (p.nome || 'Giocatore').split(' ')[0] }}</span>
-                          </div>
-                        }
+                  <!-- DATI METEO INLINE INFORMATIVI (NESSUN CLICK, POINTER-EVENTS NONE) -->
+                  @if (mostraMeteo() && day.weather) {
+                    <div class="card-weather-inline" [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '°)'">
+                      <span class="cw-icon">{{ day.weather.iconEmoji }}</span>
+                      <div class="cw-details">
+                        <span class="cw-temps"><strong>{{ day.weather.tempMax }}°</strong> / {{ day.weather.tempMin }}°</span>
+                        <span class="cw-label">{{ day.weather.conditionDescription }}</span>
                       </div>
                     </div>
                   }
-                }
-              </div>
+                </div>
 
-              <!-- AZIONI MATCH: VAI QUI & APRI -->
-              <div class="match-actions-row">
-                <a
-                  [href]="m.campoGoogleMapsUrl || getGoogleMapsUrl(m.luogo)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="btn-maps-action"
-                  (click)="$event.stopPropagation()"
-                  title="Apri navigatore Google Maps per raggiungere il campo"
-                >
-                  <ion-icon name="navigate-outline"></ion-icon>
-                  <span>📍 Vai qui</span>
-                </a>
+                <!-- RIGA PRESENZE: CONTATORE & AVATAR COMPAGNI -->
+                <div class="card-presence-body">
+                  <div class="presence-header-line" [class.quorum]="day.isQuorumReached && !day.isPast">
+                    <ion-icon name="people" [class.quorum-icon]="day.isQuorumReached && !day.isPast"></ion-icon>
+                    <span class="presence-count-label">
+                      @if (day.isPast) {
+                        Votazioni concluse ({{ day.count }} partecipanti)
+                      } @else if (day.isQuorumReached) {
+                        <strong>{{ day.count }} atleti presenti</strong> • <span class="quorum-badge-green">QUORUM RAGGIUNTO 🟢</span>
+                      } @else if (day.count > 0) {
+                        <strong>{{ day.count }} atleti presenti</strong> <span class="missing-text">(mancano {{ day.missingToQuorum }} al quorum)</span>
+                      } @else {
+                        Nessuna presenza ancora registrata
+                      }
+                    </span>
+                  </div>
 
-                <button type="button" class="btn-open-match">
-                  <span>Apri Scheda Partita</span>
-                  <ion-icon name="chevron-forward"></ion-icon>
-                </button>
+                  <!-- AVATAR COMPAGNI PRESENTI -->
+                  @if (day.players.length > 0) {
+                    <div class="players-avatar-list">
+                      @for (p of day.players; track p.id) {
+                        <div class="player-avatar-chip" [title]="p.nome">
+                          <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                          <span class="chip-name">{{ p.nome.split(' ')[0] }}</span>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- CONTROLLI RAPIDI DI VOTO (CTA ERGONOMICHE) -->
+                <div class="card-actions-footer">
+                  @if (day.isPast) {
+                    <div class="btn-vote-disabled-slot">
+                      <span>Votazioni chiuse</span>
+                    </div>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn-vote-card-cta"
+                      [class.voted]="day.isVotedByMe"
+                      (click)="toggleVotoGiorno(day.dateStr)"
+                    >
+                      <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'add-circle-outline'"></ion-icon>
+                      <span>{{ day.isVotedByMe ? 'Ci Sei (Tocca per togliere)' : 'Sono Presente (1 tap)' }}</span>
+                    </button>
+
+                    <!-- CREA PARTITA: SOLO PER MISTER O PRESIDENTE E SOLO SE C'E' IL QUORUM -->
+                    @if (auth.isSuperUser() && day.isQuorumReached && day.matches.length === 0) {
+                      <button
+                        type="button"
+                        class="btn-card-create-match"
+                        (click)="fissaPartitaSlot(day.dateStr)"
+                        title="Crea partita ufficiale per questo giorno con tutti i convocati"
+                      >
+                        <ion-icon name="football-outline"></ion-icon>
+                        <span>Crea Partita ({{ day.count }} convocati)</span>
+                      </button>
+                    }
+                  }
+                </div>
               </div>
-            </div>
-          }
+            }
+          </div>
         </div>
       }
 
-      <!-- DISPONIBILITÀ DEL GIORNO (SE NELLA SETTIMANA ATTIVA) -->
-      @if (sel.isInActiveWeek && sel.daySummary) {
-        <div class="detail-availability-section">
-          <h4 class="sub-section-title">
-            <ion-icon name="people-outline"></ion-icon>
-            Disponibilità Giocatori ({{ sel.availablePlayers.length }} presenti)
-          </h4>
+      <!-- ── VISTA 2: MESE (SOLO MISTER & PRESIDENTE SU ZOOM OUT) ── -->
+      @case ('month') {
+        <div class="monthly-calendar-container">
+          <!-- FILTRI TOGGLE (PARTITE, METEO, COMPLEANNI) -->
+          <div class="filters-pills-bar">
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="mostraPartitePassate()"
+              (click)="toggleFiltro('partite')"
+            >
+              <ion-icon name="football-outline"></ion-icon>
+              <span>Partite</span>
+            </button>
 
-          @if (sel.availablePlayers.length > 0) {
-            <div class="players-chips-list">
-              @for (p of sel.availablePlayers; track p.id) {
-                <div class="player-chip confirmed" title="Confermato (Ci sono)">
-                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                  <span>⚽ {{ p.nome }}</span>
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="mostraMeteo()"
+              (click)="toggleFiltro('meteo')"
+            >
+              <ion-icon name="sunny-outline"></ion-icon>
+              <span>Meteo</span>
+            </button>
+
+            <button
+              type="button"
+              class="filter-pill"
+              [class.active]="mostraCompleanni()"
+              (click)="toggleFiltro('compleanni')"
+            >
+              <ion-icon name="gift-outline"></ion-icon>
+              <span>Compleanni</span>
+            </button>
+          </div>
+
+          <div class="calendar-card">
+            <!-- INTESTAZIONE GIORNI DELLA SETTIMANA -->
+            <div class="weekdays-grid">
+              <div class="weekday-header">Lun</div>
+              <div class="weekday-header">Mar</div>
+              <div class="weekday-header">Mer</div>
+              <div class="weekday-header">Gio</div>
+              <div class="weekday-header">Ven</div>
+              <div class="weekday-header weekend">Sab</div>
+              <div class="weekday-header weekend">Dom</div>
+            </div>
+
+            <!-- CELLE DEI GIORNI (CLICK ZOOM INTO WEEK) -->
+            <div class="days-matrix-grid">
+              @for (cell of calendarGrid(); track cell.dateStr) {
+                <div
+                  class="calendar-day-cell"
+                  [class.other-month]="!cell.isCurrentMonth"
+                  [class.today]="cell.isToday"
+                  [class.selected]="cell.isSelected"
+                  [class.has-match]="cell.matches.length > 0"
+                  [class.has-birthday]="cell.birthdays.length > 0"
+                  (click)="selezionaGiornoEZoom(cell)"
+                  title="Tocca per entrare nel dettaglio della settimana"
+                >
+                  <!-- RIGA NUMERO GIORNO + PICCOLO METEO -->
+                  <div class="day-cell-top">
+                    <span class="day-number">{{ cell.dayNumber }}</span>
+                    @if (mostraMeteo() && cell.weather) {
+                      <span class="cell-weather-icon" [title]="cell.weather.conditionDescription + ' ' + cell.weather.tempMax + '°'">
+                        {{ cell.weather.iconEmoji }}
+                      </span>
+                    }
+                  </div>
+
+                  <!-- INDICATORI CONTENUTO NELLA CELLA -->
+                  <div class="cell-indicators">
+                    <!-- PARTITE -->
+                    @if (cell.matches.length > 0 && (mostraPartitePassate() || !cell.isPast)) {
+                      @for (m of cell.matches; track m.id) {
+                        <div
+                          class="cell-match-badge"
+                          [class.conclusa]="m.matchConcluso"
+                          [class.in-programma]="!m.matchConcluso"
+                          [title]="(m.luogo || 'Partita') + (m.matchConcluso ? ' (' + m.scoreA + '-' + m.scoreB + ')' : '')"
+                        >
+                          <span class="badge-ball">⚽</span>
+                          @if (m.matchConcluso) {
+                            <span class="badge-score">{{ m.scoreA }}-{{ m.scoreB }}</span>
+                          } @else {
+                            <span class="badge-time">{{ m.orario || 'Gara' }}</span>
+                          }
+                        </div>
+                      }
+                    }
+
+                    <!-- COMPLEANNI -->
+                    @if (mostraCompleanni() && cell.birthdays.length > 0) {
+                      @for (b of cell.birthdays.slice(0, 1); track b.id) {
+                        <div class="cell-bday-badge" [title]="'Compleanno di ' + b.nome">
+                          <span>🎂</span>
+                          <span class="bday-name">{{ b.nome }}</span>
+                        </div>
+                      }
+                    }
+
+                    <!-- DISPONIBILITÀ QUORUM -->
+                    @if (cell.voteCount && cell.voteCount > 0 && cell.matches.length === 0) {
+                      <div
+                        class="cell-quorum-dot"
+                        [class.ready]="cell.isQuorumReached"
+                        [title]="cell.voteCount + ' giocatori disponibili'"
+                      >
+                        <span class="dot-count">{{ cell.voteCount }}</span>
+                      </div>
+                    }
+                  </div>
                 </div>
               }
             </div>
-          } @else {
-            <p class="empty-players-msg">Nessun giocatore ha ancora espresso disponibilità per questo giorno.</p>
-          }
+          </div>
+        </div>
+      }
 
-          @if (auth.isLoggedIn()) {
-            <div class="detail-vote-action-bar">
-              <button
-                type="button"
-                class="btn-detail-vote-single"
-                [class.active]="sel.isAvailableForMe"
-                (click)="toggleVotoGiorno(sel.dateStr)"
-                [title]="sel.isAvailableForMe ? 'Tocca per togliere presenza' : 'Tocca per confermare presenza'"
+      <!-- ── VISTA 3: ANNO (SOLO MISTER & PRESIDENTE SU 2° ZOOM OUT) ── -->
+      @case ('year') {
+        <div class="year-overview-container">
+          <div class="year-header-hint">
+            <ion-icon name="layers-outline"></ion-icon>
+            <span>Panoramica annuale: tocca un mese per esplorarne le partite e i calendari</span>
+          </div>
+
+          <div class="year-months-grid">
+            @for (m of yearMonthsOverview(); track m.monthIndex) {
+              <div
+                class="year-month-card"
+                [class.current-month]="m.isCurrentMonth"
+                (click)="selezionaMeseEZoom(m.monthIndex)"
               >
-                <ion-icon [name]="sel.isAvailableForMe ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
-                <span>{{ sel.isAvailableForMe ? 'Sono presente (Tocca per togliere)' : 'Sono presente (1 tap per votare)' }}</span>
-              </button>
-            </div>
-          }
-        </div>
-      }
+                <div class="ym-header">
+                  <span class="ym-name">{{ m.monthName }}</span>
+                  @if (m.isCurrentMonth) {
+                    <span class="ym-badge-today">Attuale</span>
+                  }
+                </div>
 
-      <!-- AZIONE CREA PARTITA PER SUPERUSER SE NON ESISTE GIA' UNA PARTITA -->
-      @if (auth.isSuperUser() && sel.matches.length === 0) {
-        <div class="detail-superuser-action-bar">
-          <button
-            type="button"
-            class="btn-detail-create-match"
-            (click)="fissaPartitaSlot(sel.dateStr)"
-            title="Crea partita ufficiale con convocati pre-caricati"
-          >
-            <ion-icon name="football-outline"></ion-icon>
-            <span class="btn-create-label">Crea Partita Ufficiale</span>
-            @if (sel.availablePlayers.length > 0) {
-              <span class="btn-create-badge">{{ sel.availablePlayers.length }} convocati</span>
+                <div class="ym-body">
+                  <div class="ym-matches-count">
+                    <ion-icon name="football-outline"></ion-icon>
+                    <strong>{{ m.matchesCount }}</strong>
+                    <span>{{ m.matchesCount === 1 ? 'partita' : 'partite' }}</span>
+                  </div>
+
+                  @if (m.matchesCount > 0) {
+                    <div class="ym-breakdown">
+                      <span class="concluse">{{ m.conclusi }} concluse</span>
+                      <span class="separator">•</span>
+                      <span class="programma">{{ m.inProgramma }} in programma</span>
+                    </div>
+                  } @else {
+                    <span class="ym-empty-label">Nessun match programmato</span>
+                  }
+                </div>
+
+                <div class="ym-footer">
+                  <span>Esplora Mese</span>
+                  <ion-icon name="chevron-forward"></ion-icon>
+                </div>
+              </div>
             }
-          </button>
+          </div>
         </div>
       }
-    </div>
+    }
   }
 </ion-content>

@@ -65,7 +65,6 @@ import { GeminiService } from '../../../services/gemini.service';
 import { TtsService } from '../../../services/tts.service';
 import { AuthService } from '../../../services/auth.service';
 import { environment } from 'src/environments/environment';
-import { GmailIntegrationService } from '../../../services/gmail-integration.service';
 
 @Component({
   selector: 'app-match-share-modal',
@@ -97,7 +96,6 @@ export class MatchShareModalComponent implements OnInit {
   private geminiService = inject(GeminiService);
   public ttsService = inject(TtsService);
   public auth = inject(AuthService);
-  public gmail = inject(GmailIntegrationService);
   readonly isDev = !environment.production;
 
   get isSuperUser(): boolean {
@@ -442,53 +440,6 @@ export class MatchShareModalComponent implements OnInit {
     })();
 
     return Promise.race([downloadPromise, timeoutPromise]);
-  }
-
-  /**
-   * Condivisione sicura via Gmail (Feature Flag governata da environment).
-   */
-  async condividiViaGmail() {
-    const deepLink =
-      this.sharePhase() === 'convocazioni'
-        ? getMatchInviteDeepLink(this.partita?.id)
-        : getMatchDeepLink(this.partita?.id);
-
-    const dataPartita = this.partita?.dataOra
-      ? new Date(this.partita.dataOra).toLocaleDateString('it-IT', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-        })
-      : '';
-
-    const recipientEmails = [
-      ...(this.partita?.teamA || []),
-      ...(this.partita?.teamB || []),
-      ...(this.partita?.convocati || []),
-    ]
-      .map((g: any) => g.linkedEmail)
-      .filter((e): e is string => Boolean(e && e.includes('@')));
-
-    const opened = this.gmail.openGmailComposer({
-      matchId: this.partita?.id || '',
-      dataStr: dataPartita,
-      luogo: this.partita?.luogo || '',
-      orario: this.partita?.orario || '',
-      deepLink,
-      recipientEmails,
-      totalConvocati: (this.partita?.convocati || []).length,
-    });
-
-    if (opened) {
-      const toast = await this.toastCtrl.create({
-        message: '📧 Apertura schermata Gmail completata!',
-        duration: 2000,
-        color: 'success',
-        position: 'top',
-        mode: 'ios',
-      });
-      await toast.present();
-    }
   }
 
   /**

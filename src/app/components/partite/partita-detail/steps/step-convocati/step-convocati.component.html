@@ -50,20 +50,6 @@
           >
             <ion-icon name="copy-outline"></ion-icon>
           </button>
-
-          <!-- INVIO CONVOCAZIONI GMAIL (ATTIVO SIA IN DEV CHE IN PROD) -->
-          @if (gmail.isFeatureEnabled()) {
-            <button
-              type="button"
-              class="btn-share-gmail"
-              [disabled]="isPreparingInvite()"
-              (click)="inviaInvitoGmail()"
-              title="Invia convocazione via Gmail"
-            >
-              <ion-icon name="mail-outline"></ion-icon>
-              <span>Gmail</span>
-            </button>
-          }
         </div>
       </div>
 

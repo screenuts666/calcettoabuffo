@@ -5,8 +5,56 @@
 
   ion-title {
     font-weight: 800;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     letter-spacing: -0.02em;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BARRA SUPERIORE ZOOM (ESCLUSIVO MISTER E PRESIDENTE)
+   ───────────────────────────────────────────────────────────── */
+.zoom-controls-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 3px 6px;
+  border-radius: 20px;
+  margin-right: 6px;
+
+  .btn-zoom {
+    background: transparent;
+    border: none;
+    color: #e2e8f0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.15s ease, opacity 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.15);
+      color: #38bdf8;
+    }
+
+    &:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+  }
+
+  .zoom-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0 4px;
   }
 }
 
@@ -22,17 +70,17 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   BARRA 1: CONTROLLI NAVIGAZIONE MESE
+   BARRA NAVIGAZIONE DINAMICA CONTESTUALE ALLO ZOOM
    ───────────────────────────────────────────────────────────── */
-.month-nav-bar {
+.cal-dynamic-nav-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 14px;
   background: var(--ion-color-step-100, #1e293b);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
-  .nav-month-btn {
+  .btn-dyn-nav {
     background: rgba(255, 255, 255, 0.08);
     border: none;
     color: #f8fafc;
@@ -46,31 +94,38 @@
     cursor: pointer;
     transition: background 0.2s ease, transform 0.1s ease;
 
-    &:active {
+    &:active:not(:disabled) {
       transform: scale(0.92);
       background: rgba(255, 255, 255, 0.15);
     }
+
+    &:disabled,
+    &.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
   }
 
-  .current-month-display {
+  .dyn-nav-label-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
 
-    .month-icon {
-      font-size: 1.2rem;
+    ion-icon {
+      font-size: 1.15rem;
       color: #10b981;
     }
 
-    .month-title {
-      font-size: 1.05rem;
+    .dyn-nav-label {
+      margin: 0;
+      font-size: 1.02rem;
       font-weight: 800;
       color: #f8fafc;
       letter-spacing: -0.01em;
     }
   }
 
-  .btn-today {
+  .btn-dyn-today {
     background: rgba(16, 185, 129, 0.15);
     border: 1px solid rgba(16, 185, 129, 0.35);
     color: #34d399;
@@ -86,54 +141,6 @@
 
     &:active {
       background: rgba(16, 185, 129, 0.25);
-    }
-  }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   BARRA 2: FILTRI TOGGLE (PARTITE, METEO, LUNA, COMPLEANNI)
-   ───────────────────────────────────────────────────────────── */
-.filters-pills-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 14px;
-  background: var(--ion-color-step-150, #0f172a);
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  .filter-pill {
-    flex: 0 0 auto;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    color: #94a3b8;
-    padding: 5px 11px;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-
-    ion-icon {
-      font-size: 0.95rem;
-    }
-
-    &.active {
-      background: rgba(16, 185, 129, 0.18);
-      border-color: rgba(16, 185, 129, 0.45);
-      color: #34d399;
-    }
-
-    &:active {
-      transform: scale(0.96);
     }
   }
 }
@@ -178,12 +185,6 @@
         font-size: 0.85rem;
         color: #e2e8f0;
       }
-      small {
-        color: #94a3b8;
-        font-size: 0.75rem;
-        display: block;
-        margin-top: 4px;
-      }
     }
   }
 
@@ -201,484 +202,475 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   HERO WIDGET: DISPONIBILITÀ SETTIMANALE ("QUANDO GIOCHIAMO?")
+   VISTA 1: SETTIMANA FULL-SCREEN (DEFAULT ATLETI & MISTER)
    ───────────────────────────────────────────────────────────── */
-.weekly-availability-section {
-  margin: 14px;
-  padding: 16px;
-  background: var(--ion-color-step-50, #131c31);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+.weekly-fullscreen-view {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 
-  .section-top-header {
+  .week-top-callout {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    margin-bottom: 14px;
+    padding: 10px 14px;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 14px;
 
-    .section-header-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-
-      .availability-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(16, 185, 129, 0.15);
-        border: 1px solid rgba(16, 185, 129, 0.35);
-        color: #34d399;
-        font-size: 0.72rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        padding: 3px 8px;
-        border-radius: 20px;
-
-        .live-pulse-dot {
-          width: 7px;
-          height: 7px;
-          background: #10b981;
-          border-radius: 50%;
-          animation: pulseDot 1.6s infinite ease-in-out;
-        }
-
-        .week-tag-pill {
-          background: rgba(56, 189, 248, 0.18);
-          border: 1px solid rgba(56, 189, 248, 0.4);
-          color: #38bdf8;
-          font-size: 0.65rem;
-          font-weight: 800;
-          padding: 1px 6px;
-          border-radius: 10px;
-          text-transform: none;
-          letter-spacing: 0;
-        }
-      }
-
-      .btn-wa-sollecita {
-        background: #10b981;
-        color: #022c22;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 10px;
-        font-size: 0.8rem;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-
-        ion-icon {
-          font-size: 1.05rem;
-        }
-
-        &:active {
-          transform: scale(0.95);
-        }
-      }
-    }
-
-    .section-week-nav {
+    .wtc-left {
       display: flex;
       align-items: center;
       gap: 8px;
-
-      .btn-week-chevron {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
-        flex-shrink: 0;
-
-        ion-icon {
-          font-size: 1.1rem;
-        }
-
-        &:hover:not(:disabled) {
-          background: rgba(255, 255, 255, 0.16);
-        }
-
-        &:active:not(:disabled) {
-          transform: scale(0.92);
-        }
-
-        &:disabled,
-        &.disabled {
-          opacity: 0.22;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
-      }
-
-      .section-week-label {
-        font-size: 1.15rem;
-        font-weight: 800;
-        color: #f8fafc;
-        margin: 0;
-        letter-spacing: -0.01em;
-        white-space: nowrap;
-      }
-    }
-
-    .top-voted-callout {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      border-radius: 8px;
-      padding: 5px 10px;
-      font-size: 0.78rem;
-      color: #fde68a;
-      width: fit-content;
+      font-size: 0.85rem;
+      color: #e2e8f0;
 
       .fire-icon {
-        color: #f59e0b;
-        font-size: 0.95rem;
-        animation: flamePulse 1.8s infinite ease-in-out;
-      }
-
-      strong {
+        font-size: 1.25rem;
         color: #fbbf24;
+        flex-shrink: 0;
       }
 
       .callout-quorum {
         margin-left: 6px;
+        background: rgba(16, 185, 129, 0.2);
         color: #34d399;
-        font-weight: 800;
-        font-size: 0.72rem;
-        background: rgba(16, 185, 129, 0.18);
-        padding: 1px 6px;
+        padding: 2px 6px;
         border-radius: 6px;
+        font-size: 0.72rem;
+        font-weight: 800;
       }
     }
 
-    .section-subtitle {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      margin: 0;
+    .btn-wa-sollecita {
+      background: #10b981;
+      color: #022c22;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+
+      ion-icon {
+        font-size: 1rem;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
     }
   }
 
-  /* ======================================================== */
-  /* PROPOSTA A: STRISCIA A 7 GIORNI & SCHEDA FOCUS RAPIDA    */
-  /* ======================================================== */
-  .weekly-strip-wrapper {
+  .weekly-quorum-create-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .btn-quorum-create-match {
+      width: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      color: #ffffff;
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+      ion-icon {
+        font-size: 1.2rem;
+      }
+
+      &:hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+
+  .weekly-dev-simulation-bar {
+    padding: 8px 10px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px dashed rgba(245, 158, 11, 0.35);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    .btn-dev-simulate {
+      flex: 1;
+      background: rgba(245, 158, 11, 0.18);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fbbf24;
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 0.95rem;
+      }
+    }
+
+    .btn-dev-reset {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     ELENCO CARD SETTIMANALI (FULL-SCREEN VERTICALE)
+     ───────────────────────────────────────────────────────────── */
+  .week-days-cards-stack {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-top: 4px;
 
-    .weekly-strip-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      width: 100%;
+    .week-day-card {
+      background: var(--ion-color-step-50, #131c31);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 
-      .strip-day-pill {
+      &.is-today {
+        border-color: rgba(56, 189, 248, 0.55);
+        box-shadow: 0 0 16px rgba(56, 189, 248, 0.18);
+      }
+
+      &.is-top-voted:not(.is-past) {
+        border: 2px solid #fbbf24 !important;
+        box-shadow: 0 0 16px rgba(251, 191, 36, 0.25) !important;
+      }
+
+      &.has-quorum:not(.is-past) {
+        border-color: rgba(16, 185, 129, 0.6);
+      }
+
+      &.voted-by-me:not(.is-past) {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, var(--ion-color-step-50, #131c31) 100%);
+      }
+
+      &.is-past {
+        opacity: 0.45;
+        filter: grayscale(0.25);
+        background: rgba(15, 23, 42, 0.5);
+
+        .card-actions-footer {
+          pointer-events: none;
+        }
+      }
+
+      /* RIGA SUPERIORE: DATA + BADGES + METEO INFORMATIVO */
+      .card-top-row {
         display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-        background: var(--ion-color-step-100, #1e293b);
-        border: 1.5px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 8px 2px 7px;
-        cursor: pointer;
-        position: relative;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        min-height: 88px;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
 
-        .pill-corner-badge {
-          position: absolute;
-          z-index: 2;
-          line-height: 1;
+        .card-date-col {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
 
-          &.fire {
-            top: -6px;
-            right: -3px;
-            font-size: 0.78rem;
-            filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.7));
-            animation: flamePulse 1.8s infinite ease-in-out;
-          }
-
-          &.vote {
-            top: -5px;
-            left: -3px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #10b981;
-            color: #022c22;
+          .card-day-title-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 0.62rem;
-            font-weight: 900;
-            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.6);
+            flex-wrap: wrap;
+            gap: 6px;
+
+            .card-day-name {
+              font-size: 1.05rem;
+              font-weight: 800;
+              color: #f8fafc;
+              letter-spacing: -0.01em;
+            }
+
+            .badge-status-pill {
+              font-size: 0.65rem;
+              font-weight: 800;
+              padding: 2px 7px;
+              border-radius: 8px;
+              text-transform: uppercase;
+              letter-spacing: 0.04em;
+
+              &.today {
+                background: rgba(56, 189, 248, 0.2);
+                border: 1px solid rgba(56, 189, 248, 0.5);
+                color: #38bdf8;
+              }
+
+              &.tomorrow {
+                background: rgba(147, 51, 234, 0.2);
+                border: 1px solid rgba(147, 51, 234, 0.5);
+                color: #c084fc;
+              }
+
+              &.past {
+                background: rgba(100, 116, 139, 0.2);
+                border: 1px solid rgba(100, 116, 139, 0.4);
+                color: #94a3b8;
+              }
+
+              &.top {
+                background: rgba(245, 158, 11, 0.25);
+                border: 1px solid rgba(245, 158, 11, 0.6);
+                color: #fbbf24;
+              }
+            }
+
+            .badge-match-pill {
+              background: rgba(16, 185, 129, 0.2);
+              border: 1px solid rgba(16, 185, 129, 0.5);
+              color: #34d399;
+              font-size: 0.68rem;
+              font-weight: 800;
+              padding: 3px 8px;
+              border-radius: 8px;
+              cursor: pointer;
+              transition: transform 0.15s ease;
+
+              &:active {
+                transform: scale(0.95);
+              }
+            }
           }
-
-          &.match {
-            bottom: -5px;
-            right: -3px;
-            font-size: 0.75rem;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-          }
         }
 
-        .pill-day-name {
-          font-size: 0.68rem;
-          font-weight: 700;
-          color: #94a3b8;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .pill-day-number {
-          font-size: 1.05rem;
-          font-weight: 800;
-          color: #f8fafc;
-          line-height: 1.1;
-        }
-
-        .pill-weather-icon {
-          font-size: 0.95rem;
-          line-height: 1;
-          margin-top: 1px;
+        /* METEO INLINE INFORMATIVO: POINTER EVENTS DISABILITATI */
+        .card-weather-inline {
+          pointer-events: none !important;
+          user-select: none;
           display: inline-flex;
           align-items: center;
-          justify-content: center;
-          filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
-        }
+          gap: 6px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+          padding: 4px 8px;
+          flex-shrink: 0;
 
-        .pill-votes-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          gap: 2px;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 8px;
-          padding: 1px 5px;
-          margin-top: 3px;
-          font-size: 0.7rem;
-          font-weight: 800;
-          color: #94a3b8;
-          min-width: 26px;
-
-          ion-icon {
-            font-size: 0.7rem;
-            color: #94a3b8;
-          }
-
-          .pvb-num {
+          .cw-icon {
+            font-size: 1.15rem;
             line-height: 1;
           }
 
-          &.has-votes {
-            background: rgba(56, 189, 248, 0.16);
-            border-color: rgba(56, 189, 248, 0.45);
-            color: #38bdf8;
-            ion-icon {
-              color: #38bdf8;
+          .cw-details {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+
+            .cw-temps {
+              font-size: 0.74rem;
+              color: #cbd5e1;
+              strong {
+                color: #f8fafc;
+              }
+            }
+
+            .cw-label {
+              font-size: 0.65rem;
+              color: #94a3b8;
             }
           }
+        }
+      }
 
-          &.top-voted {
-            background: rgba(245, 158, 11, 0.22);
-            border-color: rgba(245, 158, 11, 0.55);
-            color: #fbbf24;
-            font-weight: 900;
-            ion-icon {
-              color: #fbbf24;
-            }
-          }
+      /* RIGA PRESENZE: CONTATORE & AVATAR */
+      .card-presence-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 10px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
 
-          &.quorum {
-            background: rgba(16, 185, 129, 0.22) !important;
-            border-color: rgba(16, 185, 129, 0.6) !important;
-            color: #34d399 !important;
-            font-weight: 900;
-            ion-icon {
+        .presence-header-line {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.8rem;
+          color: #94a3b8;
+
+          ion-icon {
+            font-size: 1rem;
+            color: #94a3b8;
+
+            &.quorum-icon {
               color: #10b981 !important;
             }
           }
-        }
 
-        .pill-past-tag {
-          font-size: 0.58rem;
-          color: #64748b;
-          margin-top: 2px;
-        }
-
-        &:hover:not(.is-past) {
-          border-color: rgba(255, 255, 255, 0.25);
-          transform: translateY(-2px);
-        }
-
-        &:active {
-          transform: scale(0.95);
-        }
-
-        &.voted-by-me {
-          background: linear-gradient(180deg, rgba(16, 185, 129, 0.14), var(--ion-color-step-100, #1e293b));
-        }
-
-        &.active {
-          border-color: #38bdf8;
-          box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
-
-          .pill-day-name {
-            color: #38bdf8;
+          .quorum-badge-green {
+            color: #10b981;
+            font-weight: 800;
           }
-          .pill-day-number {
-            color: #ffffff;
+
+          .missing-text {
+            color: #64748b;
+          }
+
+          strong {
+            color: #f1f5f9;
           }
         }
 
-        &.is-top-voted:not(.is-past) {
-          border: 2px solid #fbbf24 !important;
-          box-shadow: 0 0 14px rgba(251, 191, 36, 0.45) !important;
+        .players-avatar-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
 
-          .pill-day-number {
-            color: #fbbf24;
+          .player-avatar-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            padding: 2px 7px 2px 3px;
+            border-radius: 14px;
+            font-size: 0.72rem;
+            color: #cbd5e1;
+
+            app-player-avatar {
+              width: 22px;
+              height: 22px;
+            }
+
+            .chip-name {
+              font-weight: 600;
+            }
           }
-        }
-
-        &.has-quorum:not(.active):not(.is-top-voted) {
-          border-color: rgba(16, 185, 129, 0.45);
-        }
-
-        &.is-today:not(.active):not(.is-top-voted) {
-          border-color: rgba(245, 158, 11, 0.5);
-          .pill-day-number {
-            color: #fbbf24;
-          }
-        }
-
-        &.is-past {
-          opacity: 0.35;
-          cursor: default;
         }
       }
-    }
 
-    .weekly-quorum-create-bar {
-      margin-top: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-
-      .btn-quorum-create-match {
-        width: 100%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+      /* AZIONI VOTO: CTA GRANDI ED ERGONOMICHE */
+      .card-actions-footer {
+        display: flex;
+        flex-direction: column;
         gap: 8px;
-        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-        color: #ffffff;
-        border: 1px solid rgba(52, 211, 153, 0.45);
-        border-radius: 12px;
-        padding: 10px 16px;
-        font-size: 0.88rem;
-        font-weight: 800;
-        letter-spacing: 0.2px;
-        cursor: pointer;
-        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
 
-        ion-icon {
-          font-size: 1.2rem;
+        .btn-vote-disabled-slot {
+          padding: 8px 12px;
+          background: rgba(255, 255, 255, 0.04);
+          border-radius: 10px;
+          text-align: center;
+          font-size: 0.78rem;
+          color: #64748b;
+          font-weight: 700;
         }
 
-        &:hover {
-          filter: brightness(1.08);
-          transform: translateY(-1px);
-          box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        .btn-vote-card-cta {
+          width: 100%;
+          min-height: 44px;
+          padding: 10px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(56, 189, 248, 0.4);
+          background: rgba(56, 189, 248, 0.12);
+          color: #38bdf8;
+          font-size: 0.92rem;
+          font-weight: 800;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          ion-icon {
+            font-size: 1.25rem;
+          }
+
+          &:hover {
+            background: rgba(56, 189, 248, 0.2);
+            border-color: rgba(56, 189, 248, 0.6);
+          }
+
+          &:active {
+            transform: scale(0.98);
+          }
+
+          &.voted {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            border-color: rgba(52, 211, 153, 0.5);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+
+            ion-icon {
+              color: #ffffff;
+            }
+          }
         }
 
-        &:active {
-          transform: scale(0.98);
-        }
-      }
-    }
+        .btn-card-create-match {
+          width: 100%;
+          min-height: 40px;
+          padding: 8px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(251, 191, 36, 0.4);
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%);
+          color: #fbbf24;
+          font-size: 0.84rem;
+          font-weight: 800;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          cursor: pointer;
+          transition: all 0.2s ease;
 
-    .weekly-dev-simulation-bar {
-      margin-top: 10px;
-      padding: 8px 10px;
-      background: rgba(245, 158, 11, 0.08);
-      border: 1px dashed rgba(245, 158, 11, 0.35);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
+          ion-icon {
+            font-size: 1.15rem;
+          }
 
-      .btn-dev-simulate {
-        flex: 1;
-        background: rgba(245, 158, 11, 0.18);
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        color: #fbbf24;
-        font-size: 0.76rem;
-        font-weight: 800;
-        padding: 6px 12px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
+          &:hover {
+            background: rgba(245, 158, 11, 0.3);
+          }
 
-        ion-icon {
-          font-size: 0.95rem;
-        }
-
-        &:hover {
-          background: rgba(245, 158, 11, 0.3);
-          transform: translateY(-1px);
-        }
-
-        &:active {
-          transform: scale(0.97);
-        }
-      }
-
-      .btn-dev-reset {
-        background: rgba(239, 68, 68, 0.14);
-        border: 1px solid rgba(239, 68, 68, 0.35);
-        color: #fca5a5;
-        font-size: 0.74rem;
-        font-weight: 700;
-        padding: 6px 10px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background: rgba(239, 68, 68, 0.25);
-        }
-
-        &:active {
-          transform: scale(0.97);
+          &:active {
+            transform: scale(0.98);
+          }
         }
       }
     }
@@ -686,47 +678,71 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   GRIGLIA MENSILE INTERATTIVA
+   VISTA 2: MESE (SOLO MISTER & PRESIDENTE SU ZOOM OUT)
    ───────────────────────────────────────────────────────────── */
 .monthly-calendar-container {
-  margin: 18px 14px 14px;
+  margin: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-
-  .month-nav-bar {
-    border-radius: 14px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  }
+  gap: 12px;
 
   .filters-pills-bar {
-    background: transparent;
-    border: none;
-    padding: 2px 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--ion-color-step-100, #1e293b);
+    border-radius: 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    .filter-pill {
+      flex: 0 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: #94a3b8;
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 0.95rem;
+      }
+
+      &.active {
+        background: rgba(16, 185, 129, 0.18);
+        border-color: rgba(16, 185, 129, 0.45);
+        color: #34d399;
+      }
+    }
   }
 
   .calendar-card {
     background: var(--ion-color-step-50, #131c31);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 
     .weekdays-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      background: var(--ion-color-step-100, #1e293b);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      text-align: center;
-      padding: 8px 0;
+      gap: 4px;
+      margin-bottom: 6px;
 
       .weekday-header {
-        font-size: 0.75rem;
+        text-align: center;
+        font-size: 0.74rem;
         font-weight: 800;
         color: #94a3b8;
+        padding: 4px 0;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
 
         &.weekend {
           color: #f59e0b;
@@ -737,60 +753,48 @@
     .days-matrix-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 1px;
-      background: rgba(255, 255, 255, 0.04);
+      gap: 4px;
 
       .calendar-day-cell {
-        background: var(--ion-color-step-50, #131c31);
-        min-height: 72px;
+        min-height: 68px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
         padding: 4px;
         display: flex;
         flex-direction: column;
         cursor: pointer;
-        transition: background 0.15s ease;
-        position: relative;
+        transition: all 0.15s ease;
 
         &:hover {
-          background: rgba(255, 255, 255, 0.04);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(56, 189, 248, 0.4);
         }
 
         &.other-month {
-          opacity: 0.35;
+          opacity: 0.3;
         }
 
         &.today {
-          background: rgba(16, 185, 129, 0.07);
-
-          .day-number {
-            background: #10b981;
-            color: #022c22;
-            border-radius: 50%;
-            width: 22px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-          }
+          border-color: #38bdf8;
+          box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
         }
 
         &.selected {
-          outline: 2px solid #38bdf8;
-          outline-offset: -2px;
-          background: rgba(56, 189, 248, 0.1);
+          border-color: #10b981;
+          background: rgba(16, 185, 129, 0.12);
         }
 
         .day-cell-top {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          font-size: 0.78rem;
-          font-weight: 700;
-          color: #cbd5e1;
           margin-bottom: 3px;
 
           .day-number {
             font-size: 0.78rem;
+            font-weight: 700;
+            color: #f1f5f9;
           }
 
           .cell-weather-icon {
@@ -815,56 +819,40 @@
             display: flex;
             align-items: center;
             gap: 2px;
-            overflow: hidden;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
 
-            &.in-programma {
-              background: rgba(59, 130, 246, 0.25);
-              border-color: rgba(59, 130, 246, 0.45);
+            &.conclusa {
+              background: rgba(59, 130, 246, 0.2);
+              border-color: rgba(59, 130, 246, 0.4);
               color: #60a5fa;
-            }
-
-            .badge-ball {
-              font-size: 0.6rem;
             }
           }
 
           .cell-bday-badge {
-            background: rgba(236, 72, 153, 0.2);
-            border: 1px solid rgba(236, 72, 153, 0.4);
-            color: #f472b6;
             font-size: 0.62rem;
-            font-weight: 700;
-            padding: 1px 3px;
-            border-radius: 4px;
+            color: #f472b6;
             display: flex;
             align-items: center;
             gap: 2px;
+            white-space: nowrap;
             overflow: hidden;
-
-            .bday-name {
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
+            text-overflow: ellipsis;
           }
 
           .cell-quorum-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: rgba(245, 158, 11, 0.3);
-            color: #fbbf24;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             font-size: 0.62rem;
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 1px 4px;
+            border-radius: 6px;
+            align-self: flex-start;
             font-weight: 800;
-            margin-top: 1px;
 
             &.ready {
-              background: #10b981;
-              color: #022c22;
+              background: rgba(16, 185, 129, 0.25);
+              color: #34d399;
             }
           }
         }
@@ -874,508 +862,150 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   DETTAGLIO DEL GIORNO SELEZIONATO
+   VISTA 3: ANNO (SOLO MISTER & PRESIDENTE SU 2° ZOOM OUT)
    ───────────────────────────────────────────────────────────── */
-.day-detail-panel {
-  margin: 0 14px 20px;
-  padding: 16px;
-  background: var(--ion-color-step-50, #131c31);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+.year-overview-container {
+  margin: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 
-  .detail-panel-header {
+  .year-header-hint {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 14px;
-
-    .detail-header-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .detail-header-icon {
-        font-size: 1.5rem;
-        color: #38bdf8;
-      }
-
-      .detail-date-title {
-        font-size: 1.05rem;
-        font-weight: 800;
-        color: #f8fafc;
-        margin: 0;
-      }
-
-      .today-tag {
-        background: #10b981;
-        color: #022c22;
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-top: 3px;
-        display: inline-block;
-      }
-    }
-
-    .detail-header-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .weather-box-detail {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(255, 255, 255, 0.05);
-        padding: 4px 8px;
-        border-radius: 10px;
-        font-size: 0.78rem;
-        cursor: pointer;
-        transition: background 0.15s ease, transform 0.1s ease;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        &:active {
-          transform: scale(0.96);
-        }
-
-        .w-emoji {
-          font-size: 1.1rem;
-        }
-
-        .w-temps {
-          color: #f8fafc;
-        }
-
-        .w-desc {
-          color: #cbd5e1;
-          font-size: 0.72rem;
-          font-weight: 600;
-          max-width: 140px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .w-rain {
-          color: #38bdf8;
-          font-weight: 700;
-          font-size: 0.72rem;
-        }
-      }
-    }
-  }
-
-  .sub-section-title {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.88rem;
-    font-weight: 800;
+    gap: 8px;
+    padding: 10px 14px;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 12px;
+    font-size: 0.8rem;
     color: #cbd5e1;
-    margin: 12px 0 8px 0;
 
     ion-icon {
-      color: #10b981;
+      font-size: 1.15rem;
+      color: #38bdf8;
+      flex-shrink: 0;
     }
   }
 
-  /* COMPLEANNI */
-  .detail-birthdays-section {
-    margin-bottom: 14px;
+  .year-months-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
 
-    .birthday-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(219, 39, 119, 0.05));
-      border: 1px solid rgba(236, 72, 153, 0.35);
-      border-radius: 12px;
-
-      .bday-big-icon {
-        font-size: 1.8rem;
-      }
-
-      .bday-info {
-        strong {
-          color: #f472b6;
-          font-size: 0.95rem;
-          display: block;
-        }
-        p {
-          margin: 2px 0 0;
-          font-size: 0.8rem;
-          color: #cbd5e1;
-        }
-      }
-    }
-  }
-
-  /* PARTITE */
-  .detail-matches-section {
-    margin-bottom: 14px;
-
-    .detail-match-card {
-      background: var(--ion-color-step-100, #1e293b);
+    .year-month-card {
+      background: var(--ion-color-step-50, #131c31);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
       cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       transition: all 0.2s ease;
 
       &:hover {
-        border-color: rgba(255, 255, 255, 0.18);
-      }
-
-      .match-card-top {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 8px;
-
-        .match-status-badge {
-          background: rgba(59, 130, 246, 0.2);
-          color: #60a5fa;
-          font-size: 0.72rem;
-          font-weight: 800;
-          padding: 2px 7px;
-          border-radius: 6px;
-
-          &.done {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-          }
-        }
-
-        .match-time-slot {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 0.78rem;
-          color: #94a3b8;
-          font-weight: 600;
-        }
-      }
-
-      .match-middle-info {
-        margin-bottom: 10px;
-
-        .score-row {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 12px;
-          font-size: 1.1rem;
-          color: #f8fafc;
-
-          strong {
-            font-size: 1.35rem;
-            color: #34d399;
-          }
-
-          .score-separator {
-            color: #64748b;
-          }
-        }
-
-        .upcoming-place {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          color: #f8fafc;
-          font-size: 0.95rem;
-
-          ion-icon {
-            color: #ef4444;
-          }
-        }
-
-        .match-convocati-preview {
-          margin-top: 8px;
-          background: rgba(0, 0, 0, 0.2);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 10px;
-          padding: 8px;
-
-          .convocati-badge-line {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.76rem;
-            color: #34d399;
-            margin-bottom: 6px;
-
-            ion-icon {
-              font-size: 0.9rem;
-            }
-          }
-
-          .convocati-avatars-row {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-
-            .convocato-mini-chip {
-              display: inline-flex;
-              align-items: center;
-              gap: 4px;
-              background: rgba(255, 255, 255, 0.06);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              padding: 2px 7px 2px 2px;
-              border-radius: 20px;
-              font-size: 0.72rem;
-              color: #f1f5f9;
-
-              app-player-avatar {
-                width: 18px;
-                height: 18px;
-                border-radius: 50%;
-                overflow: hidden;
-              }
-            }
-          }
-        }
-      }
-
-      .match-actions-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
-
-        .btn-maps-action {
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid rgba(239, 68, 68, 0.35);
-          color: #f87171;
-          padding: 5px 9px;
-          border-radius: 8px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          text-decoration: none;
-
-          &:active {
-            background: rgba(239, 68, 68, 0.25);
-          }
-        }
-
-        .btn-open-match {
-          background: transparent;
-          border: none;
-          color: #38bdf8;
-          font-size: 0.78rem;
-          font-weight: 700;
-          display: inline-flex;
-          align-items: center;
-          gap: 4px;
-          cursor: pointer;
-        }
-      }
-    }
-  }
-
-  /* DISPONIBILITÀ GIOCATORI */
-  .detail-availability-section {
-    .players-chips-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 12px;
-
-      .player-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--ion-color-step-100, #1e293b);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 4px 8px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #f8fafc;
-
-        &.confirmed {
-          border-color: rgba(16, 185, 129, 0.4);
-          background: rgba(16, 185, 129, 0.12);
-          color: #34d399;
-        }
-
-        &.maybe {
-          border-color: rgba(245, 158, 11, 0.4);
-          background: rgba(245, 158, 11, 0.12);
-          color: #fbbf24;
-        }
-
-        app-player-avatar {
-          width: 18px;
-          height: 18px;
-        }
-      }
-    }
-
-    .empty-players-msg {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      font-style: italic;
-      margin: 4px 0 12px;
-    }
-
-    .detail-vote-action-bar {
-      display: flex;
-      width: 100%;
-      margin-top: 6px;
-
-      .btn-detail-vote-single {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1.5px solid rgba(255, 255, 255, 0.12);
-        color: #e2e8f0;
-        padding: 12px 16px;
-        border-radius: 12px;
-        font-size: 0.88rem;
-        font-weight: 800;
-        cursor: pointer;
-        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-        ion-icon {
-          font-size: 1.25rem;
-          color: #94a3b8;
-        }
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: rgba(255, 255, 255, 0.22);
-        }
-
-        &.active {
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          color: #022c22;
-          border-color: #10b981;
-          box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35);
-
-          ion-icon {
-            color: #022c22;
-          }
-        }
-
-        &:active {
-          transform: scale(0.98);
-        }
-      }
-    }
-  }
-
-  .detail-superuser-action-bar {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-    .btn-detail-create-match {
-      width: 100%;
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(5, 150, 105, 0.38) 100%);
-      border: 1.5px solid rgba(16, 185, 129, 0.55);
-      color: #34d399;
-      font-weight: 800;
-      font-size: 0.92rem;
-      padding: 13px 18px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-
-      ion-icon {
-        font-size: 1.35rem;
-        color: #34d399;
-        transition: transform 0.2s ease;
-      }
-
-      .btn-create-label {
-        font-weight: 800;
-        letter-spacing: -0.01em;
-        color: #f8fafc;
-      }
-
-      .btn-create-badge {
-        background: rgba(16, 185, 129, 0.28);
-        border: 1px solid rgba(16, 185, 129, 0.5);
-        color: #a7f3d0;
-        font-size: 0.72rem;
-        font-weight: 800;
-        padding: 2px 8px;
-        border-radius: 10px;
-      }
-
-      &:hover {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        border-color: #10b981;
-        color: #022c22;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 22px rgba(16, 185, 129, 0.4);
-
-        ion-icon {
-          color: #022c22;
-          transform: scale(1.1) rotate(15deg);
-        }
-
-        .btn-create-label {
-          color: #022c22;
-        }
-
-        .btn-create-badge {
-          background: rgba(2, 44, 34, 0.25);
-          border-color: rgba(2, 44, 34, 0.4);
-          color: #022c22;
-        }
+        border-color: rgba(56, 189, 248, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       }
 
       &:active {
         transform: scale(0.98);
       }
+
+      &.current-month {
+        border-color: rgba(16, 185, 129, 0.55);
+        box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+      }
+
+      .ym-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        .ym-name {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: #f8fafc;
+        }
+
+        .ym-badge-today {
+          background: rgba(16, 185, 129, 0.2);
+          border: 1px solid rgba(16, 185, 129, 0.45);
+          color: #34d399;
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 8px;
+          text-transform: uppercase;
+        }
+      }
+
+      .ym-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+
+        .ym-matches-count {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          color: #e2e8f0;
+          font-size: 0.88rem;
+
+          ion-icon {
+            font-size: 1.05rem;
+            color: #10b981;
+          }
+
+          strong {
+            font-size: 1.05rem;
+            color: #f8fafc;
+          }
+        }
+
+        .ym-breakdown {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.74rem;
+          color: #94a3b8;
+
+          .concluse {
+            color: #60a5fa;
+          }
+
+          .programma {
+            color: #34d399;
+          }
+
+          .separator {
+            color: #475569;
+          }
+        }
+
+        .ym-empty-label {
+          font-size: 0.74rem;
+          color: #64748b;
+        }
+      }
+
+      .ym-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #38bdf8;
+
+        ion-icon {
+          font-size: 0.95rem;
+        }
+      }
     }
   }
 }
-
-@keyframes pulseDot {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.35);
-    opacity: 0.6;
-  }
-}
-
-@keyframes flamePulse {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.4));
-  }
-  50% {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.9));
-  }
-}
-
-

@@ -112,7 +112,7 @@ export class WeatherService {
     if (code === 0) return { label: 'Sereno', icon: '☀️' };
     if (code === 1 || code === 2) return { label: 'Poco nuvoloso', icon: '🌤️' };
     if (code === 3) return { label: 'Nuvoloso', icon: '☁️' };
-    if (code >= 45 && code <= 48) return { label: 'Nebbia', icon: '🌁' };
+    if (code >= 45 && code <= 48) return { label: 'Nebbia', icon: '🌫️' };
     if (code >= 51 && code <= 55) return { label: 'Pioggerella', icon: '🌦️' };
     if (code >= 61 && code <= 65) return { label: 'Pioggia', icon: '🌧️' };
     if (code >= 71 && code <= 77) return { label: 'Neve', icon: '❄️' };

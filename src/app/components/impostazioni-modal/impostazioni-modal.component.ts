@@ -68,7 +68,6 @@ import { ThemeService, AppThemeMode } from '../../services/theme.service';
 import { AppUpdateService } from '../../services/app-update.service';
 import { AuthService } from '../../services/auth.service';
 import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.service';
-import { GmailIntegrationService } from '../../services/gmail-integration.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { BackupRestoreService } from '../../services/backup-restore.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
@@ -101,7 +100,6 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   public appUpdate = inject(AppUpdateService);
   public authService = inject(AuthService);
   public soundSettings = inject(SoundSettingsService);
-  public gmail = inject(GmailIntegrationService);
   public statsEngine = inject(StatsEngineService);
   public backupRestore = inject(BackupRestoreService);
   private modalCtrl = inject(ModalController);

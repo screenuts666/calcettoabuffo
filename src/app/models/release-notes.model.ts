@@ -11,6 +11,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.47",
+    "date": "09/11/2026",
+    "title": "Tab Disponibilità Full-Screen, Zoom Gerarchico Mister & Fix Navigazione Partite",
+    "userChanges": [
+      "📋 Nuova Tab 'Disponibilità' Full-Screen: trasformata la vecchia vista calendario in un elenco verticale a card a tutta altezza per i 7 giorni della settimana con badge Oggi/Domani/Favorito e votazione rapida a 1 tap.",
+      "☀️ Meteo Inline Non Invasivo: temperature e condizioni meteo integrate direttamente in ciascun giorno senza pop-up o click accidentali, con icona nebbia 🌫️ ad altissima leggibilità.",
+      "🚫 Giorni Trascorsi Disabilitati: i giorni passati hanno opacità ridotta e votazioni bloccate per evitare click errati.",
+      "💬 Rimozione Condivisione Email: eliminata la condivisione obsoleta tramite email/Gmail a favore della condivisione diretta su WhatsApp."
+    ],
+    "superUserChanges": [
+      "🔍 Zoom Temporale Gerarchico (Mister & Presidente): controlli Zoom In / Zoom Out dedicati nell'header per passare dinamicamente tra Settimana (default), Mese (griglia) e Anno (panoramica 12 mesi). Gli atleti vedono solo la settimana.",
+      "⚽ Crea Partita Riservato su Quorum: il pulsante 'Crea Partita' compare esclusivamente per Mister o Presidente solo quando il giorno raggiunge il quorum.",
+      "🔙 Smart Back-Navigation nei Flussi Partita: risolto il tasto indietro negli step partita (convocati -> dettagli, squadre -> convocati) con ritorno garantito alla tab Disponibilità o all'area di provenienza."
+    ]
+  },
+  {
     "version": "2.0.46",
     "date": "09/11/2026",
     "title": "Pulsante Crea Partita su Quorum, Icona Omini Verde & Rimozione Fasi Lunari",

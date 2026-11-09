@@ -142,31 +142,6 @@
             transform: scale(0.94);
           }
         }
-
-        .btn-share-gmail {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          height: 34px;
-          padding: 0 10px;
-          border-radius: 10px;
-          border: none;
-          background: linear-gradient(135deg, #ea4335, #c5221f);
-          color: #ffffff;
-          font-size: 0.74rem;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 3px 10px rgba(234, 67, 53, 0.3);
-          transition: transform 0.15s ease;
-
-          &:active {
-            transform: scale(0.96);
-          }
-
-          ion-icon {
-            font-size: 0.95rem;
-          }
-        }
       }
     }
 

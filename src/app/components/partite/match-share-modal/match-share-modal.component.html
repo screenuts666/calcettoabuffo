@@ -192,14 +192,6 @@
     </ion-button>
     }
 
-    @if (gmail.isFeatureEnabled()) {
-      <ion-button expand="block" fill="solid" color="danger" class="gmail-action-btn"
-        (click)="condividiViaGmail()">
-        <ion-icon name="mail-outline" slot="start"></ion-icon>
-        <span>Condividi via Gmail</span>
-      </ion-button>
-    }
-
     <div class="secondary-actions-row">
       <ion-button expand="block" fill="outline" color="light" class="sub-action-btn"
         [disabled]="isSharingNative() || isSharingAudio()" (click)="condividiNativo()">
