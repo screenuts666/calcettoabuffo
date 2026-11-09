@@ -11,6 +11,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.58",
+    "date": "09/11/2026",
+    "title": "Flusso Accesso & Associazione Atleta Automatico per Disponibilità",
+    "userChanges": [
+      "🔐 Accesso Guidato & Ritorno Istantaneo: entrando nella pagina Disponibilità senza login, l'app avvisa con un messaggio chiaro e porta alla schermata di accesso. Appena loggato, vieni reindirizzato automaticamente alla pagina di disponibilità.",
+      "⚽ Associazione Profilo al Volo: se non hai ancora un atleta collegato al tuo account, dopo il login visualizzi la selezione del tuo profilo atleta della rosa; una volta associato, torni subito alla pagina disponibilità pronto a votare.",
+      "💬 Toast di Avviso Sempre Corretto: confermato e visibile il toast 'Accedi per esprimere le tue disponibilità' o 'Associa il tuo profilo atleta'."
+    ],
+    "superUserChanges": [
+      "🔄 Deep-Link Return & SessionStorage Sync: implementata persistenza sicura di pendingReturnUrl in sessionStorage per supportare sia il flusso di login con Google/Email sia il claim del profilo giocatore."
+    ]
+  },
+  {
     "version": "2.0.57",
     "date": "09/11/2026",
     "title": "Sondaggio Settimanale Proiettato al Futuro & Storico Mese/Anno",

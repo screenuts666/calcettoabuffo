@@ -2,6 +2,7 @@ import {
   Component,
   OnInit,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -256,6 +257,39 @@ export class CalendarioPage implements OnInit {
       chevronUpOutline,
       trashOutline,
     });
+
+    // Flusso Auth & Atleta per Disponibilità:
+    // Se l'utente entra nella pagina disponibilità e non è loggato, mostra il toast e naviga al login.
+    // Se è loggato ma non ha ancora un atleta associato, lo guida all'associazione del profilo atleta.
+    effect(() => {
+      this.verificaAccessoDisponibilita();
+    });
+  }
+
+  ionViewWillEnter() {
+    this.hasPromptedAuth = false;
+    this.verificaAccessoDisponibilita();
+  }
+
+  ionViewDidLeave() {
+    this.hasPromptedAuth = false;
+  }
+
+  verificaAccessoDisponibilita(): void {
+    const authReady = this.auth.authInitialized();
+    if (!authReady) return;
+
+    const loggedIn = this.auth.isLoggedIn();
+    if (!loggedIn) {
+      this.richiediLoginOAtleta('Accedi per esprimere le tue disponibilità.');
+      return;
+    }
+
+    const hasPlayer = this.auth.hasLinkedPlayer();
+    const isSuper = this.auth.isSuperUser();
+    if (!hasPlayer && !isSuper) {
+      this.richiediLoginOAtleta('Associa il tuo profilo atleta per esprimere la disponibilità.');
+    }
   }
 
   ngOnInit() {
@@ -842,7 +876,7 @@ export class CalendarioPage implements OnInit {
   onStripDayClick(dateStr: string): void {
     this.selezionaGiorno(dateStr);
     const todayStr = getLocalIsoDate();
-    if (this.auth.isLoggedIn() && dateStr >= todayStr) {
+    if (dateStr >= todayStr) {
       this.toggleVotoGiorno(dateStr);
     }
   }
@@ -955,16 +989,38 @@ export class CalendarioPage implements OnInit {
     await toast.present();
   }
 
+  private hasPromptedAuth = false;
+
+  async richiediLoginOAtleta(message: string): Promise<void> {
+    if (this.hasPromptedAuth) return;
+    this.hasPromptedAuth = true;
+
+    this.auth.setReturnUrl('/disponibilita');
+
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3200,
+      color: 'warning',
+      position: 'top',
+    });
+    await toast.present();
+
+    await this.router.navigate(['/login'], {
+      queryParams: { returnUrl: '/disponibilita' },
+    });
+  }
+
   // Toggle voto atleta per un giorno specifico ('yes' = Ci sono, 'maybe' = Forse)
   async toggleVotoGiorno(dateStr: string, type: 'yes' | 'maybe' = 'yes') {
     if (!this.auth.isLoggedIn()) {
-      const t = await this.toastCtrl.create({
-        message: 'Accedi per esprimere le tue disponibilità.',
-        duration: 3000,
-        color: 'warning',
-        position: 'top',
-      });
-      await t.present();
+      this.hasPromptedAuth = false;
+      await this.richiediLoginOAtleta('Accedi per esprimere le tue disponibilità.');
+      return;
+    }
+
+    if (!this.auth.hasLinkedPlayer() && !this.auth.isSuperUser()) {
+      this.hasPromptedAuth = false;
+      await this.richiediLoginOAtleta('Associa il tuo profilo atleta per esprimere la disponibilità.');
       return;
     }
 

@@ -1,18 +1,19 @@
 [
   {
-    "version": "2.0.57",
+    "version": "NEXT",
     "date": "09/11/2026",
-    "title": "Sondaggio Settimanale Proiettato al Futuro & Storico Mese/Anno",
+    "title": "Flusso Accesso & Associazione Atleta Automatico per Disponibilità",
     "userChanges": [
-      "📅 Sondaggio Settimanale Proiettato al Futuro: bloccata tassativamente la navigazione nel passato nella vista Settimana. Il sondaggio presenze non permette più di andare indietro prima della settimana corrente, evitando di visualizzare schermate con voti scaduti e disabilitati.",
-      "⏮️ Navigazione Mese e Anno Completa: per Mister e Presidente le viste Mese ed Anno possono navigare all'indietro fino alla prima partita disputata nella storia del club (Ottobre)."
+      "🔐 Accesso Guidato & Ritorno Istantaneo: entrando nella pagina Disponibilità senza login, l'app avvisa con un messaggio chiaro e porta alla schermata di accesso. Appena loggato, vieni reindirizzato automaticamente alla pagina di disponibilità.",
+      "⚽ Associazione Profilo al Volo: se non hai ancora un atleta collegato al tuo account, dopo il login visualizzi la selezione del tuo profilo atleta della rosa; una volta associato, torni subito alla pagina disponibilità pronto a votare.",
+      "💬 Toast di Avviso Sempre Corretto: confermato e visibile il toast 'Accedi per esprimere le tue disponibilità' o 'Associa il tuo profilo atleta'."
     ],
     "superUserChanges": [
-      "🛡️ Controllo Temporale Differenziato: canNavigaPrecedente blocca a livello della settimana corrente solo la vista week (sondaggio), mentre per month e year applica il parsing completo delle date storiche per permettere la consultazione dello storico."
+      "🔄 Deep-Link Return & SessionStorage Sync: implementata persistenza sicura di pendingReturnUrl in sessionStorage per supportare sia il flusso di login con Google/Email sia il claim del profilo giocatore."
     ]
   },
   {
-    "version": "NEXT",
+    "version": "2.0.57",
     "date": "09/11/2026",
     "title": "Sondaggio Settimanale Proiettato al Futuro & Storico Mese/Anno",
     "userChanges": [

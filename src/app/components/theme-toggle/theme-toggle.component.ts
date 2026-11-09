@@ -209,9 +209,11 @@ export class ThemeToggleComponent {
     openClaimPicker = false,
   ) {
     const isDesktop = window.innerWidth >= 768;
+    const currentUrl = this.router.url;
+    this.authService.setReturnUrl(currentUrl);
     const modal = await this.modalCtrl.create({
       component: AuthModalComponent,
-      componentProps: { initialMode, openClaimPicker },
+      componentProps: { initialMode, openClaimPicker, returnUrl: currentUrl },
       mode: 'ios',
       cssClass: isDesktop ? 'auth-desktop-modal' : undefined,
     });

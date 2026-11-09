@@ -170,12 +170,23 @@ export class AuthService {
   readonly pendingReturnUrl = signal<string | null>(null);
 
   setReturnUrl(url: string | null) {
-    this.pendingReturnUrl.set(url ? url.trim() : null);
+    const clean = url ? url.trim() : null;
+    this.pendingReturnUrl.set(clean);
+    if (typeof sessionStorage !== 'undefined') {
+      if (clean) sessionStorage.setItem('calcetto_return_url', clean);
+      else sessionStorage.removeItem('calcetto_return_url');
+    }
   }
 
   consumeReturnUrl(): string | null {
-    const val = this.pendingReturnUrl();
+    let val = this.pendingReturnUrl();
+    if (!val && typeof sessionStorage !== 'undefined') {
+      val = sessionStorage.getItem('calcetto_return_url');
+    }
     this.pendingReturnUrl.set(null);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('calcetto_return_url');
+    }
     return val;
   }
 

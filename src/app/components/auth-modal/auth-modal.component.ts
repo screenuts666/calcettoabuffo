@@ -189,11 +189,22 @@ export class AuthModalComponent implements OnInit {
       await this.modalCtrl.dismiss(result);
       return;
     }
-    const targetUrl =
+    const isReadyForProtected =
+      this.authService.isLoggedIn() &&
+      (this.authService.hasLinkedPlayer() || this.authService.isSuperUser());
+
+    let targetUrl =
       this.returnUrl ||
       this.route?.snapshot?.queryParamMap?.get('returnUrl') ||
       this.authService.consumeReturnUrl() ||
       '/partite';
+
+    // Se l'utente non ha completato login/associazione e preme "Chiudi",
+    // non rimandarlo a /disponibilita per evitare un loop infinito di reindirizzamento
+    if (!isReadyForProtected && (targetUrl.includes('disponibilita') || targetUrl.includes('calendario'))) {
+      targetUrl = '/partite';
+    }
+
     await this.router.navigateByUrl(targetUrl);
   }
 
