@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.49",
+    "date": "09/11/2026",
+    "title": "Condivisione One-Tap WhatsApp & Testi Ultra-Sintetici (Less is More)",
+    "userChanges": [
+      "⚡ Condivisione One-Tap WhatsApp: eliminati modali e configurazioni intermedie; toccando l'icona WhatsApp il messaggio viene condiviso istantaneamente tramite app nativa o WhatsApp Web.",
+      "📝 Testi Ultra-Sintetici (2 Righe): messaggi di condivisione puliti, compatti e senza muri di testo o elenchi infiniti, focalizzati sul link diretto per votare le disponibilità, iscriversi alla partita o visualizzare il risultato finale.",
+      "🎯 UI Essenziale & Zero Ridondanze: rimosso il pulsante 'Sollecita' duplicato nella tab Disponibilità; tutti i bottoni di share sono stati trasformati in discrete icone circolari o pill minimali perfettamente integrati."
+    ],
+    "superUserChanges": [
+      "🚀 Nuovo ShareService Unificato: centralizzazione dell'architettura di condivisione con supporto Web Share API nativo e fallback automatico su wa.me e clipboard.",
+      "🔗 Deep-Link Diretto & Rimozione Modale Obsoleta: eliminato l'intero MatchShareModalComponent e refactorizzato il formatter con query param ?invite=true per l'auto-RSVP istantaneo dei giocatori convocati."
+    ]
+  },
+  {
     "version": "2.0.48",
     "date": "09/11/2026",
     "title": "Disponibilità 'Zero-Scroll' Stile Sondaggio WhatsApp & Zoom Integrato",

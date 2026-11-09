@@ -3,15 +3,14 @@
     <ion-title>Disponibilità</ion-title>
 
     <ion-buttons slot="end">
-      <!-- Condividi Disponibilità su WhatsApp -->
+      <!-- Condividi Disponibilità su WhatsApp (Pulsante Unico & Minimale) -->
       <ion-button
         fill="clear"
         class="share-wa-header-btn"
         (click)="condividiSuWhatsApp()"
-        title="Condividi disponibilità su WhatsApp con i compagni"
+        title="Condividi disponibilità su WhatsApp"
       >
-        <ion-icon name="logo-whatsapp" slot="start" color="success"></ion-icon>
-        <span class="share-btn-text">Condividi</span>
+        <ion-icon name="logo-whatsapp" slot="icon-only" color="success"></ion-icon>
       </ion-button>
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
@@ -132,16 +131,6 @@
                   }
                 </span>
               </div>
-
-              <button
-                type="button"
-                class="btn-wa-sollecita"
-                (click)="condividiSuWhatsApp()"
-                title="Invia riepilogo sul gruppo WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-                <span>Sollecita</span>
-              </button>
             </div>
           }
 

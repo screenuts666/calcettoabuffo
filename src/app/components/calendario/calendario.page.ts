@@ -64,13 +64,13 @@ import { StatsEngineService } from '../../services/stats-engine.service';
 import { AvailabilityService, getLocalIsoDate } from '../../services/availability.service';
 import { WeatherService, DailyWeatherForecast } from '../../services/weather.service';
 import { CampiService } from '../../services/campi.service';
+import { ShareService } from '../../services/share.service';
 import { calcolaEta } from '../../utils/date-utils';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { Giocatore } from '../../models/giocatore.model';
 import { Partita, getMatchFormatByPlayerCount } from '../../models/partita.model';
 import { DaySummary } from '../../models/weekly-availability.model';
-import { formatWeeklyAvailabilityForWhatsApp } from '../../utils/whatsapp-formatter';
 
 export type CalendarViewMode = 'week' | 'month' | 'year';
 
@@ -116,6 +116,7 @@ export class CalendarioPage implements OnInit {
   private router = inject(Router);
   private toastCtrl = inject(ToastController);
   private alertCtrl = inject(AlertController);
+  private shareService = inject(ShareService);
 
   // Filtri calendario salvati in LocalStorage
   mostraPartitePassate = signal<boolean>(
@@ -908,26 +909,9 @@ export class CalendarioPage implements OnInit {
     }
   }
 
-  // Condividi disponibilità su WhatsApp (Aperto a tutti gli atleti!)
+  // Condividi disponibilità su WhatsApp (Azione diretta One-Tap con testo ultra-compatto)
   async condividiSuWhatsApp() {
-    const todayStr = getLocalIsoDate();
-    const summaries = this.availabilityService
-      .daySummaries()
-      .filter((d) => d.date >= todayStr);
-    const text = formatWeeklyAvailabilityForWhatsApp(
-      summaries,
-      this.availabilityService.missingAthletes()
-    );
-    const encoded = encodeURIComponent(text);
-    const waUrl = `https://api.whatsapp.com/send?text=${encoded}`;
-
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      // ignore
-    }
-
-    window.open(waUrl, '_blank');
+    await this.shareService.shareWeeklyAvailability(this.topVotedDayInfo());
   }
 
   // Toggle Pausa Estiva (Mister & Presidente)

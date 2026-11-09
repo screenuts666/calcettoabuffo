@@ -24,7 +24,7 @@ import { PlayerPerformance } from '../../../../../models/player-performance.mode
 import { Partita } from '../../../../../models/partita.model';
 import { MatchStateService } from '../../match-state.service';
 import { StatsEngineService } from '../../../../../services/stats-engine.service';
-import { MatchShareModalComponent } from '../../../match-share-modal/match-share-modal.component';
+import { ShareService } from '../../../../../services/share.service';
 import { MatchReportData } from '../../../../../models/mmr.model';
 import { GeminiService } from '../../../../../services/gemini.service';
 import { AuthService } from '../../../../../services/auth.service';
@@ -68,6 +68,7 @@ export class StepPrestazioniComponent {
   private ttsService = inject(TtsService);
   private actionSheetCtrl = inject(ActionSheetController);
   private router = inject(Router);
+  private shareService = inject(ShareService);
 
   // Navigazione a Schede (Sintesi, Pagelle, Spogliatoio & AI, Statistiche)
   activeTab = signal<'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'>('sintesi');
@@ -516,19 +517,11 @@ export class StepPrestazioniComponent {
       eventiGol: this.state.eventiGol(),
       matchConcluso: this.state.matchConcluso(),
       pagelleInserite: this.state.pagelleInserite(),
-      fotoUrl: this.state.fotoUrl(),
-      fotoPath: this.state.fotoPath(),
       status: this.state.status(),
+      convocati: this.state.convocati(),
     };
 
-    const modal = await this.modalCtrl.create({
-      component: MatchShareModalComponent,
-      componentProps: { partita: currentMatch },
-      breakpoints: [0, 0.95, 1],
-      initialBreakpoint: 0.95,
-      handle: true,
-    });
-    await modal.present();
+    await this.shareService.shareMatch(currentMatch);
   }
 
   aggiornaVoto(giocatore: any, event: Event) {

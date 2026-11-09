@@ -79,7 +79,7 @@ import {
 } from 'ionicons/icons';
 import { getMatchFormatByPlayerCount } from 'src/app/models/partita.model';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
-import { MatchShareModalComponent } from './match-share-modal/match-share-modal.component';
+import { ShareService } from 'src/app/services/share.service';
 import { TacticalPitchComponent } from './tactical-pitch/tactical-pitch.component';
 import { AiStoryModalComponent } from './ai-story-modal/ai-story-modal.component';
 import { AuthService } from 'src/app/services/auth.service';
@@ -177,6 +177,7 @@ export class PartitePage {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);
+  private shareService = inject(ShareService);
 
   highlightMatchId = signal<string | null>(null);
   openedPitches = signal<Record<string, boolean>>({});
@@ -1015,14 +1016,7 @@ export class PartitePage {
   }
 
   async apriCondivisione(partita: any) {
-    const modal = await this.modalCtrl.create({
-      component: MatchShareModalComponent,
-      componentProps: { partita },
-      breakpoints: [0, 0.95, 1],
-      initialBreakpoint: 0.95,
-      handle: true,
-    });
-    await modal.present();
+    await this.shareService.shareMatch(partita);
   }
 
   async mostraToastPartitaNonTrovata() {

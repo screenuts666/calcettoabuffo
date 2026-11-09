@@ -38,6 +38,7 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 import { environment } from 'src/environments/environment';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { ShareService } from 'src/app/services/share.service';
 import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 import { getMatchInviteDeepLink } from 'src/app/utils/whatsapp-formatter';
 import { normalizeRsvpStatus } from 'src/app/models/partita.model';
@@ -68,6 +69,7 @@ export class StepConvocatiComponent {
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
   private router = inject(Router);
+  private shareService = inject(ShareService);
 
   readonly isDev = !environment.production;
   isSavingRsvp = signal<boolean>(false);
@@ -243,12 +245,9 @@ export class StepConvocatiComponent {
   }
 
   /**
-   * Genera il messaggio e l'URL di invito alla partita (`?invite=true`)
+   * Condivisione One-Tap minimale per invito convocati (WhatsApp / Web Share)
    */
-  private async preparaDatiInvito(): Promise<{
-    url: string;
-    text: string;
-  } | null> {
+  async condividiLinkInvito() {
     this.isPreparingInvite.set(true);
     try {
       const mId = await this.state.ensureMatchCreatedForInvite();
@@ -260,72 +259,36 @@ export class StepConvocatiComponent {
           position: 'top',
         });
         await toast.present();
-        return null;
+        return;
       }
 
-      const url = getMatchInviteDeepLink(mId);
-      const dataStr = this.state.dataPartita()
-        ? new Date(this.state.dataPartita() + 'T00:00:00').toLocaleDateString(
-            'it-IT',
-            { weekday: 'long', day: 'numeric', month: 'long' }
-          )
-        : '';
-      const luogo = this.state.luogo()?.trim();
-      const orario = this.state.orario()?.trim();
+      const currentMatch: any = {
+        id: mId,
+        dataPartita: this.state.dataPartita(),
+        orario: this.state.orario(),
+        convocati: this.state.convocati(),
+        status: this.state.status(),
+      };
 
-      const lines = ['⚽ *CONVOCAZIONI CALCETTO APERTE!* ⚽'];
-      if (dataStr) lines.push(`📅 *${dataStr}*`);
-      if (luogo || orario) {
-        lines.push(
-          [luogo ? `📍 ${luogo}` : '', orario ? `⏰ Ore ${orario}` : '']
-            .filter(Boolean)
-            .join(' · ')
-        );
-      }
-      lines.push('');
-      lines.push(
-        '👉 Tocca il link per rispondere (*Partecipo / Forse / Non partecipo*) e auto-inserirti nei convocati:'
-      );
-      lines.push(url);
-
-      return { url, text: lines.join('\n') };
+      await this.shareService.shareMatch(currentMatch, true);
     } finally {
       this.isPreparingInvite.set(false);
     }
   }
 
-  /**
-   * Condivide il link di invito (Web Share API nativa su mobile oppure fallback copia negli appunti)
-   */
-  async condividiLinkInvito() {
-    const data = await this.preparaDatiInvito();
-    if (!data) return;
-
-    if (typeof navigator !== 'undefined' && 'share' in navigator) {
-      try {
-        await navigator.share({
-          title: 'Convocazioni Calcetto',
-          text: data.text,
-        });
-        return;
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-      }
-    }
-
-    await this.copiaTestoNegliAppunti(
-      data.url,
-      '🔗 Link invito copiato negli appunti! Incollalo su WhatsApp.'
-    );
-  }
-
   async copiaLinkInvito() {
-    const data = await this.preparaDatiInvito();
-    if (!data) return;
-    await this.copiaTestoNegliAppunti(
-      data.url,
-      '✅ Link invito copiato negli appunti!'
-    );
+    this.isPreparingInvite.set(true);
+    try {
+      const mId = await this.state.ensureMatchCreatedForInvite();
+      if (!mId) return;
+      const url = getMatchInviteDeepLink(mId);
+      await this.copiaTestoNegliAppunti(
+        url,
+        '✅ Link invito copiato negli appunti!'
+      );
+    } finally {
+      this.isPreparingInvite.set(false);
+    }
   }
 
   private async copiaTestoNegliAppunti(text: string, successMsg: string) {

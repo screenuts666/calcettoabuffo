@@ -11,14 +11,12 @@
 }
 
 .share-wa-header-btn {
-  font-size: 0.82rem;
-  font-weight: 700;
   --color: #10b981;
-
-  .share-btn-text {
-    margin-left: 4px;
-    display: inline;
-  }
+  font-size: 1.25rem;
+  width: 38px;
+  height: 38px;
+  --padding-start: 0;
+  --padding-end: 0;
 }
 
 /* ─────────────────────────────────────────────────────────────

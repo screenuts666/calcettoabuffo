@@ -15,6 +15,16 @@
     }}</ion-title>
 
     <ion-buttons slot="end" class="detail-header-end">
+      @if (state.matchId()) {
+        <ion-button
+          fill="clear"
+          class="header-share-wa-btn"
+          (click)="condividiPartitaDiretto()"
+          title="Condividi partita su WhatsApp"
+        >
+          <ion-icon name="logo-whatsapp" slot="icon-only" color="success"></ion-icon>
+        </ion-button>
+      }
       @if (isAdmin) {
         <app-sync-status-badge [compact]="true"></app-sync-status-badge>
       }

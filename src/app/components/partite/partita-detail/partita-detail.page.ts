@@ -54,7 +54,7 @@ import { AuthService } from '../../../services/auth.service';
 import { MatchStateService } from './match-state.service';
 import { MIN_CURRENT_SEASON_DATE } from '../../../utils/season-utils';
 import { ModalitaPortiere, Partita } from 'src/app/models/partita.model';
-import { MatchShareModalComponent } from '../match-share-modal/match-share-modal.component';
+import { ShareService } from '../../../services/share.service';
 import { StepConvocatiComponent } from './steps/step-convocati/step-convocati.component';
 import { StepDettagliComponent } from './steps/step-dettagli/step-dettagli.component';
 import { StepSquadreComponent } from './steps/step-squadre/step-squadre.component';
@@ -101,6 +101,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private location = inject(Location);
   private firestore = inject(Firestore);
   public auth = inject(AuthService);
+  private shareService = inject(ShareService);
 
   @Input() matchData: any;
   isLoading = signal<boolean>(false);
@@ -513,10 +514,17 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   }
 
   async apriCondivisionePartita() {
+    await this.condividiPartitaDiretto();
+  }
+
+  /**
+   * Condivisione One-Tap minimale per la partita (WhatsApp / Web Share)
+   */
+  async condividiPartitaDiretto() {
     if (!this.state.matchId() && this.isAdmin) {
       await this.state.ensureMatchCreatedForInvite();
     }
-    const partitaSnapshot: Partita = {
+    const currentMatch: any = {
       id: this.state.matchId() || undefined,
       luogo: this.state.luogo(),
       dataPartita: this.state.dataPartita(),
@@ -530,21 +538,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       teamA: this.state.teamA(),
       teamB: this.state.teamB(),
       convocati: this.state.convocati(),
-      rsvp: this.state.rsvp(),
-      eventiGol: this.state.eventiGol(),
-      fotoUrl: this.state.fotoUrl(),
-      fotoPath: this.state.fotoPath(),
-      commentoPartita: this.state.commentoPartita(),
-      pronosticoAi: this.state.pronosticoAi(),
-      cronacaAi: this.state.cronacaAi(),
     };
-
-    const modal = await this.modalCtrl.create({
-      component: MatchShareModalComponent,
-      componentProps: { partita: partitaSnapshot },
-      mode: 'ios',
-    });
-    await modal.present();
+    await this.shareService.shareMatch(currentMatch, this.state.step() === 'convocati');
   }
 
   cambiaStep(
