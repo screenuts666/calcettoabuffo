@@ -11,6 +11,18 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.46",
+    "date": "09/11/2026",
+    "title": "Pulsante Crea Partita su Quorum, Icona Omini Verde & Rimozione Fasi Lunari",
+    "userChanges": [
+      "👥 Icona Presenze Semplificata: rimossa l'icona del pallone che creava confusione; ora c'è un'unica icona con gli omini che diventa verde brillante quando il giorno raggiunge il quorum (almeno 10 voti).",
+      "🧹 Rimozione Fasi Lunari: eliminate completamente le fasi lunari e qualsiasi loro riferimento dal calendario per mantenere la vista pulita, concentrata ed essenziale."
+    ],
+    "superUserChanges": [
+      "⚽ Pulsante 'Crea Partita' sotto la Striscia: visibile solo al Mister o al Presidente e compare esclusivamente per i giorni che hanno raggiunto il quorum, permettendo di avviare il match e importare tutti i convocati con un solo tap."
+    ]
+  },
+  {
     "version": "2.0.45",
     "date": "09/11/2026",
     "title": "Icona Nebbia Risolta & Pulizia Testi Ridondanti",

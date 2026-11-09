@@ -20,22 +20,6 @@ export interface DayWeather {
   conditionIcon: string;
 }
 
-export type LunarPhaseType = 'new' | 'waxing' | 'full' | 'waning';
-
-export interface LunarPhaseInfo {
-  type: LunarPhaseType;
-  name: string;
-  emoji: string;
-  illuminationPercent: number;
-}
-
-export interface DayMoonPhase {
-  type: LunarPhaseType;
-  label: string;
-  icon: string;
-  phaseAgeDays: number;
-}
-
 const CACHE_KEY = 'calcetto_weather_rome_cache_v2';
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 ora
 
@@ -122,45 +106,6 @@ export class WeatherService {
     } finally {
       this.isLoading.set(false);
     }
-  }
-
-  /**
-   * Calcolo astronomico deterministico della fase lunare per qualsiasi data
-   * basato sul ciclo sinodico lunare di 29.53058867 giorni.
-   */
-  getLunarPhase(dateInput: Date | string): LunarPhaseInfo {
-    const d = typeof dateInput === 'string' ? new Date(dateInput + 'T12:00:00Z') : dateInput;
-    // Nuova luna di riferimento nota: 6 Gennaio 2000, 18:14 UTC
-    const refNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
-    const cycleMs = 29.53058867 * 24 * 60 * 60 * 1000;
-
-    const diff = d.getTime() - refNewMoon;
-    const currentPhaseMs = ((diff % cycleMs) + cycleMs) % cycleMs;
-    const phaseAgeDays = currentPhaseMs / (24 * 60 * 60 * 1000);
-
-    // Percentuale di illuminazione approssimata
-    const phaseAngle = (phaseAgeDays / 29.53058867) * 2 * Math.PI;
-    const illuminationPercent = Math.round(((1 - Math.cos(phaseAngle)) / 2) * 100);
-
-    if (phaseAgeDays < 1.84 || phaseAgeDays >= 27.68) {
-      return { type: 'new', name: 'Luna Nuova', emoji: '🌑', illuminationPercent };
-    } else if (phaseAgeDays < 9.22) {
-      return { type: 'waxing', name: 'Primo Quarto', emoji: '🌓', illuminationPercent };
-    } else if (phaseAgeDays < 16.61) {
-      return { type: 'full', name: 'Luna Piena', emoji: '🌕', illuminationPercent };
-    } else {
-      return { type: 'waning', name: 'Ultimo Quarto', emoji: '🌗', illuminationPercent };
-    }
-  }
-
-  getMoonPhase(dateInput: Date | string): DayMoonPhase {
-    const l = this.getLunarPhase(dateInput);
-    return {
-      type: l.type,
-      label: l.name,
-      icon: l.emoji,
-      phaseAgeDays: 0,
-    };
   }
 
   private interpretWmoCode(code: number): { label: string; icon: string } {

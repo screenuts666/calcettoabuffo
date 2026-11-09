@@ -27,7 +27,6 @@ import {
   sunnyOutline,
   rainyOutline,
   partlySunnyOutline,
-  moonOutline,
   giftOutline,
   checkmarkCircle,
   checkmarkCircleOutline,
@@ -58,7 +57,7 @@ import { environment } from 'src/environments/environment';
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { AvailabilityService, getLocalIsoDate } from '../../services/availability.service';
-import { WeatherService, DailyWeatherForecast, LunarPhaseInfo } from '../../services/weather.service';
+import { WeatherService, DailyWeatherForecast } from '../../services/weather.service';
 import { CampiService } from '../../services/campi.service';
 import { calcolaEta } from '../../utils/date-utils';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
@@ -79,7 +78,6 @@ export interface CalendarDayCell {
   matches: Partita[];
   birthdays: Giocatore[];
   weather?: DailyWeatherForecast;
-  lunar?: LunarPhaseInfo;
   voteCount?: number;
   isQuorumReached?: boolean;
 }
@@ -118,9 +116,6 @@ export class CalendarioPage implements OnInit {
   mostraMeteo = signal<boolean>(
     localStorage.getItem('cal_mostra_meteo') !== 'false'
   );
-  mostraFasiLunari = signal<boolean>(
-    localStorage.getItem('cal_mostra_luna') === 'true'
-  );
   mostraCompleanni = signal<boolean>(
     localStorage.getItem('cal_mostra_compleanni') !== 'false'
   );
@@ -149,7 +144,6 @@ export class CalendarioPage implements OnInit {
       sunnyOutline,
       rainyOutline,
       partlySunnyOutline,
-      moonOutline,
       giftOutline,
       checkmarkCircle,
       checkmarkCircleOutline,
@@ -195,7 +189,7 @@ export class CalendarioPage implements OnInit {
   }
 
   // Toggle dei filtri con persistenza
-  toggleFiltro(tipo: 'partite' | 'meteo' | 'luna' | 'compleanni') {
+  toggleFiltro(tipo: 'partite' | 'meteo' | 'compleanni') {
     if (tipo === 'partite') {
       const next = !this.mostraPartitePassate();
       this.mostraPartitePassate.set(next);
@@ -204,10 +198,6 @@ export class CalendarioPage implements OnInit {
       const next = !this.mostraMeteo();
       this.mostraMeteo.set(next);
       localStorage.setItem('cal_mostra_meteo', String(next));
-    } else if (tipo === 'luna') {
-      const next = !this.mostraFasiLunari();
-      this.mostraFasiLunari.set(next);
-      localStorage.setItem('cal_mostra_luna', String(next));
     } else if (tipo === 'compleanni') {
       const next = !this.mostraCompleanni();
       this.mostraCompleanni.set(next);
@@ -334,9 +324,6 @@ export class CalendarioPage implements OnInit {
     const matches = this.partiteByDate().get(dateStr) || [];
     const birthdays = this.compleanniByDayMonth().get(dayMonthKey) || [];
     const weather = this.weatherMap().get(dateStr);
-    const lunar = this.mostraFasiLunari()
-      ? this.weatherService.getLunarPhase(d)
-      : undefined;
 
     const activeSummaries = this.availabilityService.daySummaries();
     const daySummary = activeSummaries.find((s) => s.date === dateStr);
@@ -354,7 +341,6 @@ export class CalendarioPage implements OnInit {
       matches,
       birthdays,
       weather,
-      lunar,
       voteCount,
       isQuorumReached,
     };
@@ -389,7 +375,6 @@ export class CalendarioPage implements OnInit {
     const matches = this.partiteByDate().get(dateStr) || [];
     const birthdays = this.compleanniByDayMonth().get(dayMonthKey) || [];
     const weather = this.weatherMap().get(dateStr);
-    const lunar = this.weatherService.getLunarPhase(d);
 
     const activeSummaries = this.availabilityService.daySummaries();
     const daySummary = activeSummaries.find((s) => s.date === dateStr);
@@ -426,7 +411,6 @@ export class CalendarioPage implements OnInit {
       matches,
       birthdays,
       weather,
-      lunar,
       daySummary,
       availablePlayers,
       maybePlayers,
@@ -453,9 +437,6 @@ export class CalendarioPage implements OnInit {
 
     return summaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
-      const lunar = this.mostraFasiLunari()
-        ? this.weatherService.getLunarPhase(s.date)
-        : undefined;
 
       const players = s.voters
         .map((v) =>
@@ -505,7 +486,6 @@ export class CalendarioPage implements OnInit {
         missingToQuorum: s.missingForQuorum,
         formatInfo: s.formatInfo,
         weather,
-        lunar,
         isVotedByMe: myVoted.includes(s.date),
         isMaybeByMe: myMaybe.includes(s.date),
         isTopVoted,
@@ -513,6 +493,11 @@ export class CalendarioPage implements OnInit {
         maybePlayers,
       };
     });
+  });
+
+  /** Giorni della settimana attiva che hanno raggiunto il quorum (>= 10 voti) per la creazione partita da parte del Mister */
+  readonly daysWithQuorum = computed(() => {
+    return this.activeWeekDaysList().filter((d) => d.isQuorumReached && !d.isPast);
   });
 
   /** Giorno attualmente in focus nella striscia settimanale */

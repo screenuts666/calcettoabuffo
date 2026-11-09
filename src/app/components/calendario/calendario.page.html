@@ -156,13 +156,30 @@
                   [class.top-voted]="day.isTopVoted"
                   [class.has-votes]="day.count > 0"
                 >
-                  <ion-icon [name]="day.isQuorumReached ? 'football-outline' : 'people'"></ion-icon>
+                  <ion-icon name="people"></ion-icon>
                   <span class="pvb-num">{{ day.count }}</span>
                 </div>
               }
             </button>
           }
         </div>
+
+        <!-- PULSANTINO CREA PARTITA (SOLO MISTER / PRESIDENTE E SOLO SE C'E' QUORUM) -->
+        @if (auth.isSuperUser() && daysWithQuorum().length > 0) {
+          <div class="weekly-quorum-create-bar">
+            @for (qDay of daysWithQuorum(); track qDay.dateStr) {
+              <button
+                type="button"
+                class="btn-quorum-create-match"
+                (click)="fissaPartitaSlot(qDay.dateStr)"
+                title="Crea partita ufficiale per {{ qDay.dayLabelFull }} con {{ qDay.count }} convocati"
+              >
+                <ion-icon name="football-outline"></ion-icon>
+                <span>Crea Partita {{ qDay.dayLabel }} ({{ qDay.count }} convocati)</span>
+              </button>
+            }
+          </div>
+        }
 
         @if (isDevMode) {
           <div class="weekly-dev-simulation-bar">
@@ -237,16 +254,6 @@
       <button
         type="button"
         class="filter-pill"
-        [class.active]="mostraFasiLunari()"
-        (click)="toggleFiltro('luna')"
-      >
-        <ion-icon name="moon-outline"></ion-icon>
-        <span>Fasi Lunari</span>
-      </button>
-
-      <button
-        type="button"
-        class="filter-pill"
         [class.active]="mostraCompleanni()"
         (click)="toggleFiltro('compleanni')"
       >
@@ -285,11 +292,6 @@
               @if (mostraMeteo() && cell.weather) {
                 <span class="cell-weather-icon" [title]="cell.weather.conditionDescription + ' ' + cell.weather.tempMax + '°'">
                   {{ cell.weather.iconEmoji }}
-                </span>
-              }
-              @if (mostraFasiLunari() && cell.lunar) {
-                <span class="cell-lunar-icon" [title]="cell.lunar.name">
-                  {{ cell.lunar.emoji }}
                 </span>
               }
             </div>
@@ -375,12 +377,6 @@
               @if (sel.weather.rainProbability > 20) {
                 <span class="w-rain">💧{{ sel.weather.rainProbability }}%</span>
               }
-            </div>
-          }
-          @if (sel.lunar && mostraFasiLunari()) {
-            <div class="lunar-box-detail" [title]="sel.lunar.name">
-              <span class="l-emoji">{{ sel.lunar.emoji }}</span>
-              <span class="l-name">{{ sel.lunar.name }}</span>
             </div>
           }
         </div>
