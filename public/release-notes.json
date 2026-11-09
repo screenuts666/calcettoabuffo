@@ -1,26 +1,18 @@
 [
   {
-    "version": "2.0.51",
+    "version": "2.0.52",
     "date": "09/11/2026",
-    "title": "Allineamento Fisso Icone Meteo & Spostamento Pulsante Crea su Riga Inferiore",
+    "title": "Pillola Unificata Crea Match, Sync Voto Partita, Rotta /disponibilita & Zoom Ciclico",
     "userChanges": [
-      "📏 Allineamento Perfetto Meteo: le icone e temperature meteo ora mantengono una colonna verticale fissa e rigorosa su tutti i 7 giorni, eliminando qualsiasi spostamento o disallineamento visivo.",
-      "🔘 Colonna Voto WhatsApp Indipendente: l'area destra con il checkbox di voto ha ora larghezza fissa (32px) costante per ogni giorno, garantendo una griglia pulita e simmetrica."
+      "🔗 Nuova Rotta /disponibilita: l'indirizzo URL della scheda disponibilità è ora pulito e coerente (/disponibilita), con reindirizzamento automatico trasparente dal vecchio /calendario.",
+      "🔄 Sincronizzazione Voto Istantanea con la Partita: quando rimuovi o aggiungi la tua disponibilità nella tab, l'eventuale partita già creata in quella data si aggiorna in tempo reale rimuovendoti o aggiungendoti automaticamente ai convocati e all'RSVP.",
+      "⏮️ Blocco Navigazione Storica: il calendario non permette più di andare indietro nel tempo oltre la prima partita disputata nella storia dell'app.",
+      "✨ Allineamento Convocati in Dettagli Match: riorganizzata la card di riepilogo convocati nella gestione match con avatar compatti da 32px, conteggio convocati e formula in colonna pulita senza bottoni invasivi."
     ],
     "superUserChanges": [
-      "⚽ Tasto 'Crea' Riposizionato su Riga Inferiore: il pulsante 'Crea' per Mister/Presidente è stato spostato nella riga inferiore accanto al contatore quorum (stessa posizione di 'Partita'), evitando di comprimere la riga superiore o spostare il meteo."
-    ]
-  },
-  {
-    "version": "NEXT",
-    "date": "09/11/2026",
-    "title": "Allineamento Fisso Icone Meteo & Spostamento Pulsante Crea su Riga Inferiore",
-    "userChanges": [
-      "📏 Allineamento Perfetto Meteo: le icone e temperature meteo ora mantengono una colonna verticale fissa e rigorosa su tutti i 7 giorni, eliminando qualsiasi spostamento o disallineamento visivo.",
-      "🔘 Colonna Voto WhatsApp Indipendente: l'area destra con il checkbox di voto ha ora larghezza fissa (32px) costante per ogni giorno, garantendo una griglia pulita e simmetrica."
-    ],
-    "superUserChanges": [
-      "⚽ Tasto 'Crea' Riposizionato su Riga Inferiore: il pulsante 'Crea' per Mister/Presidente è stato spostato nella riga inferiore accanto al contatore quorum (stessa posizione di 'Partita'), evitando di comprimere la riga superiore o spostare il meteo."
+      "⚽ Pillola Unificata 'Crea Match': fusi lo stato di Quorum e il pulsante 'Crea' in un unico ed elegante pulsante '⚽ Crea Match (N)' senza doppioni di testo né spostamenti del meteo.",
+      "🔍 Pulsante Zoom Ciclico a Spazio Ridotto: il selettore [S | M | A] è stato sostituito da un unico compatto pulsante che cicla istantaneamente tra Settimana, Mese e Anno (S -> M -> A), liberando spazio nella barra di navigazione.",
+      "🛡️ Regole Firestore Aggiornate: consentito l'aggiornamento dei convocati/RSVP anche quando il match si trova nello step 'dettagli'."
     ]
   },
   {

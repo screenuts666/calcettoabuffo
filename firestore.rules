@@ -265,11 +265,11 @@ service cloud.firestore {
       // 1. Mister: Full CRUD
       // 2. Atleta (o giocatore associato): può aggiornare ESCLUSIVAMENTE la propria voce `rsvp[request.auth.uid]`
       //    (e la sincronizzazione della lista `convocati`) SOLO ed esclusivamente quando la partita si trova
-      //    nello step `'convocati'` e non è conclusa.
+      //    nello step `'convocati'` o `'dettagli'` e non è conclusa.
       allow update: if isSuperUser() || (
         hasLinkedPlayer() &&
         resource.data.get('matchConcluso', false) == false &&
-        resource.data.get('step', 'convocati') == 'convocati' &&
+        resource.data.get('step', 'convocati') in ['convocati', 'dettagli'] &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['rsvp', 'convocati']) &&
         request.resource.data.rsvp.diff(resource.data.get('rsvp', {})).affectedKeys().hasOnly([request.auth.uid]) &&
         request.resource.data.rsvp[request.auth.uid].uid == request.auth.uid &&

@@ -192,7 +192,7 @@ export function formatMatchForWhatsApp(
 export function formatWeeklyAvailabilityForWhatsApp(
   topDay?: { label?: string; dayName?: string; count?: number; voterCount?: number } | null
 ): string {
-  const link = `${getAppBaseUrl()}/calendario`;
+  const link = `${getAppBaseUrl()}/disponibilita`;
   const count = topDay?.count ?? topDay?.voterCount ?? 0;
   const label = topDay?.label || topDay?.dayName || '';
 

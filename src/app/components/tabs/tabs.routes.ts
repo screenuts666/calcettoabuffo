@@ -12,9 +12,14 @@ export const routes: Routes = [
         component: PartitePage,
       },
       {
-        path: 'calendario',
+        path: 'disponibilita',
         loadComponent: () =>
           import('../calendario/calendario.page').then((m) => m.CalendarioPage),
+      },
+      {
+        path: 'calendario',
+        redirectTo: 'disponibilita',
+        pathMatch: 'full',
       },
       {
         path: 'classifica',

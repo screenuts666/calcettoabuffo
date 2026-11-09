@@ -115,41 +115,38 @@
       }
     }
 
-    /* SEGMENTED CONTROL MINIMALE S | M | A RISERVATO A MISTER E PRESIDENTE */
-    .zoom-segmented-control {
+    /* PULSANTE UNICO CICLICO DI ZOOM (S -> M -> A -> S) */
+    .btn-zoom-cycle-pill {
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #34d399;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
       display: inline-flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 8px;
-      padding: 2px;
-      gap: 2px;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 
-      .btn-zoom-segment {
-        background: transparent;
-        border: none;
-        color: #94a3b8;
-        font-size: 0.72rem;
-        font-weight: 800;
-        width: 22px;
-        height: 22px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
+      .zoom-pill-letter {
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+        line-height: 1;
+      }
 
-        &.active {
-          background: #10b981;
-          color: #ffffff;
-          box-shadow: 0 1px 4px rgba(16, 185, 129, 0.4);
-        }
+      &:active {
+        transform: scale(0.92);
+        background: #10b981;
+        color: #ffffff;
+      }
 
-        &:hover:not(.active) {
-          color: #f8fafc;
-          background: rgba(255, 255, 255, 0.08);
-        }
+      &:hover {
+        background: rgba(16, 185, 129, 0.3);
+        border-color: rgba(16, 185, 129, 0.7);
+        color: #ffffff;
       }
     }
   }
@@ -551,74 +548,88 @@
               }
             }
 
-            .prm-count-text {
-              font-size: 0.72rem;
-              color: #94a3b8;
-              white-space: nowrap;
+            .prm-status-cell {
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+              min-width: 0;
 
-              strong {
-                color: #f1f5f9;
+              .btn-quorum-create-unified {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+                color: #ffffff;
+                border: 1px solid rgba(52, 211, 153, 0.5);
+                border-radius: 20px;
+                padding: 2px 8px;
+                font-size: 0.68rem;
+                font-weight: 800;
+                cursor: pointer;
+                box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+                transition: all 0.15s ease;
+                white-space: nowrap;
+
+                &.match-active {
+                  background: rgba(16, 185, 129, 0.18);
+                  border: 1px solid rgba(16, 185, 129, 0.45);
+                  color: #34d399;
+                  box-shadow: none;
+
+                  .match-time-tag {
+                    background: rgba(16, 185, 129, 0.3);
+                    padding: 1px 4px;
+                    border-radius: 4px;
+                    font-size: 0.62rem;
+                    color: #a7f3d0;
+                  }
+                }
+
+                &:active {
+                  transform: scale(0.94);
+                  filter: brightness(1.1);
+                }
+
+                &:hover {
+                  filter: brightness(1.08);
+                }
               }
 
-              .quorum-text {
-                color: #10b981;
+              .quorum-badge-chic {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgba(16, 185, 129, 0.35);
+                color: #34d399;
+                padding: 1px 6px;
+                border-radius: 12px;
+                font-size: 0.68rem;
                 font-weight: 800;
+                white-space: nowrap;
+              }
+
+              .prm-count-text {
+                font-size: 0.72rem;
+                color: #94a3b8;
+                white-space: nowrap;
+
+                strong {
+                  color: #f1f5f9;
+                }
               }
 
               .past-text {
+                font-size: 0.7rem;
                 color: #64748b;
+                white-space: nowrap;
               }
 
               .empty-voters {
+                font-size: 0.7rem;
                 color: #64748b;
                 font-style: italic;
-              }
-            }
-          }
-
-          .prm-bottom-actions {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            flex-shrink: 0;
-
-            .btn-row-match-link {
-              background: rgba(16, 185, 129, 0.18);
-              border: 1px solid rgba(16, 185, 129, 0.45);
-              color: #34d399;
-              font-size: 0.65rem;
-              font-weight: 800;
-              padding: 2px 6px;
-              border-radius: 6px;
-              cursor: pointer;
-              transition: transform 0.1s ease;
-
-              &:active {
-                transform: scale(0.94);
-              }
-            }
-
-            .btn-row-create-match {
-              display: inline-flex;
-              align-items: center;
-              gap: 3px;
-              background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-              color: #ffffff;
-              border: 1px solid rgba(52, 211, 153, 0.5);
-              border-radius: 6px;
-              padding: 2px 7px;
-              font-size: 0.68rem;
-              font-weight: 800;
-              cursor: pointer;
-              box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
-              transition: transform 0.12s ease;
-
-              ion-icon {
-                font-size: 0.8rem;
-              }
-
-              &:active {
-                transform: scale(0.94);
+                white-space: nowrap;
               }
             }
           }

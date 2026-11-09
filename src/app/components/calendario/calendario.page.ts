@@ -172,6 +172,33 @@ export class CalendarioPage implements OnInit {
     this.viewMode.set(mode);
   }
 
+  /** Alterna ciclicamente le viste temporali (S -> M -> A -> S) con un singolo pulsante ultracompatto */
+  cycleZoomView(): void {
+    if (!this.canUseZoom()) return;
+    const cur = this.viewMode();
+    if (cur === 'week') {
+      this.setViewMode('month');
+    } else if (cur === 'month') {
+      this.setViewMode('year');
+    } else {
+      this.setViewMode('week');
+    }
+  }
+
+  readonly zoomCycleLabel = computed(() => {
+    const mode = this.viewMode();
+    if (mode === 'week') return 'S';
+    if (mode === 'month') return 'M';
+    return 'A';
+  });
+
+  readonly zoomCycleTitle = computed(() => {
+    const mode = this.viewMode();
+    if (mode === 'week') return 'Vista Settimana (S) • Clicca per Mese';
+    if (mode === 'month') return 'Vista Mese (M) • Clicca per Anno';
+    return 'Vista Anno (A) • Clicca per Settimana';
+  });
+
   // Mese visualizzato attualmente (primo giorno del mese)
   selectedMonth = signal<Date>(
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
@@ -291,6 +318,7 @@ export class CalendarioPage implements OnInit {
   }
 
   navigaPrecedente() {
+    if (!this.canNavigaPrecedente()) return;
     if (this.viewMode() === 'week') {
       this.availabilityService.settimanaPrecedente();
     } else if (this.viewMode() === 'month') {
@@ -318,8 +346,23 @@ export class CalendarioPage implements OnInit {
   }
 
   readonly canNavigaPrecedente = computed(() => {
+    const earliest = this.availabilityService.earliestMatchDate();
     if (this.viewMode() === 'week') {
       return this.availabilityService.canGoToPreviousWeek();
+    }
+    if (this.viewMode() === 'month') {
+      if (!earliest) return true;
+      const curYear = this.selectedMonth().getFullYear();
+      const curMonth = String(this.selectedMonth().getMonth() + 1).padStart(2, '0');
+      const curMonthKey = `${curYear}-${curMonth}`;
+      const earliestMonthKey = earliest.slice(0, 7);
+      return curMonthKey > earliestMonthKey;
+    }
+    if (this.viewMode() === 'year') {
+      if (!earliest) return true;
+      const curYear = this.selectedMonth().getFullYear();
+      const earliestYear = Number(earliest.slice(0, 4));
+      return curYear > earliestYear;
     }
     return true;
   });
@@ -911,7 +954,7 @@ export class CalendarioPage implements OnInit {
         });
         await toast.present();
         this.router.navigate(['/partite', newMatchId], {
-          queryParams: { returnUrl: '/calendario' },
+          queryParams: { returnUrl: '/disponibilita' },
         });
       }
     } catch (err: any) {
@@ -950,7 +993,7 @@ export class CalendarioPage implements OnInit {
   apriPartita(matchId?: string) {
     if (!matchId) return;
     this.router.navigate(['/partite', matchId], {
-      queryParams: { returnUrl: '/calendario' },
+      queryParams: { returnUrl: '/disponibilita' },
     });
   }
 

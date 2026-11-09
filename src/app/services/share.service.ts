@@ -81,7 +81,7 @@ export class ShareService {
     topDay?: { label?: string; dayName?: string; count?: number; voterCount?: number; hasQuorum?: boolean } | null
   ): Promise<void> {
     const text = formatWeeklyAvailabilityForWhatsApp(topDay);
-    const link = `${getAppBaseUrl()}/calendario`;
+    const link = `${getAppBaseUrl()}/disponibilita`;
     await this.shareDirect({
       title: 'Disponibilità Calcetto',
       text,

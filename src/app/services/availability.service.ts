@@ -141,9 +141,28 @@ export class AvailabilityService {
     return this.getIsoWeekKey(new Date());
   });
 
-  /** Possibilità di navigare indietro: solo se la settimana attiva è futura rispetto a quella odierna */
+  /** Data della prima partita registrata nel sistema (per non navigare mai più indietro della storia reale) */
+  readonly earliestMatchDate = computed<string | null>(() => {
+    const partite = this.statsEngine.partiteRaw() || [];
+    const dates = partite
+      .map((p) => (p.dataPartita || p.dataOra || '').split('T')[0])
+      .filter((d) => d && d.length >= 10 && !isNaN(new Date(d).getTime()))
+      .sort();
+    return dates.length > 0 ? dates[0] : null;
+  });
+
+  /** Settimana ISO limite minimo di navigazione: la settimana della prima partita (o quella odierna se non ci sono partite precedenti) */
+  readonly earliestAllowedWeekKey = computed<string>(() => {
+    const earliest = this.earliestMatchDate();
+    const currentKey = this.currentIsoWeekKey();
+    if (!earliest) return currentKey;
+    const earliestWeek = this.getIsoWeekKey(new Date(earliest));
+    return earliestWeek < currentKey ? earliestWeek : currentKey;
+  });
+
+  /** Possibilità di navigare indietro: fino alla prima partita registrata nella storia del club */
   readonly canGoToPreviousWeek = computed<boolean>(() => {
-    return this.activeWeekKey() > this.currentIsoWeekKey();
+    return this.activeWeekKey() > this.earliestAllowedWeekKey();
   });
 
   /** Etichetta completa retrocompatibile */
@@ -258,7 +277,99 @@ export class AvailabilityService {
       }
     }
 
+    const isNowYes = currentYes.includes(date);
     await this.saveMyVotes(currentYes, currentMaybe);
+    await this.syncVoteWithActiveMatch(date, isNowYes);
+  }
+
+  /**
+   * Sincronizza immediatamente il cambio voto dell'atleta con eventuali partite attive (non concluse) in quella data.
+   * Se l'atleta toglie la disponibilità ('no' / unchecked), viene rimosso dai convocati e il suo RSVP impostato a 'declined'.
+   * Se l'atleta dà disponibilità ('yes'), viene aggiunto ai convocati e il suo RSVP impostato a 'confirmed'.
+   */
+  async syncVoteWithActiveMatch(date: string, isVotedYes: boolean): Promise<void> {
+    if (!this.firestore) return;
+    const user = this.auth.firebaseUser();
+    if (!user) return;
+    const currentPid = this.auth.linkedPlayerId();
+    const currentName = this.auth.displayName() || user.email?.split('@')[0] || 'Atleta';
+
+    const partite = this.statsEngine.partiteRaw() || [];
+    const activeMatchesOnDate = partite.filter(
+      (m) => (m.dataPartita === date || (m.dataPartita && m.dataPartita.startsWith(date))) && !m.matchConcluso
+    );
+
+    for (const m of activeMatchesOnDate) {
+      if (!m.id) continue;
+      const matchDocRef = doc(this.firestore, `partite/${m.id}`);
+
+      let convocati = Array.isArray(m.convocati) ? [...m.convocati] : [];
+      const rsvpMap = { ...(m.rsvp || {}) };
+
+      if (!isVotedYes) {
+        // Rimuovi atleta dai convocati
+        convocati = convocati.filter((c: any) => {
+          const cId = typeof c === 'string' ? c : c?.id || c?.playerId;
+          const cName = typeof c === 'object' ? c?.nome : null;
+          if (currentPid && cId === currentPid) return false;
+          if (cName && currentName && cName.toLowerCase() === currentName.toLowerCase()) return false;
+          return true;
+        });
+
+        // Aggiorna RSVP dell'utente
+        rsvpMap[user.uid] = {
+          uid: user.uid,
+          playerId: currentPid || '',
+          playerName: currentName,
+          status: 'declined',
+          updatedAt: new Date().toISOString(),
+          respondedVia: 'app',
+        };
+      } else {
+        // Aggiungi atleta ai convocati se non già presente
+        const alreadyIn = convocati.some((c: any) => {
+          const cId = typeof c === 'string' ? c : c?.id || c?.playerId;
+          const cName = typeof c === 'object' ? c?.nome : null;
+          return (currentPid && cId === currentPid) || (cName && currentName && cName.toLowerCase() === currentName.toLowerCase());
+        });
+
+        if (!alreadyIn) {
+          const allPlayers = this.statsEngine.giocatoriRaw() || [];
+          const playerObj = allPlayers.find((p) => (currentPid && p.id === currentPid) || (p.linkedUid && p.linkedUid === user.uid));
+          if (playerObj) {
+            convocati.push({
+              id: playerObj.id,
+              nome: playerObj.nome,
+              fotoUrl: playerObj.fotoUrl || null,
+              soprannome: playerObj.soprannome || null,
+              soprannomeAi: playerObj.soprannomeAi || null,
+              ruoloPreferito: playerObj.ruoloPreferito || null,
+              piedePreferito: playerObj.piedePreferito || null,
+              selezionato: true,
+              source: 'self',
+            });
+          }
+        }
+
+        rsvpMap[user.uid] = {
+          uid: user.uid,
+          playerId: currentPid || '',
+          playerName: currentName,
+          status: 'confirmed',
+          updatedAt: new Date().toISOString(),
+          respondedVia: 'app',
+        };
+      }
+
+      try {
+        await updateDoc(matchDocRef, {
+          convocati,
+          rsvp: rsvpMap,
+        });
+      } catch (err) {
+        console.warn('Errore sincronizzazione disponibilità -> partita:', err);
+      }
+    }
   }
 
   /**

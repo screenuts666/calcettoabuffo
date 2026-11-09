@@ -13,11 +13,12 @@
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 14px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   box-shadow: var(--app-card-shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -39,16 +40,17 @@
     .avatars-overlap-row {
       display: flex;
       align-items: center;
+      flex-shrink: 0;
 
       .overlap-avatar {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         border: 2px solid var(--app-card-bg);
-        margin-left: -10px;
+        margin-left: -9px;
         overflow: hidden;
         flex-shrink: 0;
-        box-shadow: 0 2px 4px var(--app-overlay-light);
+        box-shadow: 0 1px 3px var(--app-overlay-light);
 
         &:first-child {
           margin-left: 0;
@@ -65,55 +67,44 @@
       }
 
       .overlap-more-badge {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         background: var(--app-surface-subtle);
         border: 2px solid var(--app-card-bg);
         color: var(--app-text-primary);
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         font-weight: 800;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-left: -10px;
+        margin-left: -9px;
         z-index: 6;
       }
     }
 
-    .summary-text {
+    .summary-info-col {
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      gap: 2px;
       min-width: 0;
 
-      .summary-title-line {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-
-        .summary-count {
-          font-size: 0.92rem;
-          font-weight: 800;
-          color: var(--app-text-primary);
-        }
-
-        .summary-format-badge {
-          font-size: 0.68rem;
-          font-weight: 700;
-          color: var(--app-primary);
-          background: var(--app-primary-subtle);
-          padding: 2px 7px;
-          border-radius: 10px;
-          border: 1px solid var(--app-primary-border);
-        }
+      .summary-count {
+        font-size: 0.88rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+        line-height: 1.2;
+        white-space: nowrap;
       }
 
-      .summary-sub {
+      .summary-format-label {
         font-size: 0.72rem;
-        color: var(--app-text-muted);
-        margin-top: 2px;
-        @include text-ellipsis;
+        font-weight: 600;
+        color: var(--app-primary);
+        line-height: 1.2;
+        white-space: nowrap;
+        opacity: 0.95;
       }
     }
   }
@@ -132,7 +123,6 @@
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
-    margin-left: 10px;
 
     &:hover {
       background: var(--app-surface-hover);

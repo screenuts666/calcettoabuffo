@@ -56,37 +56,16 @@
         <span>Oggi</span>
       </button>
 
-      <!-- ZOOM TEMPORALE S | M | A DEDICATO A MISTER E PRESIDENTE -->
+      <!-- ZOOM TEMPORALE AD UNICO PULSANTE CICLICO (S -> M -> A) -->
       @if (canUseZoom()) {
-        <div class="zoom-segmented-control" role="group" aria-label="Scala temporale">
-          <button
-            type="button"
-            class="btn-zoom-segment"
-            [class.active]="viewMode() === 'week'"
-            (click)="setViewMode('week')"
-            title="Vista Settimanale (Votazione)"
-          >
-            S
-          </button>
-          <button
-            type="button"
-            class="btn-zoom-segment"
-            [class.active]="viewMode() === 'month'"
-            (click)="setViewMode('month')"
-            title="Vista Mensile"
-          >
-            M
-          </button>
-          <button
-            type="button"
-            class="btn-zoom-segment"
-            [class.active]="viewMode() === 'year'"
-            (click)="setViewMode('year')"
-            title="Vista Annuale"
-          >
-            A
-          </button>
-        </div>
+        <button
+          type="button"
+          class="btn-zoom-cycle-pill"
+          (click)="cycleZoomView()"
+          [title]="zoomCycleTitle()"
+        >
+          <span class="zoom-pill-letter">{{ zoomCycleLabel() }}</span>
+        </button>
       }
     </div>
   </div>
@@ -231,41 +210,40 @@
                           </div>
                         }
 
-                        <span class="prm-count-text">
-                          @if (day.isPast) {
+                        <div class="prm-status-cell">
+                          @if (day.matches.length > 0) {
+                            <button
+                              type="button"
+                              class="btn-quorum-create-unified match-active"
+                              (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
+                              title="Apri scheda partita ufficiale"
+                            >
+                              <span>⚽ Partita</span>
+                              @if (day.matches[0].orario) {
+                                <span class="match-time-tag">{{ day.matches[0].orario }}</span>
+                              }
+                            </button>
+                          } @else if (day.isPast) {
                             <span class="past-text">Chiuso ({{ day.count }})</span>
                           } @else if (day.isQuorumReached) {
-                            <strong class="quorum-text">{{ day.count }}/10 🟢 QUORUM</strong>
+                            @if (auth.isSuperUser()) {
+                              <button
+                                type="button"
+                                class="btn-quorum-create-unified"
+                                (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                                title="Quorum raggiunto! Clicca per creare la partita con i convocati"
+                              >
+                                <span>⚽ Crea Match ({{ day.count }})</span>
+                              </button>
+                            } @else {
+                              <span class="quorum-badge-chic">🟢 Quorum ({{ day.count }}/10)</span>
+                            }
                           } @else if (day.count > 0) {
-                            <span><strong>{{ day.count }}/10</strong> presenti</span>
+                            <span class="prm-count-text"><strong>{{ day.count }}/10</strong> presenti</span>
                           } @else {
                             <span class="empty-voters">0 presenti</span>
                           }
-                        </span>
-                      </div>
-
-                      <!-- AZIONI CONTESTUALI RIGA INFERIORE (PARTITA GIÀ FISSATA O CREA MISTER SU QUORUM) -->
-                      <div class="prm-bottom-actions" (click)="$event.stopPropagation()">
-                        @if (day.matches.length > 0) {
-                          <button
-                            type="button"
-                            class="btn-row-match-link"
-                            (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
-                            title="Apri scheda partita ufficiale"
-                          >
-                            ⚽ Partita
-                          </button>
-                        } @else if (auth.isSuperUser() && day.isQuorumReached) {
-                          <button
-                            type="button"
-                            class="btn-row-create-match"
-                            (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                            title="Crea partita con tutti i convocati (Quorum raggiunto!)"
-                          >
-                            <ion-icon name="football-outline"></ion-icon>
-                            <span>Crea</span>
-                          </button>
-                        }
+                        </div>
                       </div>
                     </div>
                   </div>

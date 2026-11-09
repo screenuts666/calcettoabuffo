@@ -926,7 +926,8 @@ export class MatchStateService {
         const normStatus = normalizeRsvpStatus(rsvpEntry?.status);
         const saved = savedMap.get(g.id) || savedMap.get(g.nome?.toLowerCase().trim());
 
-        const isSelected = Boolean(saved) || normStatus === 'yes';
+        const isDeclined = normStatus === 'no';
+        const isSelected = !isDeclined && (Boolean(saved) || normStatus === 'yes');
         const isSelf = Boolean(
           (normStatus === 'yes' &&
             (rsvpEntry?.selfRegistered ||
