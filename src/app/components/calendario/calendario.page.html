@@ -115,13 +115,12 @@
             <button
               type="button"
               class="strip-day-pill"
-              [class.active]="focusedWeekDay()?.dateStr === day.dateStr"
+              [class.active]="selectedDateStr() === day.dateStr"
               [class.is-past]="day.isPast"
               [class.is-today]="day.isToday"
               [class.is-top-voted]="day.isTopVoted && !day.isPast"
               [class.has-quorum]="day.isQuorumReached && !day.isPast"
               [class.voted-by-me]="day.isVotedByMe"
-              [class.maybe-by-me]="day.isMaybeByMe"
               (click)="onStripDayClick(day.dateStr)"
             >
               @if (day.isTopVoted && !day.isPast) {
@@ -155,7 +154,6 @@
                   class="pill-my-vote"
                   [class.yes]="day.isVotedByMe"
                   [class.empty]="!day.isVotedByMe"
-                  (click)="toggleVotoPill(day.dateStr, $event)"
                   [title]="day.isVotedByMe ? 'Presente (tocca per togliere)' : 'Tocca per votare presenza'"
                 >
                   {{ day.isVotedByMe ? '✓' : '○' }}
@@ -169,116 +167,6 @@
             </button>
           }
         </div>
-
-        <!-- SCHEDA FOCUS RAPIDA SUL GIORNO SELEZIONATO -->
-        @if (focusedWeekDay(); as day) {
-          <div class="strip-day-focus-card" [class.quorum-card]="day.isQuorumReached && !day.isPast">
-            <!-- HEADER DEL GIORNO IN FOCUS -->
-            <div class="focus-card-header">
-              <div class="focus-day-info">
-                <div class="focus-day-title-row">
-                  <span class="focus-day-title">{{ day.dayLabelFull }}</span>
-                  @if (day.isToday) {
-                    <span class="focus-badge-today">OGGI</span>
-                  }
-                  @if (day.isTopVoted && !day.isPast) {
-                    <span class="focus-badge-top">🔥 Più Scelto</span>
-                  }
-                  @if (day.isQuorumReached && !day.isPast) {
-                    <span class="focus-badge-quorum">⚽ Quorum! ({{ day.formatInfo.label }})</span>
-                  }
-                </div>
-
-                @if (mostraMeteo() && day.weather) {
-                  <div
-                    class="focus-weather-row"
-                    (click)="mostraInfoMeteo(day.weather, day.dayLabelFull, $event)"
-                    title="Tocca per dettagli meteo"
-                  >
-                    <span class="f-emoji">{{ day.weather.iconEmoji }}</span>
-                    <span class="f-desc">{{ day.weather.conditionDescription }} ({{ day.weather.tempMax }}° / {{ day.weather.tempMin }}°)</span>
-                    @if (day.weather.rainProbability > 20) {
-                      <span class="f-rain">💧 {{ day.weather.rainProbability }}%</span>
-                    }
-                  </div>
-                }
-              </div>
-
-              <div class="focus-quorum-indicator" [class.quorum]="day.isQuorumReached && !day.isPast">
-                <strong>{{ day.count }}</strong>
-                <span>/10</span>
-                @if (day.maybeCount > 0) {
-                  <small class="focus-maybe-count">+{{ day.maybeCount }} 🤔</small>
-                }
-              </div>
-            </div>
-
-            @if (partiteByDate().get(day.dateStr); as dayMatches) {
-              @if (dayMatches.length > 0) {
-                @let primaryMatch = dayMatches[0];
-                <div class="focus-match-existing-pill" (click)="apriPartita(primaryMatch.id)" title="Tocca per aprire la scheda partita">
-                  <span class="fmep-tag">⚽ Partita Ufficiale Fissata</span>
-                  <span class="fmep-count">{{ getMatchConvocatiCount(primaryMatch) }} convocati</span>
-                  <ion-icon name="chevron-forward"></ion-icon>
-                </div>
-              }
-            }
-
-            <!-- LISTA ATLETI DISPONIBILI & IN FORSE -->
-            <div class="focus-players-section">
-              @if (day.players.length > 0 || day.maybePlayers.length > 0) {
-                <div class="focus-chips-grid">
-                  @for (p of day.players; track p.id) {
-                    <div class="focus-player-chip confirmed" title="Confermato (Ci sono)">
-                      <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                      <span>⚽ {{ p.nome }}</span>
-                    </div>
-                  }
-                  @for (p of day.maybePlayers; track p.id) {
-                    <div class="focus-player-chip maybe" title="In forse">
-                      <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                      <span>🤔 {{ p.nome }}</span>
-                    </div>
-                  }
-                </div>
-              } @else {
-                <p class="focus-empty-msg">Nessun atleta ha ancora espresso disponibilità per questo giorno.</p>
-              }
-            </div>
-
-            <!-- BOTTONE UNICO VOTO PRESENZA (1 CLICK: PRESENTE / NON PRESENTE) -->
-            @if (auth.isLoggedIn() && !day.isPast) {
-              <div class="focus-actions-bar">
-                <button
-                  type="button"
-                  class="btn-focus-vote-single"
-                  [class.active]="day.isVotedByMe"
-                  (click)="toggleVotoGiorno(day.dateStr)"
-                  [title]="day.isVotedByMe ? 'Tocca per togliere la tua presenza' : 'Tocca per confermare la tua presenza'"
-                >
-                  <ion-icon [name]="day.isVotedByMe ? 'checkmark-circle' : 'radio-button-off'"></ion-icon>
-                  <span class="btn-vote-text">
-                    <span class="btn-vote-main">{{ day.isVotedByMe ? 'Sono presente' : 'Sono presente' }}</span>
-                    <span class="btn-vote-sub">{{ day.isVotedByMe ? '(Tocca per togliere)' : '(1 tap per votare)' }}</span>
-                  </span>
-                </button>
-              </div>
-            }
-
-            <!-- AZIONE CREA/FISSA PARTITA SUPERUSER -->
-            @if (auth.isSuperUser() && !day.isPast) {
-              <button
-                type="button"
-                class="btn-focus-fissa"
-                [class.quorum]="day.isQuorumReached"
-                (click)="fissaPartitaSlot(day.dateStr)"
-              >
-                <ion-icon [name]="day.isQuorumReached ? 'shield-checkmark' : 'football-outline'"></ion-icon>
-                <span>{{ day.isQuorumReached ? 'Fissa Partita Ufficiale (Quorum Raggiunto!)' : (day.count > 0 ? 'Crea Partita (' + day.count + ' convocati subito)' : 'Crea Partita per questo giorno') }}</span>
-              </button>
-            }
-          </div>
-        }
       </div>
     </div>
   }
@@ -574,21 +462,15 @@
         <div class="detail-availability-section">
           <h4 class="sub-section-title">
             <ion-icon name="people-outline"></ion-icon>
-            Disponibilità Giocatori ({{ sel.availablePlayers.length }} confermati@if (sel.maybePlayers.length > 0) {, {{ sel.maybePlayers.length }} in forse})
+            Disponibilità Giocatori ({{ sel.availablePlayers.length }} presenti)
           </h4>
 
-          @if (sel.availablePlayers.length > 0 || sel.maybePlayers.length > 0) {
+          @if (sel.availablePlayers.length > 0) {
             <div class="players-chips-list">
               @for (p of sel.availablePlayers; track p.id) {
                 <div class="player-chip confirmed" title="Confermato (Ci sono)">
                   <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                   <span>⚽ {{ p.nome }}</span>
-                </div>
-              }
-              @for (p of sel.maybePlayers; track p.id) {
-                <div class="player-chip maybe" title="In forse">
-                  <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
-                  <span>🤔 {{ p.nome }}</span>
                 </div>
               }
             </div>
@@ -620,14 +502,13 @@
             type="button"
             class="btn-detail-create-match"
             (click)="fissaPartitaSlot(sel.dateStr)"
+            title="Crea partita ufficiale con convocati pre-caricati"
           >
             <ion-icon name="football-outline"></ion-icon>
-            <span>
-              Crea Partita per {{ sel.dateFormatted }}
-              @if (sel.availablePlayers.length > 0) {
-                ({{ sel.availablePlayers.length }} convocati subito)
-              }
-            </span>
+            <span class="btn-create-label">Crea Partita Ufficiale</span>
+            @if (sel.availablePlayers.length > 0) {
+              <span class="btn-create-badge">{{ sel.availablePlayers.length }} convocati</span>
+            }
           </button>
         </div>
       }

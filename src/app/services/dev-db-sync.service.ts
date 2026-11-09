@@ -8,6 +8,7 @@ import {
   writeBatch,
   doc,
   DocumentData,
+  setLogLevel,
 } from 'firebase/firestore';
 import { environment } from 'src/environments/environment';
 import { environment as prodEnvironment } from 'src/environments/environment.prod';
@@ -83,6 +84,9 @@ export class DevDbSyncService {
 
     this.isSyncing.set(true);
     this.progressMessage.set('Connessione in sola lettura a PROD...');
+
+    // Silenzia i warning interni non critici di Firebase (es. BloomFilter warning) durante la sincronizzazione
+    setLogLevel('error');
 
     let tempProdApp: FirebaseApp | null = null;
 

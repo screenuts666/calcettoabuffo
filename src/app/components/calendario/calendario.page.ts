@@ -357,8 +357,10 @@ export class CalendarioPage implements OnInit {
     };
   }
 
-  selezionaGiorno(cell: CalendarDayCell) {
-    this.selectedDateStr.set(cell.dateStr);
+  selezionaGiorno(cellOrDateStr: CalendarDayCell | string) {
+    const dateStr =
+      typeof cellOrDateStr === 'string' ? cellOrDateStr : cellOrDateStr.dateStr;
+    this.selectedDateStr.set(dateStr);
   }
 
   // Dettaglio del giorno selezionato
@@ -538,27 +540,16 @@ export class CalendarioPage implements OnInit {
   }
 
   /**
-   * Click sulla pillola del giorno nella striscia a 7 giorni:
-   * - Se non è ancora in focus: la mette in focus per mostrare atleti, meteo e azioni
-   * - Se è già in focus: toggle rapido 1-tap del voto (presente / non presente come un sondaggio)
+   * Click rapido a 1-tap sulla pillola della settimana:
+   * - Seleziona il giorno nel calendario/dettaglio sottostante
+   * - Vota/deseleziona la presenza istantaneamente come in un sondaggio
    */
   onStripDayClick(dateStr: string): void {
-    const current = this.focusedWeekDay()?.dateStr;
+    this.selezionaGiorno(dateStr);
     const todayStr = getLocalIsoDate();
-    if (current === dateStr && this.auth.isLoggedIn() && dateStr >= todayStr) {
+    if (this.auth.isLoggedIn() && dateStr >= todayStr) {
       this.toggleVotoGiorno(dateStr);
-      return;
     }
-    this.selezionaGiornoSettimana(dateStr);
-  }
-
-  /**
-   * Voto diretto 1-tap toccando il badge/cerchio sulla pillola settimanale
-   */
-  toggleVotoPill(dateStr: string, event: Event): void {
-    event.stopPropagation();
-    this.selezionaGiornoSettimana(dateStr);
-    this.toggleVotoGiorno(dateStr);
   }
 
   /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */

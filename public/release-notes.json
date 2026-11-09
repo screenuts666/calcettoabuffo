@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.43",
+    "date": "09/11/2026",
+    "title": "Striscia Settimanale Ultra-Snella & Redesign Pulsante Crea Partita",
+    "userChanges": [
+      "⚡ Striscia Settimanale Ultra-Snella: rimossa la scheda ingombrante sotto i 7 giorni; ora votare è un gesto istantaneo: tocchi qualsiasi giorno nella striscia ed esprimi o togli la presenza al volo con 1 tap.",
+      "✨ Redesign Pulsante 'Crea Partita Ufficiale': riprogettato con grafica moderna con angoli arrotondati, gradienti smeraldo e badge convocati compatto.",
+      "🛡️ Silenziamento Log Interni: integrato setLogLevel('error') durante la clonazione da PROD a DEV per prevenire falsi allarmi del BloomFilter di Firebase."
+    ],
+    "superUserChanges": [
+      "🎨 Correzione Gerarchia SCSS: spostato .detail-superuser-action-bar a livello radice di .day-detail-panel per garantire il perfetto caricamento degli stili visivi.",
+      "🚀 Ottimizzazione Bundle CSS: rimossi oltre 300 righe di SCSS ridondante, bundle calendario ridotto del 20% ed eliminati tutti i warning di budget."
+    ]
+  },
+  {
     "version": "2.0.42",
     "date": "09/11/2026",
     "title": "Sondaggio Presenze Settimanali a 1 Click & Sollecito WhatsApp Minimale",
