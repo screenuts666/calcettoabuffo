@@ -10,6 +10,8 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   sparkles,
+  sparklesOutline,
+  rocketOutline,
   closeOutline,
   shieldCheckmark,
   peopleOutline,
@@ -41,7 +43,7 @@ export class ReleaseNotesComponent {
   deltaEntries = computed<ReleaseNoteEntry[]>(() => {
     return getReleaseNotesDelta(
       this.appUpdate.updatedFromVersion(),
-      this.appUpdate.version
+      this.appUpdate.version,
     );
   });
 
@@ -59,12 +61,22 @@ export class ReleaseNotesComponent {
   constructor() {
     addIcons({
       sparkles,
+      sparklesOutline,
+      rocketOutline,
       closeOutline,
       shieldCheckmark,
       peopleOutline,
       timeOutline,
       checkmarkCircleOutline,
     });
+  }
+
+  getUserChangesForEntry(entry: ReleaseNoteEntry): string[] {
+    if (this.authService.isSuperUser()) {
+      return entry.userChanges;
+    }
+    // Per l'utente semplice (Atleta), massimo 2-3 bullet point sintetici
+    return entry.userChanges.slice(0, 3);
   }
 
   openModal(): void {
@@ -85,4 +97,3 @@ export class ReleaseNotesComponent {
     this.showFullHistory.update((v) => !v);
   }
 }
-

@@ -98,8 +98,11 @@ export class MatchStateService {
   public syncStatus = inject(SyncStatusService);
   public soundSettings = inject(SoundSettingsService, { optional: true });
   public campiService = inject(CampiService, { optional: true });
-  private auth = inject(AuthService);
+  public auth = inject(AuthService);
   private injector = inject(EnvironmentInjector);
+
+  readonly canManageMatch = computed<boolean>(() => this.auth.isSuperUser());
+  readonly isAdminOrMister = computed<boolean>(() => this.auth.isSuperUser());
 
   matchId = signal<string | null>(null);
   matchDataOriginale: MatchDetailState | null = null;
@@ -740,6 +743,13 @@ export class MatchStateService {
       evento: nuovoEvento,
       portiereSubitoNome: portiereSubito?.nome || null,
     };
+  }
+
+  async annullaUltimoGolGenerale(): Promise<EventoGol | null> {
+    const list = this.eventiGol();
+    if (list.length === 0) return null;
+    const ultimo = list[list.length - 1];
+    return this.annullaUltimoGolSquadra(ultimo.teamVantaggio);
   }
 
   async annullaUltimoGolSquadra(team: 'A' | 'B'): Promise<EventoGol | null> {

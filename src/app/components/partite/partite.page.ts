@@ -70,6 +70,12 @@ import {
   star,
   flash,
   flame,
+  flashOutline,
+  flameOutline,
+  micOutline,
+  sparklesOutline,
+  shieldOutline,
+  play,
   trophy,
   searchOutline,
   swapVerticalOutline,
@@ -223,11 +229,14 @@ export class PartitePage {
     );
   });
 
-  getMeteoPartita(m: any): { emoji: string; temp: string; label: string; tooltip: string } | null {
+  getMeteoPartita(
+    m: any,
+  ): { emoji: string; temp: string; label: string; tooltip: string } | null {
     if (!m?.dataPartita) return null;
     const w = this.weatherService.getWeatherForDate(m.dataPartita, m.meteo);
     if (!w) return null;
-    const emoji = (w.iconEmoji && !w.iconEmoji.includes('🌫')) ? w.iconEmoji : '🌁';
+    const emoji =
+      w.iconEmoji && !w.iconEmoji.includes('🌫') ? w.iconEmoji : '🌁';
     return {
       emoji,
       temp: `${w.tempMax}°`,
@@ -278,7 +287,8 @@ export class PartitePage {
     let d = (m.dataPartita || '').split('T')[0].trim();
     if (d.includes('/')) {
       const parts = d.split('/');
-      if (parts.length === 3) d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      if (parts.length === 3)
+        d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
     const today = new Date().toISOString().split('T')[0];
     return d === today;
@@ -289,7 +299,8 @@ export class PartitePage {
     let d = (m.dataPartita || '').split('T')[0].trim();
     if (d.includes('/')) {
       const parts = d.split('/');
-      if (parts.length === 3) d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      if (parts.length === 3)
+        d = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -400,10 +411,12 @@ export class PartitePage {
 
     const totaleMinuti = Math.round(totaleSecondi / 60);
     const ritmoGolAlMinuto =
-      totaleSecondi > 0 ? (totaleGol / (totaleSecondi / 60)).toFixed(2) : '0.00';
+      totaleSecondi > 0
+        ? (totaleGol / (totaleSecondi / 60)).toFixed(2)
+        : '0.00';
     const minutiPerGol =
       totaleGol > 0 && totaleSecondi > 0
-        ? ((totaleSecondi / 60) / totaleGol).toFixed(1)
+        ? (totaleSecondi / 60 / totaleGol).toFixed(1)
         : '-';
 
     const golTooltip =
@@ -467,7 +480,7 @@ export class PartitePage {
     q: string,
     campetto: string,
     filtroMeteo: string,
-    filtroFormato: string
+    filtroFormato: string,
   ): boolean {
     // 1. Filtro esplicito Campetto
     if (campetto !== 'all') {
@@ -479,7 +492,11 @@ export class PartitePage {
     // 2. Filtro esplicito Formato
     if (filtroFormato !== 'all') {
       const fLabel = this.getFormatoLabel(m).toLowerCase();
-      if (filtroFormato === 'calcetto' && !fLabel.includes('5') && !fLabel.includes('calcetto')) {
+      if (
+        filtroFormato === 'calcetto' &&
+        !fLabel.includes('5') &&
+        !fLabel.includes('calcetto')
+      ) {
         return false;
       }
       if (filtroFormato === 'calcio_a_6' && !fLabel.includes('6')) {
@@ -497,13 +514,20 @@ export class PartitePage {
     // 4. Filtro esplicito Meteo
     if (filtroMeteo !== 'all') {
       if (filtroMeteo === 'pioggia') {
-        const isRainy = condLower.includes('piogg') || condLower.includes('rovesc') || condLower.includes('temporale');
+        const isRainy =
+          condLower.includes('piogg') ||
+          condLower.includes('rovesc') ||
+          condLower.includes('temporale');
         if (!isRainy) return false;
       } else if (filtroMeteo === 'nuvoloso') {
-        const isCloudy = condLower.includes('nuvol') || condLower.includes('copert') || condLower.includes('variabile');
+        const isCloudy =
+          condLower.includes('nuvol') ||
+          condLower.includes('copert') ||
+          condLower.includes('variabile');
         if (!isCloudy) return false;
       } else if (filtroMeteo === 'sereno') {
-        const isSunny = condLower.includes('seren') || condLower.includes('sole');
+        const isSunny =
+          condLower.includes('seren') || condLower.includes('sole');
         if (!isSunny) return false;
       }
     }
@@ -521,12 +545,34 @@ export class PartitePage {
       const day = parts[2];
 
       const mesiItaliani = [
-        '', 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
-        'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'
+        '',
+        'gennaio',
+        'febbraio',
+        'marzo',
+        'aprile',
+        'maggio',
+        'giugno',
+        'luglio',
+        'agosto',
+        'settembre',
+        'ottobre',
+        'novembre',
+        'dicembre',
       ];
       const mesiShort = [
-        '', 'gen', 'feb', 'mar', 'apr', 'mag', 'giu',
-        'lug', 'ago', 'set', 'ott', 'nov', 'dic'
+        '',
+        'gen',
+        'feb',
+        'mar',
+        'apr',
+        'mag',
+        'giu',
+        'lug',
+        'ago',
+        'set',
+        'ott',
+        'nov',
+        'dic',
       ];
 
       const nomeMese = mesiItaliani[monthNum] || '';
@@ -547,19 +593,29 @@ export class PartitePage {
     // B. Match Condizioni Meteo
     const matchMeteoSearch =
       condLower.includes(q) ||
-      (q.includes('piogg') && (condLower.includes('piogg') || condLower.includes('rovesc') || condLower.includes('temporale'))) ||
-      (q.includes('seren') && (condLower.includes('seren') || condLower.includes('sole'))) ||
-      (q.includes('nuvol') && (condLower.includes('nuvol') || condLower.includes('copert') || condLower.includes('variabile'))) ||
+      (q.includes('piogg') &&
+        (condLower.includes('piogg') ||
+          condLower.includes('rovesc') ||
+          condLower.includes('temporale'))) ||
+      (q.includes('seren') &&
+        (condLower.includes('seren') || condLower.includes('sole'))) ||
+      (q.includes('nuvol') &&
+        (condLower.includes('nuvol') ||
+          condLower.includes('copert') ||
+          condLower.includes('variabile'))) ||
       (q.includes('tempor') && condLower.includes('tempor')) ||
       (q.includes('vento') && condLower.includes('vento')) ||
-      (q.includes('fredd') && (meteo.tempMax <= 13 || condLower.includes('fredd'))) ||
-      (q.includes('cald') && (meteo.tempMax >= 26 || condLower.includes('cald')));
+      (q.includes('fredd') &&
+        (meteo.tempMax <= 13 || condLower.includes('fredd'))) ||
+      (q.includes('cald') &&
+        (meteo.tempMax >= 26 || condLower.includes('cald')));
 
     // C. Match Formato
     const fLabel = this.getFormatoLabel(m).toLowerCase();
     const matchFormatoSearch =
       fLabel.includes(q) ||
-      (q === 'calcetto' && (fLabel.includes('5') || fLabel.includes('calcetto'))) ||
+      (q === 'calcetto' &&
+        (fLabel.includes('5') || fLabel.includes('calcetto'))) ||
       (q.includes('calcio a 5') && fLabel.includes('5')) ||
       (q.includes('calcio a 6') && fLabel.includes('6')) ||
       (q.includes('calcio a 7') && fLabel.includes('7')) ||
@@ -575,7 +631,9 @@ export class PartitePage {
       ...(m.teamA || []),
       ...(m.teamB || []),
       ...(m.convocati || []),
-    ].some((p: any) => (p.nome || p.soprannome || '').toLowerCase().includes(q));
+    ].some((p: any) =>
+      (p.nome || p.soprannome || '').toLowerCase().includes(q),
+    );
 
     const matchScorer = (m.eventiGol || []).some(
       (e: any) =>
@@ -696,7 +754,9 @@ export class PartitePage {
     const ff = this.filtroFormato();
 
     // Filtra per testo, campetto, meteo e formato
-    let list = base.filter((m: any) => this.matchSoddisfaFiltri(m, q, c, fm, ff));
+    let list = base.filter((m: any) =>
+      this.matchSoddisfaFiltri(m, q, c, fm, ff),
+    );
 
     // Ordinamento in base al criterio selezionato
     const criterio = this.criterioOrdinamento();
@@ -778,6 +838,12 @@ export class PartitePage {
       footballOutline,
       flame,
       flash,
+      flameOutline,
+      flashOutline,
+      micOutline,
+      sparklesOutline,
+      shieldOutline,
+      play,
       timeOutline,
       star,
       searchOutline,

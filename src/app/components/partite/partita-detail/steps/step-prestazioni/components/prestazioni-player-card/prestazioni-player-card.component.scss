@@ -41,25 +41,25 @@
 
         .player-name {
           margin: 0;
-          font-size: 0.88rem;
-          font-weight: 800;
+          font-size: 15px;
+          font-weight: 700;
           color: var(--app-text-primary);
           @include text-ellipsis;
         }
 
         .goal-pill {
           @include pill-badge(var(--app-primary-subtle), var(--app-primary));
-          padding: 1px 5px;
-          border-radius: 5px;
-          font-size: 0.68rem;
-          gap: 2px;
+          padding: 2px 6px;
+          border-radius: 6px;
+          font-size: 12px;
+          gap: 3px;
         }
 
         .assist-pill {
           @include pill-badge(var(--app-player1-subtle), var(--app-player1), var(--app-player1-border));
-          padding: 1px 6px;
-          border-radius: 5px;
-          font-size: 0.68rem;
+          padding: 2px 7px;
+          border-radius: 6px;
+          font-size: 12px;
 
           &.clickable {
             cursor: pointer;
@@ -75,10 +75,10 @@
           background: transparent;
           border: 1px dashed var(--app-player1-border);
           color: var(--app-player1);
-          border-radius: 4px;
-          font-size: 0.65rem;
+          border-radius: 6px;
+          font-size: 12px;
           font-weight: 700;
-          padding: 0 4px;
+          padding: 2px 6px;
           cursor: pointer;
           @include btn-press;
           &:hover {
@@ -89,29 +89,33 @@
 
         .autogol-pill {
           @include pill-badge(var(--app-accent-danger-subtle), var(--app-accent-danger));
-          padding: 1px 5px;
-          border-radius: 5px;
-          font-size: 0.68rem;
+          padding: 2px 6px;
+          border-radius: 6px;
+          font-size: 12px;
         }
 
         .crown-mini-badge {
           @include pill-badge(var(--app-accent-gold-subtle), var(--app-accent-gold));
-          font-size: 0.65rem;
-          font-weight: 900;
-          padding: 1px 5px;
-          border-radius: 5px;
+          font-size: 12px;
+          font-weight: 800;
+          padding: 2px 6px;
+          border-radius: 6px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
         }
       }
 
       .player-deltas-row {
         display: flex;
-        gap: 5px;
+        gap: 6px;
+        margin-top: 2px;
 
         .player-delta-badge {
-          font-size: 0.65rem;
+          font-size: 12px;
           font-weight: 700;
-          padding: 1px 5px;
-          border-radius: 4px;
+          padding: 2px 6px;
+          border-radius: 6px;
 
           &.mmr-badge {
             background: var(--app-surface-subtle);
@@ -134,13 +138,13 @@
       @include flex-col;
       align-items: center;
       flex-shrink: 0;
-      width: 52px;
+      width: 56px;
 
       .rating-input, .rating-badge-box {
-        width: 52px;
-        min-width: 52px;
-        height: 34px;
-        font-size: 1.02rem;
+        width: 56px;
+        min-width: 56px;
+        height: 38px;
+        font-size: 16px;
         font-weight: 800;
         text-align: center;
         border-radius: 8px;
@@ -169,7 +173,7 @@
 
       .rating-input {
         display: block;
-        line-height: 32px;
+        line-height: 36px;
         -moz-appearance: textfield;
         appearance: textfield;
 
@@ -187,7 +191,7 @@
       }
 
       .rating-sub-label {
-        font-size: 0.58rem;
+        font-size: 12px;
         font-weight: 800;
         letter-spacing: 0.5px;
         color: var(--app-text-secondary);

@@ -22,12 +22,16 @@ import {
   copyOutline,
   logoWhatsapp,
   checkmarkCircle,
+  checkmarkCircleOutline,
+  closeCircleOutline,
   checkmarkDoneCircle,
   helpCircle,
+  helpCircleOutline,
   shieldCheckmarkOutline,
   personAddOutline,
   linkOutline,
   paperPlaneOutline,
+  peopleOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -122,18 +126,22 @@ export class StepConvocatiComponent {
   constructor() {
     addIcons({
       closeCircle,
+      closeCircleOutline,
       search,
       flashOutline,
       shareSocialOutline,
       copyOutline,
       logoWhatsapp,
       checkmarkCircle,
+      checkmarkCircleOutline,
       checkmarkDoneCircle,
       helpCircle,
+      helpCircleOutline,
       shieldCheckmarkOutline,
       personAddOutline,
       linkOutline,
       paperPlaneOutline,
+      peopleOutline,
     });
   }
 
@@ -183,7 +191,7 @@ export class StepConvocatiComponent {
    * Risposta Auto-RSVP del giocatore loggato ('yes' = Partecipo, 'maybe' = Forse, 'no' = Non partecipo).
    * Modificabile in qualsiasi momento finché la partita è nello step 'convocati'.
    */
-  async toggleMioRsvp(target: 'yes' | 'maybe'): Promise<void> {
+  async toggleMioRsvp(target: 'yes' | 'no'): Promise<void> {
     const current = this.myRsvpStatus();
     if (current === target) {
       await this.impostaMioRsvp('no');
@@ -195,7 +203,7 @@ export class StepConvocatiComponent {
   getMaybeNamesShort(): string {
     const list = this.maybePlayers();
     if (list.length === 0) return '';
-    const names = list.map((p) => p.nome);
+    const names = list.map((p) => p.soprannome || p.nome);
     if (names.length <= 3) return names.join(', ');
     return `${names.slice(0, 3).join(', ')} e altri ${names.length - 3}`;
   }
@@ -203,7 +211,7 @@ export class StepConvocatiComponent {
   sollecitaForseWhatsApp(): void {
     const forse = this.maybePlayers();
     if (forse.length === 0) return;
-    const names = forse.map((p) => p.nome).join(', ');
+    const names = forse.map((p) => p.soprannome || p.nome).join(', ');
     const dataFmt = this.state.dataPartita() || 'la prossima gara';
     const orario = this.state.orario() ? ` alle ${this.state.orario()}` : '';
     const mId = this.state.matchId();
@@ -237,10 +245,9 @@ export class StepConvocatiComponent {
     try {
       await this.state.submitSelfRsvp(status);
       const messages: Record<'yes' | 'maybe' | 'no', string> = {
-        yes: '✅ Presenza confermata! Sei stato aggiunto ai convocati.',
-        maybe:
-          '🤔 Risposta impostata su "Forse". Puoi confermare quando vuoi!',
-        no: '↺ Presenza rimossa dai convocati.',
+        yes: 'Presenza confermata! Sei in lista convocati.',
+        maybe: 'Risposta impostata su In Forse.',
+        no: 'Presenza rimossa dai convocati.',
       };
       const colors: Record<
         'yes' | 'maybe' | 'no',

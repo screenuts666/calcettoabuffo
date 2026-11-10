@@ -6,6 +6,7 @@ import {
   IonInput,
   IonTextarea,
   IonSpinner,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -26,12 +27,19 @@ import {
   searchOutline,
   openOutline,
   mapOutline,
+  shieldOutline,
+  repeatOutline,
+  optionsOutline,
+  footballOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { CampiService } from '../../../../../services/campi.service';
 import { WeatherService } from '../../../../../services/weather.service';
+import { AuthService } from '../../../../../services/auth.service';
 import { CampoDaGioco } from '../../../../../models/campo.model';
-import { getMatchFormatByPlayerCount } from '../../../../../models/partita.model';
+import { getMatchFormatByPlayerCount, normalizeRsvpStatus } from '../../../../../models/partita.model';
 import {
   MIN_CURRENT_SEASON_DATE,
   CURRENT_SEASON,
@@ -62,6 +70,31 @@ export class StepDettagliComponent {
   public state = inject(MatchStateService);
   public campiService = inject(CampiService);
   public weatherService = inject(WeatherService);
+  public auth = inject(AuthService);
+  private toastCtrl = inject(ToastController);
+
+  get isAdmin(): boolean {
+    return this.auth.isSuperUser();
+  }
+
+  isSavingRsvp = signal<boolean>(false);
+
+  /** Stato RSVP attuale del giocatore loggato ('yes' | 'maybe' | 'no' | null) */
+  readonly myRsvpStatus = computed<'yes' | 'maybe' | 'no' | null>(() => {
+    const uid = this.auth.firebaseUser()?.uid;
+    const pid = this.auth.linkedPlayerId();
+    const map = this.state.rsvp() || {};
+    if (uid && map[uid]) {
+      return normalizeRsvpStatus(map[uid].status);
+    }
+    if (pid) {
+      const byPid = Object.values(map).find((e) => e?.playerId === pid);
+      if (byPid) return normalizeRsvpStatus(byPid.status);
+      const inTutti = this.state.tutti().find((g) => g.id === pid);
+      if (inTutti?.rsvpStatus) return inTutti.rsvpStatus;
+    }
+    return null;
+  });
 
   readonly meteoForecast = computed(() => {
     const d = this.state.dataPartita();
@@ -108,7 +141,106 @@ export class StepDettagliComponent {
       searchOutline,
       openOutline,
       mapOutline,
+      shieldOutline,
+      repeatOutline,
+      optionsOutline,
+      footballOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
     });
+  }
+
+  getRegolePortieriLabel(): string {
+    const modA = this.state.modalitaPortieriA();
+    const modB = this.state.modalitaPortieriB();
+    const turno = this.state.durataTurnoMinuti();
+
+    if (modA === 'rotazione' && modB === 'rotazione') {
+      return `Portieri a rotazione ogni ${turno}'`;
+    }
+    if (modA === 'fisso' && modB === 'fisso') {
+      return 'Portieri fissi di ruolo';
+    }
+    const labelA = modA === 'fisso' ? 'Fisso' : `Rotazione ${turno}'`;
+    const labelB = modB === 'fisso' ? 'Fisso' : `Rotazione ${turno}'`;
+    return `Bianchi: ${labelA} · Neri: ${labelB}`;
+  }
+
+  impostaModalitaEntrambe(modalita: 'rotazione' | 'fisso') {
+    this.state.impostaModalitaPortiere('A', modalita);
+    this.state.impostaModalitaPortiere('B', modalita);
+    this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave(true);
+  }
+
+  toggleModalitaMiste() {
+    // Se non sono già miste, imposta A fisso e B rotazione
+    if (this.state.modalitaPortieriA() === this.state.modalitaPortieriB()) {
+      this.state.impostaModalitaPortiere('A', 'fisso');
+      this.state.impostaModalitaPortiere('B', 'rotazione');
+    } else {
+      // Inverte
+      const nextA = this.state.modalitaPortieriA() === 'fisso' ? 'rotazione' : 'fisso';
+      const nextB = this.state.modalitaPortieriB() === 'fisso' ? 'rotazione' : 'fisso';
+      this.state.impostaModalitaPortiere('A', nextA);
+      this.state.impostaModalitaPortiere('B', nextB);
+    }
+    this.state.salvaSetupPredefinito();
+    this.state.triggerAutoSave(true);
+  }
+
+  async toggleMioRsvp(target: 'yes' | 'no') {
+    const curr = this.myRsvpStatus();
+    const next = curr === target ? 'no' : target;
+    await this.impostaMioRsvp(next);
+  }
+
+  async impostaMioRsvp(status: 'yes' | 'no') {
+    if (this.isSavingRsvp()) return;
+
+    if (!this.state.matchId() && this.isAdmin) {
+      await this.state.ensureMatchCreatedForInvite();
+    }
+
+    if (!this.state.matchId()) {
+      const toast = await this.toastCtrl.create({
+        message: 'La partita deve essere salvata dal Mister prima di rispondere.',
+        duration: 2500,
+        color: 'warning',
+        position: 'top',
+        mode: 'ios',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.isSavingRsvp.set(true);
+    try {
+      await this.state.submitSelfRsvp(status);
+      const msg = status === 'yes'
+        ? 'Presenza confermata! Sei in lista convocati.'
+        : 'Presenza rimossa dai convocati.';
+      const toast = await this.toastCtrl.create({
+        message: msg,
+        duration: 2200,
+        color: status === 'yes' ? 'success' : 'medium',
+        position: 'bottom',
+        mode: 'ios',
+      });
+      await toast.present();
+    } catch (err: any) {
+      console.warn('Errore auto-RSVP:', err);
+      const toast = await this.toastCtrl.create({
+        message: err?.message || 'Errore nel salvataggio della presenza',
+        duration: 2500,
+        color: 'danger',
+        position: 'bottom',
+        mode: 'ios',
+      });
+      await toast.present();
+    } finally {
+      this.isSavingRsvp.set(false);
+    }
   }
 
   formatFormatoPartita(): string {

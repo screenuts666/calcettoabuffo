@@ -180,6 +180,10 @@ export interface ReleaseNoteEntry {
   userChanges: string[];
   /** Novità visibili solo in modalità Super User / Admin */
   superUserChanges: string[];
+  /** Se true, l'aggiornamento è una major release con banner anche per utenti semplici */
+  isMajor?: boolean;
+  /** Target delle note: 'all' | 'admin' */
+  target?: 'all' | 'admin';
 }
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = ${JSON.stringify(

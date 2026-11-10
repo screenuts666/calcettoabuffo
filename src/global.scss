@@ -4,7 +4,7 @@
  */
 
 /* Custom Theme Tokens & Mixins */
-@use './theme' as *;
+@use "./theme" as *;
 
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
@@ -23,14 +23,16 @@
 @import "@ionic/angular/css/flex-utils.css";
 
 /* Ionic Dark Mode (Class-based per pieno controllo con selettore) */
-@import '@ionic/angular/css/palettes/dark.class.css';
+@import "@ionic/angular/css/palettes/dark.class.css";
 
 /* =============================================================================
  * UNIFORM THEME OVERRIDES (No Color Clashing in Any Mode)
  * ============================================================================= */
 html,
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
   background-color: var(--app-bg) !important;
   color: var(--app-text-primary) !important;
 }
@@ -151,7 +153,9 @@ ion-toolbar {
     --color: var(--app-text-primary);
     color: var(--app-text-primary);
     font-weight: 600;
-    transition: color 0.15s ease, opacity 0.15s ease;
+    transition:
+      color 0.15s ease,
+      opacity 0.15s ease;
 
     &:hover,
     &:active {
@@ -164,7 +168,9 @@ ion-toolbar {
     --color: var(--app-text-primary);
     color: var(--app-text-primary);
     font-weight: 600;
-    transition: color 0.15s ease, opacity 0.15s ease;
+    transition:
+      color 0.15s ease,
+      opacity 0.15s ease;
 
     &:hover,
     &:active {
@@ -292,7 +298,6 @@ ion-picker {
 }
 
 [aria-checked="true"] {
-
   .alert-radio-label,
   .alert-checkbox-label {
     color: var(--app-primary) !important;
@@ -405,9 +410,6 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
-
-
-
 
 /* =============================================================================
  * ALERT STATO SINCRONIZZAZIONE (Modalità Popup pulito senza raw HTML)
@@ -523,4 +525,36 @@ ion-alert.voters-detail-alert {
     color: #10b981;
     font-weight: 800;
   }
+}
+
+/* =============================================================================
+ * MOBILE-FIRST TYPOGRAPHY & TOUCH TARGET ENFORCEMENT (Standard HIG / Material 3)
+ * ============================================================================= */
+// Floor minimo assoluto per qualsiasi elemento tipografico: nessun testo < 12px (0.75rem)
+small,
+.micro-badge,
+.tag,
+.badge,
+.meta-text,
+.pill,
+.sub-text {
+  font-size: max(12px, var(--app-font-floor, 12px));
+}
+
+// Touch targets minimi: ogni pulsante e area cliccabile deve garantire almeno 44x44px di tocco
+button:not(.inline-chip):not(.mini-tag),
+ion-button,
+.touch-target-min,
+.interactive-row,
+.clickable-card {
+  min-height: var(--app-min-touch-target, 44px);
+}
+
+// Prevenzione tap lag & zooming incontrollato su input mobile
+input,
+select,
+textarea,
+ion-input,
+ion-textarea {
+  font-size: max(15px, var(--app-font-base, 15.5px)) !important;
 }

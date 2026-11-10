@@ -2,6 +2,11 @@ import { Injectable, inject, signal, isDevMode } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 import { ToastController } from '@ionic/angular/standalone';
 import { APP_VERSION_INFO } from 'src/environments/version';
+import { AuthService } from './auth.service';
+import {
+  RELEASE_NOTES_HISTORY,
+  getReleaseNotesDelta,
+} from '../models/release-notes.model';
 
 export interface ServerVersionPayload {
   version: string;
@@ -34,6 +39,7 @@ const PRESERVED_LOCAL_STORAGE_PREFIXES = [
 export class AppUpdateService {
   private swUpdate = inject(SwUpdate);
   private toastCtrl = inject(ToastController);
+  private authService = inject(AuthService);
 
   readonly version: string = APP_VERSION_INFO.version;
   readonly buildId: string = APP_VERSION_INFO.buildId;
@@ -80,7 +86,7 @@ export class AppUpdateService {
             });
         } else if (evt.type === 'VERSION_INSTALLATION_FAILED') {
           console.warn(
-            '[AppUpdate] Installazione SW fallita, avvio pulizia profonda cache...'
+            '[AppUpdate] Installazione SW fallita, avvio pulizia profonda cache...',
           );
           this.forcePurgeAndReload(undefined, undefined, false);
         }
@@ -88,7 +94,7 @@ export class AppUpdateService {
 
       this.swUpdate.unrecoverable.subscribe(() => {
         console.warn(
-          '[AppUpdate] Stato Service Worker irrecuperabile, avvio pulizia profonda...'
+          '[AppUpdate] Stato Service Worker irrecuperabile, avvio pulizia profonda...',
         );
         this.forcePurgeAndReload(undefined, undefined, false);
       });
@@ -98,9 +104,12 @@ export class AppUpdateService {
     if (!isDevMode()) {
       this.checkForNewVersion(false);
 
-      this.checkIntervalId = setInterval(() => {
-        this.checkForNewVersion(false);
-      }, 2 * 60 * 1000);
+      this.checkIntervalId = setInterval(
+        () => {
+          this.checkForNewVersion(false);
+        },
+        2 * 60 * 1000,
+      );
 
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -197,7 +206,7 @@ export class AppUpdateService {
 
       if (remote.buildId !== this.buildId) {
         console.log(
-          `[AppUpdate] Nuova versione rilevata sul server: ${remote.version} (${remote.buildId}) vs locale ${this.version} (${this.buildId})`
+          `[AppUpdate] Nuova versione rilevata sul server: ${remote.version} (${remote.buildId}) vs locale ${this.version} (${this.buildId})`,
         );
         await this.forcePurgeAndReload(remote.buildId, remote.version, manual);
         return true;
@@ -233,7 +242,7 @@ export class AppUpdateService {
   async forcePurgeAndReload(
     targetBuildId: string = this.buildId,
     targetVersion: string = this.version,
-    manual = false
+    manual = false,
   ): Promise<void> {
     if (typeof window === 'undefined' || this.isUpdating()) {
       return;
@@ -241,7 +250,7 @@ export class AppUpdateService {
 
     if (!manual && this.hasRecentlyReloadedFor(targetBuildId)) {
       console.warn(
-        `[AppUpdate] Reload già eseguito di recente per ${targetBuildId}, salto per sicurezza anti-loop.`
+        `[AppUpdate] Reload già eseguito di recente per ${targetBuildId}, salto per sicurezza anti-loop.`,
       );
       return;
     }
@@ -277,7 +286,7 @@ export class AppUpdateService {
     const cleanUrl = this.getCleanUrlWithoutCacheBuster();
     const separator = cleanUrl.includes('?') ? '&' : '?';
     const bustedUrl = `${cleanUrl}${separator}_v=${encodeURIComponent(
-      targetBuildId
+      targetBuildId,
     )}_${Date.now()}`;
 
     window.location.replace(bustedUrl);
@@ -294,9 +303,7 @@ export class AppUpdateService {
       '',
       hostname,
       `.${hostname}`,
-      domainParts.length >= 2
-        ? `.${domainParts.slice(-2).join('.')}`
-        : '',
+      domainParts.length >= 2 ? `.${domainParts.slice(-2).join('.')}` : '',
     ].filter(Boolean);
 
     for (const cookie of cookies) {
@@ -312,16 +319,13 @@ export class AppUpdateService {
   }
 
   private async unregisterAllServiceWorkers(): Promise<void> {
-    if (
-      typeof navigator === 'undefined' ||
-      !('serviceWorker' in navigator)
-    ) {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
       return;
     }
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
-        registrations.map((reg) => reg.unregister().catch(() => false))
+        registrations.map((reg) => reg.unregister().catch(() => false)),
       );
     } catch {
       // Ignora
@@ -335,7 +339,7 @@ export class AppUpdateService {
     try {
       const keys = await window.caches.keys();
       await Promise.all(
-        keys.map((key) => window.caches.delete(key).catch(() => false))
+        keys.map((key) => window.caches.delete(key).catch(() => false)),
       );
     } catch {
       // Ignora
@@ -361,7 +365,7 @@ export class AppUpdateService {
           const key = localStorage.key(i);
           if (!key) continue;
           const shouldKeep = PRESERVED_LOCAL_STORAGE_PREFIXES.some((prefix) =>
-            key.startsWith(prefix)
+            key.startsWith(prefix),
           );
           if (shouldKeep) {
             const val = localStorage.getItem(key);
@@ -385,7 +389,7 @@ export class AppUpdateService {
         localStorage.setItem(STORAGE_VERSION_KEY, targetVersion);
         localStorage.setItem(
           STORAGE_RELOAD_GUARD_KEY,
-          `${targetBuildId}|${Date.now()}`
+          `${targetBuildId}|${Date.now()}`,
         );
         localStorage.setItem(STORAGE_JUST_UPDATED_KEY, targetVersion);
       }
@@ -416,17 +420,17 @@ export class AppUpdateService {
 
       const storedPrevVersion = localStorage.getItem(STORAGE_VERSION_KEY);
       const storedFromVersion = localStorage.getItem(
-        STORAGE_UPDATE_FROM_VERSION_KEY
+        STORAGE_UPDATE_FROM_VERSION_KEY,
       );
       const lastSeenNotesVersion = localStorage.getItem(
-        STORAGE_LAST_SEEN_NOTES_VERSION_KEY
+        STORAGE_LAST_SEEN_NOTES_VERSION_KEY,
       );
 
       // Se la versione salvata in precedenza era diversa da quella attuale, registriamo il salto
       if (storedPrevVersion && storedPrevVersion !== this.version) {
         localStorage.setItem(
           STORAGE_UPDATE_FROM_VERSION_KEY,
-          storedPrevVersion
+          storedPrevVersion,
         );
         this.updatedFromVersion.set(storedPrevVersion);
       } else if (storedFromVersion && storedFromVersion !== this.version) {
@@ -440,13 +444,51 @@ export class AppUpdateService {
 
       // Mostriamo il banner non invasivo delle Release Notes se l'utente non ha ancora visto le note di questa versione
       if (lastSeenNotesVersion !== this.version) {
-        this.showReleaseBanner.set(true);
+        // Filtro per ruolo e rilevanza:
+        // SuperUser (Mister & Presidente): vedono sempre il banner per note tecniche e gestionali
+        // Utente semplice (Atleta): vede il banner SOLO per release con isMajor === true e non riservate agli admin
+        const isSuper = this.authService.isSuperUser();
+        if (isSuper) {
+          this.showReleaseBanner.set(true);
+        } else {
+          const delta = getReleaseNotesDelta(
+            lastSeenNotesVersion,
+            this.version,
+          );
+          const hasMajorForUser = delta.some(
+            (entry) => (entry.isMajor ?? false) && entry.target !== 'admin',
+          );
+          if (hasMajorForUser) {
+            this.showReleaseBanner.set(true);
+          } else {
+            // Aggiornamento minore di routine: segna silenziosamente come visto per l'atleta
+            this.showReleaseBanner.set(false);
+            localStorage.setItem(
+              STORAGE_LAST_SEEN_NOTES_VERSION_KEY,
+              this.version,
+            );
+          }
+        }
       }
 
       const justUpdatedTo = localStorage.getItem(STORAGE_JUST_UPDATED_KEY);
       if (justUpdatedTo) {
         localStorage.removeItem(STORAGE_JUST_UPDATED_KEY);
-        this.showReleaseBanner.set(true);
+        const isSuper = this.authService.isSuperUser();
+        if (isSuper) {
+          this.showReleaseBanner.set(true);
+        } else {
+          const delta = getReleaseNotesDelta(
+            lastSeenNotesVersion,
+            this.version,
+          );
+          const hasMajorForUser = delta.some(
+            (entry) => (entry.isMajor ?? false) && entry.target !== 'admin',
+          );
+          if (hasMajorForUser) {
+            this.showReleaseBanner.set(true);
+          }
+        }
       }
 
       localStorage.setItem(STORAGE_BUILD_ID_KEY, this.buildId);
@@ -473,7 +515,7 @@ export class AppUpdateService {
       const msg = event?.message || '';
       if (isChunkLoadFailure(msg)) {
         console.warn(
-          '[AppUpdate] Chunk JS obsoleto rilevato, forzo aggiornamento app...'
+          '[AppUpdate] Chunk JS obsoleto rilevato, forzo aggiornamento app...',
         );
         this.forcePurgeAndReload(undefined, undefined, false);
       }
@@ -486,7 +528,7 @@ export class AppUpdateService {
           : event?.reason?.message || '';
       if (isChunkLoadFailure(reason)) {
         console.warn(
-          '[AppUpdate] Promise Chunk JS obsoleto rilevata, forzo aggiornamento app...'
+          '[AppUpdate] Promise Chunk JS obsoleto rilevata, forzo aggiornamento app...',
         );
         this.forcePurgeAndReload(undefined, undefined, false);
       }

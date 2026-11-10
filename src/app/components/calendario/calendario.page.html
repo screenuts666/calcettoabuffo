@@ -113,62 +113,6 @@
                   }
                 </span>
               </div>
-              <button
-                type="button"
-                class="btn-sollecita-wa"
-                (click)="condividiSuWhatsApp()"
-                title="Condividi o sollecita disponibilità su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-                <span>Sollecita</span>
-              </button>
-            </div>
-          } @else {
-            <div class="week-top-callout empty-votes">
-              <div class="wtc-left">
-                <span class="cal-emoji">🗓️</span>
-                <span class="wtc-text">Sondaggio presenze aperto: vota le serate!</span>
-              </div>
-              <button
-                type="button"
-                class="btn-sollecita-wa"
-                (click)="condividiSuWhatsApp()"
-                title="Condividi sondaggio su WhatsApp"
-              >
-                <ion-icon name="logo-whatsapp"></ion-icon>
-                <span>Sollecita</span>
-              </button>
-            </div>
-          }
-
-          <!-- BANNER SE NON AUTENTICATO / ATLETA NON ASSOCIATO -->
-          @if (!auth.isLoggedIn()) {
-            <div class="auth-callout-banner">
-              <div class="acb-content">
-                <span class="acb-icon">🔐</span>
-                <div class="acb-text">
-                  <span class="acb-title">Vuoi votare le tue presenze?</span>
-                  <span class="acb-sub">Accedi con il tuo account per partecipare al sondaggio.</span>
-                </div>
-              </div>
-              <button type="button" class="btn-acb-login" (click)="vaiALogin()">
-                <ion-icon name="log-in-outline"></ion-icon>
-                <span>ENTRA PER VOTARE</span>
-              </button>
-            </div>
-          } @else if (!auth.hasLinkedPlayer() && !auth.isSuperUser()) {
-            <div class="auth-callout-banner warning">
-              <div class="acb-content">
-                <span class="acb-icon">⚽</span>
-                <div class="acb-text">
-                  <span class="acb-title">Profilo atleta non collegato</span>
-                  <span class="acb-sub">Collega il tuo profilo per registrare il tuo voto.</span>
-                </div>
-              </div>
-              <button type="button" class="btn-acb-login" (click)="vaiAProfilo()">
-                <ion-icon name="person-outline"></ion-icon>
-                <span>COLLEGA PROFILO</span>
-              </button>
             </div>
           }
 
@@ -371,7 +315,7 @@
                             <div class="chip-avatar">
                               <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                             </div>
-                            <span class="chip-name">{{ p.nome }}</span>
+                            <span class="chip-name">{{ p.soprannome || p.nome }}</span>
                           </div>
                         }
                       } @else {

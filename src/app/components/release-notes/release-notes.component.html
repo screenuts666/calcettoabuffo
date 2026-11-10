@@ -2,7 +2,7 @@
 @if (appUpdate.showReleaseBanner() && !appUpdate.releaseNotesModalOpen()) {
   <div class="rn-floating-banner" (click)="openModal()">
     <div class="rn-banner-left">
-      <span class="rn-sparkle-badge">✨</span>
+      <ion-icon name="sparkles-outline" class="rn-sparkle-badge"></ion-icon>
       <div class="rn-banner-text">
         @if (appUpdate.updatedFromVersion(); as fromVer) {
           <strong>Aggiornata v{{ fromVer }} → v{{ appUpdate.version }}</strong>
@@ -39,7 +39,9 @@
       <div class="rn-sheet-header">
         <div class="rn-header-titles">
           <div class="rn-version-pills">
-            <span class="rn-pill current">🚀 Release v{{ appUpdate.version }}</span>
+            <span class="rn-pill current">
+              <ion-icon name="rocket-outline"></ion-icon> Release v{{ appUpdate.version }}
+            </span>
             @if (appUpdate.updatedFromVersion(); as fromVer) {
               <span class="rn-pill delta">Da v{{ fromVer }} a v{{ appUpdate.version }}</span>
             }
@@ -71,22 +73,22 @@
             </div>
 
             <!-- SEZIONE 1: UTENTE SEMPLICE / GIOCATORI -->
-            @if (entry.userChanges.length > 0) {
+            @if (getUserChangesForEntry(entry).length > 0) {
               <div class="rvc-role-section user-section">
                 <div class="rvc-role-label">
                   <ion-icon name="people-outline"></ion-icon>
                   <span>Novità per i Giocatori</span>
                 </div>
                 <ul class="rvc-list">
-                  @for (item of entry.userChanges; track $index) {
+                  @for (item of getUserChangesForEntry(entry); track $index) {
                     <li>{{ item }}</li>
                   }
                 </ul>
               </div>
             }
 
-            <!-- SEZIONE 2: SUPER USER / ADMIN (Visibile per trasparenza e controllo) -->
-            @if (authService.isAdmin() && entry.superUserChanges.length > 0) {
+            <!-- SEZIONE 2: SUPER USER / ADMIN (Visibile solo a Mister & Presidente) -->
+            @if (authService.isSuperUser() && entry.superUserChanges.length > 0) {
               <div class="rvc-role-section superuser-section">
                 <div class="rvc-role-label">
                   <ion-icon name="shield-checkmark"></ion-icon>

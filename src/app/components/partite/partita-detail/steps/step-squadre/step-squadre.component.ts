@@ -13,13 +13,20 @@ import {
   checkmark,
   sparkles,
   swapHorizontal,
+  swapHorizontalOutline,
+  shieldOutline,
+  repeatOutline,
+  scaleOutline,
   flash,
   alertCircleOutline,
   refreshOutline,
   trendingUpOutline,
   cloudDoneOutline,
+  shieldCheckmarkOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
+import { AuthService } from 'src/app/services/auth.service';
 import {
   MatchmakingService,
   MatchmakingProposal,
@@ -27,10 +34,7 @@ import {
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { getMmrTier } from 'src/app/models/mmr.model';
 import { MatchmakingModalComponent } from './matchmaking-modal/matchmaking-modal.component';
-import {
-  getAvatarUrl,
-  handleAvatarError,
-} from 'src/app/utils/avatar-utils';
+import { getAvatarUrl, handleAvatarError } from 'src/app/utils/avatar-utils';
 import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 import { GeminiService } from 'src/app/services/gemini.service';
 import { TtsService } from 'src/app/services/tts.service';
@@ -56,7 +60,12 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 })
 export class StepSquadreComponent implements OnInit {
   public state = inject(MatchStateService);
+  public auth = inject(AuthService);
   private matchmakingService = inject(MatchmakingService);
+
+  get isAdmin(): boolean {
+    return this.auth.isSuperUser();
+  }
   private statsEngine = inject(StatsEngineService);
   private ttsService = inject(TtsService);
   private toastCtrl = inject(ToastController);
@@ -76,8 +85,8 @@ export class StepSquadreComponent implements OnInit {
       convocati.length >= 4
         ? convocati
         : teamA.length + teamB.length >= 4
-        ? [...teamA, ...teamB]
-        : [];
+          ? [...teamA, ...teamB]
+          : [];
 
     if (pool.length >= 4 && (teamA.length === 0 || teamB.length === 0)) {
       const generated = this.matchmakingService.generateProposals(
@@ -192,7 +201,8 @@ export class StepSquadreComponent implements OnInit {
     const odds = this.currentOdds();
     if (!odds) {
       const toast = await this.toastCtrl.create({
-        message: '⚠️ Aggiungi almeno un giocatore per squadra per calcolare il pronostico.',
+        message:
+          '⚠️ Aggiungi almeno un giocatore per squadra per calcolare il pronostico.',
         duration: 2500,
         color: 'warning',
         position: 'top',
@@ -220,10 +230,14 @@ export class StepSquadreComponent implements OnInit {
       );
       this.state.pronosticoAi.set(text);
       if (force) {
-        this.ttsService.invalidateCache('pronostico-squadre-' + (this.state.matchId() || 'temp'));
+        this.ttsService.invalidateCache(
+          'pronostico-squadre-' + (this.state.matchId() || 'temp'),
+        );
       }
       const toast = await this.toastCtrl.create({
-        message: force ? '🔄 Pronostico rigenerato con successo!' : '🔮 Pronostico del Mister generato!',
+        message: force
+          ? '🔄 Pronostico rigenerato con successo!'
+          : '🔮 Pronostico del Mister generato!',
         duration: 2500,
         color: 'success',
         position: 'top',
@@ -245,13 +259,19 @@ export class StepSquadreComponent implements OnInit {
 
   constructor() {
     addIcons({
-      checkmark,
+      swapHorizontalOutline,
       sparkles,
       swapHorizontal,
+      shieldOutline,
+      repeatOutline,
+      shieldCheckmarkOutline,
+      trendingUpOutline,
+      refreshOutline,
+      sparklesOutline,
+      checkmark,
+      scaleOutline,
       flash,
       alertCircleOutline,
-      refreshOutline,
-      trendingUpOutline,
       cloudDoneOutline,
     });
   }

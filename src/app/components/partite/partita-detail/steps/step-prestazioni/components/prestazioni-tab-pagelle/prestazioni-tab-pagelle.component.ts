@@ -15,6 +15,8 @@ import {
   saveOutline,
   checkmarkCircleOutline,
   hourglassOutline,
+  starOutline,
+  footballOutline,
 } from 'ionicons/icons';
 import { MatchReportPlayer } from '../../../../../../../models/mmr.model';
 import { PrestazioniPlayerCardComponent } from '../prestazioni-player-card/prestazioni-player-card.component';
@@ -57,6 +59,8 @@ export class PrestazioniTabPagelleComponent {
       saveOutline,
       checkmarkCircleOutline,
       hourglassOutline,
+      starOutline,
+      footballOutline,
     });
   }
 }

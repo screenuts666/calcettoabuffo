@@ -51,15 +51,26 @@
   box-shadow: var(--app-card-shadow);
 }
 
-/// Pill / Badge Base
-@mixin pill-badge($bg: var(--app-surface-subtle), $color: var(--app-text-primary), $border: null) {
+/// Touch Target Helper (Apple HIG / Material 3 - min 44x44px)
+@mixin touch-target($min: 44px) {
+  min-height: $min;
+  min-width: $min;
+}
+
+/// Pill / Badge Base (Floor minimo tipografico a 12px con padding respirante)
+@mixin pill-badge(
+  $bg: var(--app-surface-subtle),
+  $color: var(--app-text-primary),
+  $border: null
+) {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: var(--app-font-xs, 12px);
+  font-weight: 700;
+  line-height: 1.25;
   background: $bg;
   color: $color;
 
@@ -70,19 +81,35 @@
 
 /// Semantic Badge Presets linked to Design Tokens
 @mixin pill-badge-primary {
-  @include pill-badge(var(--app-primary-subtle), var(--app-primary), var(--app-primary-border));
+  @include pill-badge(
+    var(--app-primary-subtle),
+    var(--app-primary),
+    var(--app-primary-border)
+  );
 }
 
 @mixin pill-badge-gold {
-  @include pill-badge(var(--app-accent-gold-subtle), var(--app-accent-gold), var(--app-accent-gold-border));
+  @include pill-badge(
+    var(--app-accent-gold-subtle),
+    var(--app-accent-gold),
+    var(--app-accent-gold-border)
+  );
 }
 
 @mixin pill-badge-purple {
-  @include pill-badge(var(--app-accent-purple-subtle), var(--app-accent-purple), var(--app-accent-purple-border));
+  @include pill-badge(
+    var(--app-accent-purple-subtle),
+    var(--app-accent-purple),
+    var(--app-accent-purple-border)
+  );
 }
 
 @mixin pill-badge-danger {
-  @include pill-badge(var(--app-accent-danger-subtle), var(--app-accent-danger), var(--app-accent-danger-border));
+  @include pill-badge(
+    var(--app-accent-danger-subtle),
+    var(--app-accent-danger),
+    var(--app-accent-danger-border)
+  );
 }
 
 /// Dynamic Brand Glow using RGB Token
@@ -92,9 +119,10 @@
 
 /// Interactive Micro-Interactions
 @mixin btn-press($scale: 0.96) {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.15s ease,
-              box-shadow 0.15s ease;
+  transition:
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 
   &:active:not(:disabled) {
     transform: scale($scale);

@@ -9,7 +9,15 @@ import {
 import { CommonModule } from '@angular/common';
 import { IonAvatar, IonIcon, IonTextarea } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { football, createOutline, chatboxEllipsesOutline, closeCircleOutline } from 'ionicons/icons';
+import {
+  football,
+  footballOutline,
+  createOutline,
+  chatboxEllipsesOutline,
+  closeCircleOutline,
+  footstepsOutline,
+  trophyOutline,
+} from 'ionicons/icons';
 import {
   RatingClass,
   RatingThresholds,
@@ -37,7 +45,15 @@ export class PrestazioniPlayerCardComponent {
   readonly isEditingNote = signal<boolean>(false);
 
   constructor() {
-    addIcons({ football, createOutline, chatboxEllipsesOutline, closeCircleOutline });
+    addIcons({
+      football,
+      footballOutline,
+      createOutline,
+      chatboxEllipsesOutline,
+      closeCircleOutline,
+      footstepsOutline,
+      trophyOutline,
+    });
   }
 
   toggleNoteEdit() {

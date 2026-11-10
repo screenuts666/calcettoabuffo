@@ -1,8 +1,8 @@
 <div class="dettagli-wrapper ion-padding">
 
-  <!-- 1. CARD RIEPILOGO CONVOCATI (VISIBILE SOLO SE GIA' PRESENTI CONVOCATI) -->
+  <!-- 1. CARD RIEPILOGO CONVOCATI (VISIBILE SE GIA' PRESENTI CONVOCATI) -->
   @if (state.totaleConvocati() > 0) {
-    <div class="convocati-summary-card ion-margin-bottom" (click)="vaiAConvocati()" title="Tocca per gestire i convocati">
+    <div class="convocati-summary-card ion-margin-bottom" (click)="vaiAConvocati()" title="Tocca per visualizzare o gestire i convocati">
       <div class="summary-left">
         <div class="avatars-overlap-row">
           @for (g of state.convocati().slice(0, 5); track (g.id || g.nome) + '_' + $index) {
@@ -23,300 +23,407 @@
       </div>
 
       <button type="button" class="btn-edit-convocati" (click)="$event.stopPropagation(); vaiAConvocati()">
-        <ion-icon name="create-outline"></ion-icon>
-        <span>Modifica</span>
+        <ion-icon [name]="isAdmin ? 'create-outline' : 'people-outline'"></ion-icon>
+        <span>{{ isAdmin ? 'Modifica' : 'Rosa' }}</span>
       </button>
     </div>
   }
 
-  <!-- 2. SEZIONE COORDINATE MATCH (LUOGO, DATA, ORARIO) -->
-  <div class="details-section-card ion-margin-bottom">
-    <div class="section-card-header">
-      <span class="section-icon">📍</span>
-      <div class="section-header-text">
-        <h3 class="section-title">Coordinate Match</h3>
-      </div>
-    </div>
-
-    <div class="section-card-body">
-      <!-- LUOGO CON AUTOCOMPLETE & MAPS -->
-      <div class="campo-input-group ion-margin-bottom">
-        <ion-item lines="none" class="elegant-input-item">
-          <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
-          <ion-input
-            label="Luogo Partita *"
-            labelPlacement="stacked"
-            placeholder="Cerca campo o indirizzo (es. Montesacro, Roma 6, Vigor)..."
-            [value]="state.luogo()"
-            (ionInput)="onLuogoInput($event.detail.value || '')"
-          ></ion-input>
-          @if (isSearchingCampi()) {
-            <ion-spinner name="dots" slot="end" class="campo-spinner"></ion-spinner>
-          } @else {
-            <button
-              type="button"
-              class="btn-inline-search-maps"
-              slot="end"
-              (click)="apriRicercaGoogleMaps(state.luogo())"
-              title="Cerca questo campo su Google Maps"
-            >
-              <ion-icon name="search-outline"></ion-icon>
-            </button>
-          }
-        </ion-item>
-
-        <!-- CHIP CAMPI STORICI RAPIDI -->
-        <div class="campi-chips-row">
-          @for (c of campiService.campiStorici(); track c.id) {
-            <button
-              type="button"
-              class="quick-campo-chip"
-              [class.active]="isCampoActive(c)"
-              (click)="selezionaCampo(c)"
-            >
-              {{ c.nome }}
-            </button>
-          }
+  <!-- ===================================================================== -->
+  <!-- VISTA MISTER & PRESIDENTE (ADMIN): EDIT MODE COMPATTO                 -->
+  <!-- ===================================================================== -->
+  @if (isAdmin) {
+    <div class="details-section-card ion-margin-bottom">
+      <div class="section-card-header">
+        <ion-icon name="location-outline" class="section-icon-vector"></ion-icon>
+        <div class="section-header-text">
+          <h3 class="section-title">Coordinate Match</h3>
         </div>
+      </div>
 
-        <!-- DROPDOWN SUGGERIMENTI RICERCA ONLINE & VERIFICATI -->
-        @if (suggerimentiCampi().length > 0) {
-          <div class="campi-autocomplete-list">
-            @for (sugg of suggerimentiCampi(); track sugg.nome) {
-              <div class="autocomplete-item" (click)="selezionaCampo(sugg)">
-                <div class="sugg-info">
-                  <ion-icon name="location-outline" class="sugg-pin-icon"></ion-icon>
-                  <div>
-                    <div class="sugg-name-line">
-                      <strong>{{ sugg.nome }}</strong>
-                      @if (sugg.isStorico) {
-                        <span class="badge-verificato">✓ Campo del Club</span>
+      <div class="section-card-body">
+        <!-- LUOGO CON AUTOCOMPLETE & MAPS -->
+        <div class="campo-input-group ion-margin-bottom">
+          <ion-item lines="none" class="elegant-input-item">
+            <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              label="Luogo Partita *"
+              labelPlacement="stacked"
+              placeholder="Cerca campo o indirizzo (es. Montesacro, Roma 6, Vigor)..."
+              [value]="state.luogo()"
+              (ionInput)="onLuogoInput($event.detail.value || '')"
+            ></ion-input>
+            @if (isSearchingCampi()) {
+              <ion-spinner name="dots" slot="end" class="campo-spinner"></ion-spinner>
+            } @else {
+              <button
+                type="button"
+                class="btn-inline-search-maps"
+                slot="end"
+                (click)="apriRicercaGoogleMaps(state.luogo())"
+                title="Cerca questo campo su Google Maps"
+              >
+                <ion-icon name="search-outline"></ion-icon>
+              </button>
+            }
+          </ion-item>
+
+          <!-- CHIP CAMPI STORICI RAPIDI -->
+          <div class="campi-chips-row">
+            @for (c of campiService.campiStorici(); track c.id) {
+              <button
+                type="button"
+                class="quick-campo-chip"
+                [class.active]="isCampoActive(c)"
+                (click)="selezionaCampo(c)"
+              >
+                {{ c.nome }}
+              </button>
+            }
+          </div>
+
+          <!-- DROPDOWN SUGGERIMENTI RICERCA ONLINE & VERIFICATI -->
+          @if (suggerimentiCampi().length > 0) {
+            <div class="campi-autocomplete-list">
+              @for (sugg of suggerimentiCampi(); track sugg.nome) {
+                <div class="autocomplete-item" (click)="selezionaCampo(sugg)">
+                  <div class="sugg-info">
+                    <ion-icon name="location-outline" class="sugg-pin-icon"></ion-icon>
+                    <div>
+                      <div class="sugg-name-line">
+                        <strong>{{ sugg.nome }}</strong>
+                        @if (sugg.isStorico) {
+                          <span class="badge-verificato">✓ Campo del Club</span>
+                        }
+                      </div>
+                      @if (sugg.indirizzo) {
+                        <small>{{ sugg.indirizzo }}</small>
                       }
                     </div>
-                    @if (sugg.indirizzo) {
-                      <small>{{ sugg.indirizzo }}</small>
-                    }
+                  </div>
+                  <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
+                </div>
+              }
+              <!-- AZIONE DIRETTA: CERCA SU GOOGLE MAPS -->
+              <div class="autocomplete-item maps-search-action" (click)="apriRicercaGoogleMaps(state.luogo())">
+                <div class="sugg-info">
+                  <ion-icon name="open-outline" class="maps-action-icon"></ion-icon>
+                  <div>
+                    <strong>Cerca "{{ state.luogo() }}" su Google Maps</strong>
+                    <small>Apri Maps per navigare e visualizzare tutti i dettagli</small>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
               </div>
-            }
-            <!-- AZIONE DIRETTA: CERCA SU GOOGLE MAPS -->
-            <div class="autocomplete-item maps-search-action" (click)="apriRicercaGoogleMaps(state.luogo())">
-              <div class="sugg-info">
-                <ion-icon name="open-outline" class="maps-action-icon"></ion-icon>
-                <div>
-                  <strong>Cerca "{{ state.luogo() }}" su Google Maps</strong>
-                  <small>Apri Maps per navigare e visualizzare tutti i dettagli</small>
-                </div>
-              </div>
-              <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
             </div>
-          </div>
-        }
+          }
 
-        <!-- ANTEPRIMA CAMPO SELEZIONATO & GOOGLE MAPS -->
-        @if (state.luogo().trim()) {
-          <div class="campo-selected-card">
-            <div class="campo-card-left">
-              <div class="campo-pin-wrapper">
-                <ion-icon name="location" class="campo-pin-icon"></ion-icon>
-              </div>
-              <div class="campo-details">
-                <div class="campo-name-row">
-                  <strong class="campo-name">{{ getNomeDisplay() }}</strong>
-                  @if (isCampoVerificato()) {
-                    <span class="verified-tag">✓ Verificato</span>
-                  }
+          <!-- ANTEPRIMA CAMPO SELEZIONATO & GOOGLE MAPS -->
+          @if (state.luogo().trim()) {
+            <div class="campo-selected-card">
+              <div class="campo-card-left">
+                <div class="campo-pin-wrapper">
+                  <ion-icon name="location" class="campo-pin-icon"></ion-icon>
                 </div>
-                <div class="campo-address">
-                  {{ getIndirizzoDisplay() }}
+                <div class="campo-details">
+                  <div class="campo-name-row">
+                    <strong class="campo-name">{{ getNomeDisplay() }}</strong>
+                    @if (isCampoVerificato()) {
+                      <span class="verified-tag">✓ Verificato</span>
+                    }
+                  </div>
+                  <div class="campo-address">
+                    {{ getIndirizzoDisplay() }}
+                  </div>
                 </div>
               </div>
-            </div>
-            <a
-              [href]="getGoogleMapsUrl()"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="btn-open-maps"
-              title="Apri le indicazioni stradali su Google Maps"
-            >
-              <ion-icon name="navigate-outline"></ion-icon>
-              <span>Vai qui</span>
-            </a>
-          </div>
-        }
-      </div>
-
-      <!-- DATA E ORARIO AFFIANCATI SU 2 COLONNE -->
-      <div class="datetime-grid ion-margin-bottom">
-        <!-- DATA -->
-        <ion-item lines="none" class="elegant-input-item" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
-          <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
-          <ion-input
-            type="date"
-            label="Data *"
-            labelPlacement="stacked"
-            [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
-            [value]="state.dataPartita()"
-            (ionInput)="aggiornaData($event.detail.value || '')"
-          ></ion-input>
-        </ion-item>
-
-        <!-- ORARIO -->
-        <ion-item lines="none" class="elegant-input-item">
-          <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
-          <ion-input
-            type="time"
-            label="Orario *"
-            labelPlacement="stacked"
-            [value]="state.orario()"
-            (ionInput)="aggiornaOrario($event.detail.value || '')"
-          ></ion-input>
-        </ion-item>
-      </div>
-
-      <!-- FEEDBACK STAGIONE -->
-      @if (!state.isDataStagioneValida() && state.dataPartita()) {
-        <div class="season-warning-card">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          <div class="warning-text">
-            <strong>Stagione non valida</strong>
-            <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
-          </div>
-        </div>
-      } @else if (state.dataPartita()) {
-        <div class="season-weather-row">
-          <div class="season-valid-pill">
-            <ion-icon name="sparkles-outline"></ion-icon>
-            <span>Stagione Corrente ({{ CURRENT_SEASON }})</span>
-          </div>
-          @if (meteoForecast(); as mf) {
-            <div class="weather-badge-pill" [title]="mf.conditionDescription + ' (' + mf.tempMax + '° / ' + mf.tempMin + '°)'">
-              <span class="w-emoji">{{ mf.iconEmoji }}</span>
-              <span class="w-info">{{ mf.tempMax }}°C {{ mf.conditionDescription }}</span>
-              @if (mf.rainProbability > 0) {
-                <span class="w-rain">💧 {{ mf.rainProbability }}%</span>
-              }
+              <a
+                [href]="getGoogleMapsUrl()"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn-open-maps"
+                title="Apri le indicazioni stradali su Google Maps"
+              >
+                <ion-icon name="navigate-outline"></ion-icon>
+                <span>Mappa</span>
+              </a>
             </div>
           }
         </div>
 
-        <!-- NOTE E DETTAGLI BORDOCAMPO OPZIONALI -->
-        <ion-item lines="none" class="elegant-input-item notes-compact-item ion-margin-top">
-          <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
-          <ion-textarea
-            label="Note Bordocampo (Opzionale)"
-            labelPlacement="stacked"
-            autoGrow="true"
-            rows="2"
-            placeholder="Es. Campo bagnato, maglie da portare, clima derby..."
-            [value]="state.commentoPartita()"
-            (ionInput)="aggiornaNote($event.detail.value || '')"
-          ></ion-textarea>
-        </ion-item>
+        <!-- DATA E ORARIO AFFIANCATI SU 2 COLONNE -->
+        <div class="datetime-grid ion-margin-bottom">
+          <!-- DATA -->
+          <ion-item lines="none" class="elegant-input-item" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
+            <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
+            <ion-input
+              type="date"
+              label="Data *"
+              labelPlacement="stacked"
+              [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
+              [value]="state.dataPartita()"
+              (ionInput)="aggiornaData($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
+
+          <!-- ORARIO -->
+          <ion-item lines="none" class="elegant-input-item">
+            <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="time"
+              label="Orario *"
+              labelPlacement="stacked"
+              [value]="state.orario()"
+              (ionInput)="aggiornaOrario($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        <!-- FEEDBACK STAGIONE O METEO -->
+        @if (!state.isDataStagioneValida() && state.dataPartita()) {
+          <div class="season-warning-card">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <div class="warning-text">
+              <strong>Stagione non valida</strong>
+              <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+            </div>
+          </div>
+        } @else if (state.dataPartita()) {
+          @if (meteoForecast(); as mf) {
+            <div class="weather-compact-strip" [title]="mf.conditionDescription + ' (' + mf.tempMax + '° / ' + mf.tempMin + '°)'">
+              <span class="w-emoji">{{ mf.iconEmoji }}</span>
+              <span class="w-info">{{ mf.tempMax }}°C {{ mf.conditionDescription }}</span>
+              @if (mf.rainProbability > 0) {
+                <span class="w-rain">Pioggia: {{ mf.rainProbability }}%</span>
+              }
+            </div>
+          }
+
+          <!-- NOTE E DETTAGLI BORDOCAMPO OPZIONALI -->
+          <ion-item lines="none" class="elegant-input-item notes-compact-item ion-margin-top">
+            <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
+            <ion-textarea
+              label="Note Bordocampo (Opzionale)"
+              labelPlacement="stacked"
+              autoGrow="true"
+              rows="2"
+              placeholder="Es. Campo bagnato, maglie da portare, clima derby..."
+              [value]="state.commentoPartita()"
+              (ionInput)="aggiornaNote($event.detail.value || '')"
+            ></ion-textarea>
+          </ion-item>
+        }
+      </div>
+    </div>
+
+    <!-- SEZIONE MODALITA' PORTIERI (INLINE COMPATTA PER IL MISTER) -->
+    <div class="details-section-card ion-margin-bottom">
+      <div class="section-card-header">
+        <ion-icon name="shield-outline" class="section-icon-vector"></ion-icon>
+        <div class="section-header-text">
+          <h3 class="section-title">Modalità Portieri</h3>
+        </div>
+      </div>
+
+      <div class="section-card-body">
+        <div class="portieri-inline-toggles">
+          <button
+            type="button"
+            class="gk-mode-toggle-chip"
+            [class.active]="state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione'"
+            (click)="impostaModalitaEntrambe('rotazione')"
+          >
+            <ion-icon name="repeat-outline"></ion-icon>
+            <span>Rotazione ({{ state.durataTurnoMinuti() }}')</span>
+          </button>
+          <button
+            type="button"
+            class="gk-mode-toggle-chip"
+            [class.active]="state.modalitaPortieriA() === 'fisso' && state.modalitaPortieriB() === 'fisso'"
+            (click)="impostaModalitaEntrambe('fisso')"
+          >
+            <ion-icon name="shield-outline"></ion-icon>
+            <span>Fissi di Ruolo</span>
+          </button>
+          <button
+            type="button"
+            class="gk-mode-toggle-chip"
+            [class.active]="state.modalitaPortieriA() !== state.modalitaPortieriB()"
+            (click)="toggleModalitaMiste()"
+          >
+            <ion-icon name="options-outline"></ion-icon>
+            <span>Misti</span>
+          </button>
+        </div>
+
+        @if (state.modalitaPortieriA() !== state.modalitaPortieriB()) {
+          <div class="gk-mixed-sub-row ion-margin-top">
+            <button type="button" class="team-sub-toggle" (click)="toggleModalitaA()">
+              <span>Bianchi: <strong>{{ state.modalitaPortieriA() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
+            </button>
+            <button type="button" class="team-sub-toggle" (click)="toggleModalitaB()">
+              <span>Neri: <strong>{{ state.modalitaPortieriB() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- PULSANTE CONTINUA PER IL MISTER -->
+    <div class="bottom-action-container">
+      @if (!state.isDettagliValidi()) {
+        <div class="validation-hint">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>{{ getMessaggioValidazione() }}</span>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="btn-continue-squadre"
+        [disabled]="!state.isDettagliValidi()"
+        (click)="vaiAConvocati()"
+      >
+        <span>Continua ai Convocati</span>
+        <ion-icon name="arrow-forward"></ion-icon>
+      </button>
+    </div>
+  }
+
+  <!-- ===================================================================== -->
+  <!-- VISTA UTENTE MEDIO / ATLETA: SCHEDA RIEPILOGO ELEGANTE (READ-ONLY)    -->
+  <!-- ===================================================================== -->
+  @if (!isAdmin) {
+    <div class="athlete-summary-card ion-margin-bottom">
+      <div class="asc-header">
+        <div class="asc-title-group">
+          <ion-icon name="football-outline" class="asc-ball-icon"></ion-icon>
+          <div>
+            <h3 class="asc-title">Riepilogo Partita</h3>
+            <span class="asc-format">{{ formatFormatoPartita() }}</span>
+          </div>
+        </div>
+        @if (state.status() === 'in_corso') {
+          <span class="live-pill">IN CORSO</span>
+        }
+      </div>
+
+      <div class="asc-info-block">
+        <!-- DATA & ORA -->
+        <div class="asc-info-row">
+          <ion-icon name="calendar-outline" class="asc-row-icon"></ion-icon>
+          <div class="asc-row-text">
+            <strong>{{ (state.dataPartita() | date:'EEEE d MMMM yyyy') || 'Data da definire' }}</strong>
+            <span>Ore {{ state.orario() || 'Orario da definire' }}</span>
+          </div>
+        </div>
+
+        <!-- LUOGO E MAPPA -->
+        <div class="asc-info-row">
+          <ion-icon name="location-outline" class="asc-row-icon"></ion-icon>
+          <div class="asc-row-text">
+            <strong>{{ getNomeDisplay() || 'Campo da definire' }}</strong>
+            <span>{{ getIndirizzoDisplay() }}</span>
+          </div>
+          @if (state.luogo().trim()) {
+            <a
+              [href]="getGoogleMapsUrl()"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn-asc-maps"
+              title="Apri le indicazioni stradali su Google Maps"
+            >
+              <ion-icon name="navigate-outline"></ion-icon>
+              <span>Mappa</span>
+            </a>
+          }
+        </div>
+
+        <!-- METEO -->
+        @if (meteoForecast(); as mf) {
+          <div class="asc-info-row weather-row">
+            <span class="asc-weather-emoji">{{ mf.iconEmoji }}</span>
+            <div class="asc-row-text">
+              <strong>{{ mf.tempMax }}°C · {{ mf.conditionDescription }}</strong>
+              @if (mf.rainProbability > 0) {
+                <span>Probabilità pioggia: {{ mf.rainProbability }}%</span>
+              } @else {
+                <span>Nessuna pioggia prevista</span>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- REGOLE PORTIERI IMPOSTATE -->
+        <div class="asc-info-row">
+          <ion-icon name="shield-outline" class="asc-row-icon"></ion-icon>
+          <div class="asc-row-text">
+            <strong>{{ getRegolePortieriLabel() }}</strong>
+            <span>Regole portieri impostate per la gara</span>
+          </div>
+        </div>
+
+        <!-- NOTE BORDOCAMPO (SE PRESENTI) -->
+        @if (state.commentoPartita()) {
+          <div class="asc-info-row notes-row">
+            <ion-icon name="chatbox-ellipses-outline" class="asc-row-icon"></ion-icon>
+            <div class="asc-row-text">
+              <strong>Note del Mister</strong>
+              <span>{{ state.commentoPartita() }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- CONFERMA PRESENZA RAPIDA ATLETA -->
+      @if (auth.hasLinkedPlayer()) {
+        <div class="asc-rsvp-section">
+          <div class="asc-rsvp-prompt">
+            <span>La tua presenza:</span>
+            <span class="asc-status-badge" [class.confirmed]="myRsvpStatus() === 'yes'">
+              {{ myRsvpStatus() === 'yes' ? 'Confermato' : 'Non confermato' }}
+            </span>
+          </div>
+
+          <div class="asc-rsvp-buttons">
+            <button
+              type="button"
+              class="asc-rsvp-btn yes"
+              [class.active]="myRsvpStatus() === 'yes'"
+              [disabled]="isSavingRsvp()"
+              (click)="toggleMioRsvp('yes')"
+            >
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono (Tocca per togliere)' : 'Ci sono' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="asc-rsvp-btn no"
+              [class.active]="myRsvpStatus() === 'no'"
+              [disabled]="isSavingRsvp()"
+              (click)="impostaMioRsvp('no')"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+              <span>Non ci sono</span>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- CTA PER VEDERE CONVOCATI O SQUADRE -->
+      @if (state.totaleConvocati() > 0) {
+        <button
+          type="button"
+          class="asc-view-convocati-btn"
+          (click)="vaiAConvocati()"
+        >
+          <ion-icon name="people-outline"></ion-icon>
+          <span>Vedi i {{ state.totaleConvocati() }} Convocati Ufficiali</span>
+          <ion-icon name="arrow-forward"></ion-icon>
+        </button>
       }
     </div>
-  </div>
-
-  <!-- 3. SEZIONE REGOLE PORTIERI -->
-  <div class="details-section-card ion-margin-bottom">
-    <div class="section-card-header">
-      <span class="section-icon">🧤</span>
-      <div class="section-header-text">
-        <h3 class="section-title">Modalità Portieri</h3>
-      </div>
-    </div>
-
-    <div class="section-card-body">
-      <div class="portieri-teams-row">
-        <!-- BIANCHI -->
-        <button
-          type="button"
-          class="team-mode-card"
-          [class.is-fisso]="state.modalitaPortieriA() === 'fisso'"
-          (click)="toggleModalitaA()"
-          aria-label="Alterna modalità portiere Squadra Bianchi"
-        >
-          <div class="card-team-header">
-            <div class="team-identity">
-              <span class="team-badge-circle white"></span>
-              <strong class="team-name">BIANCHI</strong>
-            </div>
-            <ion-icon name="swap-horizontal-outline" class="switch-icon"></ion-icon>
-          </div>
-
-          <div class="card-mode-content">
-            @if (state.modalitaPortieriA() === 'fisso') {
-              <span class="mode-emoji">🧤</span>
-              <div class="mode-info">
-                <span class="mode-title">Fisso</span>
-                <span class="mode-sub">Di ruolo</span>
-              </div>
-            } @else {
-              <span class="mode-emoji">🔄</span>
-              <div class="mode-info">
-                <span class="mode-title">Casuali</span>
-                <span class="mode-sub">Turno 5'</span>
-              </div>
-            }
-          </div>
-        </button>
-
-        <!-- NERI -->
-        <button
-          type="button"
-          class="team-mode-card"
-          [class.is-fisso]="state.modalitaPortieriB() === 'fisso'"
-          (click)="toggleModalitaB()"
-          aria-label="Alterna modalità portiere Squadra Neri"
-        >
-          <div class="card-team-header">
-            <div class="team-identity">
-              <span class="team-badge-circle black"></span>
-              <strong class="team-name">NERI</strong>
-            </div>
-            <ion-icon name="swap-horizontal-outline" class="switch-icon"></ion-icon>
-          </div>
-
-          <div class="card-mode-content">
-            @if (state.modalitaPortieriB() === 'fisso') {
-              <span class="mode-emoji">🧤</span>
-              <div class="mode-info">
-                <span class="mode-title">Fisso</span>
-                <span class="mode-sub">Di ruolo</span>
-              </div>
-            } @else {
-              <span class="mode-emoji">🔄</span>
-              <div class="mode-info">
-                <span class="mode-title">Casuali</span>
-                <span class="mode-sub">Turno 5'</span>
-              </div>
-            }
-          </div>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. PULSANTE / BARRA DI AVANZAMENTO CONTINUA -->
-  <div class="bottom-action-container">
-    @if (!state.isDettagliValidi()) {
-      <div class="validation-hint">
-        <ion-icon name="alert-circle-outline"></ion-icon>
-        <span>{{ getMessaggioValidazione() }}</span>
-      </div>
-    }
-
-    <button
-      type="button"
-      class="btn-continue-squadre"
-      [disabled]="!state.isDettagliValidi()"
-      (click)="vaiAConvocati()"
-    >
-      <span>Continua ai Convocati</span>
-      <ion-icon name="arrow-forward"></ion-icon>
-    </button>
-  </div>
+  }
 
 </div>

@@ -40,19 +40,20 @@
     .btn-save-note {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 0.74rem;
+      gap: 5px;
+      font-size: 12.5px;
       font-weight: 700;
       color: #fff;
       background: linear-gradient(135deg, #a855f7, #7e22ce);
       border: none;
-      border-radius: 6px;
-      padding: 3px 10px;
+      border-radius: 8px;
+      padding: 5px 12px;
+      min-height: 34px;
       cursor: pointer;
       transition: all 0.2s ease;
 
       ion-icon {
-        font-size: 0.9rem;
+        font-size: 1rem;
       }
 
       &:disabled {
@@ -68,13 +69,13 @@
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--app-card-border);
       border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 0.82rem;
+      padding: 8px 10px;
+      font-size: 13.5px;
       color: var(--app-text-primary);
       font-family: inherit;
       line-height: 1.4;
       resize: vertical;
-      min-height: 44px;
+      min-height: 48px;
       outline: none;
       transition: border-color 0.2s ease;
 
@@ -90,16 +91,16 @@
   }
 
   .notes-display-box {
-    padding: 6px 10px;
+    padding: 8px 12px;
     background: rgba(0, 0, 0, 0.15);
     border-radius: 8px;
     border: 1px solid var(--app-border-color);
 
     .notes-text {
       margin: 0;
-      font-size: 0.82rem;
+      font-size: 13.5px;
       font-style: italic;
-      line-height: 1.4;
+      line-height: 1.45;
       color: var(--app-text-primary);
       white-space: pre-wrap;
     }
@@ -110,12 +111,13 @@
 .pagelle-team-filter-bar {
   @include flex-center;
   gap: 8px;
-  padding: 4px 14px 12px;
+  padding: 6px 14px 12px;
 
   .team-filter-chip {
     @include pill-badge(var(--app-surface-subtle), var(--app-text-secondary), var(--app-border-color));
-    padding: 6px 14px;
-    font-size: 0.75rem;
+    padding: 8px 16px;
+    font-size: 13px;
+    min-height: 38px;
     cursor: pointer;
     @include btn-press;
 
@@ -152,13 +154,13 @@
     background: var(--app-accent-gold-subtle);
     border: 1px solid var(--app-accent-gold-border);
     color: var(--app-accent-gold);
-    font-size: 0.72rem;
+    font-size: 12.5px;
     font-weight: 800;
     margin-bottom: 10px;
     text-align: center;
 
     ion-icon {
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
   }
 
@@ -198,17 +200,20 @@
           &.black-dot { background: var(--app-neutral-dark); border: 1px solid var(--app-white); }
         }
 
-        .roster-team-name { font-size: 0.8rem; font-weight: 900; }
+        .roster-team-name { font-size: 13.5px; font-weight: 800; }
       }
 
       .roster-banner-stats {
         display: flex;
-        gap: 5px;
+        gap: 6px;
         .stat-chip {
           @include pill-badge(var(--app-surface-subtle), var(--app-text-primary), var(--app-border-color));
-          padding: 2px 6px;
-          border-radius: 5px;
-          font-size: 0.68rem;
+          padding: 3px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
           &.mmr-chip { background: var(--app-accent-blue-subtle); color: var(--app-accent-blue); border-color: var(--app-accent-blue-border); }
         }
       }

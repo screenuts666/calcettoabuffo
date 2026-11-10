@@ -1,45 +1,49 @@
-<!-- BARRA D'AZIONE MATCHMAKING INTELLIGENTE -->
-<div class="matchmaking-container">
-  <button class="matchmaking-cta-btn" (click)="apriMatchmaking()">
-    <div class="cta-glow"></div>
-    <div class="cta-inner">
-      <div class="cta-left">
-        <span class="cta-emoji">⚡</span>
-        <div class="cta-text">
-          <span class="cta-title">⚖️ Bilancia Squadre</span>
-          <span class="cta-sub">Algoritmo MMR e chimica di squadra</span>
+<!-- BARRA D'AZIONE MATCHMAKING INTELLIGENTE (VISIBILE SOLO AL MISTER E PRESIDENTE) -->
+@if (isAdmin) {
+  <div class="matchmaking-container">
+    <button class="matchmaking-cta-btn" (click)="apriMatchmaking()">
+      <div class="cta-glow"></div>
+      <div class="cta-inner">
+        <div class="cta-left">
+          <ion-icon name="swap-horizontal-outline" class="cta-icon-vector"></ion-icon>
+          <div class="cta-text">
+            <span class="cta-title">Bilancia Squadre</span>
+            <span class="cta-sub">Algoritmo MMR e chimica di squadra</span>
+          </div>
+        </div>
+        <div class="cta-right">
+          <ion-icon name="sparkles" class="sparkle-icon"></ion-icon>
         </div>
       </div>
-      <div class="cta-right">
-        <ion-icon name="sparkles" class="sparkle-icon"></ion-icon>
-      </div>
-    </div>
-  </button>
+    </button>
+  </div>
+}
 
-  <!-- BADGE STATUS BILANCIAMENTO ATTUALE -->
-  @if (currentBalanceInfo(); as bal) {
-    <div
-      class="live-balance-chip"
-      [class.balanced]="bal.isBalanced"
-      [class.unbalanced]="!bal.isBalanced"
-    >
-      <div class="chip-main">
-        <span class="chip-dot"></span>
-        <span class="chip-label">Stato Attuale:</span>
-        <strong class="chip-val">{{ bal.text }}</strong>
-      </div>
-      <small class="chip-details">
-        Bianchi {{ bal.avgA }} vs Neri {{ bal.avgB }} (Δ {{ bal.diffMmr }})
-      </small>
+<!-- BADGE STATUS BILANCIAMENTO ATTUALE (VISIBILE A TUTTI) -->
+@if (currentBalanceInfo(); as bal) {
+  <div
+    class="live-balance-chip"
+    [class.balanced]="bal.isBalanced"
+    [class.unbalanced]="!bal.isBalanced"
+  >
+    <div class="chip-main">
+      <span class="chip-dot"></span>
+      <span class="chip-label">Bilanciamento:</span>
+      <strong class="chip-val">{{ bal.text }}</strong>
     </div>
-  }
-</div>
+    <small class="chip-details">
+      Bianchi {{ bal.avgA }} vs Neri {{ bal.avgB }} (Δ {{ bal.diffMmr }})
+    </small>
+  </div>
+}
 
-<!-- SUGGERIMENTO INTERATTIVO -->
-<div class="swap-touch-hint">
-  <ion-icon name="swap-horizontal"></ion-icon>
-  <span>Tocca un giocatore per spostarlo nell'altra squadra</span>
-</div>
+<!-- SUGGERIMENTO INTERATTIVO (SOLO MISTER E PRESIDENTE) -->
+@if (isAdmin) {
+  <div class="swap-touch-hint">
+    <ion-icon name="swap-horizontal"></ion-icon>
+    <span>Tocca un giocatore per spostarlo nell'altra squadra</span>
+  </div>
+}
 
 <!-- LAYOUT A 2 COLONNE AFFIANCATE (MOBILE-FIRST 360px+) -->
 <div class="rosters-container">
@@ -59,40 +63,45 @@
     @if (state.modalitaPortieriA() === "fisso") {
       <div
         class="gk-fixed-selector-bar team-a"
-        (click)="apriSelettorePortiereFisso('A')"
-        title="Tocca per scegliere chi va in porta per tutta la gara"
+        [class.read-only]="!isAdmin"
+        (click)="isAdmin ? apriSelettorePortiereFisso('A') : null"
+        [title]="isAdmin ? 'Tocca per scegliere chi va in porta per tutta la gara' : 'Portiere fisso Bianchi'"
       >
         <div class="fixed-bar-left">
-          <span class="fixed-icon">🧤</span>
+          <ion-icon name="shield-outline" class="fixed-icon-vector"></ion-icon>
           <div class="fixed-info">
             <span class="fixed-title">
               <strong>{{
-                state.portieriInfoA().attuale?.nome || "Scegli portiere"
+                state.portieriInfoA().attuale?.nome || (isAdmin ? "Scegli portiere" : "Portiere designato")
               }}</strong>
             </span>
             <small class="fixed-sub">
               @if (state.portieriInfoA().isDiRuolo) {
-                👑 Di ruolo
+                Di ruolo
               } @else {
                 Portiere fisso
               }
             </small>
           </div>
         </div>
-        <span class="fixed-change-btn">▾</span>
+        @if (isAdmin) {
+          <span class="fixed-change-btn">▾</span>
+        }
       </div>
     } @else {
       <div class="gk-rotation-hint-bar">
-        <span>🔄 Portiere a rotazione 5'</span>
+        <ion-icon name="repeat-outline"></ion-icon>
+        <span>Portiere a rotazione ({{ state.durataTurnoMinuti() }}')</span>
       </div>
     }
 
     <div class="players-list">
       @for (g of state.teamA(); track (g.id || g.nome) + "_" + $index) {
         <div
-          class="player-row interactive-row"
-          (click)="spostaIn(g, 'B')"
-          title="Tocca per spostare in Neri"
+          class="player-row"
+          [class.interactive-row]="isAdmin"
+          (click)="isAdmin ? spostaIn(g, 'B') : null"
+          [title]="isAdmin ? 'Tocca per spostare in Neri' : ''"
         >
           <div
             class="player-avatar-box"
@@ -108,12 +117,13 @@
               <span
                 class="role-mini-badge fixed-gk"
                 title="Portiere Fisso Designato"
-                >🧤</span
               >
+                <ion-icon name="shield-outline"></ion-icon>
+              </span>
             } @else if (isDiRuolo(g)) {
-              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo"
-                >👑</span
-              >
+              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+              </span>
             } @else if (g.ruoloPreferito) {
               <span class="role-mini-badge" [title]="g.ruoloPreferito">
                 {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -142,7 +152,9 @@
             </div>
           </div>
 
-          <span class="swap-hint-pill" aria-hidden="true">⇄</span>
+          @if (isAdmin) {
+            <span class="swap-hint-pill" aria-hidden="true">⇄</span>
+          }
         </div>
       }
       @if (state.teamA().length === 0) {
@@ -169,40 +181,45 @@
     @if (state.modalitaPortieriB() === "fisso") {
       <div
         class="gk-fixed-selector-bar team-b"
-        (click)="apriSelettorePortiereFisso('B')"
-        title="Tocca per scegliere chi va in porta per tutta la gara"
+        [class.read-only]="!isAdmin"
+        (click)="isAdmin ? apriSelettorePortiereFisso('B') : null"
+        [title]="isAdmin ? 'Tocca per scegliere chi va in porta per tutta la gara' : 'Portiere fisso Neri'"
       >
         <div class="fixed-bar-left">
-          <span class="fixed-icon">🧤</span>
+          <ion-icon name="shield-outline" class="fixed-icon-vector"></ion-icon>
           <div class="fixed-info">
             <span class="fixed-title">
               <strong>{{
-                state.portieriInfoB().attuale?.nome || "Scegli portiere"
+                state.portieriInfoB().attuale?.nome || (isAdmin ? "Scegli portiere" : "Portiere designato")
               }}</strong>
             </span>
             <small class="fixed-sub">
               @if (state.portieriInfoB().isDiRuolo) {
-                👑 Di ruolo
+                Di ruolo
               } @else {
                 Portiere fisso
               }
             </small>
           </div>
         </div>
-        <span class="fixed-change-btn">▾</span>
+        @if (isAdmin) {
+          <span class="fixed-change-btn">▾</span>
+        }
       </div>
     } @else {
       <div class="gk-rotation-hint-bar">
-        <span>🔄 Portiere a rotazione 5'</span>
+        <ion-icon name="repeat-outline"></ion-icon>
+        <span>Portiere a rotazione ({{ state.durataTurnoMinuti() }}')</span>
       </div>
     }
 
     <div class="players-list">
       @for (g of state.teamB(); track (g.id || g.nome) + "_" + $index) {
         <div
-          class="player-row interactive-row"
-          (click)="spostaIn(g, 'A')"
-          title="Tocca per spostare in Bianchi"
+          class="player-row"
+          [class.interactive-row]="isAdmin"
+          (click)="isAdmin ? spostaIn(g, 'A') : null"
+          [title]="isAdmin ? 'Tocca per spostare in Bianchi' : ''"
         >
           <div
             class="player-avatar-box"
@@ -218,12 +235,13 @@
               <span
                 class="role-mini-badge fixed-gk"
                 title="Portiere Fisso Designato"
-                >🧤</span
               >
+                <ion-icon name="shield-outline"></ion-icon>
+              </span>
             } @else if (isDiRuolo(g)) {
-              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo"
-                >👑</span
-              >
+              <span class="role-mini-badge pure-gk" title="Portiere di Ruolo">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+              </span>
             } @else if (g.ruoloPreferito) {
               <span class="role-mini-badge" [title]="g.ruoloPreferito">
                 {{ getRuoloIcon(g.ruoloPreferito) }}
@@ -252,7 +270,9 @@
             </div>
           </div>
 
-          <span class="swap-hint-pill" aria-hidden="true">⇄</span>
+          @if (isAdmin) {
+            <span class="swap-hint-pill" aria-hidden="true">⇄</span>
+          }
         </div>
       }
       @if (state.teamB().length === 0) {
@@ -279,7 +299,7 @@
     <div class="card-header-row">
       <div class="header-left">
         <ion-icon name="trending-up-outline" class="section-icon"></ion-icon>
-        <span class="section-title">Quote & Pronostico Pre-Match</span>
+        <span class="section-title">Quote &amp; Pronostico Pre-Match</span>
       </div>
       <div
         class="favorite-pill"
@@ -287,11 +307,11 @@
         [class.black-fav]="odds.favoriteTeam === 'B'"
       >
         @if (odds.favoriteTeam === "A") {
-          <span>⚪ Favoriti Bianchi (+{{ odds.favoriteMargin }}%)</span>
+          <span>Favoriti Bianchi (+{{ odds.favoriteMargin }}%)</span>
         } @else if (odds.favoriteTeam === "B") {
-          <span>⚫ Favoriti Neri (+{{ odds.favoriteMargin }}%)</span>
+          <span>Favoriti Neri (+{{ odds.favoriteMargin }}%)</span>
         } @else {
-          <span>⚖️ Sfida Equilibrata</span>
+          <span>Sfida Equilibrata</span>
         }
       </div>
     </div>
@@ -300,10 +320,10 @@
     <div class="odds-bar-container">
       <div class="odds-labels-row">
         <span class="odds-label white-label">
-          ⚪ Bianchi <strong>{{ odds.probAPercent }}%</strong>
+          Bianchi <strong>{{ odds.probAPercent }}%</strong>
         </span>
         <span class="odds-label black-label">
-          <strong>{{ odds.probBPercent }}%</strong> Neri ⚫
+          <strong>{{ odds.probBPercent }}%</strong> Neri
         </span>
       </div>
 
@@ -328,7 +348,7 @@
     <div class="ai-pronostico-box">
       <div class="ai-box-header">
         <div class="ai-header-left">
-          <span class="ai-name">✨ Pronostico AI</span>
+          <span class="ai-name">Pronostico Tattico AI</span>
         </div>
 
         @if (state.pronosticoAi()) {
@@ -339,18 +359,20 @@
               [compact]="true"
               [showWhatsAppShare]="false"
             ></app-ai-tts-button>
-            <button
-              type="button"
-              class="ai-icon-btn refresh-btn"
-              (click)="generaPronostico(true)"
-              [disabled]="isGeneratingPronostico()"
-              title="Rigenera pronostico con Gemini"
-            >
-              <ion-icon
-                name="refresh-outline"
-                [class.spin]="isGeneratingPronostico()"
-              ></ion-icon>
-            </button>
+            @if (isAdmin) {
+              <button
+                type="button"
+                class="ai-icon-btn refresh-btn"
+                (click)="generaPronostico(true)"
+                [disabled]="isGeneratingPronostico()"
+                title="Rigenera pronostico con Gemini"
+              >
+                <ion-icon
+                  name="refresh-outline"
+                  [class.spin]="isGeneratingPronostico()"
+                ></ion-icon>
+              </button>
+            }
           </div>
         }
       </div>
@@ -364,48 +386,56 @@
         </div>
       } @else {
         <div class="ai-empty-prompt">
-          <p>Pronostico e analisi tattica pre-partita</p>
-          <button
-            type="button"
-            class="ai-generate-main-btn"
-            (click)="generaPronostico(false)"
-            [disabled]="isGeneratingPronostico()"
-          >
-            @if (isGeneratingPronostico()) {
-              <ion-spinner name="crescent"></ion-spinner>
-              <span>Elaborazione formazioni in corso...</span>
-            } @else {
-              <ion-icon name="sparkles"></ion-icon>
-              <span>🔮 Pronostico del Mister</span>
-            }
-          </button>
+          <p>Analisi tattica e pronostico pre-partita</p>
+          @if (isAdmin) {
+            <button
+              type="button"
+              class="ai-generate-main-btn"
+              (click)="generaPronostico(false)"
+              [disabled]="isGeneratingPronostico()"
+            >
+              @if (isGeneratingPronostico()) {
+                <ion-spinner name="crescent"></ion-spinner>
+                <span>Elaborazione formazioni in corso...</span>
+              } @else {
+                <ion-icon name="sparkles-outline"></ion-icon>
+                <span>Pronostico del Mister</span>
+              }
+            </button>
+          } @else {
+            <span class="ai-waiting-tag">In attesa dell'elaborazione del Mister</span>
+          }
         </div>
       }
     </div>
   </div>
 }
 
-<!-- MODALE MATCHMAKING INTELLIGENTE -->
-<app-matchmaking-modal
-  [isOpen]="isMatchmakingOpen()"
-  [proposals]="proposals()"
-  (closeModal)="chiudiMatchmaking()"
-  (apply)="applicaSquadre($event)"
->
-</app-matchmaking-modal>
-
-<!-- FAB CONFERMA SQUADRE -->
-<ion-fab
-  vertical="bottom"
-  horizontal="end"
-  slot="fixed"
-  style="margin-bottom: 20px; margin-right: 10px"
->
-  <ion-fab-button
-    color="success"
-    (click)="confermaSquadre()"
-    title="Conferma formazioni"
+<!-- MODALE MATCHMAKING INTELLIGENTE (SOLO ADMIN) -->
+@if (isAdmin) {
+  <app-matchmaking-modal
+    [isOpen]="isMatchmakingOpen()"
+    [proposals]="proposals()"
+    (closeModal)="chiudiMatchmaking()"
+    (apply)="applicaSquadre($event)"
   >
-    <ion-icon name="checkmark"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+  </app-matchmaking-modal>
+}
+
+<!-- FAB CONFERMA SQUADRE (SOLO ADMIN) -->
+@if (isAdmin) {
+  <ion-fab
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+    style="margin-bottom: 20px; margin-right: 10px"
+  >
+    <ion-fab-button
+      color="success"
+      (click)="confermaSquadre()"
+      title="Conferma formazioni"
+    >
+      <ion-icon name="checkmark"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+}

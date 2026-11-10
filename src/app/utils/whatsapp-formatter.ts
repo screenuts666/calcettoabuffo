@@ -197,8 +197,7 @@ export function formatWeeklyAvailabilityForWhatsApp(
   const label = topDay?.label || topDay?.dayName || '';
 
   if (count > 0 && label) {
-    const plur = count === 1 ? 'presente' : 'presenti';
-    return `⚽ *Calcetto* • Votate le disponibilità! (Top: *${label}* con ${count} ${plur})\n👉 ${link}`;
+    return `⚽ *Calcetto* • Votate le disponibilità! (Top: *${label}* con ${count} presenti)\n👉 ${link}`;
   }
   return `⚽ *Calcetto* • Quando giochiamo questa settimana? Votate qui:\n👉 ${link}`;
 }

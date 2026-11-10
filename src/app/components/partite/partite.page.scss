@@ -909,13 +909,13 @@
 .team-label {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 
   .team-name {
-    font-size: 0.86rem;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 700;
     color: var(--app-text-primary);
     white-space: nowrap;
     overflow: hidden;
@@ -985,76 +985,44 @@
   flex-shrink: 0;
 }
 
-.direct-detail-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: var(--ion-color-success);
-  font-size: 0.74rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  ion-icon {
-    font-size: 0.82rem;
-    font-weight: 900;
-    transition: transform 0.18s ease;
-  }
-
-  &:hover {
-    background: var(--ion-color-success);
-    color: #052e16;
-    border-color: var(--ion-color-success);
-
-    ion-icon {
-      transform: translateX(2px);
-    }
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-}
-
-.accordion-toggle-btn {
+.card-chevron-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--app-surface-subtle);
-  border: 1px solid var(--app-card-border);
+  width: 44px;
+  height: 44px;
   color: var(--app-text-muted);
-  cursor: pointer;
-  transition: all 0.18s ease;
+  font-size: 1.35rem;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
   flex-shrink: 0;
 
-  ion-icon {
-    font-size: 0.95rem;
-    color: var(--app-text-secondary);
-  }
-
   &.is-open {
-    background: var(--app-primary-subtle);
-    border-color: var(--app-primary-border);
-
-    ion-icon {
-      color: var(--ion-color-success);
-    }
+    transform: rotate(180deg);
+    color: var(--ion-color-success);
   }
+}
 
-  &:hover {
-    background: var(--app-surface-hover);
-    color: var(--app-text-primary);
+.btn-kickoff-quick {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--ion-color-danger, #ef4444);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+
+  ion-icon {
+    font-size: 1rem;
   }
 
   &:active {
-    transform: scale(0.94);
+    transform: scale(0.96);
   }
 }
 
@@ -1464,23 +1432,62 @@
 // ==========================================
 // 6. AZIONI RAPIDE E CTA SCHEDA PARTITA COMPLETA
 // ==========================================
-.match-quick-pills {
+.match-expanded-actions-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-card-border);
+}
+
+.btn-open-match-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  background: var(--app-primary);
+  color: var(--app-primary-contrast, #ffffff);
+  font-size: 15.5px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 3px 12px rgba(var(--app-primary-rgb), 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+
+  ion-icon {
+    font-size: 1.25rem;
+  }
+
+  &:hover {
+    filter: brightness(1.06);
+  }
+
+  &:active {
+    transform: scale(0.98);
+    filter: brightness(0.92);
+  }
+}
+
+.match-secondary-actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid var(--app-card-border);
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .action-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
+  gap: 6px;
+  min-height: 38px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.72rem;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -1489,7 +1496,7 @@
   transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 0.85rem;
+    font-size: 1rem;
   }
 
   &.detail-pill {

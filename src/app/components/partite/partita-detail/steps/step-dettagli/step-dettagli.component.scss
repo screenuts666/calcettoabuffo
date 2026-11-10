@@ -73,7 +73,7 @@
         background: var(--app-surface-subtle);
         border: 2px solid var(--app-card-bg);
         color: var(--app-text-primary);
-        font-size: 0.68rem;
+        font-size: 12px;
         font-weight: 800;
         display: flex;
         align-items: center;
@@ -850,6 +850,335 @@
       ion-icon {
         font-size: 0.95rem;
       }
+    }
+  }
+}
+
+// ==========================================
+// SELETTORE MODALITA' PORTIERI INLINE COMPATTO
+// ==========================================
+.section-icon-vector {
+  font-size: 1.3rem;
+  color: var(--app-primary, #10b981);
+}
+
+.weather-compact-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--app-surface-subtle);
+  border-radius: 10px;
+  border: 1px solid var(--app-card-border);
+  font-size: 13.5px;
+  color: var(--app-text-secondary);
+  margin-top: 10px;
+
+  .w-emoji {
+    font-size: 1.2rem;
+  }
+  .w-info {
+    font-weight: 600;
+  }
+  .w-rain {
+    font-size: 12.5px;
+    color: var(--app-accent-blue);
+    margin-left: auto;
+  }
+}
+
+.portieri-inline-toggles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+
+  .gk-mode-toggle-chip {
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 8px;
+    border-radius: 12px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-secondary);
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      font-size: 1.15rem;
+    }
+
+    &.active {
+      background: var(--app-primary-subtle);
+      border-color: var(--app-primary);
+      color: var(--app-primary);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.gk-mixed-sub-row {
+  display: flex;
+  gap: 8px;
+
+  .team-sub-toggle {
+    flex: 1;
+    min-height: 44px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    strong {
+      color: var(--app-primary);
+    }
+  }
+}
+
+// ==========================================
+// VISTA UTENTE MEDIO / ATLETA (READ-ONLY SUMMARY)
+// ==========================================
+.athlete-summary-card {
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--app-card-shadow);
+
+  .asc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--app-card-border);
+    margin-bottom: 14px;
+
+    .asc-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .asc-ball-icon {
+        font-size: 1.6rem;
+        color: var(--app-primary);
+      }
+
+      .asc-title {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0;
+        color: var(--app-text-primary);
+      }
+
+      .asc-format {
+        font-size: 12.5px;
+        color: var(--app-text-muted);
+        display: block;
+      }
+    }
+
+    .live-pill {
+      font-size: 12px;
+      font-weight: 800;
+      color: #ffffff;
+      background: var(--ion-color-danger, #ef4444);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .asc-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .asc-info-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--app-surface-subtle);
+      border-radius: 12px;
+
+      .asc-row-icon {
+        font-size: 1.4rem;
+        color: var(--app-primary);
+        flex-shrink: 0;
+      }
+
+      .asc-weather-emoji {
+        font-size: 1.4rem;
+        flex-shrink: 0;
+      }
+
+      .asc-row-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+
+        strong {
+          font-size: 15px;
+          color: var(--app-text-primary);
+          line-height: 1.25;
+        }
+
+        span {
+          font-size: 13.5px;
+          color: var(--app-text-secondary);
+          margin-top: 2px;
+        }
+      }
+
+      .btn-asc-maps {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 10px;
+        background: var(--app-primary);
+        color: var(--app-primary-contrast, #ffffff);
+        font-size: 13.5px;
+        font-weight: 700;
+        text-decoration: none;
+        flex-shrink: 0;
+
+        ion-icon {
+          font-size: 1.1rem;
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+    }
+  }
+
+  .asc-rsvp-section {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--app-card-border);
+
+    .asc-rsvp-prompt {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+
+      span {
+        font-size: 13.5px;
+        color: var(--app-text-secondary);
+        font-weight: 600;
+      }
+
+      .asc-status-badge {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background: var(--app-surface-subtle);
+        color: var(--app-text-muted);
+
+        &.confirmed {
+          background: var(--app-primary-subtle);
+          color: var(--app-primary);
+          border: 1px solid var(--app-primary-border);
+        }
+      }
+    }
+
+    .asc-rsvp-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+
+      .asc-rsvp-btn {
+        min-height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14.5px;
+        font-weight: 700;
+        border: 1px solid var(--app-card-border);
+        background: var(--app-surface-subtle);
+        color: var(--app-text-primary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        ion-icon {
+          font-size: 1.25rem;
+        }
+
+        &.yes {
+          &.active {
+            background: var(--app-primary);
+            color: #ffffff;
+            border-color: var(--app-primary);
+            box-shadow: 0 3px 12px rgba(var(--app-primary-rgb), 0.35);
+          }
+        }
+
+        &.no {
+          &.active {
+            background: var(--app-accent-danger, #ef4444);
+            color: #ffffff;
+            border-color: var(--app-accent-danger, #ef4444);
+          }
+        }
+
+        &:active:not(:disabled) {
+          transform: scale(0.97);
+        }
+      }
+    }
+  }
+
+  .asc-view-convocati-btn {
+    margin-top: 16px;
+    width: 100%;
+    min-height: 48px;
+    border-radius: 12px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
+    color: var(--app-text-primary);
+    font-size: 14.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    ion-icon {
+      font-size: 1.2rem;
+      color: var(--app-primary);
+    }
+
+    &:hover {
+      background: var(--app-surface-hover);
+    }
+
+    &:active {
+      transform: scale(0.98);
     }
   }
 }

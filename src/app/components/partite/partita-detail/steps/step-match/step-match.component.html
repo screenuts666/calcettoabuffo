@@ -3,19 +3,18 @@
   <div class="cambio-banner" [class.is-admin]="isAdmin" (click)="isAdmin ? fermaCambio() : null">
     <div class="cambio-pulse-ring"></div>
     <div class="cambio-content">
-      <span class="cambio-icon-preset">{{ soundSettings.selectedGkPreset().emoji }}</span>
       <div class="cambio-text-group">
         <div class="cambio-title-row">
-          <span class="cambio-title">⏱️ CAMBIO PORTIERE!</span>
+          <span class="cambio-title"><ion-icon name="time-outline"></ion-icon> CAMBIO PORTIERE!</span>
           <span class="cambio-preset-tag">{{ soundSettings.selectedGkPreset().name }}</span>
         </div>
         <div class="cambio-gk-names-box">
           @if (state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione') {
             <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) & <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri)</span>
           } @else if (state.modalitaPortieriA() === 'rotazione') {
-            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso 🧤)</span>
+            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso)</span>
           } @else {
-            <span>In porta: <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso 🧤)</span>
+            <span>In porta: <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso)</span>
           }
         </div>
       </div>
@@ -23,7 +22,7 @@
     @if (isAdmin) {
       <button type="button" class="cambio-stop-btn-giant" (click)="$event.stopPropagation(); fermaCambio()">
         <ion-icon name="volume-mute"></ion-icon>
-        <span>🛑 FERMA ALLARME (STOP)</span>
+        <span>Silenzia Allarme</span>
       </button>
     }
   </div>
@@ -34,7 +33,7 @@
   <div class="pre-match-card ion-padding-horizontal">
     <div class="pm-inner">
       <div class="pm-text">
-        <span class="pm-tag">⚖️ Formazioni Pronte</span>
+        <span class="pm-tag">Formazioni Pronte</span>
       </div>
       <button type="button" class="btn-modify-squadre" (click)="state.cambiaStep('squadre')">
         <ion-icon name="create-outline"></ion-icon>
@@ -90,7 +89,8 @@
       }
       @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
         <div class="next-gk-mini-pill">
-          🧤 Cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong>
+          <ion-icon name="hand-left-outline"></ion-icon>
+          <span>Cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong></span>
         </div>
       }
     </div>
@@ -111,7 +111,7 @@
         <span class="stc-badge">BIANCHI</span>
         @if (state.portieriInfoA().attuale; as gkA) {
           <span class="stc-gk-pill" title="Portiere attuale Bianchi">
-            🧤 {{ gkA.nome }}
+            <ion-icon name="hand-left-outline"></ion-icon> {{ gkA.nome }}
           </span>
         }
       </div>
@@ -150,7 +150,7 @@
         <span class="stc-badge">NERI</span>
         @if (state.portieriInfoB().attuale; as gkB) {
           <span class="stc-gk-pill" title="Portiere attuale Neri">
-            🧤 {{ gkB.nome }}
+            <ion-icon name="hand-left-outline"></ion-icon> {{ gkB.nome }}
           </span>
         }
       </div>
@@ -184,11 +184,29 @@
     </div>
   </div>
 
-  <!-- ─── GRIGLIA 1-TAP CON FOTO: TOCCA LA FACCIA DI CHI HA SEGNATO! ─── -->
+  <!-- UNDO IMMEDIATO SOTTO IL TABELLONE (1-TAP RECOVERY) -->
+  @if (isAdmin && state.eventiGol().length > 0) {
+    <div class="immediate-undo-container">
+      <button
+        type="button"
+        class="btn-immediate-undo"
+        (click)="annullaUltimoGolImmediato()"
+      >
+        <ion-icon name="arrow-undo-outline"></ion-icon>
+        <span>Annulla ultimo gol ({{ state.eventiGol()[state.eventiGol().length - 1].nome }})</span>
+      </button>
+    </div>
+  }
+
+  <!-- ─── GRIGLIA 1-TAP PITCH-MODE: TOCCA UN GIOCATORE PER GOL LAMPO! ─── -->
   <div class="quick-photo-scorers-box" [class.is-locked]="isAdmin && state.cronometro() <= 0">
     <div class="qps-header">
       <span class="qps-title">
-        {{ isAdmin ? '⚡ GOL LAMPO: TOCCA LA FOTO DI CHI HA SEGNATO' : '⚽ FORMAZIONI IN CAMPO (BIANCHI vs NERI)' }}
+        @if (isAdmin) {
+          <ion-icon name="flash-outline"></ion-icon> GOL LAMPO: TOCCA UN GIOCATORE (+1 GOL)
+        } @else {
+          <ion-icon name="shield-outline"></ion-icon> FORMAZIONI IN CAMPO
+        }
       </span>
     </div>
 
@@ -200,6 +218,7 @@
             type="button"
             class="qps-player-btn"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'A')"
+            [class.is-read-only]="!isAdmin"
             (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'A') : null"
           >
             <div class="qps-avatar-wrap">
@@ -207,7 +226,9 @@
                 <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
               </ion-avatar>
               @if (isPlayerCurrentGk(p.id, 'A')) {
-                <span class="qps-gk-dot" title="In porta ora">🧤</span>
+                <span class="qps-gk-dot" title="In porta ora">
+                  <ion-icon name="hand-left-outline"></ion-icon>
+                </span>
               }
             </div>
             <div class="qps-info">
@@ -237,6 +258,7 @@
             type="button"
             class="qps-player-btn is-dark-team"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'B')"
+            [class.is-read-only]="!isAdmin"
             (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'B') : null"
           >
             <div class="qps-avatar-wrap">
@@ -244,7 +266,9 @@
                 <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
               </ion-avatar>
               @if (isPlayerCurrentGk(p.id, 'B')) {
-                <span class="qps-gk-dot" title="In porta ora">🧤</span>
+                <span class="qps-gk-dot" title="In porta ora">
+                  <ion-icon name="hand-left-outline"></ion-icon>
+                </span>
               }
             </div>
             <div class="qps-info">
@@ -274,21 +298,21 @@
 @if (state.eventiGol().length > 0) {
   <div class="events-log-card">
     <div class="elc-header">
-      <span>📋 CRONACA GOL ({{ state.eventiGol().length }})</span>
+      <span><ion-icon name="list-outline"></ion-icon> CRONACA GOL ({{ state.eventiGol().length }})</span>
     </div>
     <div class="log-container">
       @for (gol of state.eventiGol(); track $index) {
         <div class="log-entry" [class.is-right]="gol.teamVantaggio === 'B'">
           <span class="l-time">{{ gol.tempo }}</span>
           <span class="l-player">
-            ⚽ <strong>{{ gol.nome }}</strong>
+            <ion-icon name="football-outline"></ion-icon> <strong>{{ gol.nome }}</strong>
             @if (gol.isAutogoal) {
               <span class="autogol-text">(Autogol)</span>
             } @else if (gol.assistNome) {
-              <span class="assist-text">👟 {{ gol.assistNome }}</span>
+              <span class="assist-text"><ion-icon name="footsteps-outline"></ion-icon> {{ gol.assistNome }}</span>
             }
             @if (gol.portiereSubitoNome) {
-              <span class="gk-subito-text">🧤 {{ gol.portiereSubitoNome }}</span>
+              <span class="gk-subito-text"><ion-icon name="hand-left-outline"></ion-icon> {{ gol.portiereSubitoNome }}</span>
             }
           </span>
         </div>
@@ -301,10 +325,10 @@
 <div class="gk-rotation-section">
     <div class="gk-panel-header">
       <div class="gk-header-left">
-        <span class="gk-badge-icon">🧤</span>
+        <ion-icon name="hand-left-outline" class="gk-badge-icon"></ion-icon>
         <div class="gk-header-text">
           @if (state.modalitaPortieriA() === 'fisso' && state.modalitaPortieriB() === 'fisso') {
-            <span class="gk-header-title">Portieri Fissi di Ruolo 🧤</span>
+            <span class="gk-header-title">Portieri Fissi di Ruolo</span>
             <span class="gk-header-sub">Entrambe le formazioni con portiere fisso tutta la gara</span>
           } @else {
             <span class="gk-header-title">Rotazione Portieri · {{ state.durataTurnoLabel() }}</span>
@@ -323,7 +347,7 @@
             [title]="'Impostazioni suoni e cambio segnale (Attuale: ' + soundSettings.selectedGkPreset().name + ')'"
           >
             <ion-icon name="volume-high"></ion-icon>
-            <span>{{ soundSettings.selectedGkPreset().emoji }} Suono</span>
+            <span>Suono</span>
           </button>
           <button
             type="button"
@@ -395,9 +419,9 @@
           <div class="gk-card-slot current fixed-slot">
             <span class="slot-badge badge-fixed">
               @if (state.portieriInfoA().isDiRuolo) {
-                👑 PORTIERE DI RUOLO · Saracinesca
+                <ion-icon name="shield-outline"></ion-icon> PORTIERE DI RUOLO · Specialista
               } @else {
-                🧤 PORTIERE FISSO · Tutta la gara
+                <ion-icon name="hand-left-outline"></ion-icon> PORTIERE FISSO · Tutta la gara
               }
             </span>
             <div class="slot-player">
@@ -409,7 +433,7 @@
               </ion-avatar>
               <div class="slot-player-details">
                 <span class="slot-player-name">{{ state.portieriInfoA().attuale?.nome || '—' }}</span>
-                <small class="slot-fixed-sub">🛡️ 50 min saracinesca tra i pali</small>
+                <small class="slot-fixed-sub">50 min saracinesca tra i pali</small>
               </div>
             </div>
           </div>
@@ -417,7 +441,7 @@
           <!-- Portiere Attuale Rotazione -->
           <div class="gk-card-slot current">
             <span class="slot-badge badge-now">
-              🧤 IN PORTA ORA · {{ state.portieriInfoA().turnoAttualeNumero }}°
+              <ion-icon name="hand-left-outline"></ion-icon> IN PORTA ORA · {{ state.portieriInfoA().turnoAttualeNumero }}°
             </span>
             <div class="slot-player">
               <ion-avatar class="slot-avatar">
@@ -433,7 +457,7 @@
           <!-- Prossimo Portiere -->
           <div class="gk-card-slot next">
             <span class="slot-badge badge-next">
-              ⏱️ PROSSIMO · {{ state.portieriInfoA().turnoProssimoNumero }}°
+              <ion-icon name="time-outline"></ion-icon> PROSSIMO · {{ state.portieriInfoA().turnoProssimoNumero }}°
             </span>
             <div class="slot-player mini">
               <ion-avatar class="slot-avatar mini">
@@ -480,9 +504,9 @@
           <div class="gk-card-slot current fixed-slot">
             <span class="slot-badge badge-fixed">
               @if (state.portieriInfoB().isDiRuolo) {
-                👑 PORTIERE DI RUOLO · Saracinesca
+                <ion-icon name="shield-outline"></ion-icon> PORTIERE DI RUOLO · Specialista
               } @else {
-                🧤 PORTIERE FISSO · Tutta la gara
+                <ion-icon name="hand-left-outline"></ion-icon> PORTIERE FISSO · Tutta la gara
               }
             </span>
             <div class="slot-player">
@@ -494,7 +518,7 @@
               </ion-avatar>
               <div class="slot-player-details">
                 <span class="slot-player-name">{{ state.portieriInfoB().attuale?.nome || '—' }}</span>
-                <small class="slot-fixed-sub">🛡️ 50 min saracinesca tra i pali</small>
+                <small class="slot-fixed-sub">50 min saracinesca tra i pali</small>
               </div>
             </div>
           </div>
@@ -502,7 +526,7 @@
           <!-- Portiere Attuale Rotazione -->
           <div class="gk-card-slot current">
             <span class="slot-badge badge-now">
-              🧤 IN PORTA ORA · {{ state.portieriInfoB().turnoAttualeNumero }}°
+              <ion-icon name="hand-left-outline"></ion-icon> IN PORTA ORA · {{ state.portieriInfoB().turnoAttualeNumero }}°
             </span>
             <div class="slot-player">
               <ion-avatar class="slot-avatar">
@@ -518,7 +542,7 @@
           <!-- Prossimo Portiere -->
           <div class="gk-card-slot next">
             <span class="slot-badge badge-next">
-              ⏱️ PROSSIMO · {{ state.portieriInfoB().turnoProssimoNumero }}°
+              <ion-icon name="time-outline"></ion-icon> PROSSIMO · {{ state.portieriInfoB().turnoProssimoNumero }}°
             </span>
             <div class="slot-player mini">
               <ion-avatar class="slot-avatar mini">
@@ -541,7 +565,7 @@
           <div class="seq-col">
             <span class="seq-col-title">Sequenza Bianchi</span>
             @if (state.modalitaPortieriA() === 'fisso') {
-              <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
+              <div class="seq-fixed-note">Squadra con portiere fisso (nessun turno a rotazione)</div>
             } @else {
               <div class="seq-items-list">
                 @for (p of state.portieriInfoA().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
@@ -568,7 +592,7 @@
           <div class="seq-col">
             <span class="seq-col-title">Sequenza Neri</span>
             @if (state.modalitaPortieriB() === 'fisso') {
-              <div class="seq-fixed-note">🧤 Squadra con portiere fisso (nessun turno a rotazione)</div>
+              <div class="seq-fixed-note">Squadra con portiere fisso (nessun turno a rotazione)</div>
             } @else {
               <div class="seq-items-list">
                 @for (p of state.portieriInfoB().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
@@ -623,7 +647,7 @@
       <div class="gps-header">
         <div class="gps-title-group">
           <span class="gps-team-pill" [class.is-neri]="goalPickerTeam() === 'B'">
-            ⚽ GOL {{ goalPickerTeam() === 'A' ? 'BIANCHI' : 'NERI' }} ({{ state.formatTimer() }})
+            <ion-icon name="football-outline"></ion-icon> GOL {{ goalPickerTeam() === 'A' ? 'BIANCHI' : 'NERI' }} ({{ state.formatTimer() }})
           </span>
           @if (goalPickerStep() === 'scorer') {
             <h3>Chi ha segnato?</h3>
@@ -652,10 +676,10 @@
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
                   </ion-avatar>
                   @if (isPlayerCurrentGk(g.id, goalPickerTeam())) {
-                    <span class="gps-gk-tag">🧤</span>
+                    <span class="gps-gk-tag"><ion-icon name="hand-left-outline"></ion-icon></span>
                   }
                   @if ((g.gol || 0) > 0) {
-                    <span class="gps-gol-count">⚽ {{ g.gol }}</span>
+                    <span class="gps-gol-count"><ion-icon name="football-outline"></ion-icon> {{ g.gol }}</span>
                   }
                 </div>
                 <span class="gps-player-name">{{ g.nome }}</span>
@@ -670,7 +694,7 @@
               class="gps-autogol-toggle"
               (click)="toggleAutogolNelPicker()"
             >
-              <span>⚠️ Autogol di un avversario ({{ goalPickerTeam() === 'A' ? 'Neri' : 'Bianchi' }})</span>
+              <span><ion-icon name="warning-outline"></ion-icon> Autogol di un avversario ({{ goalPickerTeam() === 'A' ? 'Neri' : 'Bianchi' }})</span>
               <ion-icon [name]="showAutogolList() ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
             </button>
 
@@ -705,7 +729,7 @@
               </ion-avatar>
               <div class="gss-text">
                 <small>MARCATORE SELEZIONATO</small>
-                <strong>⚽ {{ scorer.nome }}</strong>
+                <strong><ion-icon name="football-outline"></ion-icon> {{ scorer.nome }}</strong>
               </div>
             </div>
             <button type="button" class="gss-change-btn" (click)="tornaASceltaMarcatore()">
@@ -720,7 +744,7 @@
             class="gps-solo-goal-btn"
             (click)="confermaAssistNelPicker(null)"
           >
-            <span class="solo-icon">⚡</span>
+            <ion-icon name="flash-outline" class="solo-icon"></ion-icon>
             <div class="solo-text">
               <strong>NESSUN ASSIST · AZIONE PERSONALE</strong>
               <small>Tocca qui per confermare subito il gol di {{ scorer.nome }}</small>
@@ -728,7 +752,7 @@
           </button>
 
           <div class="gps-assist-divider">
-            <span>oppure tocca la foto di chi ha fatto l'assist 👟</span>
+            <span>oppure tocca la foto del compagno che ha fatto l'assist</span>
           </div>
 
           <!-- GRIGLIA FOTO COMPAGNI PER ASSIST -->
@@ -744,10 +768,10 @@
                     <app-player-avatar [fotoUrl]="c.fotoUrl" [alt]="c.nome"></app-player-avatar>
                   </ion-avatar>
                   @if ((c.assist || 0) > 0) {
-                    <span class="gps-ast-count">👟 {{ c.assist }}</span>
+                    <span class="gps-ast-count"><ion-icon name="footsteps-outline"></ion-icon> {{ c.assist }}</span>
                   }
                 </div>
-                <span class="gps-player-name">👟 {{ c.nome }}</span>
+                <span class="gps-player-name">{{ c.nome }}</span>
               </button>
             }
           </div>

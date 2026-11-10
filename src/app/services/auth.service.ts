@@ -133,6 +133,10 @@ export class AuthService {
    */
   readonly isAdmin = this.isSuperUser;
 
+  /** Helper espliciti per la gestione gara (Mister & Presidente) */
+  readonly canManageMatch = this.isSuperUser;
+  readonly isAdminOrMister = this.isSuperUser;
+
   /** Alias per `isLoggedIn`: true se l'utente ha effettuato il login Firebase */
   readonly isAuthenticated = this.isLoggedIn;
 
@@ -301,7 +305,9 @@ export class AuthService {
           uid: user.uid,
           email: user.email || '',
           displayName:
-            user.displayName || user.email?.split('@')[0] || (isPresident ? 'Presidente' : 'Tifoso'),
+            user.displayName ||
+            user.email?.split('@')[0] ||
+            (isPresident ? 'Presidente' : 'Tifoso'),
           photoURL: user.photoURL || null,
           role: initialRole,
           playerId: autoPlayerId,
@@ -338,7 +344,9 @@ export class AuthService {
         const mergedName =
           data.displayName && data.displayName !== 'Tifoso'
             ? data.displayName
-            : user.displayName || user.email?.split('@')[0] || (isPresident ? 'Presidente' : 'Tifoso');
+            : user.displayName ||
+              user.email?.split('@')[0] ||
+              (isPresident ? 'Presidente' : 'Tifoso');
 
         this.userProfile.set({
           ...data,
@@ -985,7 +993,9 @@ export class AuthService {
    */
   async promoteUserToMister(uid: string): Promise<void> {
     if (!this.isPresidente()) {
-      throw new Error('Solo il Presidente può assegnare o togliere il ruolo di Mister.');
+      throw new Error(
+        'Solo il Presidente può assegnare o togliere il ruolo di Mister.',
+      );
     }
     if (!this.firestore) return;
 
@@ -1023,7 +1033,9 @@ export class AuthService {
    */
   async demoteUserFromMister(uid: string, hasPlayerId: boolean): Promise<void> {
     if (!this.isPresidente()) {
-      throw new Error('Solo il Presidente può assegnare o togliere il ruolo di Mister.');
+      throw new Error(
+        'Solo il Presidente può assegnare o togliere il ruolo di Mister.',
+      );
     }
     if (!this.firestore) return;
 
@@ -1152,7 +1164,9 @@ export class AuthService {
     newPlayerId: string | null,
   ): Promise<void> {
     if (!this.firestore || !this.isPresidente()) {
-      throw new Error('Solo il Presidente può modificare le associazioni dei giocatori.');
+      throw new Error(
+        'Solo il Presidente può modificare le associazioni dei giocatori.',
+      );
     }
 
     const now = new Date().toISOString();
@@ -1233,13 +1247,18 @@ export class AuthService {
       throw new Error('Solo il Presidente può eliminare un account utente.');
     }
 
-    if (targetUser.role === 'presidente' || isPresidenteEmail(targetUser.email)) {
+    if (
+      targetUser.role === 'presidente' ||
+      isPresidenteEmail(targetUser.email)
+    ) {
       throw new Error("Impossibile eliminare l'account del Presidente.");
     }
 
     const currentUid = this.firebaseUser()?.uid;
     if (targetUser.uid === currentUid) {
-      throw new Error('Non puoi eliminare il tuo stesso account dal pannello di gestione.');
+      throw new Error(
+        'Non puoi eliminare il tuo stesso account dal pannello di gestione.',
+      );
     }
 
     const now = new Date().toISOString();
@@ -1323,7 +1342,8 @@ export class AuthService {
 
       if (userSnap.exists()) {
         const uData = userSnap.data() as AppUserProfile;
-        if (uData.role === 'superuser' || uData.role === 'presidente') return true;
+        if (uData.role === 'superuser' || uData.role === 'presidente')
+          return true;
         if (
           uData.role === 'user' &&
           uData.playerId === playerId &&
@@ -1363,7 +1383,8 @@ export class AuthService {
       }
 
       const uData = userSnap.data() as AppUserProfile;
-      if (uData.role === 'superuser' || uData.role === 'presidente') return true;
+      if (uData.role === 'superuser' || uData.role === 'presidente')
+        return true;
       return !uData.playerId;
     } catch {
       return false;

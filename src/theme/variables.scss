@@ -7,6 +7,22 @@
 
 :root {
   // ---------------------------------------------------------------------------
+  // TYPOGRAPHY SCALE (MOBILE FIRST - Standard Apple HIG / Material 3)
+  // Floor minimo assoluto a 12px (0.75rem) su qualsiasi viewport
+  // ---------------------------------------------------------------------------
+  --app-font-floor: 12px;
+  --app-font-xs: 12px;
+  --app-font-sm: 13.5px;
+  --app-font-md: 14px;
+  --app-font-base: 15.5px;
+  --app-font-lg: 17px;
+  --app-font-xl: 20px;
+  --app-font-score: clamp(40px, 10vw, 56px);
+
+  // TOUCH TARGET MINIMUM (Standard Apple HIG / Material 3: min 44x44px)
+  --app-min-touch-target: 44px;
+
+  // ---------------------------------------------------------------------------
   // 1. BRAND PALETTE (Light / Default)
   // ---------------------------------------------------------------------------
   --app-primary: #25d366;

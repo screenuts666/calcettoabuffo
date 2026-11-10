@@ -461,7 +461,7 @@
     }
 
     .chip-name {
-      font-size: 0.7rem;
+      font-size: 12px;
       color: var(--app-text-secondary);
       margin-top: 4px;
       font-weight: 600;
@@ -477,6 +477,15 @@
   .player-item {
     --background: transparent;
     --border-color: var(--app-border-color);
+    --min-height: 54px;
+    min-height: 54px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease;
+
+    &.interactive-item:active {
+      --background: var(--app-surface-hover);
+    }
 
     &.is-maybe-row {
       --background: rgba(245, 158, 11, 0.06);
@@ -493,19 +502,20 @@
       gap: 6px;
       flex-wrap: wrap;
 
-      h3 {
+      .player-full-name {
         margin: 0;
-        font-weight: 700;
+        font-size: 15.5px !important;
+        font-weight: 600 !important;
         color: var(--app-text-primary);
       }
 
       .rsvp-inline-badge {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        padding: 2px 7px;
+        gap: 4px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 8px;
         border-radius: 999px;
 
         &.self-confirmed {
@@ -514,7 +524,7 @@
           color: #34d399;
 
           ion-icon {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
           }
         }
 
@@ -522,6 +532,10 @@
           background: rgba(245, 158, 11, 0.18);
           border: 1px solid rgba(245, 158, 11, 0.45);
           color: #fbbf24;
+
+          ion-icon {
+            font-size: 0.95rem;
+          }
         }
 
         &.no-badge {
@@ -529,13 +543,291 @@
           border: 1px solid rgba(239, 68, 68, 0.35);
           color: #f87171;
         }
+
+        &.you-badge {
+          background: var(--app-primary-subtle);
+          border: 1px solid var(--app-primary-border);
+          color: var(--app-primary);
+        }
       }
     }
 
-    p {
+    .player-sub-info {
       color: var(--app-text-secondary);
-      font-style: italic;
+      font-size: 13px !important;
       margin-top: 2px;
     }
+  }
+}
+
+// ==========================================
+// CLEAN RSVP BOX (ATLETA & MISTER)
+// ==========================================
+.clean-rsvp-box {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
+
+  .crb-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .crb-prompt {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--app-text-secondary);
+    }
+
+    .crb-status-pill {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--app-surface-subtle);
+      color: var(--app-text-muted);
+
+      &.confirmed {
+        background: var(--app-primary-subtle);
+        color: var(--app-primary);
+        border: 1px solid var(--app-primary-border);
+      }
+    }
+  }
+
+  .crb-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    .crb-btn {
+      min-height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14.5px;
+      font-weight: 700;
+      border: 1px solid var(--app-card-border);
+      background: var(--app-surface-subtle);
+      color: var(--app-text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 1.25rem;
+      }
+
+      &.yes {
+        &.active {
+          background: var(--app-primary);
+          color: #ffffff;
+          border-color: var(--app-primary);
+          box-shadow: 0 3px 12px rgba(var(--app-primary-rgb), 0.35);
+        }
+      }
+
+      &.no {
+        &.active {
+          background: var(--app-accent-danger, #ef4444);
+          color: #ffffff;
+          border-color: var(--app-accent-danger, #ef4444);
+        }
+      }
+
+      &:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+    }
+  }
+}
+
+// ==========================================
+// INVITE PANEL ADMIN (MISTER)
+// ==========================================
+.invite-panel-admin {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
+
+  .ipa-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    .ipa-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .ipa-badge {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--app-primary);
+        background: var(--app-primary-subtle);
+        padding: 3px 8px;
+        border-radius: 8px;
+      }
+
+      .ipa-counter {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .ipa-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .btn-share-whatsapp {
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 10px;
+        background: #25d366;
+        color: #ffffff;
+        font-size: 13.5px;
+        font-weight: 700;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+
+        ion-icon {
+          font-size: 1.15rem;
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+
+      .btn-copy-invite {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: var(--app-surface-subtle);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        ion-icon {
+          font-size: 1.15rem;
+        }
+
+        &:active {
+          transform: scale(0.96);
+        }
+      }
+    }
+  }
+
+  .maybe-solicit-strip {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--app-card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .mss-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+
+      .mss-icon-vector {
+        font-size: 1.2rem;
+        color: var(--app-accent-gold);
+        flex-shrink: 0;
+      }
+
+      .mss-text {
+        font-size: 13px;
+        color: var(--app-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        strong {
+          color: var(--app-accent-gold);
+        }
+      }
+    }
+
+    .btn-solicita-wa {
+      min-height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.4);
+      color: #25d366;
+      font-size: 12.5px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 1rem;
+      }
+
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+  }
+}
+
+// ==========================================
+// VISTA ATLETA: LISTA CONVOCATI PULITA (READ-ONLY)
+// ==========================================
+.athlete-convocati-list-wrapper {
+  margin-top: 8px;
+
+  .acl-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    ion-icon {
+      font-size: 1.15rem;
+      color: var(--app-primary);
+    }
+  }
+
+  .acl-empty {
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--app-text-muted);
+    font-size: 14px;
+  }
+
+  .clean-confirmed-check {
+    font-size: 1.5rem;
+    color: var(--app-primary, #10b981);
   }
 }

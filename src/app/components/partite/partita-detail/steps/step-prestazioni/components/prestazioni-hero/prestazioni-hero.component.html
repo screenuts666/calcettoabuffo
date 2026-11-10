@@ -48,13 +48,13 @@
 <div class="scoreboard-hero">
   <!-- Status Badge Spazioso & Chiaro in Cima -->
   <div class="hero-status-pill" [class.archived]="pagelleInserite">
-    <span class="status-icon">{{ pagelleInserite ? '✓' : '⏳' }}</span>
+    <ion-icon [name]="pagelleInserite ? 'checkmark-circle-outline' : 'time-outline'" class="status-icon"></ion-icon>
     <span class="status-text">{{ pagelleInserite ? 'Partita Archiviata' : 'Pagelle da Votare' }}</span>
   </div>
 
   <div class="scoreboard-main">
     <div class="team-side white-side">
-      <div class="team-badge-circle white">⚪</div>
+      <div class="team-badge-circle white"></div>
       <div class="team-title">BIANCHI</div>
       <div class="team-score-num">{{ scoreA }}</div>
     </div>
@@ -66,7 +66,7 @@
     <div class="team-side black-side">
       <div class="team-score-num">{{ scoreB }}</div>
       <div class="team-title">NERI</div>
-      <div class="team-badge-circle black">⚫</div>
+      <div class="team-badge-circle black"></div>
     </div>
   </div>
 
@@ -76,7 +76,7 @@
       <div class="scorers-col white-scorers">
         @for (s of scorersA; track (s.nome || '') + '_' + $index) {
           <span class="scorer-tag white-tag">
-            ⚽ <strong>{{ s.nome }}</strong>
+            <ion-icon name="football-outline"></ion-icon> <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
           </span>
         }
@@ -85,7 +85,7 @@
       <div class="scorers-col black-scorers">
         @for (s of scorersB; track (s.nome || '') + '_' + $index) {
           <span class="scorer-tag black-tag">
-            ⚽ <strong>{{ s.nome }}</strong>
+            <ion-icon name="football-outline"></ion-icon> <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
           </span>
         }
@@ -110,7 +110,7 @@
 @if (isUpset) {
   <div class="upset-banner-wrapper">
     <div class="upset-card">
-      <div class="upset-flame-icon">🔥</div>
+      <ion-icon name="flame-outline" class="upset-flame-icon"></ion-icon>
       <div class="upset-content">
         <div class="upset-title">UPSET CLAMOROSO!</div>
         <div class="upset-desc">{{ upsetDescription }}</div>

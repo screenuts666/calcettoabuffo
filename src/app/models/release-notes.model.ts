@@ -7,9 +7,31 @@ export interface ReleaseNoteEntry {
   userChanges: string[];
   /** Novità visibili solo in modalità Super User / Admin */
   superUserChanges: string[];
+  /** Se true, l'aggiornamento è una major release con banner anche per utenti semplici */
+  isMajor?: boolean;
+  /** Target delle note: 'all' | 'admin' */
+  target?: 'all' | 'admin';
 }
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
+  {
+    "version": "2.0.65",
+    "date": "10/11/2026",
+    "title": "Design System Mobile-First, Pitch-Mode Ultra Rapido, Separazione Ruoli e Stop Emoji AI",
+    "isMajor": true,
+    "target": "all",
+    "userChanges": [
+      "Tipografia Mobile-First: caratteri minimi a 12px, testi e titoli più leggibili e touch target comodi da almeno 44px su tutto lo smartphone.",
+      "Icone Vettoriali Pulite: eliminate le emoji AI testo da titoli, badge e pulsanti, sostituite con icone di sistema essenziali e professionali.",
+      "Esperienza Atleta su Misura: vista partita pulita in sola lettura con riepilogo campo, meteo e tasto RSVP immediato (Partecipo / Non ci sono).",
+      "Lista Partite con Full-Card Tap: tocca in qualsiasi punto della scheda partita per aprire o chiudere i dettagli all'istante."
+    ],
+    "superUserChanges": [
+      "Pitch-Mode Bordo Campo: tabellone e timer giganti sotto il sole, pulsanti giocatore da 56px con gol lampo 1-tap e tasto immediato di annulla gol.",
+      "Gestione Match Role-Based: form compatti per data e ora, selettore portieri inline snello e controlli timer/squadre riservati a Mister e Presidente.",
+      "Release Notes Intelligenti: notifiche popup filtrate per rilevanza (solo major per atleti, storico tecnico completo per admin)."
+    ]
+  },
   {
     "version": "2.0.64",
     "date": "09/11/2026",
@@ -21,25 +43,6 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
     ],
     "superUserChanges": [
       "🛡️ Navigazione Accesso Non Invasiva: rimosso l'auto-redirect forzato per gli utenti guest per consentire la visualizzazione preventiva del sondaggio prima dell'accesso."
-    ]
-  },
-  {
-    "version": "2.0.63",
-    "date": "09/11/2026",
-    "title": "Allineamento Totale Box AI, Accordion Telecronaca, Orari Partita, Giorni Passati e Fix Condivisione",
-    "userChanges": [
-      "🔒 Disponibilità Giorni Passati Chiusi: i giorni trascorsi della settimana corrente rimangono consultabili per vedere chi era presente, ma con badge 'CHIUSO', styling attenuato e lucchetto di voto bloccato.",
-      "🎙️ Telecronaca Ignorante in Accordion Chiuso: il box della telecronaca nel Terzo Tempo è ora un elegante accordion compatto chiuso di default che non ruba spazio alla bacheca commenti, con pulsante di ascolto audio circolare e rigenerazione discreta.",
-      "🔗 Collegamenti Diretti Chimica & Duelli nel Report: le card 'Gemelli del Gol' e 'Bestia Nera' nelle statistiche post-partita sono ora interattive con freccia e portano direttamente alla scheda di Intesa di Coppia (/chimica) o al Confronto 1v1.",
-      "⏱️ Orari Inizio e Fine Match Minimali: nell'header del report partita compaiono gli orari reali 'Inizio: HH:mm' e 'Fine: HH:mm' (mostrato solo a gara conclusa), puliti ed eleganti.",
-      "🗺️ Piantina Tattica Nascosta: disabilitata temporaneamente la piantina tattica dalla sintesi match per una visuale più leggera e focalizzata su MVP, premi e marcatori.",
-      "💬 Condivisione WhatsApp Senza Link Duplicati: risolto il problema della condivisione su dispositivi mobili che inviava due volte lo stesso link della partita nel testo.",
-      "✨ Grafica AI Unificata in Tutta l'App: uniformati tutti i box di intelligenza artificiale (Pronostico pre-match, Matchmaking tattico, Terzo Tempo) con micro-header a riga singola e bottoni circolari minimali."
-    ],
-    "superUserChanges": [
-      "🛠️ Web Share API URL Deduplication: normalizzato l'invio a `navigator.share` per evitare duplicazioni del link se già formattato con emoji nel corpo del messaggio.",
-      "🏷️ Attribuzione ID Coppie per Report Partita: introdotto `playerIds: [p1.id, p2.id]` in `MatchReportChemistryItem` per abilitare la navigazione diretta verso `/chimica/:p1/:p2` e `/1v1/:p1/:p2`.",
-      "⚙️ Parametro Condizionale `showTacticalPitch`: preservata l'intera architettura di `TacticalPitchComponent` dietro flag di controllo disattivato."
     ]
   },
   {

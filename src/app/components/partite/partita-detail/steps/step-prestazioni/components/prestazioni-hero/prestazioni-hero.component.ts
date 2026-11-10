@@ -15,6 +15,9 @@ import {
   timeOutline,
   logoWhatsapp,
   createOutline,
+  checkmarkCircleOutline,
+  flameOutline,
+  footballOutline,
 } from 'ionicons/icons';
 
 @Component({
@@ -52,6 +55,9 @@ export class PrestazioniHeroComponent {
       timeOutline,
       logoWhatsapp,
       createOutline,
+      checkmarkCircleOutline,
+      flameOutline,
+      footballOutline,
     });
   }
 }

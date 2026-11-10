@@ -55,7 +55,7 @@
     [class.active]="teamPagelleFilter() === 'A'"
     (click)="teamPagelleFilter.set('A')"
   >
-    <span>⚪ Bianchi ({{ playersA.length }})</span>
+    <span>Bianchi ({{ playersA.length }})</span>
   </button>
   <button
     type="button"
@@ -63,7 +63,7 @@
     [class.active]="teamPagelleFilter() === 'B'"
     (click)="teamPagelleFilter.set('B')"
   >
-    <span>⚫ Neri ({{ playersB.length }})</span>
+    <span>Neri ({{ playersB.length }})</span>
   </button>
 </div>
 
@@ -84,8 +84,8 @@
           <span class="roster-team-name">TEAM BIANCHI</span>
         </div>
         <div class="roster-banner-stats">
-          <span class="stat-chip">⭐ Media {{ votoMedioA > 0 ? votoMedioA : '-' }}</span>
-          <span class="stat-chip">⚽ {{ scoreA }} Gol</span>
+          <span class="stat-chip"><ion-icon name="star-outline"></ion-icon> Media {{ votoMedioA > 0 ? votoMedioA : '-' }}</span>
+          <span class="stat-chip"><ion-icon name="football-outline"></ion-icon> {{ scoreA }} Gol</span>
           <span class="stat-chip mmr-chip">
             {{ teamAvgMmrDeltaA >= 0 ? '+' : '' }}{{ teamAvgMmrDeltaA }} MMR
           </span>
@@ -116,8 +116,8 @@
           <span class="roster-team-name">TEAM NERI</span>
         </div>
         <div class="roster-banner-stats">
-          <span class="stat-chip">⭐ Media {{ votoMedioB > 0 ? votoMedioB : '-' }}</span>
-          <span class="stat-chip">⚽ {{ scoreB }} Gol</span>
+          <span class="stat-chip"><ion-icon name="star-outline"></ion-icon> Media {{ votoMedioB > 0 ? votoMedioB : '-' }}</span>
+          <span class="stat-chip"><ion-icon name="football-outline"></ion-icon> {{ scoreB }} Gol</span>
           <span class="stat-chip mmr-chip">
             {{ teamAvgMmrDeltaB >= 0 ? '+' : '' }}{{ teamAvgMmrDeltaB }} MMR
           </span>

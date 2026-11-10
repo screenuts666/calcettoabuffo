@@ -19,7 +19,7 @@
             (click)="isAdmin ? assistClick.emit(player) : null"
             title="Assist vincenti"
           >
-            👟 {{ player.assist }}
+            <ion-icon name="footsteps-outline"></ion-icon> {{ player.assist }}
           </span>
         }
         @if (player.autogol > 0) {
@@ -28,7 +28,9 @@
           </span>
         }
         @if (isMvp) {
-          <span class="crown-mini-badge">👑 MVP</span>
+          <span class="crown-mini-badge">
+            <ion-icon name="trophy-outline"></ion-icon> MVP
+          </span>
         }
         @if (isAdmin && (!player.assist || player.assist === 0)) {
           <button
@@ -37,7 +39,7 @@
             (click)="assistClick.emit(player)"
             title="Aggiungi assist manuale"
           >
-            +👟
+            +Assist
           </button>
         }
       </div>

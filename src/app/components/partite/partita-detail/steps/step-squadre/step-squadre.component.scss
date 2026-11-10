@@ -57,10 +57,10 @@
         .cta-text {
           min-width: 0;
 
-          .cta-title {
+        .cta-title {
             display: block;
-            font-size: 0.92rem;
-            font-weight: 800;
+            font-size: 15.5px;
+            font-weight: 700;
             color: var(--app-white);
             letter-spacing: 0.2px;
             line-height: 1.2;
@@ -68,7 +68,7 @@
 
           .cta-sub {
             display: block;
-            font-size: 0.68rem;
+            font-size: 12.5px;
             color: var(--app-text-muted);
             margin-top: 2px;
             font-weight: 500;
@@ -92,12 +92,12 @@
   // LIVE BALANCE CHIP
   .live-balance-chip {
     margin-top: 8px;
-    padding: 6px 10px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
     @include flex-between;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
-    font-size: 0.7rem;
+    font-size: 13px;
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.08);
 
@@ -116,16 +116,18 @@
 
       .chip-label {
         color: var(--app-text-secondary);
+        font-size: 13px;
       }
 
       .chip-val {
         font-weight: 700;
+        font-size: 13.5px;
       }
     }
 
     .chip-details {
       color: var(--app-text-muted);
-      font-size: 0.66rem;
+      font-size: 12px;
       white-space: nowrap;
     }
 
@@ -172,13 +174,13 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 2px 10px 6px;
-  font-size: 0.68rem;
+  padding: 4px 10px 8px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--app-text-muted);
 
   ion-icon {
-    font-size: 0.85rem;
+    font-size: 15px;
     color: var(--app-accent-blue);
   }
 }
@@ -224,61 +226,61 @@
     justify-content: space-between;
     align-items: center;
     gap: 4px;
-    padding: 7px 8px;
+    padding: 8px 10px;
     background: var(--app-surface-subtle);
     border-bottom: 1px solid var(--app-border-color);
     min-width: 0;
 
     @media (min-width: 420px) {
-      padding: 8px 11px;
+      padding: 10px 12px;
     }
 
     .title-with-count {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
       min-width: 0;
 
       .team-name {
-        font-size: 0.78rem;
+        font-size: 15px;
         font-weight: 800;
         color: var(--app-text-primary);
         letter-spacing: 0.3px;
 
         @media (min-width: 420px) {
-          font-size: 0.85rem;
+          font-size: 16px;
         }
       }
 
       .count-tag {
-        font-size: 0.62rem;
+        font-size: 12px;
         font-weight: 700;
         color: var(--app-text-muted);
         background: var(--app-card-border);
-        padding: 1px 5px;
-        border-radius: 5px;
+        padding: 2px 6px;
+        border-radius: 6px;
         flex-shrink: 0;
       }
     }
 
     .header-mmr-badge {
-      font-size: 0.68rem;
+      font-size: 12.5px;
       font-weight: 700;
       color: var(--app-accent-blue);
       white-space: nowrap;
       flex-shrink: 0;
 
       @media (min-width: 420px) {
-        font-size: 0.75rem;
+        font-size: 13.5px;
       }
     }
   }
 
   .players-list {
-    padding: 4px;
+    padding: 6px 4px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 4px;
     flex: 1;
   }
 }
@@ -290,9 +292,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 4px;
-  margin: 5px 5px 1px;
-  padding: 5px 7px;
+  gap: 6px;
+  margin: 6px 5px 2px;
+  padding: 8px 9px;
   background: rgba(251, 191, 36, 0.09);
   border: 1px solid rgba(251, 191, 36, 0.35);
   border-radius: 9px;
@@ -308,14 +310,14 @@
   .fixed-bar-left {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
     flex: 1;
 
-    .fixed-icon {
-      font-size: 0.95rem;
+    .fixed-icon-vector {
+      font-size: 18px;
       flex-shrink: 0;
-      filter: drop-shadow(0 1px 3px rgba(251, 191, 36, 0.4));
+      color: #fbbf24;
     }
 
     .fixed-info {
@@ -325,7 +327,7 @@
       flex: 1;
 
       .fixed-title {
-        font-size: 0.7rem;
+        font-size: 13px;
         color: var(--app-text-primary);
         white-space: nowrap;
         overflow: hidden;
@@ -338,7 +340,7 @@
       }
 
       .fixed-sub {
-        font-size: 0.58rem;
+        font-size: 12px;
         color: var(--app-text-muted);
         white-space: nowrap;
         overflow: hidden;
@@ -348,11 +350,11 @@
   }
 
   .fixed-change-btn {
-    font-size: 0.65rem;
+    font-size: 12px;
     font-weight: 800;
     color: #fbbf24;
     background: rgba(251, 191, 36, 0.15);
-    padding: 1px 5px;
+    padding: 3px 8px;
     border-radius: 6px;
     border: 1px solid rgba(251, 191, 36, 0.3);
     flex-shrink: 0;
@@ -360,9 +362,12 @@
 }
 
 .gk-rotation-hint-bar {
-  margin: 5px 5px 1px;
-  padding: 4px 7px;
-  font-size: 0.62rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 5px 2px;
+  padding: 6px 9px;
+  font-size: 12px;
   font-weight: 600;
   color: #38bdf8;
   background: rgba(56, 189, 248, 0.08);
@@ -371,6 +376,11 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  ion-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+  }
 }
 
 // ==========================================
@@ -379,15 +389,16 @@
 .player-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 6px;
+  gap: 8px;
+  padding: 8px;
+  min-height: 48px;
   border-radius: 8px;
   min-width: 0;
   transition: background 0.15s ease, transform 0.12s ease;
 
   @media (min-width: 420px) {
-    gap: 8px;
-    padding: 6px 8px;
+    gap: 10px;
+    padding: 8px 10px;
   }
 
   &.interactive-row {
@@ -395,24 +406,24 @@
     user-select: none;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.05);
     }
 
     &:active {
-      transform: scale(0.97);
-      background: rgba(56, 189, 248, 0.1);
+      transform: scale(0.98);
+      background: rgba(56, 189, 248, 0.12);
     }
   }
 
   .player-avatar-box {
     position: relative;
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
 
     @media (min-width: 420px) {
-      width: 34px;
-      height: 34px;
+      width: 38px;
+      height: 38px;
     }
 
     .avatar-img {
@@ -440,11 +451,11 @@
       position: absolute;
       bottom: -2px;
       right: -2px;
-      font-size: 0.58rem;
+      font-size: 11px;
       background: var(--app-surface-subtle);
       border-radius: 50%;
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -478,8 +489,8 @@
 
       .player-name {
         display: block;
-        font-size: 0.76rem;
-        font-weight: 700;
+        font-size: 15px;
+        font-weight: 600;
         color: var(--app-text-primary);
         white-space: nowrap;
         overflow: hidden;
@@ -487,7 +498,7 @@
         min-width: 0;
 
         @media (min-width: 420px) {
-          font-size: 0.82rem;
+          font-size: 15.5px;
         }
       }
     }
@@ -495,24 +506,20 @@
     .player-meta-line {
       display: flex;
       align-items: center;
-      gap: 4px;
-      margin-top: 1px;
+      gap: 6px;
+      margin-top: 2px;
       min-width: 0;
       white-space: nowrap;
       overflow: hidden;
 
       .mmr-tier-pill {
-        font-size: 0.63rem;
+        font-size: 12px;
         font-weight: 700;
         flex-shrink: 0;
-
-        @media (min-width: 420px) {
-          font-size: 0.68rem;
-        }
       }
 
       .ruolo-text {
-        font-size: 0.6rem;
+        font-size: 12px;
         color: var(--app-text-muted);
         white-space: nowrap;
         overflow: hidden;
@@ -520,11 +527,11 @@
       }
 
       .gk-role-tag {
-        font-size: 0.56rem;
+        font-size: 12px;
         font-weight: 800;
         color: #fbbf24;
         background: rgba(251, 191, 36, 0.15);
-        padding: 0 4px;
+        padding: 1px 5px;
         border-radius: 4px;
         border: 1px solid rgba(251, 191, 36, 0.3);
         white-space: nowrap;
@@ -542,25 +549,25 @@
 
   .swap-hint-pill {
     flex-shrink: 0;
-    width: 18px;
-    height: 18px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     background: var(--app-surface-subtle);
     color: var(--app-accent-blue);
-    font-size: 0.66rem;
+    font-size: 13px;
     font-weight: 700;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 1px solid var(--app-border-color);
-    opacity: 0.8;
+    opacity: 0.9;
   }
 }
 
 .empty-team-placeholder {
-  padding: 20px 6px;
+  padding: 24px 8px;
   color: var(--app-text-muted);
-  font-size: 0.74rem;
+  font-size: 13px;
   font-style: italic;
   text-align: center;
 }
@@ -603,9 +610,9 @@
     }
 
     .favorite-pill {
-      font-size: 0.72rem;
+      font-size: 12px;
       font-weight: 700;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 20px;
       background: rgba(255, 255, 255, 0.05);
       color: var(--app-text-secondary, #94a3b8);
@@ -637,7 +644,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 13.5px;
       margin-bottom: 6px;
 
       .white-label {
@@ -678,7 +685,7 @@
       display: flex;
       justify-content: space-between;
       margin-top: 6px;
-      font-size: 0.68rem;
+      font-size: 12px;
       color: var(--app-text-muted, #64748b);
     }
   }
@@ -704,18 +711,18 @@
         gap: 8px;
 
         .ai-badge {
-          font-size: 0.68rem;
+          font-size: 12px;
           font-weight: 800;
           letter-spacing: 0.5px;
           color: #10b981;
           background: rgba(16, 185, 129, 0.15);
-          padding: 2px 7px;
+          padding: 3px 8px;
           border-radius: 6px;
           border: 1px solid rgba(16, 185, 129, 0.3);
         }
 
         .ai-name {
-          font-size: 0.88rem;
+          font-size: 14px;
           font-weight: 700;
           color: var(--app-text, #f8fafc);
         }
@@ -727,8 +734,8 @@
         gap: 8px;
 
         .ai-icon-btn {
-          width: 30px;
-          height: 30px;
+          width: 36px;
+          height: 36px;
           border-radius: 50%;
           display: inline-flex;
           align-items: center;
@@ -750,7 +757,7 @@
           }
 
           ion-icon {
-            font-size: 0.95rem;
+            font-size: 1.1rem;
 
             &.spin {
               animation: spin 1s linear infinite;
@@ -770,7 +777,7 @@
         justify-content: flex-end;
 
         .ai-saved-hint {
-          font-size: 0.72rem;
+          font-size: 12px;
           color: var(--app-text-muted, #94a3b8);
           display: inline-flex;
           align-items: center;
@@ -778,7 +785,7 @@
           opacity: 0.9;
 
           ion-icon {
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: #10b981;
           }
         }

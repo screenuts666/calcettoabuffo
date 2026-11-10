@@ -52,8 +52,6 @@ import {
   shieldCheckmark,
   radioButtonOff,
   lockClosedOutline,
-  logInOutline,
-  personOutline,
   people,
   flash,
   addCircleOutline,
@@ -251,8 +249,6 @@ export class CalendarioPage implements OnInit {
       shieldCheckmark,
       radioButtonOff,
       lockClosedOutline,
-      logInOutline,
-      personOutline,
       people,
       flash,
       addCircleOutline,
@@ -282,20 +278,20 @@ export class CalendarioPage implements OnInit {
   }
 
   verificaAccessoDisponibilita(): void {
-    // Non forziamo un redirect immediato che impedisce la visualizzazione del sondaggio.
-    // L'utente non loggato visualizza il banner informativo "ENTRA PER VOTARE" e viene guidato al login se preme per votare.
-  }
+    const authReady = this.auth.authInitialized();
+    if (!authReady) return;
 
-  async vaiALogin(): Promise<void> {
-    this.auth.setReturnUrl('/disponibilita');
-    await this.router.navigate(['/login'], {
-      queryParams: { returnUrl: '/disponibilita' },
-    });
-  }
+    const loggedIn = this.auth.isLoggedIn();
+    if (!loggedIn) {
+      this.richiediLoginOAtleta('Accedi per esprimere le tue disponibilità.');
+      return;
+    }
 
-  async vaiAProfilo(): Promise<void> {
-    this.auth.setReturnUrl('/disponibilita');
-    await this.router.navigate(['/profile']);
+    const hasPlayer = this.auth.hasLinkedPlayer();
+    const isSuper = this.auth.isSuperUser();
+    if (!hasPlayer && !isSuper) {
+      this.richiediLoginOAtleta('Associa il tuo profilo atleta per esprimere la disponibilità.');
+    }
   }
 
   ngOnInit() {

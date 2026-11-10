@@ -42,11 +42,15 @@ import {
   chevronDownOutline,
   shieldOutline,
   flash,
+  flashOutline,
   closeOutline,
   arrowBackOutline,
   warningOutline,
   createOutline,
   arrowUndoOutline,
+  handLeftOutline,
+  footballOutline,
+  footstepsOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
@@ -116,6 +120,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       timeOutline,
       play,
       football,
+      footballOutline,
       arrowUndoOutline,
       volumeHigh,
       megaphoneOutline,
@@ -135,7 +140,10 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       chevronDownOutline,
       shieldOutline,
       flash,
+      flashOutline,
       warningOutline,
+      handLeftOutline,
+      footstepsOutline,
     });
   }
 
@@ -210,7 +218,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
             if (isPreAlertTime && this.ultimoPreAlertTurno !== turnIndex) {
               this.ultimoPreAlertTurno = turnIndex;
               this.mostraToastFeedback(
-                `⏳ Tra ${secRim} secondi cambio portiere!`,
+                `Tra ${secRim} secondi cambio portiere!`,
                 'warning',
               );
             }
@@ -263,14 +271,14 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.triggerHaptic(30);
     if (team === 'A') {
       this.state.rimescolaSquadra('A');
-      await this.mostraToastFeedback('🎲 Rotazione Bianchi rimescolata');
+      await this.mostraToastFeedback('Rotazione Bianchi rimescolata');
     } else if (team === 'B') {
       this.state.rimescolaSquadra('B');
-      await this.mostraToastFeedback('🎲 Rotazione Neri rimescolata');
+      await this.mostraToastFeedback('Rotazione Neri rimescolata');
     } else {
       this.state.inizializzaRotazionePortieri(true);
       await this.mostraToastFeedback(
-        '🎲 Rotazione rimescolata per entrambe le squadre',
+        'Rotazione rimescolata per entrambe le squadre',
       );
     }
     await this.state.salvaInDatabase(false);
@@ -295,13 +303,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         ((p as any)?.ruoloPreferito as string)?.toLowerCase() === 'portiere';
       const isCurrent = p.id === currFixedId;
       return {
-        text: `${isCurrent ? '🧤 ' : ''}${p.nome}${isDiRuolo ? ' (👑 Di Ruolo)' : ''}`,
+        text: `${p.nome}${isDiRuolo ? ' (Di Ruolo)' : ''}${isCurrent ? ' [In porta]' : ''}`,
         role: isCurrent ? 'selected' : undefined,
         handler: async () => {
           this.state.impostaPortiereFisso(team, p.id);
           await this.state.salvaInDatabase(false);
           await this.mostraToastFeedback(
-            `🧤 Portiere fisso ${teamNome} impostato su ${p.nome}`,
+            `Portiere fisso ${teamNome} impostato su ${p.nome}`,
           );
         },
       };
@@ -314,7 +322,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     });
 
     const actionSheet = await this.actionSheetCtrl.create({
-      header: `🧤 Sostituisci Portiere Fisso (${teamNome})`,
+      header: `Sostituisci Portiere Fisso (${teamNome})`,
       subHeader: 'Chi difenderà la porta tra i pali?',
       buttons,
     });
@@ -453,7 +461,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
       await this.mostraToastFeedback(
-        "⏱️ Fischia prima l'inizio con ▶ FISCHIO D'INIZIO per sbloccare i gol!",
+        "Fischia prima l'inizio con FISCHIO D'INIZIO per sbloccare i gol!",
         'warning',
       );
       return;
@@ -466,23 +474,40 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.goalPickerOpen.set(true);
   }
 
+  /**
+   * PITCH-MODE ULTRA RAPIDO: Toccare la card del giocatore assegna SUBITO +1 Gol!
+   * Progettato specificamente per l'uso al volo su smartphone a bordo campo.
+   */
   async toccaGiocatorePerGolRapido(
     player: PlayerPerformance,
     teamVantaggio: 'A' | 'B',
   ) {
-    if (this.state.cronometro() <= 0) {
+    if (!this.isAdmin) return;
+    if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
       await this.mostraToastFeedback(
-        '⏱️ Premi prima ▶ AVVIA per far partire la partita!',
+        "Avvia prima la partita con FISCHIO D'INIZIO!",
         'warning',
       );
       return;
     }
+    this.triggerHaptic(50);
+    await this.registraGol(player, teamVantaggio, false, null);
+  }
+
+  /**
+   * UNDO IMMEDIATO SOTTO IL TABELLONE: Annulla istantaneamente l'ultimo gol segnato
+   * senza dover navigare sottomenu.
+   */
+  async annullaUltimoGolImmediato() {
+    if (!this.isAdmin) return;
     this.triggerHaptic(40);
-    this.goalPickerTeam.set(teamVantaggio);
-    this.selectedScorer.set(player);
-    this.goalPickerStep.set('assist');
-    this.showAutogolList.set(false);
-    this.goalPickerOpen.set(true);
+    const rimosso = await this.state.annullaUltimoGolGenerale();
+    if (!rimosso) return;
+
+    const undoMsg = rimosso.isAutogoal
+      ? `Annullato autogol di ${rimosso.nome}`
+      : `Annullato gol di ${rimosso.nome}`;
+    await this.mostraToastFeedback(undoMsg, 'warning');
   }
 
   selezionaMarcatoreNelPicker(player: PlayerPerformance, isAutogoal = false) {
@@ -538,15 +563,15 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.soundSettings.playGoalSound(isAutogoal);
 
     const portiereTag = portiereSubitoNome
-      ? ` · 🧤 in porta: ${portiereSubitoNome}`
+      ? ` · in porta: ${portiereSubitoNome}`
       : '';
     let feedbackMsg = '';
     if (isAutogoal) {
-      feedbackMsg = `⚠️ Autogol di ${giocatore.nome}!${portiereTag}`;
+      feedbackMsg = `Autogol di ${giocatore.nome}!${portiereTag}`;
     } else if (assistMan) {
-      feedbackMsg = `⚽ Gol di ${giocatore.nome} (👟 Assist di ${assistMan.nome})${portiereTag}`;
+      feedbackMsg = `Gol di ${giocatore.nome} (Assist: ${assistMan.nome})${portiereTag}`;
     } else {
-      feedbackMsg = `⚽ Gol di ${giocatore.nome} (⚡ Azione Personale)${portiereTag}`;
+      feedbackMsg = `Gol di ${giocatore.nome}!${portiereTag}`;
     }
     await this.mostraToastFeedback(feedbackMsg);
   }
@@ -557,8 +582,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     if (!rimosso) return;
 
     const undoMsg = rimosso.assistNome
-      ? `Rimosso gol di ${rimosso.nome} (👟 assist di ${rimosso.assistNome})`
-      : `Rimosso gol di ${rimosso.nome}`;
+      ? `Annullato gol di ${rimosso.nome} (assist di ${rimosso.assistNome})`
+      : `Annullato gol di ${rimosso.nome}`;
     await this.mostraToastFeedback(undoMsg, 'warning');
   }
 
