@@ -454,9 +454,9 @@ export class MatchmakingService {
     proposals.push(
       this.buildProposal(
         'prop-1',
-        '⭐ Bilanciamento Perfetto',
+        'Bilanciamento Perfetto',
         'Massimo equilibrio probabilistico e di rating MMR',
-        'Più Equilibrata',
+        'Equilibrata',
         'sparkles',
         bestGlobal,
       ),
@@ -479,9 +479,9 @@ export class MatchmakingService {
       proposals.push(
         this.buildProposal(
           'prop-2',
-          '🤝 Massima Chimica & Sinergie',
+          'Massima Chimica',
           'Valorizza le coppie affiatate mantenendo un ottimo equilibrio',
-          'Gemelli del Gol',
+          'Gemelli Gol',
           'people',
           candidateSynergies,
         ),
@@ -495,9 +495,9 @@ export class MatchmakingService {
         proposals.push(
           this.buildProposal(
             'prop-2',
-            '🔥 Forma & Competitività',
+            'Forma & Intensità',
             'Ottima suddivisione dinamica dello stato di forma',
-            'Alta Tensione',
+            'Stato Forma',
             'flame',
             secondBest,
           ),
@@ -521,9 +521,9 @@ export class MatchmakingService {
       proposals.push(
         this.buildProposal(
           'prop-3',
-          '🛡️ Simmetria Ruoli & Tattica',
+          'Simmetria Ruoli',
           'Assetto simmetrico tra portieri, difensori e attaccanti',
-          'Equilibrio Tattico',
+          'Tattica',
           'shield',
           candidateRoles,
         ),
@@ -539,7 +539,7 @@ export class MatchmakingService {
         proposals.push(
           this.buildProposal(
             'prop-3',
-            '⚽ Sfida Dinamica',
+            'Sfida Dinamica',
             'Combinazione alternativa ad alto tasso di spettacolo',
             'Alternativa',
             'football',

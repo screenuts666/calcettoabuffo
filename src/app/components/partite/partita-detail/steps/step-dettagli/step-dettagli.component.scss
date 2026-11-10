@@ -632,17 +632,21 @@
   .campi-chips-row {
     display: flex;
     gap: 6px;
-    flex-wrap: wrap;
-    padding: 0 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 2px 2px 4px;
+    @include hide-scrollbar;
 
     .quick-campo-chip {
+      flex-shrink: 0;
+      white-space: nowrap;
       background: var(--app-surface-subtle, rgba(255, 255, 255, 0.05));
       border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.1));
       color: var(--app-text-muted, #94a3b8);
-      font-size: 0.72rem;
+      font-size: 12.5px;
       font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 8px;
+      padding: 5px 11px;
+      border-radius: 9px;
       cursor: pointer;
       transition: all 0.2s ease;
 
@@ -855,8 +859,182 @@
 }
 
 // ==========================================
-// SELETTORE MODALITA' PORTIERI INLINE COMPATTO
+// SELETTORE MODALITA' PORTIERI INLINE COMPATTO & STEP 1 UNIFICATO
 // ==========================================
+.compact-admin-card {
+  padding: 12px !important;
+
+  .compact-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .compact-item {
+    --min-height: 48px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+
+  .compact-divider {
+    height: 1px;
+    background: var(--app-card-border);
+    margin: 2px 0;
+    opacity: 0.6;
+  }
+}
+
+.campo-selected-slim {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(14, 165, 233, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  border-radius: 10px;
+
+  .css-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+
+    .css-pin {
+      color: #ef4444;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .css-address {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .btn-slim-maps {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    ion-icon {
+      font-size: 0.9rem;
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.inline-gk-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  .igk-label-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+    padding: 0 2px;
+
+    ion-icon {
+      font-size: 1.05rem;
+      color: var(--app-primary);
+    }
+  }
+}
+
+.collapsible-notes-block {
+  margin-top: 2px;
+
+  .btn-toggle-notes {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px dashed var(--app-card-border);
+    color: var(--app-text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .btn-tn-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+
+      ion-icon {
+        font-size: 1.1rem;
+        color: var(--app-primary);
+      }
+
+      .notes-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--app-primary);
+      }
+    }
+
+    .btn-tn-chevron {
+      font-size: 1.1rem;
+      color: var(--app-text-muted);
+    }
+
+    &.open {
+      border-style: solid;
+      border-color: var(--app-primary-border);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      color: var(--app-text-primary);
+    }
+  }
+
+  .notes-Collapse-body {
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-primary-border);
+    border-top: none;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 4px 12px 8px;
+
+    .clean-notes-textarea {
+      --padding-top: 4px;
+      --padding-bottom: 4px;
+      --padding-start: 0;
+      font-size: 14.5px;
+      color: var(--app-text-primary);
+    }
+  }
+}
+
+.compact-bottom {
+  margin-top: 12px !important;
+  padding-bottom: 16px !important;
+}
+
 .section-icon-vector {
   font-size: 1.3rem;
   color: var(--app-primary, #10b981);
@@ -866,22 +1044,22 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--app-surface-subtle);
-  border-radius: 10px;
+  border-radius: 9px;
   border: 1px solid var(--app-card-border);
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--app-text-secondary);
-  margin-top: 10px;
+  margin-top: 0;
 
   .w-emoji {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
   .w-info {
     font-weight: 600;
   }
   .w-rain {
-    font-size: 12.5px;
+    font-size: 12px;
     color: var(--app-accent-blue);
     margin-left: auto;
   }
@@ -890,17 +1068,17 @@
 .portieri-inline-toggles {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 6px;
 
   .gk-mode-toggle-chip {
-    min-height: 44px;
+    min-height: 40px;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 6px 8px;
-    border-radius: 12px;
+    gap: 5px;
+    padding: 6px 6px;
+    border-radius: 10px;
     background: var(--app-surface-subtle);
     border: 1px solid var(--app-card-border);
     color: var(--app-text-secondary);
@@ -908,9 +1086,11 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
 
     ion-icon {
-      font-size: 1.15rem;
+      font-size: 1rem;
+      flex-shrink: 0;
     }
 
     &.active {
@@ -927,17 +1107,18 @@
 
 .gk-mixed-sub-row {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 4px;
 
   .team-sub-toggle {
     flex: 1;
-    min-height: 44px;
-    padding: 8px 10px;
-    border-radius: 10px;
+    min-height: 38px;
+    padding: 6px 10px;
+    border-radius: 9px;
     background: var(--app-surface-subtle);
     border: 1px solid var(--app-card-border);
     color: var(--app-text-primary);
-    font-size: 13px;
+    font-size: 12.5px;
     cursor: pointer;
     display: flex;
     align-items: center;

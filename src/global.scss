@@ -541,8 +541,7 @@ small,
   font-size: max(12px, var(--app-font-floor, 12px));
 }
 
-// Touch targets minimi: ogni pulsante e area cliccabile deve garantire almeno 44x44px di tocco
-button:not(.inline-chip):not(.mini-tag),
+// Touch targets minimi: ogni pulsante primario e area cliccabile deve garantire almeno 44x44px di tocco
 ion-button,
 .touch-target-min,
 .interactive-row,

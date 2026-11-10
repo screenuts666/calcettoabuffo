@@ -15,7 +15,7 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
-    "version": "2.0.65",
+    "version": "2.0.66",
     "date": "10/11/2026",
     "title": "Design System Mobile-First, Pitch-Mode Ultra Rapido, Separazione Ruoli e Stop Emoji AI",
     "isMajor": true,
@@ -28,8 +28,8 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
     ],
     "superUserChanges": [
       "Pitch-Mode Bordo Campo: tabellone e timer giganti sotto il sole, pulsanti giocatore da 56px con gol lampo 1-tap e tasto immediato di annulla gol.",
-      "Gestione Match Role-Based: form compatti per data e ora, selettore portieri inline snello e controlli timer/squadre riservati a Mister e Presidente.",
-      "Release Notes Intelligenti: notifiche popup filtrate per rilevanza (solo major per atleti, storico tecnico completo per admin)."
+      "Coordinate & Convocati Ultra-Compatti: scheda coordinate unificata con chip luoghi su 1 sola riga, note bordocampo a scomparsa e nuova lista convocati a schede moderne.",
+      "Matchmaking 3-in-1: tutte e 3 le proposte tattiche visibili affiancate senza scroll orizzontale, con riepilogo MMR compatto e margini ottimizzati."
     ]
   },
   {

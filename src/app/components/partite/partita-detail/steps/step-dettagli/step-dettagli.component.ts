@@ -33,6 +33,9 @@ import {
   footballOutline,
   checkmarkCircleOutline,
   closeCircleOutline,
+  addOutline,
+  chevronUpOutline,
+  chevronDownOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { CampiService } from '../../../../../services/campi.service';
@@ -78,6 +81,12 @@ export class StepDettagliComponent {
   }
 
   isSavingRsvp = signal<boolean>(false);
+  showNotes = signal<boolean>(false);
+  readonly isNotesOpen = computed(() => this.showNotes() || !!this.state.commentoPartita()?.trim());
+
+  toggleNotes() {
+    this.showNotes.update((v) => !v);
+  }
 
   /** Stato RSVP attuale del giocatore loggato ('yes' | 'maybe' | 'no' | null) */
   readonly myRsvpStatus = computed<'yes' | 'maybe' | 'no' | null>(() => {
@@ -147,6 +156,9 @@ export class StepDettagliComponent {
       footballOutline,
       checkmarkCircleOutline,
       closeCircleOutline,
+      addOutline,
+      chevronUpOutline,
+      chevronDownOutline,
     });
   }
 

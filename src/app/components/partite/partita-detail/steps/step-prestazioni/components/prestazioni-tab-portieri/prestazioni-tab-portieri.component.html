@@ -10,16 +10,6 @@
         </div>
         @if (isAdmin) {
           <div class="notes-actions-row">
-            @if (gkSummary?.notesPrompt) {
-              <button
-                type="button"
-                class="btn-import-summary"
-                (click)="importaResocontoAutomatico()"
-                title="Importa il resoconto statistico automatico"
-              >
-                <span>⚡ Importa</span>
-              </button>
-            }
             <button
               type="button"
               class="btn-save-notes"
@@ -75,7 +65,8 @@
                   <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
                 }
                 <div class="gk-role-badge">
-                  {{ gk.isFisso ? '🧤 Portiere di Ruolo (Fisso)' : '🧤 ' + gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}
+                  <ion-icon name="hand-left-outline"></ion-icon>
+                  <span>{{ gk.isFisso ? 'Portiere di Ruolo (Fisso)' : gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}</span>
                 </div>
               </div>
             </div>
@@ -83,16 +74,17 @@
             <div class="gk-card-right">
               <div class="gk-stats-chips">
                 <span class="gk-stat-chip danger" title="Gol subiti in questo match">
-                  🧤 <b>{{ gk.golSubiti }}</b> subiti
+                  <b>{{ gk.golSubiti }}</b> subiti
                 </span>
                 <span class="gk-stat-chip success" title="Turni con rete inviolata">
-                  🛡️ <b>{{ gk.cleanSheetTurni }}</b> CS
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  <b>{{ gk.cleanSheetTurni }}</b> CS
                 </span>
               </div>
 
               <!-- CONTATORE PARATE INCREDIBILI / MIRACOLI -->
               <div class="gk-parate-stepper">
-                <span class="parata-label">✨ Parate Incredibili:</span>
+                <span class="parata-label">Parate Incredibili:</span>
                 <div class="stepper-controls">
                   @if (isAdmin) {
                     <button
@@ -133,7 +125,7 @@
 
     @if (gkSummary?.summaryA) {
       <div class="gk-summary-bubble white">
-        <span class="summary-tag">📊 Resoconto Bianchi:</span>
+        <span class="summary-tag">Resoconto Bianchi:</span>
         <p>{{ gkSummary!.summaryA }}</p>
       </div>
     }
@@ -161,7 +153,8 @@
                   <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
                 }
                 <div class="gk-role-badge">
-                  {{ gk.isFisso ? '🧤 Portiere di Ruolo (Fisso)' : '🧤 ' + gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}
+                  <ion-icon name="hand-left-outline"></ion-icon>
+                  <span>{{ gk.isFisso ? 'Portiere di Ruolo (Fisso)' : gk.turniInPorta + ' turni (' + gk.minutiInPorta + '\' in porta)' }}</span>
                 </div>
               </div>
             </div>
@@ -169,16 +162,17 @@
             <div class="gk-card-right">
               <div class="gk-stats-chips">
                 <span class="gk-stat-chip danger" title="Gol subiti in questo match">
-                  🧤 <b>{{ gk.golSubiti }}</b> subiti
+                  <b>{{ gk.golSubiti }}</b> subiti
                 </span>
                 <span class="gk-stat-chip success" title="Turni con rete inviolata">
-                  🛡️ <b>{{ gk.cleanSheetTurni }}</b> CS
+                  <ion-icon name="shield-checkmark-outline"></ion-icon>
+                  <b>{{ gk.cleanSheetTurni }}</b> CS
                 </span>
               </div>
 
               <!-- CONTATORE PARATE INCREDIBILI / MIRACOLI -->
               <div class="gk-parate-stepper">
-                <span class="parata-label">✨ Parate Incredibili:</span>
+                <span class="parata-label">Parate Incredibili:</span>
                 <div class="stepper-controls">
                   @if (isAdmin) {
                     <button
@@ -219,7 +213,7 @@
 
     @if (gkSummary?.summaryB) {
       <div class="gk-summary-bubble black">
-        <span class="summary-tag">📊 Resoconto Neri:</span>
+        <span class="summary-tag">Resoconto Neri:</span>
         <p>{{ gkSummary!.summaryB }}</p>
       </div>
     }

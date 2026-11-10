@@ -2,11 +2,6 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
-  IonList,
-  IonItem,
-  IonAvatar,
-  IonLabel,
-  IonCheckbox,
   IonSearchbar,
   IonIcon,
   IonSpinner,
@@ -32,6 +27,7 @@ import {
   linkOutline,
   paperPlaneOutline,
   peopleOutline,
+  addCircleOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -55,11 +51,6 @@ import { AuthModalComponent } from '../../../../auth-modal/auth-modal.component'
   standalone: true,
   imports: [
     CommonModule,
-    IonList,
-    IonItem,
-    IonAvatar,
-    IonLabel,
-    IonCheckbox,
     IonSearchbar,
     IonIcon,
     IonSpinner,
@@ -142,6 +133,7 @@ export class StepConvocatiComponent {
       linkOutline,
       paperPlaneOutline,
       peopleOutline,
+      addCircleOutline,
     });
   }
 

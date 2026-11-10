@@ -6,16 +6,46 @@
 
 .search-header {
   background: var(--ion-background-color);
+  padding: 12px 14px 8px;
 
   .title-row {
     @include flex-between;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    gap: 8px;
 
     h2 {
       margin: 0;
       font-weight: 800;
-      font-size: 1.45rem;
+      font-size: 1.25rem;
       color: var(--app-text-primary);
+    }
+
+    .title-right-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dev-mini-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 8px;
+      background: rgba(255, 179, 0, 0.14);
+      border: 1px dashed #ffb300;
+      color: #ffb300;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+
+      ion-icon {
+        font-size: 0.9rem;
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
     }
   }
 
@@ -391,33 +421,34 @@
   --checkmark-color: var(--app-black);
 }
 
-// Chips Orizzontali
+// Chips Orizzontali (Dock Convocati Compatto)
 .selected-players-scroll {
   display: flex;
   overflow-x: auto;
-  padding: 15px;
-  gap: 15px;
+  padding: 10px 14px;
+  gap: 12px;
   background: var(--app-surface-subtle);
+  border-top: 1px solid var(--app-border-color);
   border-bottom: 1px solid var(--app-border-color);
   @include hide-scrollbar;
 
   .selected-chip {
     @include flex-col;
     align-items: center;
-    min-width: 60px;
-    width: 60px;
+    min-width: 54px;
+    width: 54px;
     flex-shrink: 0;
 
     .avatar-wrapper {
       position: relative;
-      width: 55px;
-      height: 55px;
+      width: 48px;
+      height: 48px;
       @include flex-center;
 
       app-player-avatar,
       img {
-        width: 55px;
-        height: 55px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         border: 2px solid var(--ion-color-success);
         display: block;
@@ -426,36 +457,45 @@
 
       .self-verified-dot {
         position: absolute;
-        bottom: -3px;
-        left: -3px;
+        bottom: -2px;
+        left: -2px;
         background: #04130b;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         @include flex-center;
         z-index: 2;
 
         ion-icon {
-          font-size: 18px;
+          font-size: 16px;
           color: #10b981;
         }
       }
 
       .remove-btn {
         position: absolute;
-        top: -4px;
-        right: -4px;
-        background: var(--app-white);
+        top: -3px;
+        right: -3px;
+        width: 20px;
+        height: 20px;
+        min-height: 20px;
+        max-height: 20px;
+        background: #0f172a;
         border-radius: 50%;
         padding: 0;
-        @include flex-center;
-        border: none;
-        z-index: 2;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid var(--app-bg);
+        z-index: 3;
+        cursor: pointer;
         @include btn-press;
 
         ion-icon {
-          font-size: 20px;
-          color: var(--ion-color-danger);
+          font-size: 18px;
+          color: #ef4444;
+          display: block;
         }
       }
     }
@@ -471,91 +511,373 @@
   }
 }
 
-.giocatori-list {
-  background: transparent;
+// ==========================================
+// BARRA ADMIN UNIFICATA (INVITO + AUTO-RSVP)
+// ==========================================
+.unified-admin-bar {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 
-  .player-item {
-    --background: transparent;
-    --border-color: var(--app-border-color);
-    --min-height: 54px;
-    min-height: 54px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s ease;
+  .uab-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 
-    &.interactive-item:active {
-      --background: var(--app-surface-hover);
+    &.self-rsvp-row {
+      padding-top: 8px;
+      border-top: 1px solid var(--app-card-border);
     }
 
-    &.is-maybe-row {
-      --background: rgba(245, 158, 11, 0.06);
-      border-left: 3px solid #f59e0b;
-    }
-
-    &.is-declined-row {
-      opacity: 0.65;
-    }
-
-    .player-name-with-badges {
+    .uab-left {
       display: flex;
       align-items: center;
       gap: 6px;
-      flex-wrap: wrap;
 
-      .player-full-name {
-        margin: 0;
-        font-size: 15.5px !important;
-        font-weight: 600 !important;
-        color: var(--app-text-primary);
+      .uab-icon {
+        font-size: 1.1rem;
+        color: var(--app-primary);
       }
 
-      .rsvp-inline-badge {
+      .uab-label {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: var(--app-text-primary);
+      }
+    }
+
+    .uab-sub-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--app-text-secondary);
+    }
+
+    .uab-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .btn-share-whatsapp {
+        height: 36px;
+        min-height: 36px;
+        padding: 0 12px;
+        border-radius: 9px;
+        background: #25d366;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 999px;
+        gap: 5px;
+        cursor: pointer;
 
-        &.self-confirmed {
-          background: rgba(16, 185, 129, 0.16);
-          border: 1px solid rgba(16, 185, 129, 0.45);
-          color: #34d399;
-
-          ion-icon {
-            font-size: 0.95rem;
-          }
+        ion-icon {
+          font-size: 1.05rem;
         }
 
-        &.maybe-badge {
-          background: rgba(245, 158, 11, 0.18);
-          border: 1px solid rgba(245, 158, 11, 0.45);
-          color: #fbbf24;
+        &:active {
+          transform: scale(0.96);
+        }
+      }
 
-          ion-icon {
-            font-size: 0.95rem;
-          }
+      .btn-copy-invite {
+        width: 36px;
+        height: 36px;
+        min-height: 36px;
+        border-radius: 9px;
+        background: var(--app-surface-subtle);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        ion-icon {
+          font-size: 1.05rem;
         }
 
-        &.no-badge {
-          background: rgba(239, 68, 68, 0.15);
-          border: 1px solid rgba(239, 68, 68, 0.35);
-          color: #f87171;
-        }
-
-        &.you-badge {
-          background: var(--app-primary-subtle);
-          border: 1px solid var(--app-primary-border);
-          color: var(--app-primary);
+        &:active {
+          transform: scale(0.96);
         }
       }
     }
 
-    .player-sub-info {
-      color: var(--app-text-secondary);
-      font-size: 13px !important;
-      margin-top: 2px;
+    .uab-rsvp-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .mini-rsvp-pill {
+        height: 34px;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 9px;
+        border: 1px solid var(--app-card-border);
+        background: var(--app-surface-subtle);
+        color: var(--app-text-secondary);
+        font-size: 12.5px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        transition: all 0.18s ease;
+
+        ion-icon {
+          font-size: 1rem;
+        }
+
+        &.yes.active {
+          background: var(--app-primary);
+          border-color: var(--app-primary);
+          color: #ffffff;
+        }
+
+        &.no.active {
+          background: var(--app-accent-danger, #ef4444);
+          border-color: var(--app-accent-danger, #ef4444);
+          color: #ffffff;
+        }
+
+        &:active:not(:disabled) {
+          transform: scale(0.96);
+        }
+      }
+    }
+  }
+
+  .maybe-solicit-strip {
+    padding-top: 8px;
+    border-top: 1px solid var(--app-card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    .mss-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+
+      .mss-icon-vector {
+        font-size: 1.1rem;
+        color: var(--app-accent-gold);
+        flex-shrink: 0;
+      }
+
+      .mss-text {
+        font-size: 12.5px;
+        color: var(--app-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        strong {
+          color: var(--app-accent-gold);
+        }
+      }
+    }
+
+    .btn-solicita-wa {
+      height: 32px;
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: rgba(37, 211, 102, 0.15);
+      border: 1px solid rgba(37, 211, 102, 0.4);
+      color: #25d366;
+      font-size: 12px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+  }
+}
+
+// ==========================================
+// LISTA MODERNA A SCHEDE CONVOCABILI (SLEEK CARDS)
+// ==========================================
+.sleek-players-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px 20px;
+
+  .sleek-player-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    min-height: 60px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    border-radius: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:active:not(.read-only) {
+      transform: scale(0.985);
+    }
+
+    &.is-selected {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.11) 0%, var(--app-card-bg) 100%);
+      border-color: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.1);
+
+      .spc-avatar-wrap {
+        app-player-avatar,
+        img {
+          border-color: var(--app-primary);
+        }
+      }
+    }
+
+    &.is-maybe:not(.is-selected) {
+      border-left: 3px solid #f59e0b;
+    }
+
+    &.is-declined:not(.is-selected) {
+      opacity: 0.6;
+    }
+
+    .spc-avatar-wrap {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+
+      app-player-avatar,
+      img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 2px solid var(--app-card-border);
+        display: block;
+        overflow: hidden;
+        transition: border-color 0.2s ease;
+      }
+
+      .spc-role-tag {
+        position: absolute;
+        bottom: -3px;
+        right: -3px;
+        font-size: 9.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 1px 4px;
+        border-radius: 5px;
+        background: #1e293b;
+        color: #94a3b8;
+        border: 1px solid var(--app-card-border);
+        line-height: 1.1;
+      }
+    }
+
+    .spc-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+
+      .spc-top-line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+
+        .spc-name {
+          font-size: 15.5px;
+          font-weight: 700;
+          color: var(--app-text-primary);
+          line-height: 1.2;
+        }
+
+        .spc-rsvp-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-size: 11.5px;
+          font-weight: 700;
+          padding: 2px 7px;
+          border-radius: 999px;
+
+          &.confirmed {
+            background: rgba(16, 185, 129, 0.16);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.35);
+          }
+
+          &.maybe {
+            background: rgba(245, 158, 11, 0.16);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.35);
+          }
+
+          &.declined {
+            background: rgba(239, 68, 68, 0.14);
+            color: #f87171;
+          }
+
+          &.you {
+            background: var(--app-primary-subtle);
+            color: var(--app-primary);
+            border: 1px solid var(--app-primary-border);
+          }
+        }
+      }
+
+      .spc-bottom-line {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12.5px;
+        color: var(--app-text-muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        .spc-alias {
+          color: var(--app-text-secondary);
+          font-style: italic;
+        }
+      }
+    }
+
+    .spc-check-indicator {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      color: var(--app-text-muted);
+      opacity: 0.55;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 26px;
+      }
+
+      &.checked {
+        color: var(--app-primary, #10b981);
+        opacity: 1;
+        filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.35));
+      }
     }
   }
 }

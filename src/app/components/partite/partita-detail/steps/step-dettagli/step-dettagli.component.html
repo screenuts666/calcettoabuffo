@@ -33,23 +33,62 @@
   <!-- VISTA MISTER & PRESIDENTE (ADMIN): EDIT MODE COMPATTO                 -->
   <!-- ===================================================================== -->
   @if (isAdmin) {
-    <div class="details-section-card ion-margin-bottom">
-      <div class="section-card-header">
-        <ion-icon name="location-outline" class="section-icon-vector"></ion-icon>
-        <div class="section-header-text">
-          <h3 class="section-title">Coordinate Match</h3>
-        </div>
-      </div>
+    <div class="details-section-card compact-admin-card">
+      <div class="section-card-body compact-flow">
+        <!-- 1. DATA E ORARIO AFFIANCATI + METEO INLINE -->
+        <div class="datetime-grid">
+          <ion-item lines="none" class="elegant-input-item compact-item" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
+            <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
+            <ion-input
+              type="date"
+              label="Data"
+              labelPlacement="stacked"
+              [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
+              [value]="state.dataPartita()"
+              (ionInput)="aggiornaData($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
 
-      <div class="section-card-body">
-        <!-- LUOGO CON AUTOCOMPLETE & MAPS -->
-        <div class="campo-input-group ion-margin-bottom">
-          <ion-item lines="none" class="elegant-input-item">
+          <ion-item lines="none" class="elegant-input-item compact-item">
+            <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
+            <ion-input
+              type="time"
+              label="Orario"
+              labelPlacement="stacked"
+              [value]="state.orario()"
+              (ionInput)="aggiornaOrario($event.detail.value || '')"
+            ></ion-input>
+          </ion-item>
+        </div>
+
+        @if (!state.isDataStagioneValida() && state.dataPartita()) {
+          <div class="season-warning-card">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <div class="warning-text">
+              <strong>Stagione non valida</strong>
+              <p>La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
+            </div>
+          </div>
+        } @else if (meteoForecast(); as mf) {
+          <div class="weather-compact-strip" [title]="mf.conditionDescription + ' (' + mf.tempMax + '° / ' + mf.tempMin + '°)'">
+            <span class="w-emoji">{{ mf.iconEmoji }}</span>
+            <span class="w-info">{{ mf.tempMax }}°C {{ mf.conditionDescription }}</span>
+            @if (mf.rainProbability > 0) {
+              <span class="w-rain">Pioggia {{ mf.rainProbability }}%</span>
+            }
+          </div>
+        }
+
+        <div class="compact-divider"></div>
+
+        <!-- 2. LUOGO CON CHIPS SU UNA SOLA RIGA & INDIRIZZO COMPATTO -->
+        <div class="campo-input-group">
+          <ion-item lines="none" class="elegant-input-item compact-item">
             <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
             <ion-input
-              label="Luogo Partita *"
+              label="Campo di Gioco"
               labelPlacement="stacked"
-              placeholder="Cerca campo o indirizzo (es. Montesacro, Roma 6, Vigor)..."
+              placeholder="Cerca campo o indirizzo..."
               [value]="state.luogo()"
               (ionInput)="onLuogoInput($event.detail.value || '')"
             ></ion-input>
@@ -61,15 +100,15 @@
                 class="btn-inline-search-maps"
                 slot="end"
                 (click)="apriRicercaGoogleMaps(state.luogo())"
-                title="Cerca questo campo su Google Maps"
+                title="Cerca su Google Maps"
               >
                 <ion-icon name="search-outline"></ion-icon>
               </button>
             }
           </ion-item>
 
-          <!-- CHIP CAMPI STORICI RAPIDI -->
-          <div class="campi-chips-row">
+          <!-- CHIP CAMPI STORICI RAPIDI (RIGOROSAMENTE 1 RIGA ORIZZONTALE) -->
+          <div class="campi-chips-row single-line-scroll">
             @for (c of campiService.campiStorici(); track c.id) {
               <button
                 type="button"
@@ -93,7 +132,7 @@
                       <div class="sugg-name-line">
                         <strong>{{ sugg.nome }}</strong>
                         @if (sugg.isStorico) {
-                          <span class="badge-verificato">✓ Campo del Club</span>
+                          <span class="badge-verificato">✓ Club</span>
                         }
                       </div>
                       @if (sugg.indirizzo) {
@@ -104,13 +143,11 @@
                   <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
                 </div>
               }
-              <!-- AZIONE DIRETTA: CERCA SU GOOGLE MAPS -->
               <div class="autocomplete-item maps-search-action" (click)="apriRicercaGoogleMaps(state.luogo())">
                 <div class="sugg-info">
                   <ion-icon name="open-outline" class="maps-action-icon"></ion-icon>
                   <div>
                     <strong>Cerca "{{ state.luogo() }}" su Google Maps</strong>
-                    <small>Apri Maps per navigare e visualizzare tutti i dettagli</small>
                   </div>
                 </div>
                 <ion-icon name="arrow-forward" class="sugg-arrow"></ion-icon>
@@ -118,31 +155,19 @@
             </div>
           }
 
-          <!-- ANTEPRIMA CAMPO SELEZIONATO & GOOGLE MAPS -->
+          <!-- BARRA INDIRIZZO E LINK MAPPA ULTRA-COMPATTA -->
           @if (state.luogo().trim()) {
-            <div class="campo-selected-card">
-              <div class="campo-card-left">
-                <div class="campo-pin-wrapper">
-                  <ion-icon name="location" class="campo-pin-icon"></ion-icon>
-                </div>
-                <div class="campo-details">
-                  <div class="campo-name-row">
-                    <strong class="campo-name">{{ getNomeDisplay() }}</strong>
-                    @if (isCampoVerificato()) {
-                      <span class="verified-tag">✓ Verificato</span>
-                    }
-                  </div>
-                  <div class="campo-address">
-                    {{ getIndirizzoDisplay() }}
-                  </div>
-                </div>
+            <div class="campo-selected-slim">
+              <div class="css-left">
+                <ion-icon name="location" class="css-pin"></ion-icon>
+                <span class="css-address">{{ getIndirizzoDisplay() }}</span>
               </div>
               <a
                 [href]="getGoogleMapsUrl()"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="btn-open-maps"
-                title="Apri le indicazioni stradali su Google Maps"
+                class="btn-slim-maps"
+                title="Apri su Google Maps"
               >
                 <ion-icon name="navigate-outline"></ion-icon>
                 <span>Mappa</span>
@@ -151,126 +176,92 @@
           }
         </div>
 
-        <!-- DATA E ORARIO AFFIANCATI SU 2 COLONNE -->
-        <div class="datetime-grid ion-margin-bottom">
-          <!-- DATA -->
-          <ion-item lines="none" class="elegant-input-item" [class.input-error]="!state.isDataStagioneValida() && state.dataPartita()">
-            <ion-icon name="calendar-outline" slot="start" [color]="!state.isDataStagioneValida() && state.dataPartita() ? 'danger' : 'medium'"></ion-icon>
-            <ion-input
-              type="date"
-              label="Data *"
-              labelPlacement="stacked"
-              [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
-              [value]="state.dataPartita()"
-              (ionInput)="aggiornaData($event.detail.value || '')"
-            ></ion-input>
-          </ion-item>
+        <div class="compact-divider"></div>
 
-          <!-- ORARIO -->
-          <ion-item lines="none" class="elegant-input-item">
-            <ion-icon name="time-outline" slot="start" color="medium"></ion-icon>
-            <ion-input
-              type="time"
-              label="Orario *"
-              labelPlacement="stacked"
-              [value]="state.orario()"
-              (ionInput)="aggiornaOrario($event.detail.value || '')"
-            ></ion-input>
-          </ion-item>
-        </div>
-
-        <!-- FEEDBACK STAGIONE O METEO -->
-        @if (!state.isDataStagioneValida() && state.dataPartita()) {
-          <div class="season-warning-card">
-            <ion-icon name="alert-circle-outline"></ion-icon>
-            <div class="warning-text">
-              <strong>Stagione non valida</strong>
-              <p>Non è consentito aggiungere partite di stagioni passate. La stagione corrente ({{ CURRENT_SEASON }}) inizia dal {{ MIN_CURRENT_SEASON_DATE | date:'dd/MM/yyyy' }}.</p>
-            </div>
+        <!-- 3. MODALITA' PORTIERI INLINE COMPATTA -->
+        <div class="inline-gk-block">
+          <div class="igk-label-row">
+            <ion-icon name="shield-outline"></ion-icon>
+            <span>Modalità Portieri</span>
           </div>
-        } @else if (state.dataPartita()) {
-          @if (meteoForecast(); as mf) {
-            <div class="weather-compact-strip" [title]="mf.conditionDescription + ' (' + mf.tempMax + '° / ' + mf.tempMin + '°)'">
-              <span class="w-emoji">{{ mf.iconEmoji }}</span>
-              <span class="w-info">{{ mf.tempMax }}°C {{ mf.conditionDescription }}</span>
-              @if (mf.rainProbability > 0) {
-                <span class="w-rain">Pioggia: {{ mf.rainProbability }}%</span>
-              }
+          <div class="portieri-inline-toggles">
+            <button
+              type="button"
+              class="gk-mode-toggle-chip"
+              [class.active]="state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione'"
+              (click)="impostaModalitaEntrambe('rotazione')"
+            >
+              <ion-icon name="repeat-outline"></ion-icon>
+              <span>Rotazione ({{ state.durataTurnoMinuti() }}')</span>
+            </button>
+            <button
+              type="button"
+              class="gk-mode-toggle-chip"
+              [class.active]="state.modalitaPortieriA() === 'fisso' && state.modalitaPortieriB() === 'fisso'"
+              (click)="impostaModalitaEntrambe('fisso')"
+            >
+              <ion-icon name="shield-outline"></ion-icon>
+              <span>Fissi di Ruolo</span>
+            </button>
+            <button
+              type="button"
+              class="gk-mode-toggle-chip"
+              [class.active]="state.modalitaPortieriA() !== state.modalitaPortieriB()"
+              (click)="toggleModalitaMiste()"
+            >
+              <ion-icon name="options-outline"></ion-icon>
+              <span>Misti</span>
+            </button>
+          </div>
+
+          @if (state.modalitaPortieriA() !== state.modalitaPortieriB()) {
+            <div class="gk-mixed-sub-row">
+              <button type="button" class="team-sub-toggle" (click)="toggleModalitaA()">
+                <span>Bianchi: <strong>{{ state.modalitaPortieriA() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
+              </button>
+              <button type="button" class="team-sub-toggle" (click)="toggleModalitaB()">
+                <span>Neri: <strong>{{ state.modalitaPortieriB() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
+              </button>
             </div>
           }
-
-          <!-- NOTE E DETTAGLI BORDOCAMPO OPZIONALI -->
-          <ion-item lines="none" class="elegant-input-item notes-compact-item ion-margin-top">
-            <ion-icon name="chatbox-ellipses-outline" slot="start" color="medium"></ion-icon>
-            <ion-textarea
-              label="Note Bordocampo (Opzionale)"
-              labelPlacement="stacked"
-              autoGrow="true"
-              rows="2"
-              placeholder="Es. Campo bagnato, maglie da portare, clima derby..."
-              [value]="state.commentoPartita()"
-              (ionInput)="aggiornaNote($event.detail.value || '')"
-            ></ion-textarea>
-          </ion-item>
-        }
-      </div>
-    </div>
-
-    <!-- SEZIONE MODALITA' PORTIERI (INLINE COMPATTA PER IL MISTER) -->
-    <div class="details-section-card ion-margin-bottom">
-      <div class="section-card-header">
-        <ion-icon name="shield-outline" class="section-icon-vector"></ion-icon>
-        <div class="section-header-text">
-          <h3 class="section-title">Modalità Portieri</h3>
-        </div>
-      </div>
-
-      <div class="section-card-body">
-        <div class="portieri-inline-toggles">
-          <button
-            type="button"
-            class="gk-mode-toggle-chip"
-            [class.active]="state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione'"
-            (click)="impostaModalitaEntrambe('rotazione')"
-          >
-            <ion-icon name="repeat-outline"></ion-icon>
-            <span>Rotazione ({{ state.durataTurnoMinuti() }}')</span>
-          </button>
-          <button
-            type="button"
-            class="gk-mode-toggle-chip"
-            [class.active]="state.modalitaPortieriA() === 'fisso' && state.modalitaPortieriB() === 'fisso'"
-            (click)="impostaModalitaEntrambe('fisso')"
-          >
-            <ion-icon name="shield-outline"></ion-icon>
-            <span>Fissi di Ruolo</span>
-          </button>
-          <button
-            type="button"
-            class="gk-mode-toggle-chip"
-            [class.active]="state.modalitaPortieriA() !== state.modalitaPortieriB()"
-            (click)="toggleModalitaMiste()"
-          >
-            <ion-icon name="options-outline"></ion-icon>
-            <span>Misti</span>
-          </button>
         </div>
 
-        @if (state.modalitaPortieriA() !== state.modalitaPortieriB()) {
-          <div class="gk-mixed-sub-row ion-margin-top">
-            <button type="button" class="team-sub-toggle" (click)="toggleModalitaA()">
-              <span>Bianchi: <strong>{{ state.modalitaPortieriA() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
-            </button>
-            <button type="button" class="team-sub-toggle" (click)="toggleModalitaB()">
-              <span>Neri: <strong>{{ state.modalitaPortieriB() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
-            </button>
-          </div>
-        }
+        <!-- 4. NOTE BORDOCAMPO A SCOMPARSA (SENZA "OPZIONALE") -->
+        <div class="collapsible-notes-block">
+          <button
+            type="button"
+            class="btn-toggle-notes"
+            [class.open]="isNotesOpen()"
+            (click)="toggleNotes()"
+          >
+            <div class="btn-tn-left">
+              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <span>Note Bordocampo</span>
+              @if (state.commentoPartita().trim() && !isNotesOpen()) {
+                <span class="notes-dot"></span>
+              }
+            </div>
+            <ion-icon [name]="isNotesOpen() ? 'chevron-up-outline' : 'add-outline'" class="btn-tn-chevron"></ion-icon>
+          </button>
+
+          @if (isNotesOpen()) {
+            <div class="notes-Collapse-body">
+              <ion-textarea
+                autoGrow="true"
+                rows="2"
+                class="clean-notes-textarea"
+                placeholder="Campo bagnato, maglie da portare, clima derby..."
+                [value]="state.commentoPartita()"
+                (ionInput)="aggiornaNote($event.detail.value || '')"
+              ></ion-textarea>
+            </div>
+          }
+        </div>
       </div>
     </div>
 
     <!-- PULSANTE CONTINUA PER IL MISTER -->
-    <div class="bottom-action-container">
+    <div class="bottom-action-container compact-bottom">
       @if (!state.isDettagliValidi()) {
         <div class="validation-hint">
           <ion-icon name="alert-circle-outline"></ion-icon>

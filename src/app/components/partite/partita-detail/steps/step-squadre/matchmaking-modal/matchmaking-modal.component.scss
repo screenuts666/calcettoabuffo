@@ -21,23 +21,25 @@
   align-items: center;
   gap: 10px;
 
-  .emoji-icon {
-    font-size: 1.5rem;
+  .header-vector-icon {
+    font-size: 1.45rem;
+    color: var(--app-accent-blue);
+    flex-shrink: 0;
   }
 
   h2 {
-    font-size: 1.05rem;
-    font-weight: 700;
+    font-size: 1.02rem;
+    font-weight: 800;
     margin: 0;
     color: var(--app-text-primary);
     line-height: 1.2;
   }
 
   .header-sub {
-    font-size: 0.72rem;
+    font-size: 11.5px;
     color: var(--app-text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.4px;
     font-weight: 600;
   }
 }
@@ -48,56 +50,65 @@
 }
 
 .proposals-tabs {
-  display: flex;
-  gap: 8px;
-  padding: 8px 12px 12px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px 12px 10px;
   background: var(--app-toolbar-bg);
-  @include hide-scrollbar;
 
   .tab-btn {
-    flex: 1 0 130px;
+    min-width: 0;
     background: var(--app-surface-subtle);
     border: 1px solid var(--app-card-border);
-    border-radius: 12px;
-    padding: 8px 10px;
-    text-align: left;
+    border-radius: 11px;
+    padding: 7px 6px;
+    text-align: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.18s ease;
     color: var(--app-text-secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
 
     .tab-badge {
       display: inline-block;
-      font-size: 0.65rem;
-      font-weight: 700;
+      font-size: 10px;
+      font-weight: 800;
       text-transform: uppercase;
       padding: 2px 6px;
-      border-radius: 6px;
+      border-radius: 5px;
       background: var(--app-card-border);
       color: var(--app-accent-blue);
-      margin-bottom: 4px;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .tab-title {
-      font-size: 0.8rem;
+      font-size: 12px;
       font-weight: 700;
       color: var(--app-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      max-width: 100%;
+      margin-top: 1px;
     }
 
     .tab-balance {
-      font-size: 0.7rem;
+      font-size: 11px;
       color: var(--app-text-muted);
-      margin-top: 2px;
-      font-weight: 500;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     &.active {
       background: linear-gradient(135deg, var(--app-accent-blue-subtle), var(--app-accent-purple-subtle));
       border-color: var(--app-accent-blue);
-      box-shadow: 0 4px 12px var(--app-accent-blue-subtle);
+      box-shadow: 0 3px 10px var(--app-accent-blue-subtle);
 
       .tab-badge {
         background: var(--app-accent-blue);
@@ -110,7 +121,7 @@
 
       .tab-balance {
         color: var(--app-accent-blue);
-        font-weight: 600;
+        font-weight: 700;
       }
     }
   }
@@ -121,161 +132,106 @@
   --color: var(--app-text-primary);
 }
 
+.modal-inner-wrap {
+  padding: 12px 14px 20px;
+}
+
 .balance-card {
   background: linear-gradient(145deg, var(--app-surface-subtle), var(--app-card-bg));
   border: 1px solid var(--app-card-border);
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 14px;
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
   box-shadow: var(--app-card-shadow);
 
-  .balance-card-header {
+  .compact-teams-bar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 12px;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
 
-    .header-tag {
+    .ctb-side {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       gap: 6px;
-      font-size: 0.76rem;
-      font-weight: 600;
-      color: var(--app-accent-blue);
 
-      ion-icon {
-        font-size: 0.9rem;
-      }
-    }
-
-    .quality-badge {
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 16px;
-      background: var(--app-primary-subtle);
-      color: var(--app-primary);
-      border: 1px solid var(--app-primary-border);
-
-      &.perfect {
-        background: linear-gradient(135deg, var(--app-primary-subtle), var(--app-accent-blue-subtle));
-        color: var(--app-primary);
-      }
-    }
-  }
-
-  .teams-comparison {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-
-    .team-metric {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 8px;
-      border-radius: 10px;
-
-      &.metric-bianchi {
-        background: var(--app-surface-subtle);
-        border: 1px solid var(--app-card-border);
-
-        .team-label {
-          color: var(--app-text-primary);
-        }
-
-        .team-mmr {
-          color: var(--app-text-primary);
-        }
-      }
-
-      &.metric-neri {
-        background: var(--app-neutral-dark);
-        border: 1px solid var(--app-accent-gold-border);
-
-        .team-label {
-          color: var(--app-accent-gold);
-        }
-
-        .team-mmr {
-          color: var(--app-accent-gold);
-        }
-      }
-
-      .team-label {
-        font-size: 0.72rem;
+      .ctb-team {
+        font-size: 12px;
         font-weight: 800;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
       }
 
-      .team-mmr {
-        font-size: 1.5rem;
+      .ctb-mmr {
+        font-size: 16px;
         font-weight: 900;
-        line-height: 1.1;
-        margin: 3px 0 2px;
+
+        small {
+          font-size: 10.5px;
+          font-weight: 700;
+          opacity: 0.7;
+        }
       }
 
-      .mmr-sub {
-        font-size: 0.62rem;
-        font-weight: 700;
-        color: var(--app-text-muted);
-      }
-
-      .legacy-sub {
-        font-size: 0.65rem;
-        color: var(--app-text-secondary);
-        margin-top: 2px;
-      }
-    }
-
-    .vs-divider {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 0 8px;
-
-      .vs-circle {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--app-surface-subtle);
-        border: 2px solid var(--app-card-border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.72rem;
-        font-weight: 900;
+      &.bianchi {
         color: var(--app-text-primary);
       }
 
-      .diff-badge {
-        font-size: 0.64rem;
+      &.neri {
+        color: var(--app-accent-gold);
+      }
+    }
+
+    .ctb-center {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .ctb-diff {
+        font-size: 11.5px;
         font-weight: 700;
-        color: var(--app-accent-blue);
-        margin-top: 3px;
+        color: var(--app-text-muted);
+        background: var(--app-surface-subtle);
+        padding: 2px 7px;
+        border-radius: 6px;
+        border: 1px solid var(--app-card-border);
+      }
+
+      .ctb-score {
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--app-primary-subtle);
+        color: var(--app-primary);
+        border: 1px solid var(--app-primary-border);
       }
     }
   }
 
   .odds-bar-container {
-    margin-top: 8px;
+    margin-top: 4px;
 
     .odds-bar-labels {
       display: flex;
       justify-content: space-between;
-      font-size: 0.72rem;
+      align-items: center;
+      font-size: 11.5px;
       font-weight: 700;
-      margin-bottom: 5px;
+      margin-top: 5px;
+      gap: 6px;
 
       .label-bianchi {
         color: var(--app-text-primary);
       }
 
       .label-center {
-        color: var(--app-accent-blue);
-        font-size: 0.68rem;
+        color: var(--app-text-muted);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .label-neri {
@@ -284,7 +240,7 @@
     }
 
     .odds-bar-track {
-      height: 9px;
+      height: 7px;
       border-radius: 6px;
       overflow: hidden;
       background: var(--app-surface-subtle);
@@ -308,8 +264,8 @@
   .roles-summary-bar {
     display: flex;
     justify-content: space-between;
-    margin-top: 10px;
-    padding-top: 8px;
+    margin-top: 8px;
+    padding-top: 6px;
     border-top: 1px solid var(--app-border-color);
 
     .role-team {
@@ -332,7 +288,8 @@
       }
 
       small {
-        font-size: 0.68rem;
+        font-size: 11.5px;
+        font-weight: 600;
         color: var(--app-text-muted);
       }
     }
@@ -458,13 +415,16 @@
 
     .role-mini-badge {
       position: absolute;
-      bottom: -3px;
-      right: -3px;
-      font-size: 0.65rem;
-      background: var(--app-surface-subtle);
-      border-radius: 50%;
-      width: 15px;
-      height: 15px;
+      bottom: -2px;
+      right: -2px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #cbd5e1;
+      background: #1e293b;
+      border-radius: 5px;
+      padding: 1px 3px;
+      min-width: 15px;
+      height: 14px;
       display: flex;
       align-items: center;
       justify-content: center;

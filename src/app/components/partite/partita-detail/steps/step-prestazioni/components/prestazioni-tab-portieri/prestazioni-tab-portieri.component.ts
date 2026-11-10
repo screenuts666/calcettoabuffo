@@ -23,6 +23,9 @@ import {
   checkmarkCircleOutline,
   timeOutline,
   saveOutline,
+  handLeftOutline,
+  shieldCheckmarkOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import { Partita } from '../../../../../../../models/partita.model';
 import { PlayerPerformance } from '../../../../../../../models/player-performance.model';
@@ -74,6 +77,9 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
       checkmarkCircleOutline,
       timeOutline,
       saveOutline,
+      handLeftOutline,
+      shieldCheckmarkOutline,
+      sparklesOutline,
     });
   }
 

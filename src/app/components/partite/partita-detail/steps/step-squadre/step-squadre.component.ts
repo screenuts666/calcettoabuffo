@@ -145,15 +145,15 @@ export class StepSquadreComponent implements OnInit {
   getRuoloIcon(ruolo?: string): string {
     switch ((ruolo || '').toLowerCase()) {
       case 'portiere':
-        return '🧤';
+        return 'P';
       case 'difensore':
-        return '🛡️';
+        return 'D';
       case 'fascia':
-        return '⚡';
+        return 'F';
       case 'attaccante':
-        return '🎯';
+        return 'A';
       default:
-        return '⚽';
+        return 'G';
     }
   }
 
@@ -202,7 +202,7 @@ export class StepSquadreComponent implements OnInit {
     if (!odds) {
       const toast = await this.toastCtrl.create({
         message:
-          '⚠️ Aggiungi almeno un giocatore per squadra per calcolare il pronostico.',
+          'Aggiungi almeno un giocatore per squadra per calcolare il pronostico.',
         duration: 2500,
         color: 'warning',
         position: 'top',
@@ -236,8 +236,8 @@ export class StepSquadreComponent implements OnInit {
       }
       const toast = await this.toastCtrl.create({
         message: force
-          ? '🔄 Pronostico rigenerato con successo!'
-          : '🔮 Pronostico del Mister generato!',
+          ? 'Pronostico rigenerato con successo.'
+          : 'Pronostico del Mister generato.',
         duration: 2500,
         color: 'success',
         position: 'top',
@@ -286,7 +286,7 @@ export class StepSquadreComponent implements OnInit {
     if (pool.length < 4) {
       const toast = await this.toastCtrl.create({
         message:
-          '⚠️ Seleziona almeno 4 giocatori convocati per generare squadre bilanciate.',
+          'Seleziona almeno 4 giocatori convocati per generare squadre bilanciate.',
         duration: 2500,
         color: 'warning',
         position: 'top',
@@ -325,7 +325,7 @@ export class StepSquadreComponent implements OnInit {
     this.isMatchmakingOpen.set(false);
 
     const toast = await this.toastCtrl.create({
-      message: `🎉 ${proposal.title} applicata! Squadre bilanciate con successo.`,
+      message: `${proposal.title} applicata! Squadre bilanciate con successo.`,
       duration: 2500,
       color: 'success',
       position: 'top',

@@ -36,6 +36,9 @@ import {
   snow,
   refreshOutline,
   micOutline,
+  scaleOutline,
+  peopleOutline,
+  sparklesOutline,
 } from 'ionicons/icons';
 import {
   MatchmakingProposal,
@@ -119,6 +122,9 @@ export class MatchmakingModalComponent {
       snow,
       refreshOutline,
       micOutline,
+      scaleOutline,
+      peopleOutline,
+      sparklesOutline,
     });
   }
 
@@ -166,15 +172,15 @@ export class MatchmakingModalComponent {
   getRuoloIcon(ruolo: string): string {
     switch ((ruolo || '').toLowerCase()) {
       case 'portiere':
-        return '🧤';
+        return 'POR';
       case 'difensore':
-        return '🛡️';
+        return 'DIF';
       case 'fascia':
-        return '⚡';
+        return 'FAS';
       case 'attaccante':
-        return '🎯';
+        return 'ATT';
       default:
-        return '⚽';
+        return 'GIO';
     }
   }
 }

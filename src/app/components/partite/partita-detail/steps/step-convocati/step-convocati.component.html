@@ -1,70 +1,32 @@
 <div class="convocati-container">
-  <div class="search-header ion-padding">
+  <div class="search-header">
     <div class="title-row">
       <h2>{{ isAdmin ? "Seleziona Giocatori" : "Giocatori Convocati" }}</h2>
-      <div class="count-badge">{{ state.totaleConvocati() }} Convocati</div>
+      <div class="title-right-group">
+        @if (isAdmin && isDev) {
+          <button
+            type="button"
+            class="dev-mini-pill"
+            (click)="selezionaPrimi14Classifica()"
+            title="Auto-seleziona Top 14"
+          >
+            <ion-icon name="flash-outline"></ion-icon>
+            <span>Top 14</span>
+          </button>
+        }
+        <div class="count-badge">{{ state.totaleConvocati() }} Convocati</div>
+      </div>
     </div>
 
-    <!-- BOX SCELTA PRESENZA ATLETA (PULITA & IMMEDIATA SENZA EMOJI CRINGE) -->
-    @if (auth.hasLinkedPlayer()) {
-      <div class="clean-rsvp-box">
-        <div class="crb-header">
-          <span class="crb-prompt">La tua presenza:</span>
-          <span class="crb-status-pill" [class.confirmed]="myRsvpStatus() === 'yes'">
-            {{ myRsvpStatus() === 'yes' ? 'Confermato' : 'Non confermato' }}
-          </span>
-        </div>
-
-        <div class="crb-actions">
-          <button
-            type="button"
-            class="crb-btn yes"
-            [class.active]="myRsvpStatus() === 'yes'"
-            [disabled]="isSavingRsvp()"
-            (click)="toggleMioRsvp('yes')"
-          >
-            <ion-icon name="checkmark-circle-outline"></ion-icon>
-            <span>{{ myRsvpStatus() === 'yes' ? 'Partecipo (Tocca per togliere)' : 'Partecipo' }}</span>
-          </button>
-
-          <button
-            type="button"
-            class="crb-btn no"
-            [class.active]="myRsvpStatus() === 'no'"
-            [disabled]="isSavingRsvp()"
-            (click)="impostaMioRsvp('no')"
-          >
-            <ion-icon name="close-circle-outline"></ion-icon>
-            <span>Non ci sono</span>
-          </button>
-        </div>
-      </div>
-    } @else if (!isAdmin) {
-      <button
-        type="button"
-        class="irp-login-cta"
-        (click)="apriLoginOAssociazionePerRsvp()"
-      >
-        <span>
-          {{
-            auth.isLoggedIn()
-              ? "Associa la tua scheda giocatore per rispondere"
-              : "Accedi per rispondere all'invito"
-          }}
-        </span>
-      </button>
-    }
-
-    <!-- PANNELLO INVITO PARTITA (SOLO PER MISTER E PRESIDENTE) -->
+    <!-- VISTA MISTER / PRESIDENTE: BARRA UNIFICATA COMPATTA (INVITO + PRESENZA PERSONALE) -->
     @if (isAdmin) {
-      <div class="invite-panel-admin">
-        <div class="ipa-header">
-          <div class="ipa-left">
-            <span class="ipa-badge">Link Invito</span>
-            <span class="ipa-counter">{{ state.totaleConvocati() }} Convocati</span>
+      <div class="unified-admin-bar">
+        <div class="uab-row invite-row">
+          <div class="uab-left">
+            <ion-icon name="link-outline" class="uab-icon"></ion-icon>
+            <span class="uab-label">Link Invito</span>
           </div>
-
-          <div class="ipa-actions">
+          <div class="uab-actions">
             <button
               type="button"
               class="btn-share-whatsapp"
@@ -91,6 +53,34 @@
           </div>
         </div>
 
+        @if (auth.hasLinkedPlayer()) {
+          <div class="uab-row self-rsvp-row">
+            <span class="uab-sub-label">La tua presenza:</span>
+            <div class="uab-rsvp-pills">
+              <button
+                type="button"
+                class="mini-rsvp-pill yes"
+                [class.active]="myRsvpStatus() === 'yes'"
+                [disabled]="isSavingRsvp()"
+                (click)="toggleMioRsvp('yes')"
+              >
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+                <span>Partecipo</span>
+              </button>
+              <button
+                type="button"
+                class="mini-rsvp-pill no"
+                [class.active]="myRsvpStatus() === 'no'"
+                [disabled]="isSavingRsvp()"
+                (click)="impostaMioRsvp('no')"
+              >
+                <ion-icon name="close-circle-outline"></ion-icon>
+                <span>Non ci sono</span>
+              </button>
+            </div>
+          </div>
+        }
+
         @if (maybePlayers().length > 0) {
           <div class="maybe-solicit-strip">
             <div class="mss-left">
@@ -113,21 +103,8 @@
         }
       </div>
 
-      @if (isDev) {
-        <div class="dev-bulk-container">
-          <button
-            type="button"
-            class="dev-bulk-btn"
-            (click)="selezionaPrimi14Classifica()"
-          >
-            <ion-icon name="flash-outline"></ion-icon>
-            <span>DEV Auto-seleziona Top 14 (7 vs 7)</span>
-          </button>
-        </div>
-      }
-
       <ion-searchbar
-        placeholder="Cerca per nome, piede, anno..."
+        placeholder="Cerca per nome, piede, ruolo..."
         [value]="state.filtro()"
         (ionInput)="state.filtro.set($event.detail.value || '')"
         mode="ios"
@@ -135,9 +112,61 @@
       >
       </ion-searchbar>
     }
+
+    <!-- VISTA ATLETA: BOX SCELTA PRESENZA PERSONALE -->
+    @if (!isAdmin) {
+      @if (auth.hasLinkedPlayer()) {
+        <div class="clean-rsvp-box">
+          <div class="crb-header">
+            <span class="crb-prompt">La tua presenza:</span>
+            <span class="crb-status-pill" [class.confirmed]="myRsvpStatus() === 'yes'">
+              {{ myRsvpStatus() === 'yes' ? 'Confermato' : 'Non confermato' }}
+            </span>
+          </div>
+
+          <div class="crb-actions">
+            <button
+              type="button"
+              class="crb-btn yes"
+              [class.active]="myRsvpStatus() === 'yes'"
+              [disabled]="isSavingRsvp()"
+              (click)="toggleMioRsvp('yes')"
+            >
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>{{ myRsvpStatus() === 'yes' ? 'Partecipo (Tocca per togliere)' : 'Partecipo' }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="crb-btn no"
+              [class.active]="myRsvpStatus() === 'no'"
+              [disabled]="isSavingRsvp()"
+              (click)="impostaMioRsvp('no')"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+              <span>Non ci sono</span>
+            </button>
+          </div>
+        </div>
+      } @else {
+        <button
+          type="button"
+          class="irp-login-cta"
+          (click)="apriLoginOAssociazionePerRsvp()"
+        >
+          <span>
+            {{
+              auth.isLoggedIn()
+                ? "Associa la tua scheda giocatore per rispondere"
+                : "Accedi per rispondere all'invito"
+            }}
+          </span>
+        </button>
+      }
+    }
   </div>
 
-  <!-- BARRA AVATAR SELEZIONATI IN ALTO (SCORREVOLE) -->
+  <!-- BARRA AVATAR SELEZIONATI IN ALTO (SCORREVOLE CON ICONA X TONDA PERFETTA) -->
   @if (state.convocati().length > 0) {
     <div class="selected-players-scroll">
       @for (g of state.convocati(); track (g.id || g.nome) + "_" + $index) {
@@ -159,7 +188,12 @@
               </span>
             }
             @if (isAdmin) {
-              <button class="remove-btn" (click)="toggleSelezione(g)" title="Rimuovi dai convocati">
+              <button
+                type="button"
+                class="remove-btn"
+                (click)="toggleSelezione(g)"
+                title="Rimuovi dai convocati"
+              >
                 <ion-icon name="close-circle"></ion-icon>
               </button>
             }
@@ -171,73 +205,67 @@
   }
 
   <!-- =================================================================== -->
-  <!-- VISTA MISTER / PRESIDENTE: LISTA COMPLETA DELLA ROSA SELEZIONABILE  -->
+  <!-- VISTA MISTER / PRESIDENTE: LISTA MODERNA A SCHEDE CONVOCABILI       -->
   <!-- =================================================================== -->
   @if (isAdmin) {
-    <ion-list mode="ios" class="giocatori-list">
+    <div class="sleek-players-grid">
       @for (
         g of state.giocatoriFiltrati();
         track (g.id || g.nome) + "_" + $index
       ) {
-        <ion-item
-          (click)="toggleSelezione(g)"
-          lines="full"
-          class="player-item interactive-item"
+        <div
+          class="sleek-player-card"
           [class.is-selected]="g.selezionato"
-          [class.is-maybe-row]="g.rsvpStatus === 'maybe'"
-          [class.is-declined-row]="g.rsvpStatus === 'no'"
+          [class.is-maybe]="g.rsvpStatus === 'maybe'"
+          [class.is-declined]="g.rsvpStatus === 'no'"
+          (click)="toggleSelezione(g)"
         >
-          <ion-avatar slot="start" class="player-avatar-slot">
+          <div class="spc-avatar-wrap">
             <app-player-avatar
               [fotoUrl]="g.fotoUrl"
               [alt]="g.nome"
             ></app-player-avatar>
-          </ion-avatar>
+            @if (g.ruoloPreferito) {
+              <span class="spc-role-tag">{{ g.ruoloPreferito.slice(0, 3) }}</span>
+            }
+          </div>
 
-          <ion-label>
-            <div class="player-name-with-badges">
-              <h3 class="player-full-name">{{ g.nome }}</h3>
+          <div class="spc-info">
+            <div class="spc-top-line">
+              <span class="spc-name">{{ g.nome }}</span>
               @if (g.selfRegistered) {
-                <span
-                  class="rsvp-inline-badge self-confirmed"
-                  title="Confermato dal giocatore"
-                >
+                <span class="spc-rsvp-pill confirmed">
                   <ion-icon name="checkmark-done-circle"></ion-icon>
                   <span>Confermato</span>
                 </span>
               } @else if (g.rsvpStatus === "maybe") {
-                <span
-                  class="rsvp-inline-badge maybe-badge"
-                  title="Il giocatore è in forse"
-                >
+                <span class="spc-rsvp-pill maybe">
                   <ion-icon name="help-circle-outline"></ion-icon>
                   <span>In forse</span>
                 </span>
               } @else if (g.rsvpStatus === "no") {
-                <span
-                  class="rsvp-inline-badge no-badge"
-                  title="Non partecipa"
-                >
-                  <span>Non presente</span>
-                </span>
+                <span class="spc-rsvp-pill declined">Assente</span>
               }
             </div>
-            <p class="player-sub-info">
-              {{ g.soprannome ? '"' + g.soprannome + '"' : (g.ruoloPreferito || g.piedePreferito) }}
-            </p>
-          </ion-label>
+            <div class="spc-bottom-line">
+              @if (g.soprannome) {
+                <span class="spc-alias">"{{ g.soprannome }}"</span>
+              }
+              @if (g.ruoloPreferito) {
+                <span class="spc-meta">{{ g.ruoloPreferito }}</span>
+              }
+              @if (g.piedePreferito) {
+                <span class="spc-meta">· {{ g.piedePreferito }}</span>
+              }
+            </div>
+          </div>
 
-          <ion-checkbox
-            slot="end"
-            [checked]="g.selezionato"
-            mode="ios"
-            class="green-check"
-            (click)="$event.stopPropagation(); toggleSelezione(g)"
-          >
-          </ion-checkbox>
-        </ion-item>
+          <div class="spc-check-indicator" [class.checked]="g.selezionato">
+            <ion-icon [name]="g.selezionato ? 'checkmark-circle' : 'add-circle-outline'"></ion-icon>
+          </div>
+        </div>
       }
-    </ion-list>
+    </div>
   }
 
   <!-- =================================================================== -->
@@ -255,40 +283,45 @@
           <p>Nessun giocatore ancora convocato per questa gara.</p>
         </div>
       } @else {
-        <ion-list mode="ios" class="giocatori-list athlete-clean-list">
+        <div class="sleek-players-grid read-only-grid">
           @for (
             g of state.convocati();
             track (g.id || g.nome) + "_" + $index
           ) {
-            <ion-item lines="full" class="player-item read-only-item">
-              <ion-avatar slot="start" class="player-avatar-slot">
+            <div class="sleek-player-card is-selected read-only">
+              <div class="spc-avatar-wrap">
                 <app-player-avatar
                   [fotoUrl]="g.fotoUrl"
                   [alt]="g.nome"
                 ></app-player-avatar>
-              </ion-avatar>
+                @if (g.ruoloPreferito) {
+                  <span class="spc-role-tag">{{ g.ruoloPreferito.slice(0, 3) }}</span>
+                }
+              </div>
 
-              <ion-label>
-                <div class="player-name-with-badges">
-                  <h3 class="player-full-name">{{ g.nome }}</h3>
+              <div class="spc-info">
+                <div class="spc-top-line">
+                  <span class="spc-name">{{ g.nome }}</span>
                   @if (g.id === auth.linkedPlayerId()) {
-                    <span class="rsvp-inline-badge you-badge">Tu</span>
+                    <span class="spc-rsvp-pill you">Tu</span>
                   }
                 </div>
-                <p class="player-sub-info">
-                  {{ g.soprannome ? '"' + g.soprannome + '"' : (g.ruoloPreferito || g.piedePreferito) }}
-                </p>
-              </ion-label>
+                <div class="spc-bottom-line">
+                  @if (g.soprannome) {
+                    <span class="spc-alias">"{{ g.soprannome }}"</span>
+                  }
+                  @if (g.ruoloPreferito) {
+                    <span class="spc-meta">{{ g.ruoloPreferito }}</span>
+                  }
+                </div>
+              </div>
 
-              <ion-icon
-                slot="end"
-                name="checkmark-circle"
-                color="success"
-                class="clean-confirmed-check"
-              ></ion-icon>
-            </ion-item>
+              <div class="spc-check-indicator checked">
+                <ion-icon name="checkmark-circle"></ion-icon>
+              </div>
+            </div>
           }
-        </ion-list>
+        </div>
       }
     </div>
   }
