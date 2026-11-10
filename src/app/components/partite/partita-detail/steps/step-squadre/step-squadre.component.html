@@ -23,11 +23,13 @@
 @if (currentBalanceInfo(); as bal) {
   <div
     class="live-balance-chip"
+    role="status"
+    aria-live="polite"
     [class.balanced]="bal.isBalanced"
     [class.unbalanced]="!bal.isBalanced"
   >
     <div class="chip-main">
-      <span class="chip-dot"></span>
+      <span class="chip-dot" aria-hidden="true"></span>
       <span class="chip-label">Bilanciamento:</span>
       <strong class="chip-val">{{ bal.text }}</strong>
     </div>
@@ -100,7 +102,12 @@
         <div
           class="player-row"
           [class.interactive-row]="isAdmin"
+          [attr.role]="isAdmin ? 'button' : null"
+          [attr.tabindex]="isAdmin ? '0' : null"
+          [attr.aria-label]="isAdmin ? 'Sposta ' + g.nome + ' nella squadra Neri' : null"
           (click)="isAdmin ? spostaIn(g, 'B') : null"
+          (keydown.enter)="isAdmin ? spostaIn(g, 'B') : null"
+          (keydown.space)="isAdmin ? spostaIn(g, 'B') : null; $event.preventDefault()"
           [title]="isAdmin ? 'Tocca per spostare in Neri' : ''"
         >
           <div
@@ -218,7 +225,12 @@
         <div
           class="player-row"
           [class.interactive-row]="isAdmin"
+          [attr.role]="isAdmin ? 'button' : null"
+          [attr.tabindex]="isAdmin ? '0' : null"
+          [attr.aria-label]="isAdmin ? 'Sposta ' + g.nome + ' nella squadra Bianchi' : null"
           (click)="isAdmin ? spostaIn(g, 'A') : null"
+          (keydown.enter)="isAdmin ? spostaIn(g, 'A') : null"
+          (keydown.space)="isAdmin ? spostaIn(g, 'A') : null; $event.preventDefault()"
           [title]="isAdmin ? 'Tocca per spostare in Bianchi' : ''"
         >
           <div

@@ -8,8 +8,9 @@
           color="warning"
           (click)="apriAreaSegreta()"
           title="Area Segreta"
+          aria-label="Area Segreta Amministratore"
         >
-          <ion-icon name="shield-checkmark" slot="icon-only"></ion-icon>
+          <ion-icon name="shield-checkmark" slot="icon-only" aria-hidden="true"></ion-icon>
         </ion-button>
       }
       @if (vistaSelezionata() === 'classifica') {
@@ -17,8 +18,9 @@
           class="whatsapp-btn"
           (click)="condividiSuWhatsApp()"
           title="Condividi su WhatsApp"
+          aria-label="Condividi classifica su WhatsApp"
         >
-          <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+          <ion-icon name="logo-whatsapp" slot="icon-only" aria-hidden="true"></ion-icon>
         </ion-button>
       }
       <app-theme-toggle></app-theme-toggle>
@@ -27,33 +29,37 @@
 
   <!-- BARRA 1 UNIFICATA: VISTA (CLASSIFICA / CHIMICA) + STAGIONE -->
   <div class="context-header-bar">
-    <div class="view-segment">
+    <div class="view-segment" role="group" aria-label="Seleziona vista">
       <button
         type="button"
         class="segment-btn"
         [class.active]="vistaSelezionata() === 'classifica'"
+        [attr.aria-pressed]="vistaSelezionata() === 'classifica'"
         (click)="selezionaVista('classifica')"
       >
-        <ion-icon name="trophy"></ion-icon>
+        <ion-icon name="trophy" aria-hidden="true"></ion-icon>
         <span>Classifica</span>
       </button>
       <button
         type="button"
         class="segment-btn"
         [class.active]="vistaSelezionata() === 'chimica'"
+        [attr.aria-pressed]="vistaSelezionata() === 'chimica'"
         (click)="selezionaVista('chimica')"
       >
-        <span>🤝 Chimica</span>
+        <ion-icon name="people" aria-hidden="true"></ion-icon>
+        <span>Chimica</span>
       </button>
     </div>
 
     @if (vistaSelezionata() === 'classifica') {
-      <div class="season-pills">
+      <div class="season-pills" role="group" aria-label="Filtro stagione">
         @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
           <button
             type="button"
             class="season-pill-btn"
             [class.active]="stagioneSelezionata() === stg.id"
+            [attr.aria-pressed]="stagioneSelezionata() === stg.id"
             (click)="selezionaStagione(stg.id)"
             [title]="stg.label"
           >
@@ -64,11 +70,12 @@
     }
 
     @if (vistaSelezionata() === 'chimica') {
-      <div class="season-pills">
+      <div class="season-pills" role="group" aria-label="Filtro chimica">
         <button
           type="button"
           class="season-pill-btn"
           [class.active]="filtroChimica() === 'all'"
+          [attr.aria-pressed]="filtroChimica() === 'all'"
           (click)="setFiltroChimica('all')"
         >
           Tutte ({{ topDuos().length + topRivalries().length }})
@@ -77,17 +84,19 @@
           type="button"
           class="season-pill-btn"
           [class.active]="filtroChimica() === 'gemelli'"
+          [attr.aria-pressed]="filtroChimica() === 'gemelli'"
           (click)="setFiltroChimica('gemelli')"
         >
-          🤝 Gemelli ({{ topDuos().length }})
+          Gemelli ({{ topDuos().length }})
         </button>
         <button
           type="button"
           class="season-pill-btn"
           [class.active]="filtroChimica() === 'rivalita'"
+          [attr.aria-pressed]="filtroChimica() === 'rivalita'"
           (click)="setFiltroChimica('rivalita')"
         >
-          😈 Rivalità ({{ topRivalries().length }})
+          Rivalità ({{ topRivalries().length }})
         </button>
       </div>
     }
@@ -101,12 +110,14 @@
           type="button"
           class="filter-trigger-btn"
           [class.active]="isFiltriOpen() || filtroTierOForma() !== 'all'"
+          [attr.aria-expanded]="isFiltriOpen()"
+          aria-label="Filtra per stato di forma o rango"
           (click)="toggleFiltri()"
           title="Filtra per Stato di Forma o Rango"
         >
-          <ion-icon name="filter"></ion-icon>
+          <ion-icon name="filter" aria-hidden="true"></ion-icon>
           @if (filtroTierOForma() !== 'all') {
-            <span class="filter-dot"></span>
+            <span class="filter-dot" aria-hidden="true"></span>
           }
         </button>
 
@@ -377,10 +388,11 @@
           <button
             type="button"
             class="unranked-toggle-header"
+            [attr.aria-expanded]="mostraNonClassificati()"
             (click)="toggleMostraNonClassificati()"
           >
             <div class="unranked-header-left">
-              <span class="unranked-icon-tag">⏳</span>
+              <ion-icon name="hourglass-outline" class="unranked-icon-tag" aria-hidden="true"></ion-icon>
               <span class="unranked-title-text">
                 In Piazzamento ({{ giocatoriNonClassificati().length }} con 0 presenze)
               </span>
@@ -388,6 +400,7 @@
             <ion-icon
               [name]="mostraNonClassificati() ? 'chevron-up' : 'chevron-down'"
               class="unranked-arrow"
+              aria-hidden="true"
             ></ion-icon>
           </button>
 
@@ -440,10 +453,11 @@
         <button
           type="button"
           class="unranked-toggle-header"
+          [attr.aria-expanded]="isGuidaRanghiOpen()"
           (click)="toggleGuidaRanghi()"
         >
           <div class="unranked-header-left">
-            <span class="unranked-icon-tag">ℹ️</span>
+            <ion-icon name="information-circle-outline" class="unranked-icon-tag" aria-hidden="true"></ion-icon>
             <span class="unranked-title-text">
               Come funzionano Punti & Ranghi MMR
             </span>
@@ -451,6 +465,7 @@
           <ion-icon
             [name]="isGuidaRanghiOpen() ? 'chevron-up' : 'chevron-down'"
             class="unranked-arrow"
+            aria-hidden="true"
           ></ion-icon>
         </button>
 
@@ -529,7 +544,15 @@
 
         <div class="chem-compact-list">
           @for (duo of topDuos(); track (duo.p1Id || '') + '_' + (duo.p2Id || '') + '_' + $index; let i = $index) {
-            <div class="chem-row-card partner-card clickable-chem-card" (click)="apriDettaglioChimica(duo.p1Id, duo.p2Id)">
+            <div
+              class="chem-row-card partner-card clickable-chem-card"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="'Coppia ' + duo.p1Nome + ' e ' + duo.p2Nome + ': ' + duo.winRate + '% vittorie'"
+              (click)="apriDettaglioChimica(duo.p1Id, duo.p2Id)"
+              (keydown.enter)="apriDettaglioChimica(duo.p1Id, duo.p2Id)"
+              (keydown.space)="apriDettaglioChimica(duo.p1Id, duo.p2Id); $event.preventDefault()"
+            >
               <!-- POSIZIONE RANK -->
               <div class="chem-rank" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
                 <span class="rank-num">#{{ i + 1 }}</span>
@@ -632,7 +655,15 @@
 
         <div class="chem-compact-list">
           @for (riv of topRivalries(); track (riv.p1Id || '') + '_' + (riv.p2Id || '') + '_' + $index; let i = $index) {
-            <div class="chem-row-card nemesis-card" (click)="apriConfronto(riv.p1Id, riv.p2Id)">
+            <div
+              class="chem-row-card nemesis-card"
+              role="button"
+              tabindex="0"
+              [attr.aria-label]="'Rivalità ' + riv.p1Nome + ' contro ' + riv.p2Nome + ': ' + riv.dominancePercent + '%'"
+              (click)="apriConfronto(riv.p1Id, riv.p2Id)"
+              (keydown.enter)="apriConfronto(riv.p1Id, riv.p2Id)"
+              (keydown.space)="apriConfronto(riv.p1Id, riv.p2Id); $event.preventDefault()"
+            >
               <!-- POSIZIONE RANK -->
               <div class="chem-rank" [class.rank-gold]="i === 0" [class.rank-silver]="i === 1" [class.rank-bronze]="i === 2">
                 <span class="rank-num">#{{ i + 1 }}</span>

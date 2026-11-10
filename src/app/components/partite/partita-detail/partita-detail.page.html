@@ -21,8 +21,9 @@
           class="header-share-wa-btn"
           (click)="condividiPartitaDiretto()"
           title="Condividi partita su WhatsApp"
+          aria-label="Condividi partita su WhatsApp"
         >
-          <ion-icon name="logo-whatsapp" slot="icon-only" color="success"></ion-icon>
+          <ion-icon name="logo-whatsapp" slot="icon-only" color="success" aria-hidden="true"></ion-icon>
         </ion-button>
       }
       @if (isAdmin) {
@@ -33,16 +34,17 @@
   </ion-toolbar>
 
   @if (isAdmin && !state.matchConcluso() && (state.step() === 'dettagli' || state.step() === 'convocati' || state.step() === 'squadre')) {
-    <div class="wizard-stepper-bar">
+    <div class="wizard-stepper-bar" role="navigation" aria-label="Fasi configurazione partita">
       <!-- STEP 1: COORDINATE MATCH -->
       <button
         type="button"
         class="step-node"
         [class.active]="state.step() === 'dettagli'"
         [class.completed]="state.isDettagliValidi() && state.step() !== 'dettagli'"
+        [attr.aria-current]="state.step() === 'dettagli' ? 'step' : null"
         (click)="cambiaStep('dettagli')"
       >
-        <span class="node-circle">
+        <span class="node-circle" aria-hidden="true">
           @if (state.isDettagliValidi() && state.step() !== 'dettagli') {
             <ion-icon name="checkmark"></ion-icon>
           } @else {
@@ -52,7 +54,7 @@
         <span class="node-label">Coordinate</span>
       </button>
 
-      <div class="step-connector" [class.filled]="state.isDettagliValidi()"></div>
+      <div class="step-connector" [class.filled]="state.isDettagliValidi()" aria-hidden="true"></div>
 
       <!-- STEP 2: CONVOCATI -->
       <button
@@ -60,10 +62,11 @@
         class="step-node"
         [class.active]="state.step() === 'convocati'"
         [class.completed]="state.totaleConvocati() >= 2 && state.step() === 'squadre'"
+        [attr.aria-current]="state.step() === 'convocati' ? 'step' : null"
         [disabled]="!state.isDettagliValidi()"
         (click)="state.isDettagliValidi() ? cambiaStep('convocati') : null"
       >
-        <span class="node-circle">
+        <span class="node-circle" aria-hidden="true">
           @if (state.totaleConvocati() >= 2 && state.step() === 'squadre') {
             <ion-icon name="checkmark"></ion-icon>
           } @else {
@@ -73,17 +76,18 @@
         <span class="node-label">Convocati</span>
       </button>
 
-      <div class="step-connector" [class.filled]="state.isDettagliValidi() && state.totaleConvocati() >= 2"></div>
+      <div class="step-connector" [class.filled]="state.isDettagliValidi() && state.totaleConvocati() >= 2" aria-hidden="true"></div>
 
       <!-- STEP 3: SQUADRE -->
       <button
         type="button"
         class="step-node"
         [class.active]="state.step() === 'squadre'"
+        [attr.aria-current]="state.step() === 'squadre' ? 'step' : null"
         [disabled]="!state.isDettagliValidi() || state.totaleConvocati() < 2"
         (click)="state.isDettagliValidi() && state.totaleConvocati() >= 2 ? cambiaStep('squadre') : null"
       >
-        <span class="node-circle">3</span>
+        <span class="node-circle" aria-hidden="true">3</span>
         <span class="node-label">Squadre</span>
       </button>
     </div>
@@ -130,8 +134,8 @@
 
     @if (isAdmin && state.step() === 'convocati' && state.totaleConvocati() >= 2) {
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button color="success" (click)="cambiaStep('squadre')">
-          <ion-icon name="arrow-forward"></ion-icon>
+        <ion-fab-button color="success" (click)="cambiaStep('squadre')" aria-label="Procedi alla composizione squadre" title="Procedi alla composizione squadre">
+          <ion-icon name="arrow-forward" aria-hidden="true"></ion-icon>
         </ion-fab-button>
       </ion-fab>
     }

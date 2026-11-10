@@ -7,20 +7,23 @@
 
 :root {
   // ---------------------------------------------------------------------------
-  // TYPOGRAPHY SCALE (MOBILE FIRST - Standard Apple HIG / Material 3)
-  // Floor minimo assoluto a 12px (0.75rem) su qualsiasi viewport
+  // TYPOGRAPHY SCALE (SCALABILE REM - Standard WCAG 2.2 AA / Apple HIG / Material 3)
+  // Floor minimo assoluto a 0.75rem (12px) su qualsiasi viewport
   // ---------------------------------------------------------------------------
-  --app-font-floor: 12px;
-  --app-font-xs: 12px;
-  --app-font-sm: 13.5px;
-  --app-font-md: 14px;
-  --app-font-base: 15.5px;
-  --app-font-lg: 17px;
-  --app-font-xl: 20px;
-  --app-font-score: clamp(40px, 10vw, 56px);
+  --app-font-floor: 0.75rem;
+  --app-font-xs: 0.75rem;
+  --app-font-sm: 0.84375rem;
+  --app-font-md: 0.875rem;
+  --app-font-base: 0.96875rem;
+  --app-font-lg: 1.0625rem;
+  --app-font-xl: 1.25rem;
+  --app-font-score: clamp(2.5rem, 10vw, 3.5rem);
 
-  // TOUCH TARGET MINIMUM (Standard Apple HIG / Material 3: min 44x44px)
+  // TOUCH TARGET MINIMUM & FOCUS TOKENS (WCAG 2.5.8 & 2.4.7: min 44x44px, 48x48px live)
   --app-min-touch-target: 44px;
+  --app-pitch-touch-target: 48px;
+  --app-focus-ring: 2px solid #38bdf8;
+  --app-focus-offset: 2px;
 
   // ---------------------------------------------------------------------------
   // 1. BRAND PALETTE (Light / Default)
@@ -122,25 +125,25 @@
   --app-overlay-light: rgba(255, 255, 255, 0.15);
 
   // ---------------------------------------------------------------------------
-  // 7. SUPERFICI, SFONDI & TESTI (LIGHT MODE)
+  // 7. SUPERFICI, SFONDI & TESTI (LIGHT MODE - WCAG 2.2 AA Contrast >= 4.5:1)
   // ---------------------------------------------------------------------------
   --app-bg: #f4f6fa;
   --app-surface: #ffffff;
   --app-card-bg: #ffffff;
-  --app-card-border: rgba(0, 0, 0, 0.08);
+  --app-card-border: rgba(15, 23, 42, 0.22);
   --app-card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   --app-surface-subtle: #edf1f7;
   --app-surface-hover: #e4e9f2;
 
-  --app-text-primary: #121826;
-  --app-text-secondary: #586174;
-  --app-text-muted: #8a94a6;
+  --app-text-primary: #0f172a;
+  --app-text-secondary: #334155;
+  --app-text-muted: #4b5563;
   --app-text-inverse: #ffffff;
 
-  --app-border-color: rgba(0, 0, 0, 0.09);
-  --app-divider: rgba(0, 0, 0, 0.06);
+  --app-border-color: rgba(15, 23, 42, 0.22);
+  --app-divider: rgba(15, 23, 42, 0.14);
   --app-toolbar-bg: #ffffff;
-  --app-toolbar-border: rgba(0, 0, 0, 0.08);
+  --app-toolbar-border: rgba(15, 23, 42, 0.16);
 
   // ---------------------------------------------------------------------------
   // 8. MAPPATURA SISTEMA IONIC (LIGHT MODE)
@@ -245,24 +248,24 @@ body.dark,
   --app-team-neri-border: #475569;
   --app-team-neri-glow: rgba(0, 0, 0, 0.4);
 
-  // Superfici, Sfondi & Testi Dark
+  // Superfici, Sfondi & Testi Dark (WCAG 2.2 AA Contrast >= 4.5:1 Testi & >= 3:1 Bordi UI)
   --app-bg: #0d0f14;
   --app-surface: #151821;
   --app-card-bg: #151821;
-  --app-card-border: rgba(255, 255, 255, 0.08);
+  --app-card-border: rgba(255, 255, 255, 0.22);
   --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   --app-surface-subtle: #1a1e2a;
   --app-surface-hover: #222736;
 
   --app-text-primary: #ffffff;
-  --app-text-secondary: #9ea5b8;
-  --app-text-muted: #6b7385;
+  --app-text-secondary: #cbd5e1;
+  --app-text-muted: #9aa6b8;
   --app-text-inverse: #0d0f14;
 
-  --app-border-color: rgba(255, 255, 255, 0.08);
-  --app-divider: rgba(255, 255, 255, 0.06);
+  --app-border-color: rgba(255, 255, 255, 0.22);
+  --app-divider: rgba(255, 255, 255, 0.14);
   --app-toolbar-bg: #141720;
-  --app-toolbar-border: rgba(255, 255, 255, 0.06);
+  --app-toolbar-border: rgba(255, 255, 255, 0.16);
 
   // Mappatura Ionic Dark
   --ion-color-primary: var(--app-primary);
@@ -357,20 +360,20 @@ body.dark,
     --app-bg: #0d0f14;
     --app-surface: #151821;
     --app-card-bg: #151821;
-    --app-card-border: rgba(255, 255, 255, 0.08);
+    --app-card-border: rgba(255, 255, 255, 0.22);
     --app-card-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
     --app-surface-subtle: #1a1e2a;
     --app-surface-hover: #222736;
 
     --app-text-primary: #ffffff;
-    --app-text-secondary: #9ea5b8;
-    --app-text-muted: #6b7385;
+    --app-text-secondary: #cbd5e1;
+    --app-text-muted: #9aa6b8;
     --app-text-inverse: #0d0f14;
 
-    --app-border-color: rgba(255, 255, 255, 0.08);
-    --app-divider: rgba(255, 255, 255, 0.06);
+    --app-border-color: rgba(255, 255, 255, 0.22);
+    --app-divider: rgba(255, 255, 255, 0.14);
     --app-toolbar-bg: #141720;
-    --app-toolbar-border: rgba(255, 255, 255, 0.06);
+    --app-toolbar-border: rgba(255, 255, 255, 0.16);
 
     --ion-color-primary: var(--app-primary);
     --ion-color-primary-rgb: var(--app-primary-rgb);

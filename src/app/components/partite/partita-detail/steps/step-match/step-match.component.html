@@ -1,6 +1,12 @@
 <!-- ─── BANNER CAMBIO PORTIERE (CON PULSANTONE STOP GIGANTESCO) ─── -->
 @if (state.cambioAttivo()) {
-  <div class="cambio-banner" [class.is-admin]="isAdmin" (click)="isAdmin ? fermaCambio() : null">
+  <div
+    class="cambio-banner"
+    role="alert"
+    aria-live="assertive"
+    [class.is-admin]="isAdmin"
+    (click)="isAdmin ? fermaCambio() : null"
+  >
     <div class="cambio-pulse-ring"></div>
     <div class="cambio-content">
       <div class="cambio-text-group">
@@ -104,7 +110,7 @@
   }
 
   <!-- TABELLONE SCORE GIGANTE + BOTTONI +GOL AD ALTA VISIBILITÀ -->
-  <div class="score-stadium-grid">
+  <div class="score-stadium-grid" role="status" aria-live="polite" [attr.aria-label]="'Risultato in diretta: Bianchi ' + state.scoreA() + ' - Neri ' + state.scoreB()">
     <!-- COLONNA BIANCHI (TEAM A) -->
     <div class="stadium-team-col team-a">
       <div class="stc-header">
@@ -219,6 +225,7 @@
             class="qps-player-btn"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'A')"
             [class.is-read-only]="!isAdmin"
+            [attr.aria-label]="isAdmin ? 'Segna +1 gol per ' + p.nome + ' (Bianchi)' : p.nome"
             (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'A') : null"
           >
             <div class="qps-avatar-wrap">
@@ -227,7 +234,7 @@
               </ion-avatar>
               @if (isPlayerCurrentGk(p.id, 'A')) {
                 <span class="qps-gk-dot" title="In porta ora">
-                  <ion-icon name="hand-left-outline"></ion-icon>
+                  <ion-icon name="hand-left-outline" aria-hidden="true"></ion-icon>
                 </span>
               }
             </div>
@@ -236,16 +243,16 @@
               @if ((p.gol || 0) > 0 || (p.assist || 0) > 0) {
                 <div class="qps-stats-row">
                   @if ((p.gol || 0) > 0) {
-                    <span class="qps-stat gol">⚽ {{ p.gol }}</span>
+                    <span class="qps-stat gol"><ion-icon name="football-outline" aria-hidden="true"></ion-icon> {{ p.gol }}</span>
                   }
                   @if ((p.assist || 0) > 0) {
-                    <span class="qps-stat ast">👟 {{ p.assist }}</span>
+                    <span class="qps-stat ast"><ion-icon name="footsteps-outline" aria-hidden="true"></ion-icon> {{ p.assist }}</span>
                   }
                 </div>
               }
             </div>
             @if (isAdmin) {
-              <span class="qps-plus">+1</span>
+              <span class="qps-plus" aria-hidden="true">+1</span>
             }
           </button>
         }
@@ -259,6 +266,7 @@
             class="qps-player-btn is-dark-team"
             [class.is-gk]="isPlayerCurrentGk(p.id, 'B')"
             [class.is-read-only]="!isAdmin"
+            [attr.aria-label]="isAdmin ? 'Segna +1 gol per ' + p.nome + ' (Neri)' : p.nome"
             (click)="isAdmin ? toccaGiocatorePerGolRapido(p, 'B') : null"
           >
             <div class="qps-avatar-wrap">
@@ -267,7 +275,7 @@
               </ion-avatar>
               @if (isPlayerCurrentGk(p.id, 'B')) {
                 <span class="qps-gk-dot" title="In porta ora">
-                  <ion-icon name="hand-left-outline"></ion-icon>
+                  <ion-icon name="hand-left-outline" aria-hidden="true"></ion-icon>
                 </span>
               }
             </div>
@@ -276,16 +284,16 @@
               @if ((p.gol || 0) > 0 || (p.assist || 0) > 0) {
                 <div class="qps-stats-row">
                   @if ((p.gol || 0) > 0) {
-                    <span class="qps-stat gol">⚽ {{ p.gol }}</span>
+                    <span class="qps-stat gol"><ion-icon name="football-outline" aria-hidden="true"></ion-icon> {{ p.gol }}</span>
                   }
                   @if ((p.assist || 0) > 0) {
-                    <span class="qps-stat ast">👟 {{ p.assist }}</span>
+                    <span class="qps-stat ast"><ion-icon name="footsteps-outline" aria-hidden="true"></ion-icon> {{ p.assist }}</span>
                   }
                 </div>
               }
             </div>
             @if (isAdmin) {
-              <span class="qps-plus">+1</span>
+              <span class="qps-plus" aria-hidden="true">+1</span>
             }
           </button>
         }

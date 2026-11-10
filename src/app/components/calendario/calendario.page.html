@@ -9,15 +9,16 @@
         class="share-wa-header-btn"
         (click)="condividiSuWhatsApp()"
         title="Condividi disponibilità su WhatsApp"
+        aria-label="Condividi disponibilità su WhatsApp"
       >
-        <ion-icon name="logo-whatsapp" slot="icon-only" color="success"></ion-icon>
+        <ion-icon name="logo-whatsapp" slot="icon-only" color="success" aria-hidden="true"></ion-icon>
       </ion-button>
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
 
   <!-- BARRA NAVIGAZIONE DINAMICA CONTESTUALE ALLO ZOOM -->
-  <div class="cal-dynamic-nav-bar">
+  <div class="cal-dynamic-nav-bar" role="navigation" aria-label="Navigazione calendario disponibilità">
     <div class="dyn-nav-controls">
       <button
         type="button"
@@ -26,12 +27,13 @@
         [class.disabled]="!canNavigaPrecedente()"
         (click)="navigaPrecedente()"
         title="Settimana precedente"
+        aria-label="Periodo precedente"
       >
-        <ion-icon name="chevron-back"></ion-icon>
+        <ion-icon name="chevron-back" aria-hidden="true"></ion-icon>
       </button>
 
-      <div class="dyn-nav-label-wrapper">
-        <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'"></ion-icon>
+      <div class="dyn-nav-label-wrapper" role="status" aria-live="polite">
+        <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'" aria-hidden="true"></ion-icon>
         <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
         @if (viewMode() === 'week' && availabilityService.activeWeekTag(); as tag) {
           <span class="micro-badge-week" [class.this-week]="tag === 'Questa Settimana'">{{ tag === 'Questa Settimana' ? 'Questa' : 'Prossima' }}</span>
@@ -43,8 +45,9 @@
         class="btn-dyn-nav"
         (click)="navigaSuccessivo()"
         title="Settimana successiva"
+        aria-label="Periodo successivo"
       >
-        <ion-icon name="chevron-forward"></ion-icon>
+        <ion-icon name="chevron-forward" aria-hidden="true"></ion-icon>
       </button>
     </div>
 
@@ -54,8 +57,9 @@
         class="btn-dyn-today"
         (click)="navigaOggi()"
         title="Torna ad oggi / settimana corrente"
+        aria-label="Torna a oggi"
       >
-        <ion-icon name="today-outline"></ion-icon>
+        <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
         <span>Oggi</span>
       </button>
 
@@ -66,6 +70,7 @@
           class="btn-zoom-cycle-pill"
           (click)="cycleZoomView()"
           [title]="zoomCycleTitle()"
+          [attr.aria-label]="zoomCycleTitle()"
         >
           <span class="zoom-pill-letter">{{ zoomCycleLabel() }}</span>
         </button>
@@ -162,7 +167,14 @@
                   <!-- AREA SINISTRA / CENTRALE: CLICCA PER APRIRE/CHIUDERE ACCORDION -->
                   <div
                     class="poll-row-main"
+                    role="button"
+                    tabindex="0"
+                    [attr.aria-expanded]="expandedDay() === day.dateStr"
+                    [attr.aria-controls]="'poll-drawer-' + day.dateStr"
+                    [attr.aria-label]="'Dettagli disponibilità ' + day.shortDateLabel + ': ' + day.count + ' presenti'"
                     (click)="toggleAccordionDay(day.dateStr)"
+                    (keydown.enter)="toggleAccordionDay(day.dateStr)"
+                    (keydown.space)="toggleAccordionDay(day.dateStr); $event.preventDefault()"
                     title="Tocca per vedere i dettagli e chi ha votato"
                   >
                     <!-- RIGA SUPERIORE: DATA, BADGE, METEO INLINE & CHEVRON -->
@@ -177,7 +189,7 @@
                           <span class="micro-badge tomorrow">DOMANI</span>
                         }
                         @if (day.isTopVoted && !day.isPast) {
-                          <span class="micro-badge top">🔥 TOP</span>
+                          <span class="micro-badge top">TOP</span>
                         }
                       </div>
 
@@ -188,7 +200,7 @@
                             class="prm-weather-badge"
                             [title]="day.weather.conditionDescription + ' (' + day.weather.tempMax + '° / ' + day.weather.tempMin + '°)'"
                           >
-                            <span class="prm-w-icon">{{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }}</span>
+                            <span class="prm-w-icon" aria-hidden="true">{{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }}</span>
                             <span class="prm-w-temps">{{ day.weather.tempMax }}°/{{ day.weather.tempMin }}°</span>
                           </div>
                         }
@@ -196,6 +208,7 @@
                         <ion-icon
                           class="prm-expand-chevron"
                           [name]="expandedDay() === day.dateStr ? 'chevron-up-outline' : 'chevron-down-outline'"
+                          aria-hidden="true"
                         ></ion-icon>
                       </div>
                     </div>
@@ -204,7 +217,7 @@
                     <div class="prm-bottom-line">
                       <div class="prm-voters-meta">
                         @if (day.players.length > 0) {
-                          <div class="avatar-overlap-stack">
+                          <div class="avatar-overlap-stack" aria-hidden="true">
                             @for (p of day.avatarSlice; track p.id) {
                               <div class="stacked-avatar-item" [title]="p.nome">
                                 <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
@@ -216,15 +229,17 @@
                           </div>
                         }
 
-                        <div class="prm-status-cell">
+                        <div class="prm-status-cell" role="status" aria-live="polite">
                           @if (day.matches.length > 0) {
                             <button
                               type="button"
                               class="btn-quorum-create-unified match-active"
                               (click)="apriPartita(day.matches[0].id); $event.stopPropagation()"
                               title="Apri scheda partita ufficiale"
+                              [attr.aria-label]="'Apri partita del ' + day.shortDateLabel"
                             >
-                              <span>⚽ Partita</span>
+                              <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
+                              <span>Partita</span>
                               @if (day.matches[0].orario) {
                                 <span class="match-time-tag">{{ day.matches[0].orario }}</span>
                               }
@@ -238,11 +253,13 @@
                                 class="btn-quorum-create-unified"
                                 (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
                                 title="Quorum raggiunto! Clicca per creare la partita con i convocati"
+                                [attr.aria-label]="'Crea match per ' + day.shortDateLabel + ' con ' + day.count + ' presenti'"
                               >
-                                <span>⚽ Crea Match ({{ day.count }})</span>
+                                <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+                                <span>Crea Match ({{ day.count }})</span>
                               </button>
                             } @else {
-                              <span class="quorum-badge-chic">🟢 Quorum ({{ day.count }}/10)</span>
+                              <span class="quorum-badge-chic">Quorum ({{ day.count }}/10)</span>
                             }
                           } @else if (day.count > 0) {
                             <span class="prm-count-text"><strong>{{ day.count }}/10</strong> presenti</span>
@@ -254,17 +271,19 @@
                     </div>
                   </div>
 
-                  <!-- AZIONI DESTRA: ESCLUSIVAMENTE IL CHECKBOX VOTO WHATSAPP (LARGHEZZA COSTANTE) -->
+                  <!-- AZIONI DESTRA: ESCLUSIVAMENTE IL CHECKBOX VOTO WHATSAPP (LARGHEZZA COSTANTE >= 44x44px) -->
                   <div class="poll-row-actions" (click)="$event.stopPropagation()">
                     @if (day.isPast) {
                       <div
                         class="btn-whatsapp-vote-check is-past-lock"
+                        role="img"
+                        [attr.aria-label]="day.isVotedByMe ? 'Giorno passato: eri presente' : 'Giorno passato: votazione chiusa'"
                         [title]="day.isVotedByMe ? 'Giorno passato (eri presente)' : 'Giorno passato (votazione chiusa)'"
                       >
                         @if (day.isVotedByMe) {
-                          <ion-icon name="checkmark-circle" class="check-icon-past-voted"></ion-icon>
+                          <ion-icon name="checkmark-circle" class="check-icon-past-voted" aria-hidden="true"></ion-icon>
                         } @else {
-                          <ion-icon name="lock-closed-outline" class="lock-icon-past"></ion-icon>
+                          <ion-icon name="lock-closed-outline" class="lock-icon-past" aria-hidden="true"></ion-icon>
                         }
                       </div>
                     } @else {
@@ -272,13 +291,15 @@
                         type="button"
                         class="btn-whatsapp-vote-check"
                         [class.voted]="day.isVotedByMe"
+                        [attr.aria-pressed]="day.isVotedByMe"
+                        [attr.aria-label]="(day.isVotedByMe ? 'Rimuovi disponibilità per ' : 'Vota presenza per ') + day.shortDateLabel"
                         (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
                         [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
                       >
                         @if (day.isVotedByMe) {
-                          <ion-icon name="checkmark-circle" class="check-icon-voted"></ion-icon>
+                          <ion-icon name="checkmark-circle" class="check-icon-voted" aria-hidden="true"></ion-icon>
                         } @else {
-                          <span class="check-ring-unvoted"></span>
+                          <span class="check-ring-unvoted" aria-hidden="true"></span>
                         }
                       </button>
                     }
@@ -287,7 +308,13 @@
 
                 <!-- ── MICRO-ACCORDION DRAWER ESPANSO ── -->
                 @if (expandedDay() === day.dateStr) {
-                  <div class="poll-accordion-drawer" (click)="$event.stopPropagation()">
+                  <div
+                    class="poll-accordion-drawer"
+                    [id]="'poll-drawer-' + day.dateStr"
+                    role="region"
+                    [attr.aria-label]="'Elenco presenti ' + day.shortDateLabel"
+                    (click)="$event.stopPropagation()"
+                  >
                     <!-- 1. INFO RAPIDA STATO QUORUM / METEO ESTESO (1 sola riga sottile) -->
                     <div class="drawer-meta-line">
                       <span class="drawer-quorum-info">

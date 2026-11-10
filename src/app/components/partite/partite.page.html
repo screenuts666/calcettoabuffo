@@ -7,17 +7,18 @@
   </ion-toolbar>
 
   <!-- BARRA 1: SELETTORE STAGIONE UNIFICATO -->
-  <div class="season-header-bar">
+  <div class="season-header-bar" role="region" aria-label="Filtro stagione">
     <div class="season-pills">
       @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
         <button
           type="button"
           class="season-pill-btn"
           [class.active]="stagioneSelezionata() === stg.id"
+          [attr.aria-pressed]="stagioneSelezionata() === stg.id"
           (click)="selezionaStagione(stg.id)"
           [title]="stg.label"
         >
-          <ion-icon [name]="stg.icon"></ion-icon>
+          <ion-icon [name]="stg.icon" aria-hidden="true"></ion-icon>
           <span>{{ stg.shortLabel }}</span>
           <span class="season-pill-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
         </button>
@@ -26,26 +27,26 @@
   </div>
 
   <!-- MINI DASHBOARD KPI DELLA STAGIONE -->
-  <div class="season-kpi-bar">
+  <div class="season-kpi-bar" role="status" aria-live="polite" aria-label="Statistiche riepilogative della stagione">
     <div class="kpi-pill" title="Totale partite">
-      <ion-icon name="football-outline"></ion-icon>
+      <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
       <span><strong>{{ kpiStagione().totalePartite }}</strong> Gare</span>
     </div>
     <div class="kpi-pill highlight" [title]="kpiStagione().golTooltip">
-      <ion-icon name="flame-outline"></ion-icon>
+      <ion-icon name="flame-outline" aria-hidden="true"></ion-icon>
       <span><strong>{{ kpiStagione().totaleGol }}</strong> Gol <small>({{ kpiStagione().mediaGolPartita }}/gara • {{ kpiStagione().ritmoGolAlMinuto }}/min)</small></span>
     </div>
     <div class="kpi-pill" title="Assist totali registrati">
-      <ion-icon name="flash-outline"></ion-icon>
+      <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
       <span><strong>{{ kpiStagione().totaleAssist }}</strong> Assist</span>
     </div>
     <div class="kpi-pill" title="Tempo effettivo di gioco totale">
-      <ion-icon name="time-outline"></ion-icon>
+      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
       <span><strong>{{ kpiStagione().tempoTotaleDisplay }}</strong></span>
     </div>
     @if (kpiStagione().mediaVotiStagione !== '-') {
       <div class="kpi-pill rating" title="Media pagelle generale della stagione">
-        <ion-icon name="star"></ion-icon>
+        <ion-icon name="star" aria-hidden="true"></ion-icon>
         <span>Media <strong>{{ kpiStagione().mediaVotiStagione }}</strong></span>
       </div>
     }
@@ -53,18 +54,25 @@
 
   <!-- BARRA 2: SEARCH BOX RAPIDA (Mesi, Meteo, Formato, Campetto, Giocatori) -->
   <div class="search-section">
-    <div class="search-box-wrap">
-      <ion-icon name="search-outline" class="search-icon"></ion-icon>
+    <div class="search-box-wrap" role="search">
+      <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
       <input
         type="text"
         class="custom-search-input"
         placeholder="Cerca mese (es. Marzo), meteo (pioggia), giocatore, campo..."
+        aria-label="Cerca partita per mese, meteo, giocatore o campo"
         [value]="searchQuery()"
         (input)="onSearchInput($event)"
       />
       @if (searchQuery()) {
-        <button type="button" class="search-clear-btn" (click)="clearSearch()">
-          <ion-icon name="close-circle"></ion-icon>
+        <button
+          type="button"
+          class="search-clear-btn"
+          (click)="clearSearch()"
+          aria-label="Cancella ricerca"
+          title="Cancella ricerca"
+        >
+          <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
         </button>
       }
     </div>
@@ -77,12 +85,14 @@
       type="button"
       class="filter-trigger-btn"
       [class.active]="isFiltriCampettoOpen() || isAnyFilterActive()"
+      [attr.aria-expanded]="isFiltriCampettoOpen()"
+      aria-label="Filtri avanzati (Campetto, Formato, Meteo)"
       (click)="toggleFiltriCampetto()"
       title="Filtri Avanzati (Campetto, Formato, Meteo)"
     >
-      <ion-icon name="filter"></ion-icon>
+      <ion-icon name="filter" aria-hidden="true"></ion-icon>
       @if (isAnyFilterActive()) {
-        <span class="filter-dot"></span>
+        <span class="filter-dot" aria-hidden="true"></span>
       }
     </button>
 
@@ -500,7 +510,17 @@
           [id]="'match-card-' + m.id"
         >
           <!-- TESTATA ACCORDION DELLA CARD (Sempre visibile, tocca per espandere/collassare) -->
-          <div class="match-card-header-bar" (click)="toggleMatchAccordion(m.id)">
+          <div
+            class="match-card-header-bar"
+            role="button"
+            tabindex="0"
+            [attr.aria-expanded]="isMatchAccordionOpen(m.id, isLive)"
+            [attr.aria-controls]="'match-accordion-' + m.id"
+            [attr.aria-label]="'Partita del ' + (m.dataPartita | date:'dd/MM/yyyy') + ': Bianchi ' + (m.scoreA ?? 0) + ' - ' + (m.scoreB ?? 0) + ' Neri, ' + badgeLabel(m)"
+            (click)="toggleMatchAccordion(m.id)"
+            (keydown.enter)="toggleMatchAccordion(m.id)"
+            (keydown.space)="toggleMatchAccordion(m.id); $event.preventDefault()"
+          >
             <!-- RIGA 1: Data, Orario, Stagione, Luogo, Status Badge -->
             <div class="match-meta-top-row">
               <div class="match-meta-left">
@@ -605,8 +625,14 @@
 
           <!-- CORPO ESPANDIBILE DELL'ACCORDION (Dettagli, Marcatori, Piantina, Azioni) -->
           @if (isMatchAccordionOpen(m.id, isLive)) {
-            <div class="match-accordion-content" (click)="$event.stopPropagation()">
-              <!-- MARCATORI PER SQUADRA CON EMOJI E DOPPIETTE/TRIPLETTE -->
+            <div
+              class="match-accordion-content"
+              [id]="'match-accordion-' + m.id"
+              role="region"
+              [attr.aria-label]="'Dettagli partita del ' + (m.dataPartita | date:'dd/MM/yyyy')"
+              (click)="$event.stopPropagation()"
+            >
+              <!-- MARCATORI PER SQUADRA CON ICONE PULITE E DOPPIETTE/TRIPLETTE -->
               @let marcatoriA = getMarcatoriSquadra(m, 'A');
               @let marcatoriB = getMarcatoriSquadra(m, 'B');
               @if (marcatoriA.length > 0 || marcatoriB.length > 0) {
@@ -614,7 +640,8 @@
                   <div class="scorers-col team-a">
                     @for (gol of marcatoriA; track gol.nome + '_' + $index) {
                       <span class="scorer-pill white" [title]="gol.nome">
-                        ⚽ {{ gol.nome }}
+                        <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
+                        {{ gol.nome }}
                         @if (gol.gol > 1) {
                           <b class="goal-qty">({{ gol.gol }})</b>
                         }
@@ -624,7 +651,8 @@
                   <div class="scorers-col team-b">
                     @for (gol of marcatoriB; track gol.nome + '_' + $index) {
                       <span class="scorer-pill black" [title]="gol.nome">
-                        ⚽ {{ gol.nome }}
+                        <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
+                        {{ gol.nome }}
                         @if (gol.gol > 1) {
                           <b class="goal-qty">({{ gol.gol }})</b>
                         }
@@ -778,8 +806,9 @@
           <ion-item-option
             color="danger"
             (click)="confermaEliminazione(m, slidingItem)"
+            aria-label="Elimina partita"
           >
-            <ion-icon name="trash" slot="icon-only"></ion-icon>
+            <ion-icon name="trash" slot="icon-only" aria-hidden="true"></ion-icon>
           </ion-item-option>
         </ion-item-options>
       }
@@ -789,8 +818,8 @@
   <!-- FAB AGGIUNGI PARTITA (Admin) -->
   @if (isAdmin && stagioneSelezionata() !== PREVIOUS_SEASON) {
     <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <ion-fab-button color="success" (click)="apriPartita()">
-        <ion-icon name="add"></ion-icon>
+      <ion-fab-button color="success" (click)="apriPartita()" aria-label="Crea nuova partita" title="Crea nuova partita">
+        <ion-icon name="add" aria-hidden="true"></ion-icon>
       </ion-fab-button>
     </ion-fab>
   }

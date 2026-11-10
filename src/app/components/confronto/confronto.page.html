@@ -3,19 +3,20 @@
     @if (viewMode() === 'detail') {
       <ion-buttons slot="start">
         <ion-button (click)="tornaAllHub()" class="back-nav-btn" aria-label="Torna all'Hub 1v1">
-          <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+          <ion-icon name="arrow-back" slot="icon-only" aria-hidden="true"></ion-icon>
         </ion-button>
       </ion-buttons>
     }
-    <ion-title>{{ viewMode() === 'detail' ? '⚔️ Testa a Testa' : '⚔️ Hub 1v1' }}</ion-title>
+    <ion-title>{{ viewMode() === 'detail' ? 'Testa a Testa' : 'Hub 1v1' }}</ion-title>
     <ion-buttons slot="end">
       @if (viewMode() === 'detail') {
         <ion-button
           class="whatsapp-btn"
           (click)="condividiConfronto()"
           title="Condividi su WhatsApp"
+          aria-label="Condividi confronto 1v1 su WhatsApp"
         >
-          <ion-icon name="logo-whatsapp" slot="icon-only"></ion-icon>
+          <ion-icon name="logo-whatsapp" slot="icon-only" aria-hidden="true"></ion-icon>
         </ion-button>
       }
       <app-theme-toggle></app-theme-toggle>
@@ -23,15 +24,16 @@
   </ion-toolbar>
 
   <!-- SELETTORE STAGIONE -->
-  <div class="season-filter-bar">
+  <div class="season-filter-bar" role="group" aria-label="Filtro stagione">
     @for (stg of stagioniDisponibili(); track (stg.id || '') + '_' + $index) {
       <button
         type="button"
         class="season-pill"
         [class.active]="stagioneSelezionata() === stg.id"
+        [attr.aria-pressed]="stagioneSelezionata() === stg.id"
         (click)="selezionaStagione(stg.id)"
       >
-        <ion-icon [name]="stg.icon"></ion-icon>
+        <ion-icon [name]="stg.icon" aria-hidden="true"></ion-icon>
         <span>{{ stg.shortLabel }}</span>
       </button>
     }
@@ -46,14 +48,16 @@
     <!-- BANNER EROICO: 1VS1 CASUALE -->
     <div class="random-matchup-hero">
       <div class="rmh-left">
-        <div class="rmh-dice-icon">🎲</div>
+        <div class="rmh-dice-icon" aria-hidden="true">
+          <ion-icon name="dice-outline"></ion-icon>
+        </div>
         <div class="rmh-text">
           <h3>1vs1 Casuale</h3>
           <p>Pesca due avversari a caso e scopri chi comanda davvero al campetto</p>
         </div>
       </div>
       <button type="button" class="rmh-btn" (click)="vaiAConfrontoCasuale()">
-        <ion-icon name="dice-outline"></ion-icon>
+        <ion-icon name="dice-outline" aria-hidden="true"></ion-icon>
         <span>Sfida Random</span>
       </button>
     </div>
@@ -61,11 +65,19 @@
     <!-- SELETTORE RAPIDO PERSONALIZZATO (CREA LA TUA SFIDA) -->
     <div class="quick-matchup-builder">
       <div class="qmb-header">
-        <ion-icon name="swap-horizontal"></ion-icon>
+        <ion-icon name="swap-horizontal" aria-hidden="true"></ion-icon>
         <span>Personalizza Sfida</span>
       </div>
       <div class="qmb-grid">
-        <div class="qmb-player-pill" (click)="apriSelettore('A')">
+        <div
+          class="qmb-player-pill"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="'Seleziona Giocatore 1: ' + (playerA()?.nome || 'Non selezionato')"
+          (click)="apriSelettore('A')"
+          (keydown.enter)="apriSelettore('A')"
+          (keydown.space)="apriSelettore('A'); $event.preventDefault()"
+        >
           <app-player-avatar [fotoUrl]="playerA()?.fotoUrl" [alt]="playerA()?.nome"></app-player-avatar>
           <div class="qmb-name-col">
             <span class="qmb-tag">GIOCATORE 1</span>
@@ -73,11 +85,25 @@
           </div>
         </div>
 
-        <button type="button" class="qmb-swap-btn" (click)="scambiaGiocatori()" title="Inverti">
-          <ion-icon name="swap-horizontal"></ion-icon>
+        <button
+          type="button"
+          class="qmb-swap-btn"
+          (click)="scambiaGiocatori()"
+          title="Inverti"
+          aria-label="Inverti giocatori selezionati"
+        >
+          <ion-icon name="swap-horizontal" aria-hidden="true"></ion-icon>
         </button>
 
-        <div class="qmb-player-pill" (click)="apriSelettore('B')">
+        <div
+          class="qmb-player-pill"
+          role="button"
+          tabindex="0"
+          [attr.aria-label]="'Seleziona Giocatore 2: ' + (playerB()?.nome || 'Non selezionato')"
+          (click)="apriSelettore('B')"
+          (keydown.enter)="apriSelettore('B')"
+          (keydown.space)="apriSelettore('B'); $event.preventDefault()"
+        >
           <app-player-avatar [fotoUrl]="playerB()?.fotoUrl" [alt]="playerB()?.nome"></app-player-avatar>
           <div class="qmb-name-col">
             <span class="qmb-tag">GIOCATORE 2</span>
@@ -92,7 +118,8 @@
         [disabled]="!playerAId() || !playerBId() || playerAId() === playerBId()"
         (click)="apriConfrontoCoppia(playerAId(), playerBId())"
       >
-        <span>⚔️ Avvia Confronto 1v1</span>
+        <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+        <span>Avvia Confronto 1v1</span>
       </button>
     </div>
 

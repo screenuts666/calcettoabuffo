@@ -101,19 +101,21 @@
                 slot="end"
                 (click)="apriRicercaGoogleMaps(state.luogo())"
                 title="Cerca su Google Maps"
+                aria-label="Cerca campo su Google Maps"
               >
-                <ion-icon name="search-outline"></ion-icon>
+                <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
               </button>
             }
           </ion-item>
 
           <!-- CHIP CAMPI STORICI RAPIDI (RIGOROSAMENTE 1 RIGA ORIZZONTALE) -->
-          <div class="campi-chips-row single-line-scroll">
+          <div class="campi-chips-row single-line-scroll" role="group" aria-label="Campi frequenti">
             @for (c of campiService.campiStorici(); track c.id) {
               <button
                 type="button"
                 class="quick-campo-chip"
                 [class.active]="isCampoActive(c)"
+                [attr.aria-pressed]="isCampoActive(c)"
                 (click)="selezionaCampo(c)"
               >
                 {{ c.nome }}
@@ -232,24 +234,27 @@
             type="button"
             class="btn-toggle-notes"
             [class.open]="isNotesOpen()"
+            [attr.aria-expanded]="isNotesOpen()"
+            aria-controls="side-notes-drawer"
             (click)="toggleNotes()"
           >
             <div class="btn-tn-left">
-              <ion-icon name="chatbox-ellipses-outline"></ion-icon>
+              <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
               <span>Note Bordocampo</span>
               @if (state.commentoPartita().trim() && !isNotesOpen()) {
-                <span class="notes-dot"></span>
+                <span class="notes-dot" aria-hidden="true"></span>
               }
             </div>
-            <ion-icon [name]="isNotesOpen() ? 'chevron-up-outline' : 'add-outline'" class="btn-tn-chevron"></ion-icon>
+            <ion-icon [name]="isNotesOpen() ? 'chevron-up-outline' : 'add-outline'" class="btn-tn-chevron" aria-hidden="true"></ion-icon>
           </button>
 
           @if (isNotesOpen()) {
-            <div class="notes-Collapse-body">
+            <div class="notes-Collapse-body" id="side-notes-drawer">
               <ion-textarea
                 autoGrow="true"
                 rows="2"
                 class="clean-notes-textarea"
+                aria-label="Note bordocampo"
                 placeholder="Campo bagnato, maglie da portare, clima derby..."
                 [value]="state.commentoPartita()"
                 (ionInput)="aggiornaNote($event.detail.value || '')"

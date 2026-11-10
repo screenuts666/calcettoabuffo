@@ -9,12 +9,13 @@
             class="dev-mini-pill"
             (click)="selezionaPrimi14Classifica()"
             title="Auto-seleziona Top 14"
+            aria-label="Auto-seleziona primi 14 giocatori"
           >
-            <ion-icon name="flash-outline"></ion-icon>
+            <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
             <span>Top 14</span>
           </button>
         }
-        <div class="count-badge">{{ state.totaleConvocati() }} Convocati</div>
+        <div class="count-badge" role="status" aria-live="polite">{{ state.totaleConvocati() }} Convocati</div>
       </div>
     </div>
 
@@ -23,7 +24,7 @@
       <div class="unified-admin-bar">
         <div class="uab-row invite-row">
           <div class="uab-left">
-            <ion-icon name="link-outline" class="uab-icon"></ion-icon>
+            <ion-icon name="link-outline" class="uab-icon" aria-hidden="true"></ion-icon>
             <span class="uab-label">Link Invito</span>
           </div>
           <div class="uab-actions">
@@ -33,11 +34,12 @@
               [disabled]="isPreparingInvite()"
               (click)="condividiLinkInvito()"
               title="Invita su WhatsApp"
+              aria-label="Invia link invito su WhatsApp"
             >
               @if (isPreparingInvite()) {
                 <ion-spinner name="dots"></ion-spinner>
               } @else {
-                <ion-icon name="logo-whatsapp"></ion-icon>
+                <ion-icon name="logo-whatsapp" aria-hidden="true"></ion-icon>
                 <span>Invita</span>
               }
             </button>
@@ -47,8 +49,9 @@
               [disabled]="isPreparingInvite()"
               (click)="copiaLinkInvito()"
               title="Copia link negli appunti"
+              aria-label="Copia link invito negli appunti"
             >
-              <ion-icon name="copy-outline"></ion-icon>
+              <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
             </button>
           </div>
         </div>
@@ -105,6 +108,7 @@
 
       <ion-searchbar
         placeholder="Cerca per nome, piede, ruolo..."
+        aria-label="Cerca giocatore per nome, piede o ruolo"
         [value]="state.filtro()"
         (ionInput)="state.filtro.set($event.detail.value || '')"
         mode="ios"
@@ -193,8 +197,9 @@
                 class="remove-btn"
                 (click)="toggleSelezione(g)"
                 title="Rimuovi dai convocati"
+                [attr.aria-label]="'Rimuovi ' + g.nome + ' dai convocati'"
               >
-                <ion-icon name="close-circle"></ion-icon>
+                <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
               </button>
             }
           </div>
@@ -208,17 +213,23 @@
   <!-- VISTA MISTER / PRESIDENTE: LISTA MODERNA A SCHEDE CONVOCABILI       -->
   <!-- =================================================================== -->
   @if (isAdmin) {
-    <div class="sleek-players-grid">
+    <div class="sleek-players-grid" role="group" aria-label="Lista giocatori convocabili">
       @for (
         g of state.giocatoriFiltrati();
         track (g.id || g.nome) + "_" + $index
       ) {
         <div
           class="sleek-player-card"
+          role="button"
+          tabindex="0"
           [class.is-selected]="g.selezionato"
           [class.is-maybe]="g.rsvpStatus === 'maybe'"
           [class.is-declined]="g.rsvpStatus === 'no'"
+          [attr.aria-pressed]="g.selezionato"
+          [attr.aria-label]="(g.selezionato ? 'Rimuovi ' : 'Convoca ') + g.nome"
           (click)="toggleSelezione(g)"
+          (keydown.enter)="toggleSelezione(g)"
+          (keydown.space)="toggleSelezione(g); $event.preventDefault()"
         >
           <div class="spc-avatar-wrap">
             <app-player-avatar

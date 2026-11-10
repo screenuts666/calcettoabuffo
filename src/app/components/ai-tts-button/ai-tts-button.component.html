@@ -26,9 +26,9 @@
         <span class="tts-label">{{ stopLabel }}</span>
       }
     } @else {
-      <ion-icon name="volume-high-outline" class="tts-icon play-icon"></ion-icon>
+      <ion-icon name="volume-high-outline" class="tts-icon play-icon" aria-hidden="true"></ion-icon>
       @if (!compact) {
-        <span class="tts-label">🎧 {{ label }}</span>
+        <span class="tts-label">{{ label }}</span>
       }
     }
   </button>

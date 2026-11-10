@@ -1,5 +1,37 @@
 [
   {
+    "version": "2.0.67",
+    "date": "10/11/2026",
+    "title": "Audit & Refactoring Accessibilità WCAG 2.2 Livello AA (Contrasto Outdoor, ARIA & Navigazione)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Contrasto Outdoor Potenziato (WCAG 1.4.3 & 1.4.11): testi secondari, orari, indirizzi e contatori con contrasto >= 4.5:1 e bordi UI/checkbox >= 3:1 per la massima leggibilità al campetto anche sotto la luce diretta.",
+      "Target Tattili & Spaziatura (WCAG 2.5.8): area cliccabile minima di 44x44px con distanziamento anti-errore su checkbox disponibilità, frecce settimana e filtri.",
+      "Semantica, Screen Reader & Movimento Ridotto: supporto VoiceOver/TalkBack con attributi ARIA, focus visibile ad alto contrasto e rispetto automatico di prefers-reduced-motion."
+    ],
+    "superUserChanges": [
+      "Live Regions in Diretta & Gestione Match (WCAG 4.1.3): annunci dinamici aria-live su punteggio in diretta, allarme cambio portiere, contatore convocati e bilanciamento MMR.",
+      "Accessibilità Tastiera & Ruoli Interattivi: supporto completo tastiera/Switch Control su accordion partite, sondaggio disponibilità, selezione convocati e scambio giocatori tra squadre."
+    ]
+  },
+  {
+    "version": "NEXT",
+    "date": "10/11/2026",
+    "title": "Audit & Refactoring Accessibilità WCAG 2.2 Livello AA (Contrasto Outdoor, ARIA & Navigazione)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Contrasto Outdoor Potenziato (WCAG 1.4.3 & 1.4.11): testi secondari, orari, indirizzi e contatori con contrasto >= 4.5:1 e bordi UI/checkbox >= 3:1 per la massima leggibilità al campetto anche sotto la luce diretta.",
+      "Target Tattili & Spaziatura (WCAG 2.5.8): area cliccabile minima di 44x44px con distanziamento anti-errore su checkbox disponibilità, frecce settimana e filtri.",
+      "Semantica, Screen Reader & Movimento Ridotto: supporto VoiceOver/TalkBack con attributi ARIA, focus visibile ad alto contrasto e rispetto automatico di prefers-reduced-motion."
+    ],
+    "superUserChanges": [
+      "Live Regions in Diretta & Gestione Match (WCAG 4.1.3): annunci dinamici aria-live su punteggio in diretta, allarme cambio portiere, contatore convocati e bilanciamento MMR.",
+      "Accessibilità Tastiera & Ruoli Interattivi: supporto completo tastiera/Switch Control su accordion partite, sondaggio disponibilità, selezione convocati e scambio giocatori tra squadre."
+    ]
+  },
+  {
     "version": "2.0.66",
     "date": "10/11/2026",
     "title": "Design System Mobile-First, Pitch-Mode Ultra Rapido, Separazione Ruoli e Stop Emoji AI",
