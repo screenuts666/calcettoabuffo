@@ -196,6 +196,24 @@
         ion-icon {
           color: #ffffff;
         }
+
+        &:hover {
+          background: rgba(239, 68, 68, 0.85);
+          border-color: #ef4444;
+          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+        }
+      }
+
+      &.declined {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px dashed rgba(239, 68, 68, 0.4);
+        color: #f87171;
+      }
+
+      &.maybe {
+        background: rgba(245, 158, 11, 0.1);
+        border: 1px dashed rgba(245, 158, 11, 0.4);
+        color: #fbbf24;
       }
 
       &:disabled {
@@ -715,6 +733,10 @@
         &.declined {
           color: #f87171;
           background: rgba(239, 68, 68, 0.14);
+        }
+        &.mister {
+          color: #60a5fa;
+          background: rgba(59, 130, 246, 0.14);
         }
         &.you {
           color: var(--app-primary);

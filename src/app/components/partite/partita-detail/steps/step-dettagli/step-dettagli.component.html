@@ -418,7 +418,7 @@
               [class.confirmed]="myRsvpStatus() === 'yes'"
               [class.declined]="myRsvpStatus() === 'no'"
             >
-              {{ myRsvpStatus() === 'yes' ? '✓ Partecipo' : (myRsvpStatus() === 'no' ? '✕ Assente' : 'Da confermare') }}
+              {{ myRsvpStatus() === 'yes' ? 'In lista' : (myRsvpStatus() === 'no' ? 'Assente' : 'Da confermare') }}
             </span>
           </div>
 
@@ -431,7 +431,7 @@
               (click)="toggleMioRsvp('yes')"
             >
               <ion-icon [name]="myRsvpStatus() === 'yes' ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
-              <span>{{ myRsvpStatus() === 'yes' ? '✓ In Lista (Tocca per togliere)' : 'Partecipo' }}</span>
+              <span>{{ myRsvpStatus() === 'yes' ? 'In lista (Togli)' : 'Partecipo' }}</span>
             </button>
 
             <button

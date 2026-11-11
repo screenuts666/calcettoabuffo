@@ -478,9 +478,9 @@ export class StepConvocatiComponent {
         this.auth.displayName() ||
         'Te';
       const messages: Record<'yes' | 'maybe' | 'no', string> = {
-        yes: `⚽ ${nome} inserito tra i convocati!`,
-        maybe: `🤔 ${nome} impostato in forse.`,
-        no: `❌ ${nome} rimosso dai convocati.`,
+        yes: `${nome} inserito tra i convocati`,
+        maybe: `${nome} impostato in forse`,
+        no: `${nome} rimosso dai convocati`,
       };
       const colors: Record<
         'yes' | 'maybe' | 'no',

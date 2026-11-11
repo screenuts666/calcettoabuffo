@@ -60,17 +60,19 @@
             type="button"
             class="self-presence-quick-pill"
             [class.active]="isMyPlayerConvocato()"
+            [class.declined]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
+            [class.maybe]="myRsvpStatus() === 'maybe' && !isMyPlayerConvocato()"
             [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
             (click)="toggleMioRsvp('yes')"
             [title]="
               isMyPlayerConvocato()
-                ? ((myPlayer()?.nome || 'Sei') + ' convocato. Tocca per rimuoverti')
+                ? ((myPlayer()?.nome || 'Sei') + ' in lista. Clicca per toglierti')
                 : (isCapReached() ? 'Partita al completo' : ('Aggiungi ' + (myPlayer()?.nome || 'te stesso') + ' ai convocati'))
             "
             [attr.aria-label]="
               isMyPlayerConvocato()
-                ? 'Convocato. Clicca per rimuoverti'
-                : 'Convocami per questa partita'
+                ? 'In lista convocati. Clicca per toglierti'
+                : 'Aggiungiti ai convocati'
             "
           >
             <ion-icon
@@ -79,17 +81,19 @@
                   ? 'checkmark-circle'
                   : isCapReached()
                     ? 'lock-closed-outline'
-                    : 'person-add-outline'
+                    : (myRsvpStatus() === 'no' ? 'close-circle-outline' : (myRsvpStatus() === 'maybe' ? 'help-circle-outline' : 'person-add-outline'))
               "
               aria-hidden="true"
             ></ion-icon>
             <span>
               {{
                 isMyPlayerConvocato()
-                  ? 'Convocato'
+                  ? 'In lista (Togli)'
                   : isCapReached()
                     ? 'Completo'
-                    : 'Convocami'
+                    : (myRsvpStatus() === 'no'
+                      ? 'Assente (Aggiungi)'
+                      : (myRsvpStatus() === 'maybe' ? 'In forse (Aggiungi)' : '+ Convocami'))
               }}
             </span>
           </button>
@@ -209,18 +213,19 @@
       @if (auth.hasLinkedPlayer() || myPlayer()) {
         <div class="clean-rsvp-box">
           <div class="crb-header">
-            <span class="crb-prompt">Stato Convocazione:</span>
+            <span class="crb-prompt">La tua convocazione:</span>
             <span
               class="crb-status-pill"
               [class.confirmed]="isMyPlayerConvocato()"
               [class.declined]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
+              [class.maybe]="myRsvpStatus() === 'maybe' && !isMyPlayerConvocato()"
             >
               {{
                 isMyPlayerConvocato()
-                  ? '✓ Sei Convocato'
+                  ? 'In lista convocati'
                   : (myRsvpStatus() === 'no'
-                    ? '✕ Non disponibile'
-                    : (myRsvpStatus() === 'maybe' ? '? In forse' : 'In attesa'))
+                    ? 'Assente'
+                    : (myRsvpStatus() === 'maybe' ? 'In forse' : 'In attesa'))
               }}
             </span>
           </div>
@@ -233,13 +238,13 @@
               [class.is-full]="isCapReached() && !isMyPlayerConvocato()"
               [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
               (click)="toggleMioRsvp('yes')"
-              [title]="isMyPlayerConvocato() ? 'Sei tra i convocati. Tocca per rimuoverti' : 'Conferma la tua convocazione'"
+              [title]="isMyPlayerConvocato() ? 'Sei tra i convocati. Tocca per toglierti' : 'Conferma la tua presenza'"
             >
               <ion-icon [name]="isMyPlayerConvocato() ? 'checkmark-circle' : 'person-add-outline'"></ion-icon>
               <span>
                 {{
                   isMyPlayerConvocato()
-                    ? '✓ In Lista (Tocca per rimuoverti)'
+                    ? 'In lista (Togli)'
                     : isCapReached()
                       ? 'Partita al completo'
                       : 'Partecipo'
@@ -343,8 +348,10 @@
                       @if (getRuoloShort(g.ruoloPreferito); as rShort) {
                         <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
                       }
-                      @if (g.selfRegistered) {
-                        <span class="cpp-status-micro confirmed">RSVP</span>
+                      @if (g.selfRegistered || g.rsvpStatus === 'yes') {
+                        <span class="cpp-status-micro confirmed">Presente</span>
+                      } @else if (g.source === 'mister') {
+                        <span class="cpp-status-micro mister">Mister</span>
                       }
                     </div>
                   </div>
@@ -401,10 +408,12 @@
                       @if (getRuoloShort(g.ruoloPreferito); as rShort) {
                         <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
                       }
-                      @if (g.rsvpStatus === 'maybe') {
-                        <span class="cpp-status-micro maybe">Forse</span>
+                      @if (g.rsvpStatus === 'yes') {
+                        <span class="cpp-status-micro confirmed">Disponibile</span>
+                      } @else if (g.rsvpStatus === 'maybe') {
+                        <span class="cpp-status-micro maybe">In forse</span>
                       } @else if (g.rsvpStatus === 'no') {
-                        <span class="cpp-status-micro declined">No</span>
+                        <span class="cpp-status-micro declined">Non disponibile</span>
                       }
                     </div>
                   </div>

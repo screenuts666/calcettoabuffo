@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.80",
+    "date": "11/11/2026",
+    "title": "Chiarezza Totale Stato Voto & Convocazione: Azioni Dirette e Zero Emoji",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Stato Voto e Presenza Inequivocabile: il pulsante mostra chiaramente se sei 'In lista (Togli)' per rimuoverti con un tap, 'Assente (Aggiungi)' se avevi declinato, o '+ Convocami' per entrare.",
+      "Visione Trasparente delle Preferenze di Squadra: nella lista dei disponibili vedi subito chi ha votato 'Disponibile', chi 'In forse' e chi è 'Non disponibile' dal sondaggio.",
+      "UI Pulita e Senza Emoji: grafica sobria e professionale con icone essenziali e notifiche testuali pulite."
+    ],
+    "superUserChanges": [
+      "Pulsante Presenza Contestuale & Rimuovibile: gestione rapida a 4 stati (In lista, Assente, In forse, Non registrato) con indicazione esplicita dell'azione al tocco '(Togli)' e '(Aggiungi)'.",
+      "Badge Micro-Stato nei Giocatori Disponibili: visualizzazione puntuale dei voti di provenienza (rsvpStatus yes/maybe/no) direttamente su ogni card della griglia."
+    ]
+  },
+  {
     "version": "2.0.79",
     "date": "11/11/2026",
     "title": "Rework UX Convocazioni & RSVP: Addio al Confuso 'Ci sono' in Favore di 'Convocami' / 'Convocato'",
