@@ -35,6 +35,8 @@ import {
   footballOutline,
   trashOutline,
   refreshOutline,
+  lockClosedOutline,
+  lockOpenOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -46,6 +48,7 @@ import { environment } from 'src/environments/environment';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { ShareService } from 'src/app/services/share.service';
+import { AvailabilityService } from 'src/app/services/availability.service';
 import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 import { getMatchInviteDeepLink } from 'src/app/utils/whatsapp-formatter';
 import { getMatchFormatByPlayerCount, normalizeRsvpStatus } from 'src/app/models/partita.model';
@@ -73,11 +76,22 @@ export class StepConvocatiComponent {
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private shareService = inject(ShareService);
+  private availabilityService = inject(AvailabilityService, { optional: true });
 
   readonly isDev = !environment.production;
   isSavingRsvp = signal<boolean>(false);
   isPreparingInvite = signal<boolean>(false);
   filtroVista = signal<'tutti' | 'convocati' | 'non_convocati'>('tutti');
+
+  /** CAP massimo corrente (14 default per 7vs7, oppure 16 se sbloccato 8vs8) */
+  readonly maxCap = computed<14 | 16>(() =>
+    this.state.maxPlayers() === 16 ? 16 : 14
+  );
+
+  /** Flag indicante se il CAP massimo di convocati è stato raggiunto */
+  readonly isCapReached = computed<boolean>(
+    () => this.state.totaleConvocati() >= this.maxCap()
+  );
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();
@@ -210,11 +224,78 @@ export class StepConvocatiComponent {
       footballOutline,
       trashOutline,
       refreshOutline,
+      lockClosedOutline,
+      lockOpenOutline,
     });
   }
 
-  toggleSelezione(giocatore: ConvocatoState) {
+  /**
+   * Toggle Sblocco 16 posti (8vs8) / Limita a 14 (7vs7) per la partita corrente.
+   * Azione riservata esclusivamente a Mister e Presidente.
+   */
+  async toggleMaxCap(): Promise<void> {
     if (!this.isAdmin) return;
+    const current = this.maxCap();
+    const next: 14 | 16 = current === 14 ? 16 : 14;
+
+    if (next === 14 && this.state.totaleConvocati() > 14) {
+      const toast = await this.toastCtrl.create({
+        message: `Ci sono attualmente ${this.state.totaleConvocati()} convocati. Rimuovi prima i giocatori in eccesso per tornare a Max 14.`,
+        duration: 3000,
+        color: 'warning',
+        position: 'top',
+        mode: 'ios',
+      });
+      await toast.present();
+      return;
+    }
+
+    this.state.maxPlayers.set(next);
+    this.state.triggerAutoSave(true);
+
+    const dataP = this.state.dataPartita();
+    if (dataP && this.availabilityService) {
+      try {
+        await this.availabilityService.setDayEightVsEight(dataP, next === 16);
+      } catch (e) {
+        console.warn('Errore sync disponibilita cap:', e);
+      }
+    }
+
+    const toast = await this.toastCtrl.create({
+      message:
+        next === 16
+          ? '🔓 Sbloccati 16 posti (8vs8)! Ora puoi convocare il 15° e 16° giocatore.'
+          : '🔒 Limite riportato a 14 giocatori (7vs7 standard).',
+      duration: 2200,
+      color: next === 16 ? 'success' : 'medium',
+      position: 'top',
+      mode: 'ios',
+    });
+    await toast.present();
+  }
+
+  async toggleSelezione(giocatore: ConvocatoState): Promise<void> {
+    if (!this.isAdmin) return;
+
+    // Se si sta aggiungendo un giocatore ma il CAP è già stato raggiunto
+    if (!giocatore.selezionato && this.isCapReached()) {
+      const cap = this.maxCap();
+      const message =
+        cap === 14
+          ? 'Limite di 14 raggiunto. Sblocca il formato a 16 (8vs8) in alto o rimuovi un convocato.'
+          : 'Limite di 16 raggiunto (8vs8). Rimuovi un convocato per aggiungerne un altro.';
+      const toast = await this.toastCtrl.create({
+        message,
+        duration: 2800,
+        color: 'warning',
+        position: 'top',
+        mode: 'ios',
+      });
+      await toast.present();
+      return;
+    }
+
     const nextSelected = !giocatore.selezionato;
     this.state.tutti.update((lista) =>
       lista.map((g) =>
@@ -293,6 +374,23 @@ export class StepConvocatiComponent {
 
   async impostaMioRsvp(status: 'yes' | 'maybe' | 'no') {
     if (this.isSavingRsvp() || this.state.step() !== 'convocati') return;
+
+    if (
+      status === 'yes' &&
+      this.isCapReached() &&
+      this.myRsvpStatus() !== 'yes'
+    ) {
+      const cap = this.maxCap();
+      const toast = await this.toastCtrl.create({
+        message: `⚠️ La partita è al completo (${cap}/${cap}). Non è possibile confermare la presenza.`,
+        duration: 2800,
+        color: 'warning',
+        position: 'top',
+        mode: 'ios',
+      });
+      await toast.present();
+      return;
+    }
 
     if (!this.state.matchId() && this.isAdmin) {
       await this.state.ensureMatchCreatedForInvite();
@@ -457,11 +555,12 @@ export class StepConvocatiComponent {
   }
 
   /**
-   * DEV ONLY: Seleziona in 1 tap i primi 14 giocatori dalla classifica (o anagrafica)
-   * per predisporre rapidamente una partita 7 vs 7 nei test di sviluppo.
+   * DEV / QUICK ACTION: Seleziona in 1 tap i primi giocatori dalla classifica (Top 14 o Top 16)
+   * in base al CAP massimo impostato.
    */
-  async selezionaPrimi14Classifica() {
+  async selezionaPrimiClassifica() {
     if (!this.isAdmin) return;
+    const targetCap = this.maxCap();
     const currentSeason = this.state.stagione() || CURRENT_SEASON;
     const seasonLeaderboard =
       this.statsEngine.getLeaderboardBySeason(currentSeason);
@@ -476,25 +575,25 @@ export class StepConvocatiComponent {
     }
 
     const tutti = this.state.tutti();
-    const top14Ids = new Set<string>();
+    const topIds = new Set<string>();
 
     for (const id of rankedIds) {
-      if (top14Ids.size >= 14) break;
+      if (topIds.size >= targetCap) break;
       if (tutti.some((g) => g.id === id)) {
-        top14Ids.add(id);
+        topIds.add(id);
       }
     }
 
-    if (top14Ids.size < 14) {
+    if (topIds.size < targetCap) {
       for (const g of tutti) {
-        if (top14Ids.size >= 14) break;
-        top14Ids.add(g.id);
+        if (topIds.size >= targetCap) break;
+        topIds.add(g.id);
       }
     }
 
     const giaTuttiSelezionati =
-      top14Ids.size > 0 &&
-      tutti.every((g) => top14Ids.has(g.id) === !!g.selezionato);
+      topIds.size > 0 &&
+      tutti.every((g) => topIds.has(g.id) === !!g.selezionato);
 
     if (giaTuttiSelezionati) {
       this.state.tutti.update((lista) =>
@@ -502,7 +601,7 @@ export class StepConvocatiComponent {
       );
       this.state.triggerAutoSave();
       const toast = await this.toastCtrl.create({
-        message: '⚡ DEV: Convocati deselezionati',
+        message: '⚡ Convocati deselezionati',
         duration: 1500,
         position: 'top',
       });
@@ -512,7 +611,7 @@ export class StepConvocatiComponent {
 
     this.state.tutti.update((lista) =>
       lista.map((g) => {
-        const isSelected = top14Ids.has(g.id);
+        const isSelected = topIds.has(g.id);
         return {
           ...g,
           selezionato: isSelected,
@@ -524,7 +623,7 @@ export class StepConvocatiComponent {
 
     const currentRsvp = { ...(this.state.rsvp() || {}) };
     for (const g of tutti) {
-      const isSelected = top14Ids.has(g.id);
+      const isSelected = topIds.has(g.id);
       const rsvpKey = g.linkedUid || ('player_' + g.id);
       if (isSelected) {
         currentRsvp[rsvpKey] = {
@@ -540,13 +639,19 @@ export class StepConvocatiComponent {
     this.state.rsvp.set(currentRsvp);
     this.state.triggerAutoSave(true);
 
+    const formatLabel = targetCap === 16 ? '8 vs 8' : '7 vs 7';
     const toast = await this.toastCtrl.create({
-      message: `⚡ DEV: Selezionati ${top14Ids.size} giocatori (Top Classifica) per 7 vs 7!`,
+      message: `⚡ Selezionati ${topIds.size} giocatori (Top Classifica) per ${formatLabel}!`,
       duration: 2200,
       color: 'warning',
       position: 'top',
     });
     await toast.present();
+  }
+
+  /** Alias retro-compatibile */
+  async selezionaPrimi14Classifica() {
+    return this.selezionaPrimiClassifica();
   }
 
   /**

@@ -7,7 +7,7 @@
     <div class="live-status-bar">
       <div class="lsb-left">
         <span class="lsb-count" role="status" aria-live="polite">
-          {{ state.totaleConvocati() }} Convocati
+          {{ state.totaleConvocati() }}/{{ maxCap() }} Convocati
         </span>
         <span class="lsb-dot" aria-hidden="true">•</span>
         <span
@@ -22,6 +22,23 @@
           }
           <span>{{ formatBadgeInfo().label }}</span>
         </span>
+
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="cap-toggle-pill"
+            [class.is-extended]="maxCap() === 16"
+            (click)="toggleMaxCap()"
+            [title]="maxCap() === 16 ? 'Riporta il limite a 14 convocati (7vs7)' : 'Sblocca 16 convocati (8vs8)'"
+            [attr.aria-label]="maxCap() === 16 ? 'Limite 16 giocatori (8vs8) attivo. Clicca per tornare a 14' : 'Sblocca 16 convocati per 8vs8'"
+          >
+            <ion-icon
+              [name]="maxCap() === 16 ? 'lock-open-outline' : 'lock-closed-outline'"
+              aria-hidden="true"
+            ></ion-icon>
+            <span>{{ maxCap() === 16 ? 'Max 16 (8vs8)' : 'Max 14' }}</span>
+          </button>
+        }
       </div>
 
       <div class="lsb-right">
@@ -29,25 +46,12 @@
           <button
             type="button"
             class="dev-mini-pill"
-            (click)="selezionaPrimi14Classifica()"
-            title="Auto-seleziona Top 14"
-            aria-label="Auto-seleziona primi 14 giocatori"
+            (click)="selezionaPrimiClassifica()"
+            [title]="'Auto-seleziona Top ' + maxCap()"
+            [attr.aria-label]="'Auto-seleziona primi ' + maxCap() + ' giocatori'"
           >
             <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
-            <span>Top 14</span>
-          </button>
-        }
-
-        @if (isAdmin && state.totaleConvocati() > 0) {
-          <button
-            type="button"
-            class="reset-convocati-pill"
-            (click)="confermaSvuotaConvocati()"
-            title="Svuota tutti i convocati"
-            aria-label="Svuota tutti i convocati"
-          >
-            <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
-            <span>Svuota</span>
+            <span>Top {{ maxCap() }}</span>
           </button>
         }
 
@@ -56,7 +60,7 @@
             type="button"
             class="self-presence-quick-pill"
             [class.active]="myRsvpStatus() === 'yes'"
-            [disabled]="isSavingRsvp()"
+            [disabled]="isSavingRsvp() || (isCapReached() && myRsvpStatus() !== 'yes')"
             (click)="toggleMioRsvp('yes')"
             title="Conferma o rimuovi la tua presenza"
           >
@@ -64,7 +68,15 @@
               [name]="myRsvpStatus() === 'yes' ? 'checkmark-circle' : 'checkmark-circle-outline'"
               aria-hidden="true"
             ></ion-icon>
-            <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono ✓' : 'Ci sono' }}</span>
+            <span>
+              {{
+                myRsvpStatus() === 'yes'
+                  ? 'Ci sono'
+                  : isCapReached()
+                    ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
+                    : 'Ci sono'
+              }}
+            </span>
           </button>
         }
       </div>
@@ -184,7 +196,7 @@
           <div class="crb-header">
             <span class="crb-prompt">La tua presenza:</span>
             <span class="crb-status-pill" [class.confirmed]="myRsvpStatus() === 'yes'">
-              {{ myRsvpStatus() === 'yes' ? 'Ci sono ✓' : 'Non confermato' }}
+              {{ myRsvpStatus() === 'yes' ? 'Ci sono' : 'Non confermato' }}
             </span>
           </div>
 
@@ -193,11 +205,20 @@
               type="button"
               class="crb-btn yes"
               [class.active]="myRsvpStatus() === 'yes'"
-              [disabled]="isSavingRsvp()"
+              [class.is-full]="isCapReached() && myRsvpStatus() !== 'yes'"
+              [disabled]="isSavingRsvp() || (isCapReached() && myRsvpStatus() !== 'yes')"
               (click)="toggleMioRsvp('yes')"
             >
               <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono ✓ (Rimuovi)' : 'Ci sono ✓' }}</span>
+              <span>
+                {{
+                  myRsvpStatus() === 'yes'
+                    ? 'Ci sono (Rimuovi)'
+                    : isCapReached()
+                      ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
+                      : 'Ci sono'
+                }}
+              </span>
             </button>
 
             <button
@@ -320,7 +341,9 @@
               <h3 class="shb-title">DISPONIBILI DA AGGIUNGERE ({{ disponibiliFiltrati().length }})</h3>
             </div>
             @if (disponibiliFiltrati().length > 0) {
-              <span class="shb-hint">Tocca per aggiungere</span>
+              <span class="shb-hint">
+                {{ isCapReached() ? 'Limite ' + maxCap() + '/' + maxCap() + ' raggiunto' : 'Tocca per aggiungere' }}
+              </span>
             }
           </div>
 
@@ -334,10 +357,11 @@
                 <button
                   type="button"
                   class="compact-player-pill"
+                  [class.is-cap-blocked]="isCapReached()"
                   [class.is-maybe]="g.rsvpStatus === 'maybe'"
                   [class.is-declined]="g.rsvpStatus === 'no'"
                   [attr.aria-pressed]="false"
-                  [attr.aria-label]="'Convoca ' + g.nome"
+                  [attr.aria-label]="isCapReached() ? g.nome + ' (limite raggiunto)' : 'Convoca ' + g.nome"
                   (click)="toggleSelezione(g)"
                 >
                   <div class="cpp-avatar">

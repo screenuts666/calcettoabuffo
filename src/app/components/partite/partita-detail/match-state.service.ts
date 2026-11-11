@@ -118,6 +118,8 @@ export class MatchStateService {
   luogo = signal<string>('');
   campoGoogleMapsUrl = signal<string | null>(null);
   formato = signal<string | null>(null);
+  maxPlayers = signal<14 | 16>(14);
+  allowEightVsEight = computed<boolean>(() => this.maxPlayers() === 16);
   dataPartita = signal<string>('');
   orario = signal<string>('');
   tutti = signal<ConvocatoState[]>([]);
@@ -1191,6 +1193,13 @@ export class MatchStateService {
           if (data.formato) {
             this.formato.set(data.formato);
           }
+          if (data.maxPlayers) {
+            this.maxPlayers.set(data.maxPlayers === 16 ? 16 : 14);
+          } else if (data.allowEightVsEight) {
+            this.maxPlayers.set(16);
+          } else if (Array.isArray(data.convocati) && data.convocati.length > 14) {
+            this.maxPlayers.set(16);
+          }
           if (data.rsvp !== undefined) {
             this.rsvp.set(data.rsvp || {});
           }
@@ -1417,6 +1426,8 @@ export class MatchStateService {
         parateIncredibili: this.parateIncredibili(),
         campoGoogleMapsUrl: this.campoGoogleMapsUrl(),
         formato: this.formato(),
+        maxPlayers: this.maxPlayers(),
+        allowEightVsEight: this.maxPlayers() === 16,
       };
       localStorage.setItem(LOCAL_STORAGE_MATCH_KEY, JSON.stringify(snapshot));
       this.syncStatus.notifyLocalSave();
@@ -1453,6 +1464,11 @@ export class MatchStateService {
         if (snap.campoGoogleMapsUrl)
           this.campoGoogleMapsUrl.set(snap.campoGoogleMapsUrl);
         if (snap.formato) this.formato.set(snap.formato);
+        if (snap.maxPlayers) {
+          this.maxPlayers.set(snap.maxPlayers === 16 ? 16 : 14);
+        } else if (snap.allowEightVsEight) {
+          this.maxPlayers.set(16);
+        }
         if (snap.orario) this.orario.set(snap.orario);
         if (snap.dataPartita) this.dataPartita.set(snap.dataPartita);
         if (Array.isArray(snap.tutti) && snap.tutti.length > 0)
@@ -1777,6 +1793,8 @@ export class MatchStateService {
             )}`
           : null),
       formato: getMatchFormatByPlayerCount(this.convocati().length).label,
+      maxPlayers: this.maxPlayers(),
+      allowEightVsEight: this.maxPlayers() === 16,
       convocati: cleanConvocati,
       teamA: cleanTeamA,
       teamB: cleanTeamB,

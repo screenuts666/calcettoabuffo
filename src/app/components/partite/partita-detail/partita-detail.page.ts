@@ -383,6 +383,15 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.state.pagelleInserite.set(matchData.pagelleInserite || false);
     this.state.status.set(matchData.status || 'da_definire');
     this.state.rsvp.set(matchData.rsvp || {});
+    if (matchData.maxPlayers) {
+      this.state.maxPlayers.set(matchData.maxPlayers === 16 ? 16 : 14);
+    } else if (matchData.allowEightVsEight) {
+      this.state.maxPlayers.set(16);
+    } else if (Array.isArray(matchData.convocati) && matchData.convocati.length > 14) {
+      this.state.maxPlayers.set(16);
+    } else {
+      this.state.maxPlayers.set(14);
+    }
 
     const baseGiocatori = (matchData.tuttiGiocatori || []).map((g: any) => ({
       ...g,

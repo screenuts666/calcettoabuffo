@@ -86,6 +86,8 @@ export interface Partita {
   luogo: string;
   campoGoogleMapsUrl?: string | null;
   formato?: MatchFormat | string | null;
+  maxPlayers?: number;
+  allowEightVsEight?: boolean;
   dataOra?: any;
   convocati: any[];
   teamA: PlayerPerformance[];

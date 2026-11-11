@@ -15,6 +15,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.76",
+    "date": "11/11/2026",
+    "title": "Convocati: CAP 14 Giocatori, Sblocco 8vs8 (16 Posti) e Pulizia Box Superiore",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Blocco Convocazioni a 14/14: fissato a 14 convocati il limite massimo standard per il calcio a 7 (7vs7); quando la partita è al completo (14/14), il tasto 'Partecipo' indica chiaramente 'Completo (14/14)' e previene inserimenti accidentali.",
+      "Visuale Disponibili Attenuata a Quota Raggiunta: raggiunti i 14 convocati, le card dei giocatori disponibili vengono leggermente attenuate e l'indicatore mostra chiaramente che il limite massimo è stato raggiunto.",
+      "Rimozione Doppia Spunta su 'Ci sono': eliminato il carattere duplicato dal pulsante della propria presenza per un testo più pulito e minimale ('Ci sono')."
+    ],
+    "superUserChanges": [
+      "Micro-Toggle Sblocco 16 Posti (8vs8): inserito accanto al badge formato un pill compatto ed elegante per Mister e Presidente per passare con un tap da 'Max 14' a 'Max 16 (8vs8)', sincronizzato in tempo reale con Disponibilità e con il documento partita su Firestore.",
+      "Auto-selezione Top 14 / Top 16 Adattiva: il bottone rapido 'Top 14' si adatta dinamicamente a 'Top 16' quando il formato 8vs8 è sbloccato.",
+      "Pulizia Ridondanze Box Superiore: eliminato il pulsante duplicato 'Svuota' dalla barra in alto per far respirare i controlli essenziali, preservando esclusivamente il pulsante 'Reset' sull'intestazione della lista convocati."
+    ]
+  },
+  {
     "version": "2.0.75",
     "date": "11/11/2026",
     "title": "Blindatura Completa RBAC a 4 Livelli (Sicurezza & Permessi Utente)",

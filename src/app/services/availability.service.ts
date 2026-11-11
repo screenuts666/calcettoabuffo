@@ -621,6 +621,59 @@ export class AvailabilityService {
   }
 
   /**
+   * Imposta in modo idempotente lo sblocco 16 posti (8vs8) o il limite 14 (7vs7) per una data specifica.
+   * Usato sia da Disponibilità che da Gestione Match (Step 2 Convocati).
+   */
+  async setDayEightVsEight(date: string, allow: boolean): Promise<boolean> {
+    if (!this.firestore || !this.auth.isSuperUser()) {
+      return allow;
+    }
+
+    const user = this.auth.firebaseUser();
+    let weekKey = this.getIsoWeekKey(new Date(date));
+    if (!weekKey || weekKey.includes('NaN')) {
+      weekKey = this.activeWeekKey();
+    }
+    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
+    const nextMaxCap = allow ? EXTENDED_DAY_MAX_CAP : DEFAULT_DAY_MAX_CAP;
+
+    const nextDayConfig: DayVotingConfig = {
+      allowEightVsEight: allow,
+      maxCap: nextMaxCap,
+      updatedAt: Date.now(),
+      updatedBy: user?.uid || 'admin',
+    };
+
+    if (this.activeWeekKey() === weekKey) {
+      const currentDoc = this.activeWeekDoc();
+      if (currentDoc) {
+        this.activeWeekDoc.set({
+          ...currentDoc,
+          dayConfigs: {
+            ...(currentDoc?.dayConfigs || {}),
+            [date]: nextDayConfig,
+          },
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    await setDoc(
+      docRef,
+      {
+        weekKey,
+        dayConfigs: {
+          [date]: nextDayConfig,
+        },
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    return allow;
+  }
+
+  /**
    * Abilita o disabilita l'estensione del CAP da 14 (7vs7) a 16 giocatori (8vs8) per un giorno specifico.
    * Azione riservata esclusivamente a Mister e Presidente (`auth.isSuperUser()`).
    */
@@ -631,51 +684,9 @@ export class AvailabilityService {
       );
     }
 
-    const user = this.auth.firebaseUser();
-    const weekKey = this.activeWeekKey();
-    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
-    const days = this.activeWeekDays();
     const currentDoc = this.activeWeekDoc();
-
     const prevAllow = !!currentDoc?.dayConfigs?.[date]?.allowEightVsEight;
-    const nextAllow = !prevAllow;
-    const nextMaxCap = nextAllow ? EXTENDED_DAY_MAX_CAP : DEFAULT_DAY_MAX_CAP;
-
-    const nextDayConfig: DayVotingConfig = {
-      allowEightVsEight: nextAllow,
-      maxCap: nextMaxCap,
-      updatedAt: Date.now(),
-      updatedBy: user?.uid || 'admin',
-    };
-
-    const updatedDayConfigs: Record<string, DayVotingConfig> = {
-      ...(currentDoc?.dayConfigs || {}),
-      [date]: nextDayConfig,
-    };
-
-    if (currentDoc) {
-      this.activeWeekDoc.set({
-        ...currentDoc,
-        dayConfigs: updatedDayConfigs,
-        updatedAt: new Date().toISOString(),
-      });
-    }
-
-    await setDoc(
-      docRef,
-      {
-        weekKey,
-        startDate: days[0].date,
-        endDate: days[6].date,
-        dayConfigs: {
-          [date]: nextDayConfig,
-        },
-        updatedAt: new Date().toISOString(),
-      },
-      { merge: true },
-    );
-
-    return nextAllow;
+    return this.setDayEightVsEight(date, !prevAllow);
   }
 
   /**
@@ -1279,6 +1290,8 @@ export class AvailabilityService {
       luogo: campoNome || 'Roma 6',
       campoGoogleMapsUrl: campoMapsUrl || null,
       formato: day.formatInfo?.format || 'calcetto',
+      maxPlayers: day.maxCap || DEFAULT_DAY_MAX_CAP,
+      allowEightVsEight: !!day.allowEightVsEight,
       convocati: convocatiFull,
       teamA: [],
       teamB: [],
