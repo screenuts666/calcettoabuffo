@@ -312,12 +312,12 @@ service cloud.firestore {
       allow read: if true;
 
       // Creazione/Update: Mister ha Full CRUD. Atleti autenticati possono votare e aggiornare la settimana
-      // purché non sia bloccata (isLocked != true) e non modifichino isLocked, confirmedMatchId o confirmedDate.
+      // purché non sia bloccata (isLocked != true) e non modifichino isLocked, confirmedMatchId, confirmedDate o dayConfigs.
       allow create: if isAuthenticated();
       allow update: if isSuperUser() || (
         isAuthenticated() &&
         resource.data.get('isLocked', false) == false &&
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isLocked', 'confirmedMatchId', 'confirmedDate'])
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isLocked', 'confirmedMatchId', 'confirmedDate', 'dayConfigs'])
       );
       allow delete: if isSuperUser();
     }

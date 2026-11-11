@@ -13,6 +13,13 @@ import {
   WeeklyAvailabilityDoc,
   DaySummary,
   SeasonCalendarConfig,
+  DEFAULT_DAY_MAX_CAP,
+  EXTENDED_DAY_MAX_CAP,
+  DAY_QUORUM_TARGET,
+  PlayerDayVoteState,
+  VoteHistoryEntry,
+  PrioritizedVoter,
+  DayVotingConfig,
 } from '../models/weekly-availability.model';
 import { getMatchFormatByPlayerCount, Partita } from '../models/partita.model';
 import { environment } from 'src/environments/environment';
@@ -56,57 +63,234 @@ export class AvailabilityService {
 
   /** Date che l'utente loggato ha votato con certezza ("Ci sono") per la settimana corrente */
   readonly myVotedDates = computed<string[]>(() => {
-    const doc = this.activeWeekDoc();
+    const docData = this.activeWeekDoc();
     const uid = this.auth.firebaseUser()?.uid;
-    if (!doc || !uid || !doc.votes?.[uid]) return [];
-    return doc.votes[uid].availableDates || [];
+    if (!docData || !uid || !docData.votes?.[uid]) return [];
+    return docData.votes[uid].availableDates || [];
   });
 
   /** Date che l'utente loggato ha votato in dubbio ("Forse") per la settimana corrente */
   readonly myMaybeDates = computed<string[]>(() => {
-    const doc = this.activeWeekDoc();
+    const docData = this.activeWeekDoc();
     const uid = this.auth.firebaseUser()?.uid;
-    if (!doc || !uid || !doc.votes?.[uid]) return [];
-    return doc.votes[uid].maybeDates || [];
+    if (!docData || !uid || !docData.votes?.[uid]) return [];
+    return docData.votes[uid].maybeDates || [];
   });
 
-  /** Riepilogo dei 7 giorni della settimana con contatori e atleti disponibili */
+  /**
+   * Riepilogo dei 7 giorni della settimana con:
+   * - CAP dinamico (14 default = 7vs7, 16 sbloccato = 8vs8)
+   * - Presenti ordinati rigorosamente per `firstVotedAt` crescente (dal più vecchio al più recente)
+   * - Storico completo (`voteHistory`) di tutte le iscrizioni, cancellazioni e ri-iscrizioni
+   */
   readonly daySummaries = computed<DaySummary[]>(() => {
-    const doc = this.activeWeekDoc();
+    const docData = this.activeWeekDoc();
     const days = this.activeWeekDays();
-    const allVotes = Object.values(doc?.votes || {});
-
-    const currentUid = this.auth.firebaseUser()?.uid;
-    const currentPid = this.auth.linkedPlayerId();
-
-    // Ordinamento deterministico stabile: l'utente loggato in testa, poi tutti in ordine alfabetico
-    allVotes.sort((a, b) => {
-      const isAMe =
-        (currentUid && a.uid === currentUid) ||
-        (currentPid && a.playerId === currentPid);
-      const isBMe =
-        (currentUid && b.uid === currentUid) ||
-        (currentPid && b.playerId === currentPid);
-      if (isAMe && !isBMe) return -1;
-      if (!isAMe && isBMe) return 1;
-      return (
-        (a.displayName || '').localeCompare(b.displayName || '') ||
-        (a.uid || '').localeCompare(b.uid || '')
-      );
-    });
+    const allVotes = Object.values(docData?.votes || {});
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
 
     return days.map((d) => {
-      const voters = allVotes.filter((v) =>
+      const dayCfg = docData?.dayConfigs?.[d.date];
+      const allowEightVsEight = !!dayCfg?.allowEightVsEight;
+      const maxCap = allowEightVsEight
+        ? EXTENDED_DAY_MAX_CAP
+        : DEFAULT_DAY_MAX_CAP;
+
+      // 1. Ricostruzione e deduplicazione dell'Audit Log completo (voteHistory) per il giorno
+      const mergedHistoryMap = new Map<string, VoteHistoryEntry>();
+      const docLevelHistory = docData?.dayVoteHistory?.[d.date] || [];
+      for (const h of docLevelHistory) {
+        if (!h || !h.userId || !h.timestamp) continue;
+        const key = `${h.userId}_${h.action}_${h.timestamp}`;
+        mergedHistoryMap.set(key, { ...h });
+      }
+      for (const v of allVotes) {
+        const userDayHistory = v.voteHistoryByDate?.[d.date] || [];
+        for (const h of userDayHistory) {
+          if (!h || !h.userId || !h.timestamp) continue;
+          const key = `${h.userId}_${h.action}_${h.timestamp}`;
+          if (!mergedHistoryMap.has(key)) {
+            mergedHistoryMap.set(key, { ...h });
+          }
+        }
+      }
+
+      const chronologicalHistory = Array.from(mergedHistoryMap.values()).sort(
+        (a, b) => a.timestamp - b.timestamp,
+      );
+
+      // Calcolo deterministico del primo voto 'in' per ogni utente nella timeline del giorno
+      const firstInByUser = new Map<string, number>();
+      const inCountByUser = new Map<string, number>();
+      const lastActionByUser = new Map<string, number>();
+
+      // Pre-popoliamo con eventuale `dayVotes[d.date].firstVotedAt` salvato sullo stato utente
+      for (const v of allVotes) {
+        const meta = v.dayVotes?.[d.date];
+        if (meta?.firstVotedAt && meta.firstVotedAt > 0) {
+          firstInByUser.set(v.uid, meta.firstVotedAt);
+        }
+      }
+
+      const normalizedHistory: VoteHistoryEntry[] = chronologicalHistory.map(
+        (entry) => {
+          const prevLast = lastActionByUser.get(entry.userId) || 0;
+          if (entry.timestamp > prevLast) {
+            lastActionByUser.set(entry.userId, entry.timestamp);
+          }
+
+          // Risolve il nome aggiornato se possibile
+          const matchedPlayer = allPlayers.find(
+            (p) =>
+              (entry.playerId && p.id === entry.playerId) ||
+              (p.linkedUid && p.linkedUid === entry.userId),
+          );
+          const resolvedName =
+            matchedPlayer?.soprannome ||
+            matchedPlayer?.nome ||
+            entry.userName ||
+            'Atleta';
+
+          if (entry.action === 'in') {
+            const prevCount = inCountByUser.get(entry.userId) || 0;
+            const nextCount = prevCount + 1;
+            inCountByUser.set(entry.userId, nextCount);
+
+            let firstTs = firstInByUser.get(entry.userId);
+            if (!firstTs || entry.timestamp < firstTs) {
+              firstTs = entry.firstVotedAt || entry.timestamp;
+              firstInByUser.set(entry.userId, firstTs);
+            }
+            const isRejoin = entry.isRejoin ?? nextCount > 1;
+            return {
+              ...entry,
+              userName: resolvedName,
+              firstVotedAt: firstTs,
+              isRejoin,
+            };
+          } else {
+            const firstTs =
+              firstInByUser.get(entry.userId) ||
+              entry.firstVotedAt ||
+              entry.timestamp;
+            return {
+              ...entry,
+              userName: resolvedName,
+              firstVotedAt: firstTs,
+              isRejoin: false,
+            };
+          }
+        },
+      );
+
+      // 2. Costruzione lista presenti e ordinamento RIGOROSO per `firstVotedAt` crescente
+      const rawPresentVoters = allVotes.filter((v) =>
         (v.availableDates || []).includes(d.date),
       );
+
+      const enrichedVoters = rawPresentVoters.map((v) => {
+        const meta = v.dayVotes?.[d.date];
+        const historyFirst = firstInByUser.get(v.uid);
+        const legacyFallback = v.updatedAt
+          ? Date.parse(v.updatedAt) || Number.MAX_SAFE_INTEGER
+          : Number.MAX_SAFE_INTEGER;
+
+        const firstVotedAt =
+          meta?.firstVotedAt && meta.firstVotedAt > 0
+            ? meta.firstVotedAt
+            : historyFirst && historyFirst > 0
+              ? historyFirst
+              : legacyFallback;
+
+        const lastActionAt =
+          meta?.lastActionAt && meta.lastActionAt > 0
+            ? meta.lastActionAt
+            : lastActionByUser.get(v.uid) || firstVotedAt;
+
+        const totalIns =
+          meta?.inCount ?? inCountByUser.get(v.uid) ?? 1;
+
+        const isReconfirmed =
+          totalIns > 1 ||
+          (firstVotedAt < Number.MAX_SAFE_INTEGER &&
+            lastActionAt > firstVotedAt + 1000);
+
+        return {
+          vote: v,
+          firstVotedAt,
+          lastActionAt,
+          isReconfirmed,
+        };
+      });
+
+      // REGOLA D'ORO DELLA PRIORITÀ: Ordinamento rigorosamente crescente per `firstVotedAt`
+      enrichedVoters.sort((a, b) => {
+        if (a.firstVotedAt !== b.firstVotedAt) {
+          return a.firstVotedAt - b.firstVotedAt;
+        }
+        return (
+          (a.vote.displayName || '').localeCompare(b.vote.displayName || '') ||
+          (a.vote.uid || '').localeCompare(b.vote.uid || '')
+        );
+      });
+
+      const voters: PrioritizedVoter[] = enrichedVoters.map((item, idx) => {
+        const priorityRank = idx + 1;
+        return {
+          ...item.vote,
+          priorityRank,
+          firstVotedAt: item.firstVotedAt,
+          lastActionAt: item.lastActionAt,
+          isReconfirmed: item.isReconfirmed,
+          isWithinCap: priorityRank <= maxCap,
+        };
+      });
+
+      // Fallback per voti legacy: se un presente non aveva ancora un record esplicito in `voteHistory`,
+      // sintetizziamo la sua iscrizione iniziale al timestamp `firstVotedAt` così l'Audit Log è sempre completo.
+      for (const v of voters) {
+        const hasHistoryForVoter = normalizedHistory.some(
+          (h) => h.userId === v.uid,
+        );
+        if (!hasHistoryForVoter) {
+          const matchedPlayer = allPlayers.find(
+            (p) =>
+              (v.playerId && p.id === v.playerId) ||
+              (p.linkedUid && p.linkedUid === v.uid),
+          );
+          const resolvedName =
+            matchedPlayer?.soprannome ||
+            matchedPlayer?.nome ||
+            v.displayName ||
+            'Atleta';
+          const effectiveTs =
+            v.firstVotedAt < Number.MAX_SAFE_INTEGER
+              ? v.firstVotedAt
+              : Date.now();
+          normalizedHistory.push({
+            userId: v.uid,
+            playerId: v.playerId || null,
+            userName: resolvedName,
+            action: 'in',
+            timestamp: effectiveTs,
+            firstVotedAt: effectiveTs,
+            isRejoin: false,
+          });
+        }
+      }
+      normalizedHistory.sort((a, b) => a.timestamp - b.timestamp);
+
       const maybeVoters = allVotes.filter((v) =>
         (v.maybeDates || []).includes(d.date),
       );
       const count = voters.length;
       const maybeCount = maybeVoters.length;
       const formatInfo = getMatchFormatByPlayerCount(count);
-      const hasQuorum = count >= 10;
-      const missingForQuorum = count >= 10 ? 0 : 10 - count;
+      const hasQuorum = count >= DAY_QUORUM_TARGET;
+      const missingForQuorum =
+        count >= DAY_QUORUM_TARGET ? 0 : DAY_QUORUM_TARGET - count;
+      const isCapReached = count >= maxCap;
+      const remainingSlots = Math.max(0, maxCap - count);
 
       return {
         date: d.date,
@@ -119,14 +303,19 @@ export class AvailabilityService {
         formatInfo,
         hasQuorum,
         missingForQuorum,
+        allowEightVsEight,
+        maxCap,
+        isCapReached,
+        remainingSlots,
+        voteHistory: normalizedHistory,
       };
     });
   });
 
   /** Atleti in rosa registrati che non hanno ancora espresso disponibilità */
   readonly missingAthletes = computed<string[]>(() => {
-    const doc = this.activeWeekDoc();
-    const votedUids = new Set(Object.keys(doc?.votes || {}));
+    const docData = this.activeWeekDoc();
+    const votedUids = new Set(Object.keys(docData?.votes || {}));
     const allPlayers = this.statsEngine.giocatoriRaw() || [];
 
     return allPlayers
@@ -300,8 +489,26 @@ export class AvailabilityService {
     return currentWeekKey;
   }
 
+  private resolveCurrentUserName(): string {
+    const user = this.auth.firebaseUser();
+    const pid = this.auth.linkedPlayerId();
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
+    const linkedPlayer = allPlayers.find(
+      (p) =>
+        (pid && p.id === pid) ||
+        (user?.uid && p.linkedUid === user.uid),
+    );
+    if (linkedPlayer?.soprannome?.trim()) return linkedPlayer.soprannome.trim();
+    if (linkedPlayer?.nome?.trim()) return linkedPlayer.nome.trim();
+    return (
+      this.auth.displayName() || user?.email?.split('@')[0] || 'Atleta'
+    );
+  }
+
   /**
    * Toggle scelta giorno atleta: 'yes' (Ci sono) oppure 'maybe' (Forse).
+   * Applica il controllo rigoroso del CAP (14 standard / 16 se 8vs8 sbloccato)
+   * e mantiene immutabile `firstVotedAt` anche in caso di disiscrizione e ri-iscrizione.
    */
   async toggleDayVote(
     date: string,
@@ -312,11 +519,30 @@ export class AvailabilityService {
 
     let currentYes = [...this.myVotedDates()];
     let currentMaybe = [...this.myMaybeDates()];
+    const wasYes = currentYes.includes(date);
 
     if (type === 'yes') {
-      if (currentYes.includes(date)) {
+      if (wasYes) {
+        // Disiscrizione: sempre permessa per liberare il posto
         currentYes = currentYes.filter((d) => d !== date);
       } else {
+        // Nuova iscrizione o ri-iscrizione: verifica il CAP del giorno (14 o 16)
+        const daySummary = this.daySummaries().find((s) => s.date === date);
+        const maxCap = daySummary ? daySummary.maxCap : DEFAULT_DAY_MAX_CAP;
+        const currentCount = daySummary ? daySummary.voterCount : 0;
+
+        if (currentCount >= maxCap) {
+          if (maxCap === DEFAULT_DAY_MAX_CAP) {
+            throw new Error(
+              `Giorno COMPLETO (${DEFAULT_DAY_MAX_CAP}/${DEFAULT_DAY_MAX_CAP} • 7vs7). Solo Mister o Presidente possono sbloccare i 16 posti (8vs8).`,
+            );
+          } else {
+            throw new Error(
+              `Giorno COMPLETO (${EXTENDED_DAY_MAX_CAP}/${EXTENDED_DAY_MAX_CAP} • 8vs8). Tutti i posti sono esauriti.`,
+            );
+          }
+        }
+
         currentYes.push(date);
         currentMaybe = currentMaybe.filter((d) => d !== date);
       }
@@ -330,8 +556,71 @@ export class AvailabilityService {
     }
 
     const isNowYes = currentYes.includes(date);
-    await this.saveMyVotes(currentYes, currentMaybe);
+    const voteTransition =
+      wasYes !== isNowYes
+        ? { date, action: (isNowYes ? 'in' : 'out') as 'in' | 'out' }
+        : undefined;
+
+    await this.saveMyVotes(currentYes, currentMaybe, undefined, voteTransition);
     await this.syncVoteWithActiveMatch(date, isNowYes);
+  }
+
+  /**
+   * Abilita o disabilita l'estensione del CAP da 14 (7vs7) a 16 giocatori (8vs8) per un giorno specifico.
+   * Azione riservata esclusivamente a Mister e Presidente (`auth.isSuperUser()`).
+   */
+  async toggleDayEightVsEight(date: string): Promise<boolean> {
+    if (!this.firestore || !this.auth.isSuperUser()) {
+      throw new Error(
+        'Solo Mister e Presidente possono sbloccare o limitare i 16 posti (8vs8).',
+      );
+    }
+
+    const user = this.auth.firebaseUser();
+    const weekKey = this.activeWeekKey();
+    const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
+    const days = this.activeWeekDays();
+    const currentDoc = this.activeWeekDoc();
+
+    const prevAllow = !!currentDoc?.dayConfigs?.[date]?.allowEightVsEight;
+    const nextAllow = !prevAllow;
+    const nextMaxCap = nextAllow ? EXTENDED_DAY_MAX_CAP : DEFAULT_DAY_MAX_CAP;
+
+    const nextDayConfig: DayVotingConfig = {
+      allowEightVsEight: nextAllow,
+      maxCap: nextMaxCap,
+      updatedAt: Date.now(),
+      updatedBy: user?.uid || 'admin',
+    };
+
+    const updatedDayConfigs: Record<string, DayVotingConfig> = {
+      ...(currentDoc?.dayConfigs || {}),
+      [date]: nextDayConfig,
+    };
+
+    if (currentDoc) {
+      this.activeWeekDoc.set({
+        ...currentDoc,
+        dayConfigs: updatedDayConfigs,
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    await setDoc(
+      docRef,
+      {
+        weekKey,
+        startDate: days[0].date,
+        endDate: days[6].date,
+        dayConfigs: {
+          [date]: nextDayConfig,
+        },
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+
+    return nextAllow;
   }
 
   /**
@@ -445,12 +734,15 @@ export class AvailabilityService {
   }
 
   /**
-   * Salva l'array delle date 'Ci sono' e 'Forse' dell'atleta su Firestore.
+   * Salva l'array delle date 'Ci sono' e 'Forse' dell'atleta su Firestore,
+   * garantendo l'immutabilità di `firstVotedAt` per giorno e registrando ogni
+   * evento nell'append-only log `voteHistory`.
    */
   async saveMyVotes(
     availableDates: string[],
     maybeDates: string[] = [],
     note?: string,
+    voteTransition?: { date: string; action: 'in' | 'out' },
   ): Promise<void> {
     if (!this.firestore) return;
     const user = this.auth.firebaseUser();
@@ -459,16 +751,108 @@ export class AvailabilityService {
     const weekKey = this.activeWeekKey();
     const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
     const days = this.activeWeekDays();
+    const currentDoc = this.activeWeekDoc();
+    const existingVote = currentDoc?.votes?.[user.uid];
+
+    const now = Date.now();
+    const resolvedUserName = this.resolveCurrentUserName();
+    const linkedPid = this.auth.linkedPlayerId() || null;
+
+    const dayVotes: Record<string, PlayerDayVoteState> = {
+      ...(existingVote?.dayVotes || {}),
+    };
+    const voteHistoryByDate: Record<string, VoteHistoryEntry[]> = {
+      ...(existingVote?.voteHistoryByDate || {}),
+    };
+    const nextDayVoteHistoryPatch: Record<string, VoteHistoryEntry[]> = {};
+
+    if (voteTransition) {
+      const { date, action } = voteTransition;
+      const prevMeta = dayVotes[date];
+      const existingUserDayHist = [...(voteHistoryByDate[date] || [])];
+      const existingDocDayHist = [
+        ...(currentDoc?.dayVoteHistory?.[date] || []),
+      ];
+
+      // Cerca eventuale primo voto precedente nello storico o nel documento legacy
+      const earliestHistIn = [...existingUserDayHist, ...existingDocDayHist]
+        .filter((h) => h.userId === user.uid && h.action === 'in')
+        .reduce<number | null>(
+          (min, h) =>
+            min === null || h.timestamp < min
+              ? h.firstVotedAt || h.timestamp
+              : min,
+          null,
+        );
+
+      const legacyInitialTs =
+        action === 'out' && existingVote?.updatedAt
+          ? Date.parse(existingVote.updatedAt) || now
+          : null;
+
+      // REGOLA D'ORO: `firstVotedAt` è IMMUTABILE!
+      // Se il giocatore aveva già votato in precedenza su questo giorno (anche se poi si era tolto),
+      // mantiene SEMPRE il timestamp del suo primo voto assoluto.
+      const immutableFirstVotedAt =
+        prevMeta?.firstVotedAt && prevMeta.firstVotedAt > 0
+          ? prevMeta.firstVotedAt
+          : earliestHistIn && earliestHistIn > 0
+            ? earliestHistIn
+            : legacyInitialTs || now;
+
+      const prevInCount =
+        prevMeta?.inCount ??
+        (prevMeta?.firstVotedAt || earliestHistIn || legacyInitialTs ? 1 : 0);
+      const nextInCount =
+        action === 'in' ? prevInCount + 1 : Math.max(1, prevInCount);
+      const isRejoin = action === 'in' && nextInCount > 1;
+
+      dayVotes[date] = {
+        status: action,
+        firstVotedAt: immutableFirstVotedAt,
+        lastActionAt: now,
+        inCount: nextInCount,
+      };
+
+      const historyEntry: VoteHistoryEntry = {
+        userId: user.uid,
+        playerId: linkedPid,
+        userName: resolvedUserName,
+        action,
+        timestamp: now,
+        firstVotedAt: immutableFirstVotedAt,
+        isRejoin,
+      };
+
+      existingUserDayHist.push(historyEntry);
+      voteHistoryByDate[date] = existingUserDayHist;
+
+      existingDocDayHist.push(historyEntry);
+      nextDayVoteHistoryPatch[date] = existingDocDayHist;
+    }
+
+    // Assicura che ogni data attiva in `availableDates` abbia il suo stato `dayVotes` inizializzato
+    for (const d of availableDates || []) {
+      if (!dayVotes[d]) {
+        dayVotes[d] = {
+          status: 'in',
+          firstVotedAt: now,
+          lastActionAt: now,
+          inCount: 1,
+        };
+      }
+    }
 
     const athleteVote: any = {
       uid: user.uid,
-      playerId: this.auth.linkedPlayerId() || null,
-      displayName:
-        this.auth.displayName() || user.email?.split('@')[0] || 'Atleta',
+      playerId: linkedPid,
+      displayName: resolvedUserName,
       photoURL: this.auth.photoURL() || null,
       availableDates: availableDates || [],
       maybeDates: maybeDates || [],
-      updatedAt: new Date().toISOString(),
+      dayVotes,
+      voteHistoryByDate,
+      updatedAt: new Date(now).toISOString(),
     };
     if (note && note.trim()) {
       athleteVote.note = note.trim();
@@ -479,25 +863,43 @@ export class AvailabilityService {
       startDate: days[0].date,
       endDate: days[6].date,
       seasonId: '2026-2027',
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(now).toISOString(),
     };
 
-    // Update atomico sulla mappa votes[uid]
-    await setDoc(
-      docRef,
-      {
+    const firestorePatch: Record<string, any> = {
+      ...payload,
+      votes: {
+        [user.uid]: athleteVote,
+      },
+    };
+
+    if (Object.keys(nextDayVoteHistoryPatch).length > 0) {
+      firestorePatch['dayVoteHistory'] = nextDayVoteHistoryPatch;
+    }
+
+    // Update ottimistico immediato per reattività istantanea della UI
+    if (currentDoc) {
+      this.activeWeekDoc.set({
+        ...currentDoc,
         ...payload,
         votes: {
+          ...(currentDoc.votes || {}),
           [user.uid]: athleteVote,
         },
-      },
-      { merge: true },
-    );
+        dayVoteHistory: {
+          ...(currentDoc.dayVoteHistory || {}),
+          ...nextDayVoteHistoryPatch,
+        },
+      });
+    }
+
+    await setDoc(docRef, firestorePatch, { merge: true });
   }
 
   /**
    * DEV ONLY: Simula voti realistici di altri compagni di squadra sui 7 giorni
-   * con numeri diversi per ogni giorno e con pareggio al vertice per testare i bordi multipli.
+   * inclusi `firstVotedAt` scaglionati, un giorno COMPLETO (14/14) e cicli di disiscrizione/ri-iscrizione
+   * per testare la conservazione della priorità e il modal Storico Voti.
    */
   async simulaVotiCompagniDev(): Promise<void> {
     if (environment.production || !this.firestore) return;
@@ -518,7 +920,7 @@ export class AvailabilityService {
         (!currentUid || p.linkedUid !== currentUid),
     );
 
-    // Assicuriamo un pool sufficiente di almeno 13 atleti per testare numeri alti (11+)
+    // Assicuriamo un pool sufficiente di almeno 15 atleti per testare il CAP 14/14 e l'8vs8 (16 posti)
     const playerPool = [...otherPlayers];
     const mockNames = [
       'Paolo C.',
@@ -534,9 +936,11 @@ export class AvailabilityService {
       'Gianluca M.',
       'Simone V.',
       'Federico G.',
+      'Marco S.',
+      'Valerio P.',
     ];
     let mockIdx = 0;
-    while (playerPool.length < 13 && mockIdx < mockNames.length) {
+    while (playerPool.length < 15 && mockIdx < mockNames.length) {
       playerPool.push({
         id: `mock_player_${mockIdx}`,
         nome: mockNames[mockIdx],
@@ -547,27 +951,107 @@ export class AvailabilityService {
     }
 
     // Target numero di voti per giorno (Lun..Dom):
-    // Lun: 8, Mar: 3, Mer: 11 (Quorum!), Gio: 6, Ven: 11 (Quorum! Pareggio al vertice), Sab: 4, Dom: 2
-    const targetCounts = [8, 3, 11, 6, 11, 4, 2];
+    // Lun: 8, Mar: 5, Mer: 14 (COMPLETO 14/14!), Gio: 7, Ven: 12 (Quorum 12/14!), Sab: 4, Dom: 2
+    const targetCounts = [8, 5, 14, 7, 12, 4, 2];
 
     const currentDoc = this.activeWeekDoc();
     const cleanVotes: Record<string, any> = {};
+    const simulatedDayHistory: Record<string, VoteHistoryEntry[]> = {};
+    days.forEach((d) => {
+      simulatedDayHistory[d.date] = [];
+    });
 
     // Mantieni il voto reale dell'utente attivo se presente
     if (currentUid && currentDoc?.votes?.[currentUid]) {
       cleanVotes[currentUid] = currentDoc.votes[currentUid];
+      const myHistMap = currentDoc.votes[currentUid].voteHistoryByDate || {};
+      for (const [dKey, entries] of Object.entries(myHistMap)) {
+        if (simulatedDayHistory[dKey]) {
+          simulatedDayHistory[dKey].push(...entries);
+        }
+      }
     }
+
+    // Timestamp base simulato: stamattina alle 09:00
+    const baseMorning = new Date();
+    baseMorning.setHours(9, 0, 0, 0);
+    const baseTs = baseMorning.getTime();
 
     playerPool.forEach((player, pIdx) => {
       const mockUid = player.linkedUid || `mock_dev_${player.id}`;
+      const pName = player.soprannome || player.nome || `Atleta ${pIdx + 1}`;
       const availableDates: string[] = [];
+      const dayVotes: Record<string, PlayerDayVoteState> = {};
+      const voteHistoryByDate: Record<string, VoteHistoryEntry[]> = {};
 
       days.forEach((day, dIdx) => {
-        const target = targetCounts[dIdx] || 0;
-        // Assegniamo i primi 'target' atleti per ciascun giorno (con rotazione per varietà di facce)
+        let target = targetCounts[dIdx] || 0;
+        // Se sul Mercoledì (14/14) l'utente reale ha già votato, aggiungiamo 13 compagni per fare 14/14 esatti
+        if (
+          dIdx === 2 &&
+          currentUid &&
+          cleanVotes[currentUid]?.availableDates?.includes(day.date)
+        ) {
+          target = 13;
+        }
+
         const offset = (pIdx + dIdx * 2) % playerPool.length;
         if (offset < target) {
           availableDates.push(day.date);
+
+          // Orario del 1° voto scaglionato per ordine di priorità realistico
+          const firstVotedAt =
+            baseTs + offset * 9 * 60 * 1000 + dIdx * 60 * 1000;
+          const entries: VoteHistoryEntry[] = [
+            {
+              userId: mockUid,
+              playerId: player.id,
+              userName: pName,
+              action: 'in',
+              timestamp: firstVotedAt,
+              firstVotedAt,
+              isRejoin: false,
+            },
+          ];
+
+          let lastActionAt = firstVotedAt;
+          let inCount = 1;
+
+          // Simuliamo per il #1 e #3 votante un ciclo disiscrizione per sbaglio + ri-iscrizione 2 minuti dopo
+          // così da dimostrare la regola d'oro della priorità immutabile (`firstVotedAt`)!
+          if (offset === 0 || offset === 2) {
+            const outTs = firstVotedAt + 125 * 60 * 1000;
+            const rejoinTs = outTs + 2 * 60 * 1000;
+            entries.push({
+              userId: mockUid,
+              playerId: player.id,
+              userName: pName,
+              action: 'out',
+              timestamp: outTs,
+              firstVotedAt,
+              isRejoin: false,
+            });
+            entries.push({
+              userId: mockUid,
+              playerId: player.id,
+              userName: pName,
+              action: 'in',
+              timestamp: rejoinTs,
+              firstVotedAt,
+              isRejoin: true,
+            });
+            lastActionAt = rejoinTs;
+            inCount = 2;
+          }
+
+          dayVotes[day.date] = {
+            status: 'in',
+            firstVotedAt,
+            lastActionAt,
+            inCount,
+          };
+          voteHistoryByDate[day.date] = entries;
+          simulatedDayHistory[day.date].push(...entries);
         }
       });
 
@@ -578,9 +1062,16 @@ export class AvailabilityService {
         photoURL: player.fotoUrl || null,
         availableDates,
         maybeDates: [],
+        dayVotes,
+        voteHistoryByDate,
         updatedAt: new Date().toISOString(),
       };
     });
+
+    // Ordiniamo cronologicamente gli eventi di ogni giorno
+    for (const dKey of Object.keys(simulatedDayHistory)) {
+      simulatedDayHistory[dKey].sort((a, b) => a.timestamp - b.timestamp);
+    }
 
     const payload: Partial<WeeklyAvailabilityDoc> = {
       weekKey,
@@ -589,6 +1080,7 @@ export class AvailabilityService {
       seasonId: '2026-2027',
       updatedAt: new Date().toISOString(),
       votes: cleanVotes,
+      dayVoteHistory: simulatedDayHistory,
     };
 
     await setDoc(docRef, payload, { merge: true });
@@ -607,6 +1099,8 @@ export class AvailabilityService {
       docRef,
       {
         votes: {},
+        dayVoteHistory: {},
+        dayConfigs: {},
         updatedAt: new Date().toISOString(),
       },
       { merge: true },
@@ -625,14 +1119,20 @@ export class AvailabilityService {
     const currentDoc = this.activeWeekDoc();
 
     const cleanVotes: Record<string, any> = {};
+    const cleanDayHistory: Record<string, VoteHistoryEntry[]> = {};
     if (currentUid && currentDoc?.votes?.[currentUid]) {
       cleanVotes[currentUid] = currentDoc.votes[currentUid];
+      const userHist = currentDoc.votes[currentUid].voteHistoryByDate || {};
+      for (const [dKey, list] of Object.entries(userHist)) {
+        cleanDayHistory[dKey] = [...list];
+      }
     }
 
     await setDoc(
       docRef,
       {
         votes: cleanVotes,
+        dayVoteHistory: cleanDayHistory,
         updatedAt: new Date().toISOString(),
       },
       { merge: true },
@@ -641,7 +1141,8 @@ export class AvailabilityService {
 
   /**
    * Azione esclusiva Mister / Presidente:
-   * Converte un giorno con disponibilità in una vera Partita con convocati confermati.
+   * Converte un giorno con disponibilità in una vera Partita con convocati confermati
+   * (rispettando l'ordine ufficiale di priorità `firstVotedAt` e il CAP del giorno).
    */
   async convertDayToMatch(
     day: DaySummary,
@@ -660,7 +1161,10 @@ export class AvailabilityService {
     const convocatiFull: any[] = [];
     const rsvpMap: Record<string, any> = {};
 
-    for (const v of day.voters || []) {
+    const effectiveCap = day.maxCap || DEFAULT_DAY_MAX_CAP;
+    const prioritizedVoters = (day.voters || []).slice(0, effectiveCap);
+
+    for (const v of prioritizedVoters) {
       const p = allPlayers.find(
         (g) =>
           (v.playerId && g.id === v.playerId) ||

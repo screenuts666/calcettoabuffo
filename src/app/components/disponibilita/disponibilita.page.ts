@@ -33,6 +33,7 @@ import {
   checkmarkCircle,
   checkmarkCircleOutline,
   closeCircle,
+  closeOutline,
   logoWhatsapp,
   navigateOutline,
   locationOutline,
@@ -52,6 +53,7 @@ import {
   shieldCheckmark,
   radioButtonOff,
   lockClosedOutline,
+  lockOpenOutline,
   people,
   flash,
   addCircleOutline,
@@ -61,21 +63,34 @@ import {
   chevronDownOutline,
   chevronUpOutline,
   trashOutline,
+  listOutline,
+  trophyOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
 
 import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
-import { AvailabilityService, getLocalIsoDate } from '../../services/availability.service';
-import { WeatherService, DailyWeatherForecast } from '../../services/weather.service';
+import {
+  AvailabilityService,
+  getLocalIsoDate,
+} from '../../services/availability.service';
+import {
+  WeatherService,
+  DailyWeatherForecast,
+} from '../../services/weather.service';
 import { CampiService } from '../../services/campi.service';
 import { ShareService } from '../../services/share.service';
 import { calcolaEta } from '../../utils/date-utils';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
 import { Giocatore } from '../../models/giocatore.model';
-import { Partita, getMatchFormatByPlayerCount } from '../../models/partita.model';
-import { DaySummary } from '../../models/weekly-availability.model';
+import { Partita } from '../../models/partita.model';
+import {
+  DaySummary,
+  DEFAULT_DAY_MAX_CAP,
+  EXTENDED_DAY_MAX_CAP,
+  VoteHistoryEntry,
+} from '../../models/weekly-availability.model';
 
 export type CalendarViewMode = 'week' | 'month' | 'year';
 
@@ -92,6 +107,25 @@ export interface CalendarDayCell {
   weather?: DailyWeatherForecast;
   voteCount?: number;
   isQuorumReached?: boolean;
+}
+
+export interface PrioritizedDayPlayer extends Giocatore {
+  priorityRank: number;
+  firstVotedAt: number;
+  lastActionAt: number;
+  isReconfirmed: boolean;
+  isWithinCap: boolean;
+  firstVoteLabel: string;
+  firstVoteTimeOnly: string;
+  lastActionTimeLabel: string;
+  isMe: boolean;
+}
+
+export interface FormattedVoteHistoryItem extends VoteHistoryEntry {
+  timeLabel: string;
+  dayTimeLabel: string;
+  firstVoteTimeLabel: string;
+  badgeType: 'join' | 'leave' | 'rejoin';
 }
 
 @Component({
@@ -125,13 +159,13 @@ export class DisponibilitaPage implements OnInit {
 
   // Filtri calendario salvati in LocalStorage
   mostraPartitePassate = signal<boolean>(
-    localStorage.getItem('cal_mostra_partite') !== 'false'
+    localStorage.getItem('cal_mostra_partite') !== 'false',
   );
   mostraMeteo = signal<boolean>(
-    localStorage.getItem('cal_mostra_meteo') !== 'false'
+    localStorage.getItem('cal_mostra_meteo') !== 'false',
   );
   mostraCompleanni = signal<boolean>(
-    localStorage.getItem('cal_mostra_compleanni') !== 'false'
+    localStorage.getItem('cal_mostra_compleanni') !== 'false',
   );
 
   // Modalità di visualizzazione: default 'week' (focus disponibilità a tutta altezza)
@@ -143,14 +177,21 @@ export class DisponibilitaPage implements OnInit {
   // Livello di zoom (0 = settimana, 1 = mese, 2 = anno)
   readonly zoomLevel = computed<number>(() => {
     switch (this.viewMode()) {
-      case 'week': return 0;
-      case 'month': return 1;
-      case 'year': return 2;
+      case 'week':
+        return 0;
+      case 'month':
+        return 1;
+      case 'year':
+        return 2;
     }
   });
 
-  readonly canZoomIn = computed(() => this.canUseZoom() && this.zoomLevel() > 0);
-  readonly canZoomOut = computed(() => this.canUseZoom() && this.zoomLevel() < 2);
+  readonly canZoomIn = computed(
+    () => this.canUseZoom() && this.zoomLevel() > 0,
+  );
+  readonly canZoomOut = computed(
+    () => this.canUseZoom() && this.zoomLevel() < 2,
+  );
 
   zoomIn() {
     if (!this.canZoomIn()) return;
@@ -204,17 +245,18 @@ export class DisponibilitaPage implements OnInit {
 
   // Mese visualizzato attualmente (primo giorno del mese)
   selectedMonth = signal<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
 
   // Giorno selezionato per il box di dettaglio (default: oggi)
-  selectedDateStr = signal<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  selectedDateStr = signal<string>(new Date().toISOString().split('T')[0]);
 
   // Meteo Roma (cache)
   weatherForecast = signal<DailyWeatherForecast[]>([]);
   isLoadingWeather = signal<boolean>(false);
+
+  // Giorno attivo nel Bottom-Sheet / Modal "Storico Voti" (riservato a Mister & Presidente)
+  readonly historyModalDateStr = signal<string | null>(null);
 
   constructor() {
     addIcons({
@@ -230,6 +272,7 @@ export class DisponibilitaPage implements OnInit {
       checkmarkCircle,
       checkmarkCircleOutline,
       closeCircle,
+      closeOutline,
       logoWhatsapp,
       navigateOutline,
       locationOutline,
@@ -249,6 +292,7 @@ export class DisponibilitaPage implements OnInit {
       shieldCheckmark,
       radioButtonOff,
       lockClosedOutline,
+      lockOpenOutline,
       people,
       flash,
       addCircleOutline,
@@ -258,6 +302,8 @@ export class DisponibilitaPage implements OnInit {
       chevronDownOutline,
       chevronUpOutline,
       trashOutline,
+      listOutline,
+      trophyOutline,
     });
 
     // Flusso Auth & Atleta per Disponibilità:
@@ -275,6 +321,7 @@ export class DisponibilitaPage implements OnInit {
 
   ionViewDidLeave() {
     this.hasPromptedAuth = false;
+    this.historyModalDateStr.set(null);
   }
 
   verificaAccessoDisponibilita(): void {
@@ -290,7 +337,9 @@ export class DisponibilitaPage implements OnInit {
     const hasPlayer = this.auth.hasLinkedPlayer();
     const isSuper = this.auth.isSuperUser();
     if (!hasPlayer && !isSuper) {
-      this.richiediLoginOAtleta('Associa il tuo profilo atleta per esprimere la disponibilità.');
+      this.richiediLoginOAtleta(
+        'Associa il tuo profilo atleta per esprimere la disponibilità.',
+      );
     }
   }
 
@@ -391,7 +440,10 @@ export class DisponibilitaPage implements OnInit {
     if (this.viewMode() === 'month') {
       if (!earliest) return true;
       const curYear = this.selectedMonth().getFullYear();
-      const curMonth = String(this.selectedMonth().getMonth() + 1).padStart(2, '0');
+      const curMonth = String(this.selectedMonth().getMonth() + 1).padStart(
+        2,
+        '0',
+      );
       const curMonthKey = `${curYear}-${curMonth}`;
       const earliestMonthKey = earliest.slice(0, 7);
       return curMonthKey > earliestMonthKey;
@@ -469,7 +521,7 @@ export class DisponibilitaPage implements OnInit {
       const monthPrefix = `${currentYear}-${mStr}`;
 
       const monthMatches = allMatches.filter((p) =>
-        (p.dataPartita || '').startsWith(monthPrefix)
+        (p.dataPartita || '').startsWith(monthPrefix),
       );
       const conclusi = monthMatches.filter((p) => p.matchConcluso).length;
       const inProgramma = monthMatches.length - conclusi;
@@ -590,7 +642,7 @@ export class DisponibilitaPage implements OnInit {
     d: Date,
     isCurrentMonth: boolean,
     todayStr: string,
-    selectedStr: string
+    selectedStr: string,
   ): CalendarDayCell {
     const yearStr = d.getFullYear();
     const mmStr = String(d.getMonth() + 1).padStart(2, '0');
@@ -630,27 +682,80 @@ export class DisponibilitaPage implements OnInit {
   }
 
   /**
-   * Ordina una lista di atleti in modo rigorosamente deterministico e stabile:
-   * 1. Se l'utente loggato ha votato, compare SEMPRE per primo (indice 0).
-   * 2. Tutti gli altri compagni mantengono un ordinamento alfabetico invariabile.
-   * Questo impedisce che le icone o le card dei giorni si muovano o scambino quando l'utente vota su un giorno qualsiasi.
+   * Formatta un timestamp in "Giorno HH:mm" (es. "Lun 10:14") per la classifica del 1° voto.
    */
-  private sortPlayersDeterministic(list: Giocatore[]): Giocatore[] {
+  public formatVoteDayTime(ts?: number): string {
+    if (!ts || ts >= Number.MAX_SAFE_INTEGER) return '—';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    const dayShort = d
+      .toLocaleDateString('it-IT', { weekday: 'short' })
+      .replace('.', '');
+    const capDay = dayShort.charAt(0).toUpperCase() + dayShort.slice(1);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${capDay} ${hh}:${mm}`;
+  }
+
+  /**
+   * Formatta un timestamp in "HH:mm" (es. "14:20") per le micro-note e il log cronologico.
+   */
+  public formatVoteTimeOnly(ts?: number): string {
+    if (!ts || ts >= Number.MAX_SAFE_INTEGER) return '—';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '—';
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
+  /**
+   * Mappa i votanti ordinati per `firstVotedAt` nei profili atleta completi,
+   * preservando rigorosamente l'ordine ufficiale di priorità (#1, #2, ...).
+   */
+  private mapPrioritizedVoters(
+    daySummary?: DaySummary,
+  ): PrioritizedDayPlayer[] {
+    if (!daySummary || !daySummary.voters) return [];
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
     const currentUid = this.auth.firebaseUser()?.uid;
     const currentPid = this.auth.linkedPlayerId();
 
-    return [...list].sort((a, b) => {
-      const isAMe =
-        (currentPid && a.id === currentPid) ||
-        (currentUid && a.linkedUid === currentUid);
-      const isBMe =
-        (currentPid && b.id === currentPid) ||
-        (currentUid && b.linkedUid === currentUid);
-      if (isAMe && !isBMe) return -1;
-      if (!isAMe && isBMe) return 1;
-      const nameComp = (a.nome || '').localeCompare(b.nome || '');
-      if (nameComp !== 0) return nameComp;
-      return (a.id || '').localeCompare(b.id || '');
+    return daySummary.voters.map((v, idx) => {
+      const matched = allPlayers.find(
+        (g) =>
+          (v.playerId && g.id === v.playerId) ||
+          (g.linkedUid && g.linkedUid === v.uid),
+      );
+      const basePlayer: Giocatore =
+        matched ||
+        ({
+          id: v.playerId || v.uid,
+          nome: v.displayName || 'Atleta',
+          fotoUrl: v.photoURL || undefined,
+          gol: 0,
+          punti: 0,
+          mediaVoto: 0,
+          partiteGiocate: 0,
+        } as Giocatore);
+      const isMe = !!(
+        (currentUid && v.uid === currentUid) ||
+        (currentPid && basePlayer.id === currentPid)
+      );
+      const priorityRank = v.priorityRank || idx + 1;
+
+      return {
+        ...basePlayer,
+        priorityRank,
+        firstVotedAt: v.firstVotedAt,
+        lastActionAt: v.lastActionAt,
+        isReconfirmed: !!v.isReconfirmed,
+        isWithinCap: v.isWithinCap ?? priorityRank <= daySummary.maxCap,
+        firstVoteLabel: this.formatVoteDayTime(v.firstVotedAt),
+        firstVoteTimeOnly: this.formatVoteTimeOnly(v.firstVotedAt),
+        lastActionTimeLabel: this.formatVoteTimeOnly(v.lastActionAt),
+        isMe,
+      };
     });
   }
 
@@ -662,7 +767,11 @@ export class DisponibilitaPage implements OnInit {
     const parts = dateStr.split('-');
     if (parts.length !== 3) return null;
 
-    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    const d = new Date(
+      Number(parts[0]),
+      Number(parts[1]) - 1,
+      Number(parts[2]),
+    );
     const ddStr = String(d.getDate()).padStart(2, '0');
     const mmStr = String(d.getMonth() + 1).padStart(2, '0');
     const dayMonthKey = `${ddStr}/${mmStr}`;
@@ -680,41 +789,29 @@ export class DisponibilitaPage implements OnInit {
 
     const activeSummaries = this.availabilityService.daySummaries();
     const daySummary = activeSummaries.find((s) => s.date === dateStr);
-    const allPlayers = this.statsEngine.giocatoriRaw();
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
 
-    const availablePlayers = this.sortPlayersDeterministic(
-      (daySummary?.voters || []).map((v) => {
-        const matched = allPlayers.find(
-          (g) =>
-            (v.playerId && g.id === v.playerId) ||
-            (g.linkedUid && g.linkedUid === v.uid)
-        );
-        if (matched) return matched;
-        return {
-          id: v.playerId || v.uid,
-          nome: v.displayName || 'Atleta',
-          fotoUrl: v.photoURL || null,
-        } as Giocatore;
-      })
-    );
+    const availablePlayers = this.mapPrioritizedVoters(daySummary);
 
-    const isAvailableForMe = this.availabilityService.myVotedDates().includes(dateStr);
-    const isMaybeForMe = this.availabilityService.myMaybeDates().includes(dateStr);
-    const maybePlayers = this.sortPlayersDeterministic(
-      (daySummary?.maybeVoters || []).map((v) => {
-        const matched = allPlayers.find(
-          (g) =>
-            (v.playerId && g.id === v.playerId) ||
-            (g.linkedUid && g.linkedUid === v.uid)
-        );
-        if (matched) return matched;
-        return {
-          id: v.playerId || v.uid,
-          nome: v.displayName || 'Atleta',
-          fotoUrl: v.photoURL || null,
-        } as Giocatore;
-      })
-    );
+    const isAvailableForMe = this.availabilityService
+      .myVotedDates()
+      .includes(dateStr);
+    const isMaybeForMe = this.availabilityService
+      .myMaybeDates()
+      .includes(dateStr);
+    const maybePlayers = (daySummary?.maybeVoters || []).map((v) => {
+      const matched = allPlayers.find(
+        (g) =>
+          (v.playerId && g.id === v.playerId) ||
+          (g.linkedUid && g.linkedUid === v.uid),
+      );
+      if (matched) return matched;
+      return {
+        id: v.playerId || v.uid,
+        nome: v.displayName || 'Atleta',
+        fotoUrl: v.photoURL || null,
+      } as Giocatore;
+    });
 
     return {
       date: d,
@@ -743,7 +840,7 @@ export class DisponibilitaPage implements OnInit {
     const summaries = this.availabilityService.daySummaries();
     const myVoted = this.availabilityService.myVotedDates();
     const myMaybe = this.availabilityService.myMaybeDates();
-    const allPlayers = this.statsEngine.giocatoriRaw();
+    const allPlayers = this.statsEngine.giocatoriRaw() || [];
     const todayStr = getLocalIsoDate();
     const tomorrowDate = new Date();
     tomorrowDate.setDate(tomorrowDate.getDate() + 1);
@@ -756,37 +853,22 @@ export class DisponibilitaPage implements OnInit {
     return summaries.map((s) => {
       const weather = this.weatherMap().get(s.date);
 
-      const players = this.sortPlayersDeterministic(
-        s.voters.map((v) => {
-          const matched = allPlayers.find(
-            (g) =>
-              (v.playerId && g.id === v.playerId) ||
-              (g.linkedUid && g.linkedUid === v.uid)
-          );
-          if (matched) return matched;
-          return {
-            id: v.playerId || v.uid,
-            nome: v.displayName || 'Atleta',
-            fotoUrl: v.photoURL || null,
-          } as Giocatore;
-        })
-      );
+      // Presenti ordinati rigorosamente per `firstVotedAt` crescente (#1, #2, ...)
+      const players = this.mapPrioritizedVoters(s);
 
-      const maybePlayers = this.sortPlayersDeterministic(
-        s.maybeVoters.map((v) => {
-          const matched = allPlayers.find(
-            (g) =>
-              (v.playerId && g.id === v.playerId) ||
-              (g.linkedUid && g.linkedUid === v.uid)
-          );
-          if (matched) return matched;
-          return {
-            id: v.playerId || v.uid,
-            nome: v.displayName || 'Atleta',
-            fotoUrl: v.photoURL || null,
-          } as Giocatore;
-        })
-      );
+      const maybePlayers = s.maybeVoters.map((v) => {
+        const matched = allPlayers.find(
+          (g) =>
+            (v.playerId && g.id === v.playerId) ||
+            (g.linkedUid && g.linkedUid === v.uid),
+        );
+        if (matched) return matched;
+        return {
+          id: v.playerId || v.uid,
+          nome: v.displayName || 'Atleta',
+          fotoUrl: v.photoURL || null,
+        } as Giocatore;
+      });
 
       const isPast = s.date < todayStr;
       const isToday = s.date === todayStr;
@@ -803,14 +885,48 @@ export class DisponibilitaPage implements OnInit {
       });
       const dayLabelFull = rawFull.charAt(0).toUpperCase() + rawFull.slice(1);
 
-      const shortMonth = dateObj.toLocaleDateString('it-IT', { month: 'short' }).replace('.', '');
+      const shortMonth = dateObj
+        .toLocaleDateString('it-IT', { month: 'short' })
+        .replace('.', '');
       const shortDateLabel = `${s.dayName} ${s.dayNumber} ${shortMonth.charAt(0).toUpperCase() + shortMonth.slice(1)}`;
 
-      const quorumTarget = 10;
-      const pollPercentage = Math.min(100, Math.round((s.voterCount / quorumTarget) * 100));
+      const maxCap = s.maxCap || DEFAULT_DAY_MAX_CAP;
+      const allowEightVsEight = !!s.allowEightVsEight;
+      const isCapReached = s.voterCount >= maxCap;
+      const pollPercentage = Math.min(
+        100,
+        Math.round((s.voterCount / maxCap) * 100),
+      );
 
       const avatarSlice = players.slice(0, 4);
       const extraCount = Math.max(0, s.voterCount - avatarSlice.length);
+
+      // Indicatore testuale intelligente sulla riga chiusa (ZERO bottoni extra):
+      // Es: "6/14 presenti", "12/14 • QUORUM", "14/14 • COMPLETO", "15/16 • 8vs8", "16/16 • COMPLETO"
+      let closedStatusBadgeText = `${s.voterCount}/${maxCap} presenti`;
+      if (isCapReached) {
+        closedStatusBadgeText = `${s.voterCount}/${maxCap} • COMPLETO`;
+      } else if (allowEightVsEight && s.voterCount >= 10) {
+        closedStatusBadgeText = `${s.voterCount}/${maxCap} • 8vs8`;
+      } else if (s.hasQuorum) {
+        closedStatusBadgeText = `${s.voterCount}/${maxCap} • QUORUM`;
+      }
+
+      const formattedHistory: FormattedVoteHistoryItem[] = (
+        s.voteHistory || []
+      ).map((h) => {
+        const badgeType: 'join' | 'leave' | 'rejoin' =
+          h.action === 'out' ? 'leave' : h.isRejoin ? 'rejoin' : 'join';
+        return {
+          ...h,
+          timeLabel: this.formatVoteTimeOnly(h.timestamp),
+          dayTimeLabel: this.formatVoteDayTime(h.timestamp),
+          firstVoteTimeLabel: this.formatVoteTimeOnly(
+            h.firstVotedAt || h.timestamp,
+          ),
+          badgeType,
+        };
+      });
 
       return {
         dateStr: s.date,
@@ -838,13 +954,32 @@ export class DisponibilitaPage implements OnInit {
         isTopVoted,
         players,
         maybePlayers,
+        maxCap,
+        allowEightVsEight,
+        isCapReached,
+        remainingSlots: s.remainingSlots,
+        closedStatusBadgeText,
+        voteHistory: s.voteHistory || [],
+        formattedHistory,
+        historyCount: (s.voteHistory || []).length,
       };
     });
   });
 
+  /** Giorno attualmente visualizzato nel Bottom-Sheet / Modal "Storico Voti" (Solo Mister & Presidente) */
+  readonly activeHistoryDay = computed(() => {
+    const dateStr = this.historyModalDateStr();
+    if (!dateStr || !this.auth.isSuperUser()) return null;
+    return (
+      this.activeWeekDaysList().find((d) => d.dateStr === dateStr) || null
+    );
+  });
+
   /** Giorni della settimana attiva che hanno raggiunto il quorum (>= 10 voti) per la creazione partita da parte del Mister */
   readonly daysWithQuorum = computed(() => {
-    return this.activeWeekDaysList().filter((d) => d.isQuorumReached && !d.isPast);
+    return this.activeWeekDaysList().filter(
+      (d) => d.isQuorumReached && !d.isPast,
+    );
   });
 
   /** Giorno attualmente in focus nella striscia settimanale */
@@ -856,7 +991,6 @@ export class DisponibilitaPage implements OnInit {
       const found = days.find((d) => d.dateStr === selected);
       if (found) return found;
     }
-    // Default: il giorno più votato futuro, oppure oggi, oppure il primo giorno non passato
     const nonPast = days.filter((d) => !d.isPast);
     if (nonPast.length > 0) {
       const top = nonPast.find((d) => d.isTopVoted);
@@ -879,6 +1013,58 @@ export class DisponibilitaPage implements OnInit {
     this.expandedDay.set(current === dateStr ? null : dateStr);
   }
 
+  /**
+   * Toggle Sblocco 16 posti (8vs8) / Limita a 14 (7vs7) per un giorno specifico.
+   * Visibile e azionabile esclusivamente da Mister e Presidente dentro l'accordion espanso.
+   */
+  async toggleCapGiorno(dateStr: string, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.auth.isSuperUser()) return;
+
+    try {
+      const isExtended =
+        await this.availabilityService.toggleDayEightVsEight(dateStr);
+      const toast = await this.toastCtrl.create({
+        message: isExtended
+          ? `🔓 Sbloccati ${EXTENDED_DAY_MAX_CAP} posti (8vs8) per questo giorno!`
+          : `🔒 Limite riportato a ${DEFAULT_DAY_MAX_CAP} posti (7vs7 standard).`,
+        duration: 2400,
+        color: isExtended ? 'success' : 'medium',
+        position: 'top',
+      });
+      await toast.present();
+    } catch (e: any) {
+      const toast = await this.toastCtrl.create({
+        message: e?.message || 'Errore nella modifica del CAP giocatori',
+        duration: 3000,
+        color: 'danger',
+        position: 'top',
+      });
+      await toast.present();
+    }
+  }
+
+  /**
+   * Apre il Bottom-Sheet / Modal leggero con la Classifica Priorità (1° Voto) e l'Audit Log completo del giorno.
+   * Riservato esclusivamente a Mister e Presidente.
+   */
+  apriHistoryModal(dateStr: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (!this.auth.isSuperUser()) return;
+    this.historyModalDateStr.set(dateStr);
+  }
+
+  chiudiHistoryModal(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.historyModalDateStr.set(null);
+  }
+
   /** Mostra elenco convocati in un alert dialog compatto e leggibile */
   async apriDettaglioVotanti(day: any, event?: Event): Promise<void> {
     if (event) {
@@ -887,17 +1073,18 @@ export class DisponibilitaPage implements OnInit {
     if (!day.players || day.players.length === 0) return;
 
     const namesList = day.players
-      .map((p: Giocatore, idx: number) => `<b>${idx + 1}.</b> ${p.nome}`)
+      .map(
+        (p: PrioritizedDayPlayer, idx: number) =>
+          `<b>#${p.priorityRank || idx + 1}</b> ${p.nome} <small>(${p.firstVoteLabel})</small>`,
+      )
       .join('<br>');
     const quorumMsg = day.isQuorumReached
-      ? '<br><br><span style="color:#10b981;font-weight:bold;">🟢 Quorum raggiunto (' +
-        day.count +
-        '/10)</span>'
+      ? `<br><br><span style="color:#10b981;font-weight:bold;">🟢 ${day.closedStatusBadgeText}</span>`
       : `<br><br><span style="color:#94a3b8;">Mancano ${day.missingToQuorum} atleti al quorum</span>`;
 
     const alert = await this.alertCtrl.create({
       header: day.dayLabelFull,
-      subHeader: `${day.count} presenze confermate`,
+      subHeader: `${day.count}/${day.maxCap} presenze confermate`,
       message: `${namesList}${quorumMsg}`,
       buttons: ['Chiudi'],
       cssClass: 'voters-detail-alert',
@@ -933,12 +1120,16 @@ export class DisponibilitaPage implements OnInit {
       return {
         label: topDays[0].dayLabel,
         count: topDays[0].count,
+        maxCap: topDays[0].maxCap,
+        isCapReached: topDays[0].isCapReached,
         hasQuorum: topDays[0].isQuorumReached,
       };
     }
     return {
       label: topDays.map((d) => d.dayLabel).join(' e '),
       count: maxVotes,
+      maxCap: topDays[0].maxCap,
+      isCapReached: topDays.some((d) => d.isCapReached),
       hasQuorum: topDays.some((d) => d.isQuorumReached),
     };
   });
@@ -949,8 +1140,9 @@ export class DisponibilitaPage implements OnInit {
     try {
       await this.availabilityService.simulaVotiCompagniDev();
       const t = await this.toastCtrl.create({
-        message: '⚡ Voti compagni simulati con successo (numeri diversi per giorno)!',
-        duration: 2500,
+        message:
+          '⚡ Voti compagni simulati (Mercoledì 14/14 COMPLETO + Storico 1° voto attivo)!',
+        duration: 2600,
         color: 'success',
         position: 'top',
       });
@@ -985,7 +1177,8 @@ export class DisponibilitaPage implements OnInit {
     try {
       await this.availabilityService.cancellaTuttiIVotiDev();
       const t = await this.toastCtrl.create({
-        message: '🗑️ Tutti i voti della settimana sono stati azzerati (0 presenze).',
+        message:
+          '🗑️ Tutti i voti della settimana sono stati azzerati (0 presenze).',
         duration: 2500,
         color: 'warning',
         position: 'top',
@@ -1006,14 +1199,17 @@ export class DisponibilitaPage implements OnInit {
   async mostraInfoMeteo(
     weather?: DailyWeatherForecast,
     dayLabel?: string,
-    event?: Event
+    event?: Event,
   ): Promise<void> {
     if (event) {
       event.stopPropagation();
     }
     if (!weather) return;
 
-    const safeEmoji = (weather.iconEmoji && !weather.iconEmoji.includes('🌫')) ? weather.iconEmoji : '🌁';
+    const safeEmoji =
+      weather.iconEmoji && !weather.iconEmoji.includes('🌫')
+        ? weather.iconEmoji
+        : '🌁';
     const toast = await this.toastCtrl.create({
       header: `Meteo ${dayLabel ? dayLabel : ''} ${safeEmoji}`,
       message: `${weather.conditionDescription} • Max ${weather.tempMax}°C / Min ${weather.tempMin}°C • 💧 Rischio Pioggia: ${weather.rainProbability}%`,
@@ -1055,13 +1251,17 @@ export class DisponibilitaPage implements OnInit {
   async toggleVotoGiorno(dateStr: string, type: 'yes' | 'maybe' = 'yes') {
     if (!this.auth.isLoggedIn()) {
       this.hasPromptedAuth = false;
-      await this.richiediLoginOAtleta('Accedi per esprimere le tue disponibilità.');
+      await this.richiediLoginOAtleta(
+        'Accedi per esprimere le tue disponibilità.',
+      );
       return;
     }
 
     if (!this.auth.hasLinkedPlayer() && !this.auth.isSuperUser()) {
       this.hasPromptedAuth = false;
-      await this.richiediLoginOAtleta('Associa il tuo profilo atleta per esprimere la disponibilità.');
+      await this.richiediLoginOAtleta(
+        'Associa il tuo profilo atleta per esprimere la disponibilità.',
+      );
       return;
     }
 
@@ -1069,9 +1269,10 @@ export class DisponibilitaPage implements OnInit {
       await this.availabilityService.toggleDayVote(dateStr, type);
     } catch (e: any) {
       const t = await this.toastCtrl.create({
-        message: e.message || 'Errore durante il salvataggio della disponibilità',
-        duration: 3000,
-        color: 'danger',
+        message:
+          e.message || 'Errore durante il salvataggio della disponibilità',
+        duration: 3200,
+        color: 'warning',
         position: 'top',
       });
       await t.present();
@@ -1083,7 +1284,7 @@ export class DisponibilitaPage implements OnInit {
     if (!this.auth.isSuperUser()) return;
 
     const activeSummaries = this.availabilityService.daySummaries();
-    let day: DaySummary = activeSummaries.find((d) => d.date === dateStr) || {
+    const day: DaySummary = activeSummaries.find((d) => d.date === dateStr) || {
       date: dateStr,
       dayName: 'Lun',
       dayNumber: new Date(dateStr).getDate(),
@@ -1098,6 +1299,11 @@ export class DisponibilitaPage implements OnInit {
       },
       hasQuorum: false,
       missingForQuorum: 10,
+      allowEightVsEight: false,
+      maxCap: DEFAULT_DAY_MAX_CAP,
+      isCapReached: false,
+      remainingSlots: DEFAULT_DAY_MAX_CAP,
+      voteHistory: [],
     };
 
     const count = day.voterCount || 0;
@@ -1109,14 +1315,14 @@ export class DisponibilitaPage implements OnInit {
         day,
         defaultCampo,
         campoMapsUrl,
-        '21:00'
+        '21:00',
       );
 
       if (newMatchId) {
         const toast = await this.toastCtrl.create({
           message:
             count > 0
-              ? `⚽ Partita avviata per ${day.date}! ${count} atleti nei convocati. Personalizza campo, maps e dettagli.`
+              ? `⚽ Partita avviata per ${day.date}! ${Math.min(count, day.maxCap)} atleti nei convocati (per ordine 1° voto).`
               : `⚽ Nuova partita avviata per ${day.date}! Scegli campo, maps e coordinate.`,
           duration: 3000,
           color: 'success',
@@ -1149,7 +1355,9 @@ export class DisponibilitaPage implements OnInit {
     const isCurrentlyActive = this.availabilityService.isSummerBreakActive();
     await this.availabilityService.toggleSummerBreak(!isCurrentlyActive);
     const t = await this.toastCtrl.create({
-      message: !isCurrentlyActive ? 'Pausa estiva attivata.' : 'Pausa estiva terminata.',
+      message: !isCurrentlyActive
+        ? 'Pausa estiva attivata.'
+        : 'Pausa estiva terminata.',
       duration: 2500,
       color: 'success',
     });
@@ -1157,7 +1365,10 @@ export class DisponibilitaPage implements OnInit {
   }
 
   getExtraPlayersTitle(players: Giocatore[]): string {
-    return players.slice(5).map((p) => p.nome).join(', ');
+    return players
+      .slice(5)
+      .map((p) => p.nome)
+      .join(', ');
   }
 
   apriPartita(matchId?: string) {

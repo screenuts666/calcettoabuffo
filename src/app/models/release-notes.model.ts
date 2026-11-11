@@ -15,6 +15,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.71",
+    "date": "11/11/2026",
+    "title": "Disponibilità: CAP 14 (7vs7), Sblocco 8vs8 (16 Posti), Priorità Immutabile 1° Voto e Storico Voti",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "CAP Giocatori 14/14 (7vs7 Standard): ogni giorno ha ora un limite standard di 14 posti (con quorum minimo sempre a 10). Al raggiungimento di 14/14 il giorno passa allo stato COMPLETO, pur consentendo a chi è già iscritto di disiscriversi per liberare il posto.",
+      "Regola d'Oro della Priorità (1° Voto Immutabile): l'ordine ufficiale dei presenti (#1, #2, ...) è determinato dal timestamp del primo voto assoluto sul giorno. Se ti togli per sbaglio e ti ri-iscrivi, mantieni la tua priorità originale.",
+      "Indicatori Stato & Chip Numerate: la riga chiusa resta pulita senza nuovi bottoni mostrando lo stato aggiornato (es. '6/14 presenti', '12/14 • QUORUM', '14/14 • COMPLETO', '15/16 • 8vs8'), mentre aprendo il giorno vedi l'ordine ufficiale (#1, #2...) sui singoli giocatori."
+    ],
+    "superUserChanges": [
+      "Toggle Sblocco 16 Posti (8vs8): aprendo l'accordion di un giorno, Mister e Presidente dispongono della micro-barra amministrativa per sbloccare all'occorrenza il 15° e 16° posto ('🔓 Sblocca 16 posti (8vs8)') o riportare il limite a 14 ('🔒 Limita a 14 (7vs7)').",
+      "Modal Storico Voti & Audit Log Completo: nuovo pulsante '🕒 Storico Voti' nell'accordion espanso (solo Mister e Presidente) che apre un Bottom-Sheet con la Classifica Priorità Ufficiale del 1° Voto (inclusa nota di eventuale riconferma) e la Cronologia Eventi completa di tutte le iscrizioni, disiscrizioni e ri-iscrizioni."
+    ]
+  },
+  {
     "version": "2.0.70",
     "date": "11/11/2026",
     "title": "Zero Scroll Orizzontale in Classifica & Partite, Campi Rapidi Fissi e Rework Step 2 Convocati a 2 Colonne",

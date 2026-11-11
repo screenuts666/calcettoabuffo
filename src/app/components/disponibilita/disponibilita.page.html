@@ -116,8 +116,10 @@
               <div class="wtc-left">
                 <ion-icon name="flame" class="fire-icon"></ion-icon>
                 <span class="wtc-text">
-                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}</strong>)
-                  @if (top.hasQuorum) {
+                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}/{{ top.maxCap }}</strong>)
+                  @if (top.isCapReached) {
+                    <span class="callout-quorum is-complete">🔒 Completo!</span>
+                  } @else if (top.hasQuorum) {
                     <span class="callout-quorum">⚽ Quorum!</span>
                   }
                 </span>
@@ -132,7 +134,7 @@
                 type="button"
                 class="btn-dev-simulate"
                 (click)="simulaVotiCompagniDev()"
-                title="Simula voti distribuiti realistici per testare quorum e pareggi"
+                title="Simula voti distribuiti realistici (con CAP 14/14 e storico 1° voto)"
               >
                 <ion-icon name="flash"></ion-icon>
                 <span>DEV: Simula Voti</span>
@@ -159,6 +161,7 @@
                 [class.is-past]="day.isPast"
                 [class.is-top-voted]="day.isTopVoted && !day.isPast"
                 [class.has-quorum]="day.isQuorumReached && !day.isPast"
+                [class.is-cap-full]="day.isCapReached && !day.isPast"
                 [class.voted-by-me]="day.isVotedByMe"
                 [class.is-expanded]="expandedDay() === day.dateStr"
                 [style.--poll-pct]="day.pollPercentage + '%'"
@@ -166,7 +169,7 @@
                 <!-- BARRA DI PROGRESSO SOTTILE IN BACKGROUND -->
                 <div class="poll-progress-bg"></div>
 
-                <!-- RIGA PRINCIPALE SUPERIORE -->
+                <!-- RIGA PRINCIPALE SUPERIORE (ZERO NUOVI BOTTONI SULLA RIGA CHIUSA) -->
                 <div class="poll-row-header">
                   <!-- AREA SINISTRA / CENTRALE: CLICCA PER APRIRE/CHIUDERE ACCORDION -->
                   <div
@@ -175,11 +178,11 @@
                     tabindex="0"
                     [attr.aria-expanded]="expandedDay() === day.dateStr"
                     [attr.aria-controls]="'poll-drawer-' + day.dateStr"
-                    [attr.aria-label]="'Dettagli disponibilità ' + day.shortDateLabel + ': ' + day.count + ' presenti'"
+                    [attr.aria-label]="'Dettagli disponibilità ' + day.shortDateLabel + ': ' + day.closedStatusBadgeText"
                     (click)="toggleAccordionDay(day.dateStr)"
                     (keydown.enter)="toggleAccordionDay(day.dateStr)"
                     (keydown.space)="toggleAccordionDay(day.dateStr); $event.preventDefault()"
-                    title="Tocca per vedere i dettagli e chi ha votato"
+                    title="Tocca per vedere l'ordine di priorità (1° voto) e i dettagli"
                   >
                     <!-- RIGA SUPERIORE: DATA, BADGE, METEO INLINE & CHEVRON -->
                     <div class="prm-top-line">
@@ -217,13 +220,13 @@
                       </div>
                     </div>
 
-                    <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + CONTATORE QUORUM + AZIONE CONTESTUALE -->
+                    <!-- RIGA INFERIORE: AVATAR STACK SOVRAPPOSTO + INDICATORE TESTUALE CAP/QUORUM -->
                     <div class="prm-bottom-line">
                       <div class="prm-voters-meta">
                         @if (day.players.length > 0) {
                           <div class="avatar-overlap-stack" aria-hidden="true">
                             @for (p of day.avatarSlice; track p.id) {
-                              <div class="stacked-avatar-item" [title]="p.nome">
+                              <div class="stacked-avatar-item" [title]="'#' + p.priorityRank + ' ' + p.nome">
                                 <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                               </div>
                             }
@@ -249,26 +252,36 @@
                               }
                             </button>
                           } @else if (day.isPast) {
-                            <span class="past-text">Chiuso ({{ day.count }})</span>
+                            <span class="past-text">Chiuso ({{ day.count }}/{{ day.maxCap }})</span>
                           } @else if (day.isQuorumReached) {
                             @if (auth.isSuperUser()) {
                               <button
                                 type="button"
                                 class="btn-quorum-create-unified"
+                                [class.is-cap-complete]="day.isCapReached"
+                                [class.is-8v8]="day.allowEightVsEight && !day.isCapReached"
                                 (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                                title="Quorum raggiunto! Clicca per creare la partita con i convocati"
-                                [attr.aria-label]="'Crea match per ' + day.shortDateLabel + ' con ' + day.count + ' presenti'"
+                                [title]="'Crea la partita ufficiale con i ' + day.count + ' presenti (' + day.closedStatusBadgeText + ')'"
+                                [attr.aria-label]="'Crea match per ' + day.shortDateLabel + ' (' + day.closedStatusBadgeText + ')'"
                               >
                                 <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
-                                <span>Crea Match ({{ day.count }})</span>
+                                <span>Crea Match • {{ day.closedStatusBadgeText }}</span>
                               </button>
                             } @else {
-                              <span class="quorum-badge-chic">Quorum ({{ day.count }}/10)</span>
+                              <span
+                                class="quorum-badge-chic"
+                                [class.is-complete]="day.isCapReached"
+                                [class.is-8v8]="day.allowEightVsEight && !day.isCapReached"
+                              >
+                                {{ day.closedStatusBadgeText }}
+                              </span>
                             }
                           } @else if (day.count > 0) {
-                            <span class="prm-count-text"><strong>{{ day.count }}/10</strong> presenti</span>
+                            <span class="prm-count-text">
+                              <strong>{{ day.count }}/{{ day.maxCap }}</strong> presenti{{ day.allowEightVsEight ? ' • 8vs8' : '' }}
+                            </span>
                           } @else {
-                            <span class="empty-voters">0 presenti</span>
+                            <span class="empty-voters">0/{{ day.maxCap }} presenti{{ day.allowEightVsEight ? ' • 8vs8' : '' }}</span>
                           }
                         </div>
                       </div>
@@ -295,13 +308,29 @@
                         type="button"
                         class="btn-whatsapp-vote-check"
                         [class.voted]="day.isVotedByMe"
+                        [class.is-cap-locked]="day.isCapReached && !day.isVotedByMe"
                         [attr.aria-pressed]="day.isVotedByMe"
-                        [attr.aria-label]="(day.isVotedByMe ? 'Rimuovi disponibilità per ' : 'Vota presenza per ') + day.shortDateLabel"
+                        [attr.aria-disabled]="day.isCapReached && !day.isVotedByMe"
+                        [attr.aria-label]="
+                          day.isVotedByMe
+                            ? 'Rimuovi disponibilità per ' + day.shortDateLabel
+                            : day.isCapReached
+                              ? 'Giorno completo (' + day.count + '/' + day.maxCap + '): iscrizioni chiuse'
+                              : 'Vota presenza per ' + day.shortDateLabel
+                        "
                         (click)="toggleVotoGiorno(day.dateStr); $event.stopPropagation()"
-                        [title]="day.isVotedByMe ? 'Ci sei (tocca per togliere)' : 'Vota presenza per questo giorno'"
+                        [title]="
+                          day.isVotedByMe
+                            ? 'Ci sei (tocca per toglierti e liberare il posto)'
+                            : day.isCapReached
+                              ? 'Giorno COMPLETO (' + day.count + '/' + day.maxCap + '). Posti esauriti!'
+                              : 'Vota presenza per questo giorno'
+                        "
                       >
                         @if (day.isVotedByMe) {
                           <ion-icon name="checkmark-circle" class="check-icon-voted" aria-hidden="true"></ion-icon>
+                        } @else if (day.isCapReached) {
+                          <ion-icon name="lock-closed-outline" class="lock-icon-cap" aria-hidden="true"></ion-icon>
                         } @else {
                           <span class="check-ring-unvoted" aria-hidden="true"></span>
                         }
@@ -316,18 +345,30 @@
                     class="poll-accordion-drawer"
                     [id]="'poll-drawer-' + day.dateStr"
                     role="region"
-                    [attr.aria-label]="'Elenco presenti ' + day.shortDateLabel"
+                    [attr.aria-label]="'Elenco presenti per priorità 1° voto ' + day.shortDateLabel"
                     (click)="$event.stopPropagation()"
                   >
-                    <!-- 1. INFO RAPIDA STATO QUORUM / METEO ESTESO (1 sola riga sottile) -->
+                    <!-- 1. INFO RAPIDA STATO QUORUM / CAP / METEO ESTESO -->
                     <div class="drawer-meta-line">
                       <span class="drawer-quorum-info">
                         @if (day.isPast) {
-                          <span class="status-past">Chiuso ({{ day.count }} voti)</span>
+                          <span class="status-past">Chiuso ({{ day.count }}/{{ day.maxCap }} voti)</span>
+                        } @else if (day.isCapReached) {
+                          <span class="status-cap-full">
+                            🔒 COMPLETO ({{ day.count }}/{{ day.maxCap }} • {{ day.allowEightVsEight ? '8vs8' : '7vs7' }})
+                          </span>
+                        } @else if (day.allowEightVsEight && day.count >= 10) {
+                          <span class="status-8v8">
+                            ✅ Quorum 8vs8 ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} posti liberi)
+                          </span>
                         } @else if (day.count >= 10) {
-                          <span class="status-quorum">✅ Quorum raggiunto {{ day.count > 10 ? '(+' + (day.count - 10) + ' riserve)' : '(10/10)' }}</span>
+                          <span class="status-quorum">
+                            ✅ Quorum raggiunto ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} posti al CAP 7vs7)
+                          </span>
                         } @else {
-                          <span class="status-missing">Mancano <strong>{{ 10 - day.count }}</strong> al quorum (10)</span>
+                          <span class="status-missing">
+                            Mancano <strong>{{ 10 - day.count }}</strong> al quorum (10) • Cap {{ day.maxCap }}
+                          </span>
                         }
                       </span>
 
@@ -338,11 +379,18 @@
                       }
                     </div>
 
-                    <!-- 2. GRIGLIA/CHIPS DEI PRESENTI (CHI HA VOTATO) -->
+                    <!-- 2. GRIGLIA/CHIPS DEI PRESENTI ORDINATI PER PRIORITÀ 1° VOTO (#1, #2, ...) -->
                     <div class="drawer-chips-wrap">
                       @if (day.players.length > 0) {
                         @for (p of day.players; track p.id) {
-                          <div class="presence-chip" [title]="p.nome">
+                          <div
+                            class="presence-chip"
+                            [class.is-me]="p.isMe"
+                            [class.is-extra-8v8]="p.priorityRank > 14 && day.allowEightVsEight"
+                            [class.is-over-cap]="p.priorityRank > day.maxCap"
+                            [title]="'#' + p.priorityRank + ' ' + p.nome + ' • 1° voto: ' + p.firstVoteLabel + (p.isReconfirmed ? ' (riconfermato ' + p.lastActionTimeLabel + ')' : '')"
+                          >
+                            <span class="chip-priority-num">#{{ p.priorityRank }}</span>
                             <div class="chip-avatar">
                               <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                             </div>
@@ -354,18 +402,51 @@
                       }
                     </div>
 
-                    <!-- 3. AZIONE CONTESTUALE MISTER (SOTTO QUORUM) -->
-                    @if (auth.isSuperUser() && !day.isPast && !day.isQuorumReached && day.matches.length === 0) {
-                      <div class="drawer-actions-row">
-                        <button
-                          type="button"
-                          class="btn-force-create-match"
-                          (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                          title="Forza apertura partita anche senza quorum"
-                        >
-                          <ion-icon name="football-outline"></ion-icon>
-                          <span>⚽ Crea comunque partita per questo giorno</span>
-                        </button>
+                    <!-- 3. MICRO-BARRA DI CONTROLLO AMMINISTRATIVA (SOLO MISTER E PRESIDENTE) -->
+                    @if (auth.isSuperUser()) {
+                      <div class="drawer-admin-bar">
+                        <div class="admin-ctrl-pills">
+                          <!-- Pill 1: Toggle Sblocco 16 posti (8vs8) / Limita a 14 (7vs7) -->
+                          <button
+                            type="button"
+                            class="admin-pill-btn cap-toggle-pill"
+                            [class.is-8v8-unlocked]="day.allowEightVsEight"
+                            (click)="toggleCapGiorno(day.dateStr, $event)"
+                            [title]="day.allowEightVsEight ? 'Riporta il limite del giorno a 14 giocatori (7vs7)' : 'Sblocca eccezionalmente 16 posti (8vs8) per questo giorno'"
+                          >
+                            <ion-icon
+                              [name]="day.allowEightVsEight ? 'lock-closed-outline' : 'lock-open-outline'"
+                              aria-hidden="true"
+                            ></ion-icon>
+                            <span>{{ day.allowEightVsEight ? '🔒 Limita a 14 (7vs7)' : '🔓 Sblocca 16 posti (8vs8)' }}</span>
+                          </button>
+
+                          <!-- Pill 2: Bottone Storico Voti (Classifica 1° Voto + Audit Log) -->
+                          <button
+                            type="button"
+                            class="admin-pill-btn history-open-pill"
+                            (click)="apriHistoryModal(day.dateStr, $event)"
+                            title="Apri Classifica Priorità (1° Voto) e Cronologia Eventi completa del giorno"
+                          >
+                            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                            <span>Storico Voti</span>
+                            @if (day.historyCount > 0) {
+                              <span class="history-pill-count">{{ day.historyCount }}</span>
+                            }
+                          </button>
+                        </div>
+
+                        @if (!day.isPast && !day.isQuorumReached && day.matches.length === 0) {
+                          <button
+                            type="button"
+                            class="btn-force-create-match"
+                            (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                            title="Forza apertura partita anche senza quorum"
+                          >
+                            <ion-icon name="football-outline"></ion-icon>
+                            <span>⚽ Crea partita</span>
+                          </button>
+                        }
                       </div>
                     }
                   </div>
@@ -546,5 +627,175 @@
         </div>
       }
     }
+  }
+
+  <!-- ====================================================================== -->
+  <!-- BOTTOM-SHEET / MODAL LEGGERO STORICO VOTI & PRIORITÀ 1° VOTO           -->
+  <!-- (ACCESSIBILE ESCLUSIVAMENTE DA MISTER E PRESIDENTE)                    -->
+  <!-- ====================================================================== -->
+  @if (auth.isSuperUser() && activeHistoryDay(); as hDay) {
+    <div
+      class="vote-history-backdrop"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Storico votazioni ' + hDay.dayLabelFull"
+      (click)="chiudiHistoryModal($event)"
+    >
+      <div class="vote-history-sheet" (click)="$event.stopPropagation()">
+        <div class="sheet-drag-handle" aria-hidden="true"></div>
+
+        <!-- HEADER DEL MODAL -->
+        <div class="vhs-header">
+          <div class="vhs-title-col">
+            <div class="vhs-title-row">
+              <ion-icon name="time-outline" class="vhs-title-icon"></ion-icon>
+              <h3 class="vhs-title">Storico Voti • {{ hDay.shortDateLabel }}</h3>
+            </div>
+            <div class="vhs-subtitle-row">
+              <span
+                class="vhs-cap-pill"
+                [class.is-full]="hDay.isCapReached"
+                [class.is-8v8]="hDay.allowEightVsEight"
+              >
+                {{ hDay.closedStatusBadgeText }}
+              </span>
+              <span class="vhs-format-hint">
+                {{ hDay.allowEightVsEight ? 'Cap Esteso 8vs8 (16 posti)' : 'Cap Standard 7vs7 (14 posti)' }}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="vhs-close-btn"
+            (click)="chiudiHistoryModal($event)"
+            aria-label="Chiudi storico voti"
+            title="Chiudi"
+          >
+            <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+          </button>
+        </div>
+
+        <!-- CONTENUTO SCROLLABILE DEL BOTTOM-SHEET -->
+        <div class="vhs-scroll-body">
+          <!-- SEZIONE 1: CLASSIFICA PRIORITÀ UFFICIALE (BASATA SUL 1° VOTO IMMUTABILE) -->
+          <div class="vhs-section">
+            <div class="vhs-section-head">
+              <div class="vhs-sec-left">
+                <ion-icon name="trophy-outline" class="sec-icon gold"></ion-icon>
+                <span class="vhs-sec-title">Classifica Priorità Ufficiale (1° Voto)</span>
+              </div>
+              <span class="vhs-sec-badge">{{ hDay.players.length }}/{{ hDay.maxCap }}</span>
+            </div>
+            <p class="vhs-sec-desc">
+              Ordine determinato dal <strong>1° voto assoluto</strong> (immutabile anche se il giocatore si toglie per errore e si ri-iscrive).
+            </p>
+
+            @if (hDay.players.length > 0) {
+              <div class="priority-rank-list">
+                @for (p of hDay.players; track p.id) {
+                  <div
+                    class="priority-rank-row"
+                    [class.is-extra-slot]="p.priorityRank > 14 && hDay.allowEightVsEight"
+                    [class.is-beyond-cap]="p.priorityRank > hDay.maxCap"
+                  >
+                    <span
+                      class="pr-rank-num"
+                      [class.top-14]="p.priorityRank <= 14"
+                      [class.slot-8v8]="p.priorityRank > 14 && p.priorityRank <= 16"
+                    >
+                      #{{ p.priorityRank }}
+                    </span>
+
+                    <div class="pr-avatar">
+                      <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
+                    </div>
+
+                    <div class="pr-info">
+                      <div class="pr-name-line">
+                        <span class="pr-name">{{ p.soprannome || p.nome }}</span>
+                        @if (p.priorityRank > 14 && p.priorityRank <= 16 && hDay.allowEightVsEight) {
+                          <span class="pr-slot-tag tag-8v8">Slot 8vs8</span>
+                        } @else if (p.priorityRank > hDay.maxCap) {
+                          <span class="pr-slot-tag tag-over">Oltre Cap</span>
+                        }
+                      </div>
+
+                      <div class="pr-time-line">
+                        <span class="pr-first-vote">1° voto: <strong>{{ p.firstVoteLabel }}</strong></span>
+                        @if (p.isReconfirmed) {
+                          <span class="pr-reconfirmed-note">
+                            (riconfermato {{ p.lastActionTimeLabel }})
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="vhs-empty-box">
+                <span>Nessun giocatore attualmente iscritto per questo giorno.</span>
+              </div>
+            }
+          </div>
+
+          <!-- SEZIONE 2: CRONOLOGIA EVENTI (AUDIT LOG COMPLETO) -->
+          <div class="vhs-section">
+            <div class="vhs-section-head">
+              <div class="vhs-sec-left">
+                <ion-icon name="list-outline" class="sec-icon cyan"></ion-icon>
+                <span class="vhs-sec-title">Cronologia Eventi (Audit Log)</span>
+              </div>
+              <span class="vhs-sec-badge">{{ hDay.formattedHistory.length }} eventi</span>
+            </div>
+
+            @if (hDay.formattedHistory.length > 0) {
+              <div class="audit-timeline-list">
+                @for (ev of hDay.formattedHistory; track ev.userId + '_' + ev.action + '_' + ev.timestamp + '_' + $index) {
+                  <div
+                    class="audit-timeline-item"
+                    [class.ev-join]="ev.badgeType === 'join'"
+                    [class.ev-leave]="ev.badgeType === 'leave'"
+                    [class.ev-rejoin]="ev.badgeType === 'rejoin'"
+                  >
+                    <span class="ev-symbol" aria-hidden="true">
+                      {{ ev.action === 'in' ? '➕' : '➖' }}
+                    </span>
+
+                    <div class="ev-body">
+                      @if (ev.badgeType === 'join') {
+                        <span class="ev-text">
+                          <strong>{{ ev.userName }}</strong> si è iscritto
+                        </span>
+                      } @else if (ev.badgeType === 'leave') {
+                        <span class="ev-text">
+                          <strong>{{ ev.userName }}</strong> ha tolto la presenza
+                        </span>
+                      } @else {
+                        <span class="ev-text">
+                          <strong>{{ ev.userName }}</strong> si è riscritto
+                          <span class="ev-priority-kept">
+                            (priorità {{ ev.firstVoteTimeLabel }} mantenuta)
+                          </span>
+                        </span>
+                      }
+                    </div>
+
+                    <span class="ev-time" [title]="ev.dayTimeLabel">
+                      {{ ev.timeLabel }}
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="vhs-empty-box">
+                <span>Nessun evento registrato nello storico di questo giorno.</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
   }
 </ion-content>
