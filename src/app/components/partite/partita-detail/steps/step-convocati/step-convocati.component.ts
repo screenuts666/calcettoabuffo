@@ -106,7 +106,7 @@ export class StepConvocatiComponent {
     Math.max(0, this.state.tutti().length - this.state.totaleConvocati())
   );
 
-  /** Badge dinamico formato partita live (es. 10 -> 5vs5, 12 -> 6vs6, 14 -> 7vs7, o avviso Numero dispari) */
+  /** Badge dinamico formato partita live (es. 10 -> 5 vs 5, 14 -> 7 vs 7, o avviso compatto Dispari: X) */
   readonly formatBadgeInfo = computed<{
     label: string;
     isOdd: boolean;
@@ -114,15 +114,14 @@ export class StepConvocatiComponent {
   }>(() => {
     const tot = this.state.totaleConvocati();
     if (tot === 0) {
-      return { label: 'Seleziona giocatori', isOdd: false, isEmpty: true };
+      return { label: '0 convocati', isOdd: false, isEmpty: true };
     }
     if (tot % 2 !== 0) {
-      return { label: `Numero dispari: ${tot}`, isOdd: true, isEmpty: false };
+      return { label: `Dispari: ${tot}`, isOdd: true, isEmpty: false };
     }
     const half = tot / 2;
-    const fmt = getMatchFormatByPlayerCount(tot);
     return {
-      label: `${fmt.label} (${half} vs ${half})`,
+      label: `${half} vs ${half}`,
       isOdd: false,
       isEmpty: false,
     };

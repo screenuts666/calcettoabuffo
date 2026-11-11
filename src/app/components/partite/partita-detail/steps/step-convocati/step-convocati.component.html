@@ -3,11 +3,11 @@
   <!-- HEADER STICKY: CONTATORE LIVE, FORMATO AUTOMATICO, INVITO & FILTRI   -->
   <!-- =================================================================== -->
   <div class="convocati-sticky-header">
-    <!-- 1. BARRA DI STATO LIVE & FORMATO AUTOMATICO -->
+    <!-- 1. BARRA DI STATO LIVE & FORMATO AUTOMATICO (SINGLE-ROW NO-WRAP) -->
     <div class="live-status-bar">
       <div class="lsb-left">
         <span class="lsb-count" role="status" aria-live="polite">
-          {{ state.totaleConvocati() }}/{{ maxCap() }} Convocati
+          {{ state.totaleConvocati() }}/{{ maxCap() }}<span class="lsb-count-word"> Convocati</span>
         </span>
         <span class="lsb-dot" aria-hidden="true">•</span>
         <span
@@ -36,7 +36,7 @@
               [name]="maxCap() === 16 ? 'lock-open-outline' : 'lock-closed-outline'"
               aria-hidden="true"
             ></ion-icon>
-            <span>{{ maxCap() === 16 ? 'Max 16 (8vs8)' : 'Max 14' }}</span>
+            <span>{{ maxCap() === 16 ? 'Max 16' : 'Max 14' }}</span>
           </button>
         }
       </div>
@@ -73,7 +73,7 @@
                 isMyPlayerConvocato()
                   ? 'Ci sono'
                   : isCapReached()
-                    ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
+                    ? 'Completo'
                     : 'Ci sono'
               }}
             </span>

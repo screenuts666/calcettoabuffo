@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.0.78",
+    "date": "11/11/2026",
+    "title": "UI Step Convocati: Layout su Riga Singola & Zero Wrap su Mobile",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Barra Convocati Perfettamente Allineata: il contatore dei convocati e il pulsante della propria presenza 'Ci sono'/'Completo' sono ora perfettamente compattati su singola riga orizzontale anche sugli smartphone più stretti, eliminando ogni sgradevole a capo.",
+      "Etichette Più Chiare e Immediate: il badge del formato e della presenza mostra informazioni concise ed eleganti senza sovrapposizioni visive."
+    ],
+    "superUserChanges": [
+      "No-Wrap & Compattazione Flexbox su Barra di Stato: impostato flex-wrap: nowrap con gestione media query e padding mirati per contatore, badge formato, toggle 'Max 14'/'Max 16', 'Top 14'/'Top 16' e 'Ci sono'.",
+      "Ripulitura SCSS & Ottimizzazione Bundle: eliminato blocco ridondante di regole CSS in step-convocati.component.scss con build di produzione verificata a zero errori."
+    ]
+  },
+  {
     "version": "2.0.77",
     "date": "11/11/2026",
     "title": "Fix Convocati: Riconoscimento Certo Presenza 'Ci sono' & Sincronizzazione CAP",
