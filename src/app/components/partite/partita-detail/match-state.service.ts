@@ -1316,7 +1316,31 @@ export class MatchStateService {
           .trim()
       : null;
     const user = this.auth.firebaseUser();
-    const playerId = this.auth.linkedPlayerId();
+    let playerId = this.auth.linkedPlayerId();
+
+    if (!playerId && user) {
+      const found = this.tutti().find(
+        (g) => g.linkedUid === user.uid || (g as any).uid === user.uid,
+      );
+      if (found) {
+        playerId = found.id;
+      } else {
+        const dName = this.auth.displayName()?.toLowerCase().trim();
+        if (
+          dName &&
+          dName !== 'tifoso' &&
+          dName !== 'utente' &&
+          dName !== 'mister'
+        ) {
+          const byName = this.tutti().find(
+            (g) =>
+              g.nome?.toLowerCase().trim() === dName ||
+              g.soprannome?.toLowerCase().trim() === dName,
+          );
+          if (byName) playerId = byName.id;
+        }
+      }
+    }
 
     if (
       !mId ||
@@ -1365,12 +1389,28 @@ export class MatchStateService {
       ),
     );
 
-    const updatedConvocati = this.convocati();
+    const cleanConvocati = this.convocati().map((g) => ({
+      id: g.id,
+      nome: g.nome || 'Giocatore',
+      soprannome: g.soprannome || null,
+      fotoUrl: g.fotoUrl || null,
+      ruoloPreferito: (g.ruoloPreferito as string) || null,
+      piedePreferito: (g.piedePreferito as string) || null,
+      annoNascita: g.annoNascita || null,
+      selezionato: true,
+      selfRegistered: Boolean(g.selfRegistered),
+      source: g.source || (g.selfRegistered ? 'self' : 'mister'),
+      rsvpStatus: g.rsvpStatus || 'yes',
+    }));
 
     await updateDoc(doc(this.firestore, `partite/${mId}`), {
-      [`rsvp.${user.uid}`]: entry,
-      convocati: updatedConvocati,
+      [`rsvp.${user.uid}`]: sanitizeForFirestore(entry),
+      convocati: sanitizeForFirestore(cleanConvocati),
     });
+
+    if (this.auth.isSuperUser()) {
+      this.salvaSnapshotLocale();
+    }
   }
 
   fermaAscolto() {

@@ -158,20 +158,84 @@ export class StepConvocatiComponent {
     return r.slice(0, 3);
   }
 
+  /** Giocatore della rosa associato all'utente loggato (per ID, linkedUid o nome profilo) */
+  readonly myPlayer = computed<ConvocatoState | null>(() => {
+    const pid = this.auth.linkedPlayerId();
+    const uid = this.auth.firebaseUser()?.uid;
+    const list = this.state.tutti();
+
+    if (pid) {
+      const byId = list.find((g) => g.id === pid);
+      if (byId) return byId;
+    }
+    if (uid) {
+      const byUid = list.find(
+        (g) => g.linkedUid === uid || (g as any).uid === uid,
+      );
+      if (byUid) return byUid;
+    }
+    const dName = this.auth.displayName()?.toLowerCase().trim();
+    if (
+      dName &&
+      dName !== 'tifoso' &&
+      dName !== 'utente' &&
+      dName !== 'mister'
+    ) {
+      const byName = list.find(
+        (g) =>
+          g.nome?.toLowerCase().trim() === dName ||
+          g.soprannome?.toLowerCase().trim() === dName,
+      );
+      if (byName) return byName;
+    }
+    return null;
+  });
+
+  /** Verifica infallibile se il giocatore dell'utente corrente è già tra i convocati della partita */
+  readonly isMyPlayerConvocato = computed<boolean>(() => {
+    const p = this.myPlayer();
+    if (p) {
+      return Boolean(p.selezionato);
+    }
+    const pid = this.auth.linkedPlayerId();
+    const uid = this.auth.firebaseUser()?.uid;
+    const convocati = this.state.convocati();
+    return convocati.some(
+      (c) =>
+        (pid && (c.id === pid || (c as any).playerId === pid)) ||
+        (uid && (c.linkedUid === uid || (c as any).uid === uid)),
+    );
+  });
+
   /** Stato RSVP attuale del giocatore loggato ('yes' | 'maybe' | 'no' | null) */
   readonly myRsvpStatus = computed<'yes' | 'maybe' | 'no' | null>(() => {
+    // 1. Se il giocatore è convocato nella partita corrente, lo stato è SEMPRE 'yes'
+    if (this.isMyPlayerConvocato()) {
+      return 'yes';
+    }
+
+    // 2. Se non è convocato, verifica se ha risposto esplicitamente 'maybe' o 'no'
+    const p = this.myPlayer();
+    if (p?.rsvpStatus === 'maybe' || p?.rsvpStatus === 'no') {
+      return p.rsvpStatus;
+    }
+
     const uid = this.auth.firebaseUser()?.uid;
     const pid = this.auth.linkedPlayerId();
     const map = this.state.rsvp() || {};
+
     if (uid && map[uid]) {
-      return normalizeRsvpStatus(map[uid].status);
+      const s = normalizeRsvpStatus(map[uid].status);
+      if (s) return s;
     }
     if (pid) {
       const byPid = Object.values(map).find((e) => e?.playerId === pid);
-      if (byPid) return normalizeRsvpStatus(byPid.status);
-      const inTutti = this.state.tutti().find((g) => g.id === pid);
-      if (inTutti?.rsvpStatus) return inTutti.rsvpStatus;
+      if (byPid) {
+        const s = normalizeRsvpStatus(byPid.status);
+        if (s) return s;
+      }
     }
+
     return null;
   });
 
@@ -341,11 +405,10 @@ export class StepConvocatiComponent {
    * Modificabile in qualsiasi momento finché la partita è nello step 'convocati'.
    */
   async toggleMioRsvp(target: 'yes' | 'no'): Promise<void> {
-    const current = this.myRsvpStatus();
-    if (current === target) {
+    if (this.isMyPlayerConvocato()) {
       await this.impostaMioRsvp('no');
     } else {
-      await this.impostaMioRsvp(target);
+      await this.impostaMioRsvp('yes');
     }
   }
 
@@ -378,7 +441,7 @@ export class StepConvocatiComponent {
     if (
       status === 'yes' &&
       this.isCapReached() &&
-      this.myRsvpStatus() !== 'yes'
+      !this.isMyPlayerConvocato()
     ) {
       const cap = this.maxCap();
       const toast = await this.toastCtrl.create({

@@ -55,22 +55,22 @@
           </button>
         }
 
-        @if (isAdmin && auth.hasLinkedPlayer()) {
+        @if (isAdmin && (auth.hasLinkedPlayer() || myPlayer())) {
           <button
             type="button"
             class="self-presence-quick-pill"
-            [class.active]="myRsvpStatus() === 'yes'"
-            [disabled]="isSavingRsvp() || (isCapReached() && myRsvpStatus() !== 'yes')"
+            [class.active]="isMyPlayerConvocato()"
+            [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
             (click)="toggleMioRsvp('yes')"
-            title="Conferma o rimuovi la tua presenza"
+            [title]="isMyPlayerConvocato() ? 'Rimuovi la tua presenza dai convocati' : (isCapReached() ? 'Partita al completo' : 'Conferma la tua presenza')"
           >
             <ion-icon
-              [name]="myRsvpStatus() === 'yes' ? 'checkmark-circle' : 'checkmark-circle-outline'"
+              [name]="isMyPlayerConvocato() ? 'checkmark-circle' : 'checkmark-circle-outline'"
               aria-hidden="true"
             ></ion-icon>
             <span>
               {{
-                myRsvpStatus() === 'yes'
+                isMyPlayerConvocato()
                   ? 'Ci sono'
                   : isCapReached()
                     ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
@@ -191,12 +191,12 @@
 
     <!-- VISTA ATLETA: BOX SCELTA PRESENZA PERSONALE -->
     @if (!isAdmin) {
-      @if (auth.hasLinkedPlayer()) {
+      @if (auth.hasLinkedPlayer() || myPlayer()) {
         <div class="clean-rsvp-box">
           <div class="crb-header">
             <span class="crb-prompt">La tua presenza:</span>
-            <span class="crb-status-pill" [class.confirmed]="myRsvpStatus() === 'yes'">
-              {{ myRsvpStatus() === 'yes' ? 'Ci sono' : 'Non confermato' }}
+            <span class="crb-status-pill" [class.confirmed]="isMyPlayerConvocato()">
+              {{ isMyPlayerConvocato() ? 'Ci sono' : (myRsvpStatus() === 'maybe' ? 'In forse' : (myRsvpStatus() === 'no' ? 'Non ci sono' : 'Non confermato')) }}
             </span>
           </div>
 
@@ -204,15 +204,15 @@
             <button
               type="button"
               class="crb-btn yes"
-              [class.active]="myRsvpStatus() === 'yes'"
-              [class.is-full]="isCapReached() && myRsvpStatus() !== 'yes'"
-              [disabled]="isSavingRsvp() || (isCapReached() && myRsvpStatus() !== 'yes')"
+              [class.active]="isMyPlayerConvocato()"
+              [class.is-full]="isCapReached() && !isMyPlayerConvocato()"
+              [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
               (click)="toggleMioRsvp('yes')"
             >
               <ion-icon name="checkmark-circle-outline"></ion-icon>
               <span>
                 {{
-                  myRsvpStatus() === 'yes'
+                  isMyPlayerConvocato()
                     ? 'Ci sono (Rimuovi)'
                     : isCapReached()
                       ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
@@ -224,7 +224,7 @@
             <button
               type="button"
               class="crb-btn no"
-              [class.active]="myRsvpStatus() === 'no'"
+              [class.active]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
               [disabled]="isSavingRsvp()"
               (click)="impostaMioRsvp('no')"
             >

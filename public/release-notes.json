@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.0.77",
+    "date": "11/11/2026",
+    "title": "Fix Convocati: Riconoscimento Certo Presenza 'Ci sono' & Sincronizzazione CAP",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Riconoscimento Presenza Reattivo & Infallibile: il pulsante 'Ci sono' rileva con precisione assoluta se il tuo giocatore è già inserito nella lista dei convocati, rimanendo sempre attivo (verde) e permettendoti di rimuoverti in ogni momento.",
+      "Prevenzione Disabilitazione Accidentale: risolto il bug per cui al raggiungimento del limite (14/14 o 16/16) il pulsante della propria presenza si disabilitava erroneamente anche se eri già convocato."
+    ],
+    "superUserChanges": [
+      "Sincronizzazione Reattiva Convocati & RSVP: introdotto il computed 'isMyPlayerConvocato' con risoluzione e fallback a più livelli (playerId, linkedUid, displayName) per garantire che lo stato del pulsante sia sempre fedele all'effettivo array dei convocati.",
+      "Sanitizzazione Payload updateDoc in submitSelfRsvp: eliminati possibili errori Firestore dovuti a campi undefined nei documenti convocati e rsvp."
+    ]
+  },
+  {
     "version": "2.0.76",
     "date": "11/11/2026",
     "title": "Convocati: CAP 14 Giocatori, Sblocco 8vs8 (16 Posti) e Pulizia Box Superiore",
