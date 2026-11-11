@@ -173,10 +173,10 @@
       height: 28px;
       padding: 0 8px;
       border-radius: 999px;
-      background: var(--app-surface-subtle);
-      border: 1px solid var(--app-card-border);
-      color: var(--app-text-secondary);
-      font-size: 11.5px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px dashed rgba(16, 185, 129, 0.45);
+      color: #34d399;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
@@ -184,14 +184,27 @@
       flex-shrink: 0;
 
       ion-icon {
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
 
       &.active {
         background: var(--app-primary, #10b981);
-        border-color: var(--app-primary, #10b981);
+        border: 1px solid var(--app-primary, #10b981);
         color: #ffffff;
         box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+
+        ion-icon {
+          color: #ffffff;
+        }
+      }
+
+      &:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        border-style: solid;
+        border-color: var(--app-card-border);
+        color: var(--app-text-muted);
+        background: var(--app-surface-subtle);
       }
 
       &:active:not(:disabled) {
@@ -778,6 +791,12 @@
         background: var(--app-primary-subtle);
         color: var(--app-primary);
         border: 1px solid var(--app-primary-border);
+      }
+
+      &.declined {
+        background: rgba(239, 68, 68, 0.14);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.35);
       }
     }
   }

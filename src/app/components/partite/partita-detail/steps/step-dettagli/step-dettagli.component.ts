@@ -247,9 +247,10 @@ export class StepDettagliComponent {
     this.isSavingRsvp.set(true);
     try {
       await this.state.submitSelfRsvp(status);
+      const nome = this.auth.displayName() || 'Te';
       const msg = status === 'yes'
-        ? 'Presenza confermata! Sei in lista convocati.'
-        : 'Presenza rimossa dai convocati.';
+        ? `⚽ ${nome} inserito tra i convocati!`
+        : `❌ ${nome} rimosso dai convocati.`;
       const toast = await this.toastCtrl.create({
         message: msg,
         duration: 2200,

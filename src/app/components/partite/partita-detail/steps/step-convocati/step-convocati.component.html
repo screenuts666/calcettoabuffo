@@ -62,19 +62,34 @@
             [class.active]="isMyPlayerConvocato()"
             [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
             (click)="toggleMioRsvp('yes')"
-            [title]="isMyPlayerConvocato() ? 'Rimuovi la tua presenza dai convocati' : (isCapReached() ? 'Partita al completo' : 'Conferma la tua presenza')"
+            [title]="
+              isMyPlayerConvocato()
+                ? ((myPlayer()?.nome || 'Sei') + ' convocato. Tocca per rimuoverti')
+                : (isCapReached() ? 'Partita al completo' : ('Aggiungi ' + (myPlayer()?.nome || 'te stesso') + ' ai convocati'))
+            "
+            [attr.aria-label]="
+              isMyPlayerConvocato()
+                ? 'Convocato. Clicca per rimuoverti'
+                : 'Convocami per questa partita'
+            "
           >
             <ion-icon
-              [name]="isMyPlayerConvocato() ? 'checkmark-circle' : 'checkmark-circle-outline'"
+              [name]="
+                isMyPlayerConvocato()
+                  ? 'checkmark-circle'
+                  : isCapReached()
+                    ? 'lock-closed-outline'
+                    : 'person-add-outline'
+              "
               aria-hidden="true"
             ></ion-icon>
             <span>
               {{
                 isMyPlayerConvocato()
-                  ? 'Ci sono'
+                  ? 'Convocato'
                   : isCapReached()
                     ? 'Completo'
-                    : 'Ci sono'
+                    : 'Convocami'
               }}
             </span>
           </button>
@@ -194,9 +209,19 @@
       @if (auth.hasLinkedPlayer() || myPlayer()) {
         <div class="clean-rsvp-box">
           <div class="crb-header">
-            <span class="crb-prompt">La tua presenza:</span>
-            <span class="crb-status-pill" [class.confirmed]="isMyPlayerConvocato()">
-              {{ isMyPlayerConvocato() ? 'Ci sono' : (myRsvpStatus() === 'maybe' ? 'In forse' : (myRsvpStatus() === 'no' ? 'Non ci sono' : 'Non confermato')) }}
+            <span class="crb-prompt">Stato Convocazione:</span>
+            <span
+              class="crb-status-pill"
+              [class.confirmed]="isMyPlayerConvocato()"
+              [class.declined]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
+            >
+              {{
+                isMyPlayerConvocato()
+                  ? '✓ Sei Convocato'
+                  : (myRsvpStatus() === 'no'
+                    ? '✕ Non disponibile'
+                    : (myRsvpStatus() === 'maybe' ? '? In forse' : 'In attesa'))
+              }}
             </span>
           </div>
 
@@ -208,15 +233,16 @@
               [class.is-full]="isCapReached() && !isMyPlayerConvocato()"
               [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
               (click)="toggleMioRsvp('yes')"
+              [title]="isMyPlayerConvocato() ? 'Sei tra i convocati. Tocca per rimuoverti' : 'Conferma la tua convocazione'"
             >
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <ion-icon [name]="isMyPlayerConvocato() ? 'checkmark-circle' : 'person-add-outline'"></ion-icon>
               <span>
                 {{
                   isMyPlayerConvocato()
-                    ? 'Ci sono (Rimuovi)'
+                    ? '✓ In Lista (Tocca per rimuoverti)'
                     : isCapReached()
-                      ? 'Completo (' + maxCap() + '/' + maxCap() + ')'
-                      : 'Ci sono'
+                      ? 'Partita al completo'
+                      : 'Partecipo'
                 }}
               </span>
             </button>
@@ -227,9 +253,10 @@
               [class.active]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
               [disabled]="isSavingRsvp()"
               (click)="impostaMioRsvp('no')"
+              title="Dichiara che non puoi giocare per questa gara"
             >
               <ion-icon name="close-circle-outline"></ion-icon>
-              <span>Non ci sono</span>
+              <span>Non posso giocare</span>
             </button>
           </div>
         </div>

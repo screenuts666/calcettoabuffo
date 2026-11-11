@@ -412,9 +412,13 @@
       @if (auth.hasLinkedPlayer()) {
         <div class="asc-rsvp-section">
           <div class="asc-rsvp-prompt">
-            <span>La tua presenza:</span>
-            <span class="asc-status-badge" [class.confirmed]="myRsvpStatus() === 'yes'">
-              {{ myRsvpStatus() === 'yes' ? 'Confermato' : 'Non confermato' }}
+            <span>La tua partecipazione:</span>
+            <span
+              class="asc-status-badge"
+              [class.confirmed]="myRsvpStatus() === 'yes'"
+              [class.declined]="myRsvpStatus() === 'no'"
+            >
+              {{ myRsvpStatus() === 'yes' ? '✓ Partecipo' : (myRsvpStatus() === 'no' ? '✕ Assente' : 'Da confermare') }}
             </span>
           </div>
 
@@ -426,8 +430,8 @@
               [disabled]="isSavingRsvp()"
               (click)="toggleMioRsvp('yes')"
             >
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono (Tocca per togliere)' : 'Ci sono' }}</span>
+              <ion-icon [name]="myRsvpStatus() === 'yes' ? 'checkmark-circle' : 'checkmark-circle-outline'"></ion-icon>
+              <span>{{ myRsvpStatus() === 'yes' ? '✓ In Lista (Tocca per togliere)' : 'Partecipo' }}</span>
             </button>
 
             <button
@@ -438,7 +442,7 @@
               (click)="impostaMioRsvp('no')"
             >
               <ion-icon name="close-circle-outline"></ion-icon>
-              <span>Non ci sono</span>
+              <span>Non posso giocare</span>
             </button>
           </div>
         </div>

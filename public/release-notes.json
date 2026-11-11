@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.79",
+    "date": "11/11/2026",
+    "title": "Rework UX Convocazioni & RSVP: Addio al Confuso 'Ci sono' in Favore di 'Convocami' / 'Convocato'",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Nuova UX Intuitiva per la Partecipazione: eliminata la formula ambigua 'Ci sono / Non ci sono'. Ora lo stato mostra chiaramente se sei '✓ Convocato' o '✕ Non disponibile'.",
+      "Pulsanti di Risposta Chiarissimi: pulsante principale 'Partecipo' (che diventa '✓ In Lista' con indicazione per rimuoverti al tocco) e pulsante 'Non posso giocare' per declinare in modo inequivocabile.",
+      "Feedback Immediato con Nome: ogni volta che confermi o ritiri la presenza, un toast con il tuo nome ti conferma l'operazione in tempo reale (es. '⚽ Jack inserito tra i convocati!')."
+    ],
+    "superUserChanges": [
+      "Pill Presenza Mister & Presidente Chiarissimo: nella barra superiore di gestione match, il vecchio pulsante ambiguo 'Ci sono' è stato sostituito da 'Convocami' (con bordo tratteggiato e icona aggiunta quando sei fuori) e 'Convocato' (in verde smeraldo pieno con checkmark quando sei dentro).",
+      "Aggiornato Widget RSVP Step 1 (Coordinate) e Step 2 (Convocati): badge di stato declinato 'Non disponibile' e feedback personalizzato agganciato al displayName del profilo autenticato."
+    ]
+  },
+  {
     "version": "2.0.78",
     "date": "11/11/2026",
     "title": "UI Step Convocati: Layout su Riga Singola & Zero Wrap su Mobile",

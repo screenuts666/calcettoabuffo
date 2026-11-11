@@ -473,10 +473,14 @@ export class StepConvocatiComponent {
     this.isSavingRsvp.set(true);
     try {
       await this.state.submitSelfRsvp(status);
+      const nome =
+        this.myPlayer()?.nome ||
+        this.auth.displayName() ||
+        'Te';
       const messages: Record<'yes' | 'maybe' | 'no', string> = {
-        yes: 'Presenza confermata! Sei in lista convocati.',
-        maybe: 'Risposta impostata su In Forse.',
-        no: 'Presenza rimossa dai convocati.',
+        yes: `⚽ ${nome} inserito tra i convocati!`,
+        maybe: `🤔 ${nome} impostato in forse.`,
+        no: `❌ ${nome} rimosso dai convocati.`,
       };
       const colors: Record<
         'yes' | 'maybe' | 'no',
