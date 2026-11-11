@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.74",
+    "date": "11/11/2026",
+    "title": "Apertura Automatica Nuovo Sondaggio dal Giorno Partita e Settimana Attiva per 2ª Partita",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Sondaggio Prossima Settimana dal Giorno Gara: dal giorno in cui è fissata la partita della settimana in corso (es. da Mercoledì in poi), la sezione Disponibilità apre automaticamente il sondaggio della prossima settimana per raccogliere con largo anticipo le nuove presenze.",
+      "Settimana Corrente Sempre Attiva (2ª Partita): la settimana in corso rimane pienamente accessibile e votabile per i giorni successivi, permettendo di organizzare e confermare una seconda partita settimanale con quorum dedicato (es. Venerdì).",
+      "Switch Rapido tra le Settimane: introdotti comodi banner contestuali per passare istantaneamente con un tocco tra il nuovo sondaggio e la settimana in corso senza perdersi nel calendario."
+    ],
+    "superUserChanges": [
+      "Creazione Multi-Match nella Stessa Settimana: rimossa la chiusura forzata della settimana alla creazione della prima partita; Mister e Presidente possono ora confermare una seconda partita settimanale da qualsiasi giorno che raggiunga il quorum.",
+      "Badge Dinamico 'Favorito 2ª Partita': se la prima gara della settimana è già programmata, il banner superiore evidenzia automaticamente il miglior giorno residuo candidato per la seconda sfida."
+    ]
+  },
+  {
     "version": "2.0.73",
     "date": "11/11/2026",
     "title": "Fix Autofill Indesiderato Credenziali nella Ricerca Partite",

@@ -252,6 +252,106 @@
   flex-direction: column;
   gap: 6px;
 
+  .week-switch-pill {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    .wsp-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.74rem;
+      min-width: 0;
+
+      .wsp-icon {
+        font-size: 1.05rem;
+        flex-shrink: 0;
+      }
+
+      .wsp-text {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        strong {
+          font-weight: 700;
+        }
+      }
+    }
+
+    .wsp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: -0.2px;
+
+      ion-icon {
+        font-size: 0.78rem;
+      }
+    }
+
+    // Modalità "settimana corrente attiva con 2ª partita"
+    &.current-week-alert {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 95, 70, 0.1));
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #ecfdf5;
+
+      .wsp-icon {
+        color: #10b981;
+      }
+
+      .wsp-badge {
+        background: rgba(16, 185, 129, 0.25);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+      }
+
+      &:hover {
+        border-color: rgba(16, 185, 129, 0.55);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(6, 95, 70, 0.16));
+      }
+    }
+
+    // Modalità "nuovo sondaggio aperto per la prossima settimana"
+    &.next-week-alert {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(30, 58, 138, 0.08));
+      border: 1px solid rgba(56, 189, 248, 0.32);
+      color: #f0f9ff;
+
+      .wsp-icon {
+        color: #38bdf8;
+      }
+
+      .wsp-badge {
+        background: rgba(56, 189, 248, 0.22);
+        color: #7dd3fc;
+        border: 1px solid rgba(56, 189, 248, 0.4);
+      }
+
+      &:hover {
+        border-color: rgba(56, 189, 248, 0.5);
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(30, 58, 138, 0.14));
+      }
+    }
+  }
+
   .week-top-callout {
     display: flex;
     align-items: center;

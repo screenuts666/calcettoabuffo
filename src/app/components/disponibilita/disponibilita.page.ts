@@ -506,6 +506,37 @@ export class DisponibilitaPage implements OnInit {
     return this.selectedMonth().getFullYear() === now.getFullYear();
   });
 
+  /** Indica se la vista è attualmente posizionata sulla settimana corrente */
+  readonly isCurrentWeekActive = computed<boolean>(() => {
+    return (
+      this.availabilityService.activeWeekKey() ===
+      this.availabilityService.currentIsoWeekKey()
+    );
+  });
+
+  /** Indica se la vista è attualmente posizionata sulla prossima settimana (nuovo sondaggio aperto) */
+  readonly isNextWeekActive = computed<boolean>(() => {
+    return (
+      this.availabilityService.activeWeekKey() ===
+      this.availabilityService.nextIsoWeekKey()
+    );
+  });
+
+  /** Verifica se la settimana corrente ha ancora attività viva (partite in corso/programmate o giorni votabili) */
+  readonly currentWeekHasPendingActivity = computed<boolean>(() => {
+    const matchesCount = this.availabilityService.currentWeekMatches().length;
+    return matchesCount > 0 || this.availabilityService.isFromMatchDayOnwardsThisWeek();
+  });
+
+  /** Verifica se nella settimana corrente ci sono giorni senza partita con voti/quorum per una 2ª partita */
+  readonly currentWeekHasSecondMatchOpportunity = computed<boolean>(() => {
+    if (!this.isCurrentWeekActive()) return false;
+    const days = this.activeWeekDaysList().filter((d) => !d.isPast);
+    const daysWithMatches = days.filter((d) => d.matches.length > 0);
+    const candidateDays = days.filter((d) => d.matches.length === 0 && d.count > 0);
+    return daysWithMatches.length >= 1 && candidateDays.length > 0;
+  });
+
   // Panoramica dei 12 mesi per la vista Anno (riservata a Mister/Presidente)
   readonly yearMonthsOverview = computed(() => {
     const currentYear = this.selectedMonth().getFullYear();
@@ -1112,12 +1143,29 @@ export class DisponibilitaPage implements OnInit {
   /** Dettaglio sintetico sul giorno più votato della settimana per evidenziarlo all'atleta */
   readonly topVotedDayInfo = computed(() => {
     const days = this.activeWeekDaysList().filter((d) => !d.isPast);
-    const maxVotes = Math.max(0, ...days.map((d) => d.count));
+    if (days.length === 0) return null;
+
+    // Se ci sono già partite fissate nella settimana, escludiamo i giorni con partita
+    // per mettere in risalto il candidato favorito per la SECONDA PARTITA
+    const hasExistingMatch = days.some((d) => d.matches.length > 0);
+    let targetDays = days;
+    let title = 'Favorito';
+
+    if (hasExistingMatch) {
+      const candidatesWithoutMatch = days.filter((d) => d.matches.length === 0);
+      if (candidatesWithoutMatch.length > 0) {
+        targetDays = candidatesWithoutMatch;
+        title = 'Favorito 2ª Partita';
+      }
+    }
+
+    const maxVotes = Math.max(0, ...targetDays.map((d) => d.count));
     if (maxVotes === 0) return null;
-    const topDays = days.filter((d) => d.count === maxVotes);
+    const topDays = targetDays.filter((d) => d.count === maxVotes);
     if (topDays.length === 0) return null;
     if (topDays.length === 1) {
       return {
+        title,
         label: topDays[0].dayLabel,
         count: topDays[0].count,
         maxCap: topDays[0].maxCap,
@@ -1126,6 +1174,7 @@ export class DisponibilitaPage implements OnInit {
       };
     }
     return {
+      title,
       label: topDays.map((d) => d.dayLabel).join(' e '),
       count: maxVotes,
       maxCap: topDays[0].maxCap,

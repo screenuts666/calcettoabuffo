@@ -110,13 +110,50 @@
       <!-- ── VISTA 1: SETTIMANA ZERO-SCROLL (STILE SONDAGGIO WHATSAPP) ── -->
       @case ('week') {
         <div class="weekly-poll-view">
+          <!-- BANNER SWITCH INTELLIGENTE SETTIMANA CORRENTE (2ª PARTITA) / PROSSIMO SONDAGGIO -->
+          @if (isNextWeekActive() && currentWeekHasPendingActivity()) {
+            <div
+              class="week-switch-pill current-week-alert"
+              (click)="availabilityService.vaiASettimanaCorrente()"
+              title="La settimana in corso ha partite o attività attiva: clicca per visualizzarla"
+            >
+              <div class="wsp-left">
+                <ion-icon name="footballOutline" class="wsp-icon"></ion-icon>
+                <span class="wsp-text">
+                  <strong>Settimana corrente attiva:</strong>
+                  @if (currentWeekHasSecondMatchOpportunity()) {
+                    giorni pronti per una 2ª partita!
+                  } @else {
+                    partite in corso o programmate
+                  }
+                </span>
+              </div>
+              <span class="wsp-badge">Vedi questa sett. <ion-icon name="chevronBack"></ion-icon></span>
+            </div>
+          } @else if (isCurrentWeekActive() && availabilityService.isFromMatchDayOnwardsThisWeek()) {
+            <div
+              class="week-switch-pill next-week-alert"
+              (click)="availabilityService.settimanaSuccessiva()"
+              title="È aperto il nuovo sondaggio per la prossima settimana: clicca per votare"
+            >
+              <div class="wsp-left">
+                <ion-icon name="sparklesOutline" class="wsp-icon"></ion-icon>
+                <span class="wsp-text">
+                  <strong>Prossimo Sondaggio aperto:</strong>
+                  vota le disponibilità per la prossima settimana!
+                </span>
+              </div>
+              <span class="wsp-badge">Vota prossima sett. <ion-icon name="chevronForward"></ion-icon></span>
+            </div>
+          }
+
           <!-- STRISCIA SOTTILE FAVORITO E SOLLECITA -->
           @if (topVotedDayInfo(); as top) {
             <div class="week-top-callout">
               <div class="wtc-left">
                 <ion-icon name="flame" class="fire-icon"></ion-icon>
                 <span class="wtc-text">
-                  Favorito: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}/{{ top.maxCap }}</strong>)
+                  {{ top.title }}: <strong>{{ top.label }}</strong> (<strong>{{ top.count }}/{{ top.maxCap }}</strong>)
                   @if (top.isCapReached) {
                     <span class="callout-quorum is-complete">🔒 Completo!</span>
                   } @else if (top.hasQuorum) {

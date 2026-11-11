@@ -359,6 +359,45 @@ export class AvailabilityService {
     return this.getIsoWeekKey(new Date());
   });
 
+  /** Chiave settimana ISO della prossima settimana */
+  readonly nextIsoWeekKey = computed<string>(() => {
+    const now = new Date();
+    const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return this.getIsoWeekKey(nextWeekDate);
+  });
+
+  /** Partite registrate nella settimana corrente di oggi */
+  readonly currentWeekMatches = computed<Partita[]>(() => {
+    const currentWeekKey = this.currentIsoWeekKey();
+    const partite = this.statsEngine.partiteRaw?.() || [];
+    return partite.filter((m) => {
+      if (!m.dataPartita) return false;
+      const mDate = new Date(m.dataPartita);
+      return (
+        !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey
+      );
+    });
+  });
+
+  /** Data della prima partita nella settimana corrente (se presente) */
+  readonly firstMatchDateThisWeek = computed<string | null>(() => {
+    const matches = this.currentWeekMatches();
+    if (matches.length === 0) return null;
+    const sorted = matches
+      .map((m) => (m.dataPartita || '').split('T')[0])
+      .filter(Boolean)
+      .sort();
+    return sorted.length > 0 ? sorted[0] : null;
+  });
+
+  /** Vero se siamo dal giorno della prima partita in poi nella settimana corrente */
+  readonly isFromMatchDayOnwardsThisWeek = computed<boolean>(() => {
+    const firstMatch = this.firstMatchDateThisWeek();
+    if (!firstMatch) return false;
+    const todayStr = getLocalIsoDate(new Date());
+    return todayStr >= firstMatch;
+  });
+
   /** Data della prima partita registrata nel sistema (per non navigare mai più indietro della storia reale nelle viste Mese/Anno) */
   readonly earliestMatchDate = computed<string | null>(() => {
     const partite = this.statsEngine.partiteRaw() || [];
@@ -460,28 +499,44 @@ export class AvailabilityService {
 
   /**
    * Calcola la settimana di default:
-   * Solo se siamo nel weekend (Sabato o Domenica) o se la gara settimanale è già stata giocata e conclusa,
-   * passa automaticamente alla settimana successiva per raccogliere i nuovi voti.
-   * Durante la settimana in corso (Lun-Ven prima della gara) rimane sempre sulla settimana corrente di OGGI.
+   * Dal giorno della prima partita della settimana in poi (o nel weekend),
+   * apre automaticamente il sondaggio della prossima settimana per raccogliere i nuovi voti.
+   * La settimana corrente rimane comunque attiva e accessibile per eventuali seconde partite o voti residui.
    */
   calculateDefaultWeekKey(): string {
     const now = new Date();
     const currentWeekKey = this.getIsoWeekKey(now);
+    const todayStr = getLocalIsoDate(now);
 
     const partite = this.statsEngine.partiteRaw?.() || [];
-    const hasConcludedMatchThisWeek = partite.some((m) => {
-      if (!m.dataPartita || !m.matchConcluso) return false;
+
+    // Partite registrate nella settimana corrente (in programma o concluse)
+    const currentWeekMatches = partite.filter((m) => {
+      if (!m.dataPartita) return false;
       const mDate = new Date(m.dataPartita);
       return (
         !isNaN(mDate.getTime()) && this.getIsoWeekKey(mDate) === currentWeekKey
       );
     });
 
+    // Dal giorno della partita in poi:
+    // Se c'è almeno una partita questa settimana e oggi è >= alla data della prima partita,
+    // si apre automaticamente il prossimo sondaggio (settimana successiva).
+    let isFromMatchDayOnwards = false;
+    if (currentWeekMatches.length > 0) {
+      const matchDates = currentWeekMatches
+        .map((m) => (m.dataPartita || '').split('T')[0])
+        .filter(Boolean)
+        .sort();
+      if (matchDates.length > 0 && todayStr >= matchDates[0]) {
+        isFromMatchDayOnwards = true;
+      }
+    }
+
     const dayOfWeek = now.getDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sabato o Domenica
-    const isLateWeekDone = dayOfWeek >= 5 && hasConcludedMatchThisWeek;
 
-    if (isWeekend || isLateWeekDone) {
+    if (isWeekend || isFromMatchDayOnwards) {
       const nextWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       return this.getIsoWeekKey(nextWeekDate);
     }
@@ -1240,12 +1295,11 @@ export class AvailabilityService {
     // Salva partita in Firestore
     await setDoc(matchDocRef, nuovaPartita);
 
-    // Blocca e finalizza la settimana in weekly_availability
+    // Aggiorna la settimana in weekly_availability (mantenendo attivi i giorni residui per eventuali seconde partite)
     const weekDocRef = doc(this.firestore, `weekly_availability/${weekKey}`);
     await setDoc(
       weekDocRef,
       {
-        isLocked: true,
         confirmedMatchId: matchId,
         confirmedDate: day.date,
         updatedAt: new Date().toISOString(),
