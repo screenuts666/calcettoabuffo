@@ -663,6 +663,7 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
   }
 
   async ripristinaDefaultAudio() {
+    if (!this.authService.isAdmin()) return;
     await this.soundSettings.resetToDefaults();
     await this.mostraToast('🔄 Impostazioni audio ripristinate ai valori di fabbrica', 'success');
   }
@@ -741,6 +742,7 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
   }
 
   apriAreaSegreta() {
+    if (!this.authService.isSuperUser()) return;
     this.chiudi();
     setTimeout(() => {
       this.router.navigate(['/area-segreta']);
@@ -765,6 +767,7 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
   }
 
   async salvaBackupSuGoogleDrive() {
+    if (!this.authService.isSuperUser()) return;
     this.isSavingToDrive.set(true);
     try {
       const res = await this.backupRestore.uploadBackupToGoogleDrive();
@@ -794,6 +797,7 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
   }
 
   async scaricaBackupDatabase() {
+    if (!this.authService.isSuperUser()) return;
     this.isExportingBackup.set(true);
     try {
       const res = await this.backupRestore.exportDatabaseSnapshot();

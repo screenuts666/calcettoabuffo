@@ -192,6 +192,10 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       const rawId = params.get('id');
       const routeId = rawId ? rawId.replace(/[^a-zA-Z0-9_-]/g, '').trim() : '';
       if (!routeId || routeId === 'nuova') {
+        if (!this.isAdmin) {
+          await this.router.navigate(['/partite']);
+          return;
+        }
         await this.initNuovaPartita();
       } else {
         await this.caricaPartitaDaFirestore(routeId);

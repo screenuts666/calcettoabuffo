@@ -44,6 +44,7 @@ import {
   seasonToDocId,
   docIdToSeason,
 } from '../models/season-config.model';
+import { AuthService } from './auth.service';
 
 export const BASE_INITIAL_MMR = 1000;
 export const K_FACTOR = 28;
@@ -62,6 +63,7 @@ export const MIN_MATCHES_CHEMISTRY = 2;
 })
 export class StatsEngineService {
   private firestore: Firestore | null = null;
+  private auth = inject(AuthService, { optional: true });
 
   // Dati reattivi da Firestore (attivi nel contesto Angular con injection)
   readonly giocatoriRaw: Signal<Giocatore[]>;
@@ -236,6 +238,10 @@ export class StatsEngineService {
 
   async saveSeasonConfig(config: SeasonEngineConfig): Promise<void> {
     if (!this.firestore) return;
+    if (this.auth && !this.auth.isSuperUser()) {
+      console.warn('Azione non autorizzata: solo Mister o Presidente possono modificare i parametri di stagione.');
+      return;
+    }
     const docId = seasonToDocId(config.seasonId);
     const payload: SeasonEngineConfig = {
       ...config,

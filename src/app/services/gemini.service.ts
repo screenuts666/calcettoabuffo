@@ -19,6 +19,7 @@ import {
   buildConfrontoVerdettoPrompts,
   buildPlayerScoutingPrompts,
 } from './ai/gemini-prompts';
+import { AuthService } from './auth.service';
 
 export interface AiConfig {
   geminiApiKey: string;
@@ -31,6 +32,7 @@ export interface AiConfig {
 })
 export class GeminiService {
   private firestore = inject(Firestore);
+  private auth = inject(AuthService, { optional: true });
 
   // Cache in-memory della configurazione AI e della chiave API per evitare letture ripetute su Firestore
   private cachedApiKey: string | null = null;
@@ -327,6 +329,9 @@ export class GeminiService {
     if (!forceRegenerate && partita.pronosticoAi) {
       return partita.pronosticoAi;
     }
+    if (this.auth && !this.auth.isSuperUser()) {
+      return partita.pronosticoAi || 'Pronostico riservato al Mister.';
+    }
 
     const { systemPrompt, userPrompt } = buildPronosticoPrompts(
       partita,
@@ -367,6 +372,9 @@ export class GeminiService {
   ): Promise<string> {
     if (!forceRegenerate && partita.cronacaAi) {
       return partita.cronacaAi;
+    }
+    if (this.auth && !this.auth.isSuperUser()) {
+      return partita.cronacaAi || 'Cronaca post-partita riservata al Mister.';
     }
 
     const { systemPrompt, userPrompt } = buildCronacaPrompts(
@@ -459,6 +467,10 @@ export class GeminiService {
       }
     }
 
+    if (this.auth && !this.auth.isSuperUser()) {
+      return 'Verdetto AI riservato alla consultazione. Solo Mister o Presidente possono generare o rigenerare verdetti.';
+    }
+
     const { systemPrompt, userPrompt } = buildConfrontoVerdettoPrompts(
       comp.playerA,
       comp.playerB,
@@ -510,6 +522,12 @@ export class GeminiService {
     ) {
       return {
         scouting: giocatore.scoutingReportAi,
+      };
+    }
+
+    if (this.auth && !this.auth.isSuperUser()) {
+      return {
+        scouting: giocatore.scoutingReportAi || 'Nessuna scheda scouting redatta per questo giocatore.',
       };
     }
 

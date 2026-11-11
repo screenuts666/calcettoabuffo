@@ -420,6 +420,7 @@ export class RosaPage {
   }
 
   creaNuovoGiocatore() {
+    if (!this.isAdmin) return;
     this.router.navigate(['/giocatori', 'nuovo']);
   }
 
@@ -431,6 +432,7 @@ export class RosaPage {
 
   modificaGiocatore(g: Giocatore, event?: Event) {
     event?.stopPropagation();
+    if (!this.canEditPlayer(g.id)) return;
     this.router.navigate(['/giocatori', g.id, 'modifica']);
   }
 

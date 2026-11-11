@@ -15,6 +15,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.75",
+    "date": "11/11/2026",
+    "title": "Blindatura Completa RBAC a 4 Livelli (Sicurezza & Permessi Utente)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Massima Protezione Dati & Privacy: blindati tutti i flussi dell'app per garantire che ciascun giocatore possa votare o modificare esclusivamente i propri dati personali e la propria presenza, senza alcuna interferenza esterna.",
+      "Visualizzazione Sola Lettura Pulita: le sezioni di gestione avanzata di partite, squadre e tabellone live si adattano automaticamente per mostrare ad atleti e tifosi una schermata di consultazione chiara, elegante e priva di comandi non pertinenti.",
+      "Verdetti 1v1 e Scouting AI Affidabili: le analisi dei duelli e le schede scouting rimangono sempre leggibili e ascoltabili con audio vocale, protette da rigenerazioni involontarie."
+    ],
+    "superUserChanges": [
+      "Blindatura RBAC a 4 Livelli (Template, TypeScript, Route Guards & Firestore): implementata difesa in profondità su tutte le funzionalità di Mister e Presidente (gestione coordinate, bilanciamento MMR squadre, marcatori live, rotazione portieri, archiviazione e backup).",
+      "Pannelli e Strumenti DEV Esclusivi per Presidente: il simulatore voti compagni, il reset rapido dei voti e i comandi pausa/avanzamento rapido del timer in diretta sono ora riservati unicamente al Presidente in ambiente DEV (mai visibili o eseguibili da atleti, tifosi o in produzione).",
+      "Hardening Metodi nei Servizi Core: controlli di autorizzazione espliciti aggiunti in MatchStateService, AvailabilityService, GeminiService, StatsEngineService e BackupRestoreService per prevenire qualsiasi invocazione o bypass lato console."
+    ]
+  },
+  {
     "version": "2.0.74",
     "date": "11/11/2026",
     "title": "Apertura Automatica Nuovo Sondaggio dal Giorno Partita e Settimana Attiva per 2ª Partita",

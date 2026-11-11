@@ -25,7 +25,7 @@
       </div>
 
       <div class="lsb-right">
-        @if (isAdmin && isDev) {
+        @if (isAdmin) {
           <button
             type="button"
             class="dev-mini-pill"
@@ -116,15 +116,17 @@
                 {{ getMaybeNamesShort() }}
               </span>
             </div>
-            <button
-              type="button"
-              class="btn-solicita-wa"
-              (click)="sollecitaForseWhatsApp()"
-              title="Sollecita su WhatsApp"
-            >
-              <ion-icon name="logo-whatsapp"></ion-icon>
-              <span>Sollecita</span>
-            </button>
+            @if (isAdmin) {
+              <button
+                type="button"
+                class="btn-solicita-wa"
+                (click)="sollecitaForseWhatsApp()"
+                title="Sollecita su WhatsApp (Mister & Presidente)"
+              >
+                <ion-icon name="logo-whatsapp"></ion-icon>
+                <span>Sollecita</span>
+              </button>
+            }
           </div>
         }
       </div>

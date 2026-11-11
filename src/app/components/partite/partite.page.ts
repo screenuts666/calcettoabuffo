@@ -1431,6 +1431,8 @@ export class PartitePage {
   }
 
   async apriPartita(partita?: any) {
+    if (!partita && !this.isAdmin) return;
+
     if (!partita && this.stagioneSelezionata() === this.PREVIOUS_SEASON) {
       const alert = await this.alertController.create({
         header: 'Stagione Conclusa',

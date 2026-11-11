@@ -77,6 +77,8 @@ import { Giocatore } from 'src/app/models/giocatore.model';
 import { formatAiMarkdown } from 'src/app/utils/ai-format.utils';
 import { AiTtsButtonComponent } from '../ai-tts-button/ai-tts-button.component';
 
+import { AuthService } from 'src/app/services/auth.service';
+
 @Component({
   selector: 'app-confronto',
   templateUrl: './confronto.page.html',
@@ -108,6 +110,9 @@ export class ConfrontoPage implements OnInit {
   private location = inject(Location);
   private toastController = inject(ToastController);
   private cdr = inject(ChangeDetectorRef);
+  public auth = inject(AuthService);
+
+  readonly isAdmin = computed<boolean>(() => this.auth.isSuperUser());
 
   @ViewChild('pickerModal') pickerModal?: IonModal;
 
@@ -351,6 +356,7 @@ export class ConfrontoPage implements OnInit {
   }
 
   async generaVerdetto(force = false) {
+    if (!this.isAdmin()) return;
     const idA = this.playerAId();
     const idB = this.playerBId();
     const comp = this.comparison();

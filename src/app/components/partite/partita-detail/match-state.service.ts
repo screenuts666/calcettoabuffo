@@ -663,6 +663,7 @@ export class MatchStateService {
    * 3. Imposta `turnoStartCronometroSec = cronometro()` facendo ripartire il countdown del nuovo turno per intero (es. `05:00`)
    */
   async confermaCambioPortiere(): Promise<void> {
+    if (!this.auth.isSuperUser()) return;
     const nextTurnIndex = this.turnoAttualeIndex() + 1;
     const nowCronometro = this.cronometro();
     const currentRot: RotazionePortieri = this.rotazionePortieri() || {
@@ -702,7 +703,7 @@ export class MatchStateService {
    */
   async avviaTimer(): Promise<void> {
     const id = this.matchId();
-    if (!id) return;
+    if (!id || !this.auth.isDevToolsAllowed()) return;
     if (this.isTimerRunning() && !this.isPausedDev()) return;
 
     const now = Date.now();
@@ -772,6 +773,7 @@ export class MatchStateService {
    * congelando `accumulatedTime` al secondo esatto corrente.
    */
   async pausaTimerDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) return;
     if (!this.isTimerRunning() || this.isPausedDev()) return;
     const now = Date.now();
     const base = this.timerStartAt() || this.startedAt() || now;
@@ -789,7 +791,7 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     const id = this.matchId();
-    if (!id || !this.auth.isSuperUser()) return;
+    if (!id || !this.auth.isDevToolsAllowed()) return;
     try {
       await updateDoc(doc(this.firestore, `partite/${id}`), {
         isTimerRunning: false,
@@ -808,6 +810,7 @@ export class MatchStateService {
    * ricalcolando `timerStartAt = Date.now()` per preservare l'offset di `accumulatedTime`.
    */
   async riprendiTimerDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) return;
     if (this.isTimerRunning() && !this.isPausedDev()) return;
     const now = Date.now();
     this.timerStartAt.set(now);
@@ -816,7 +819,7 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     const id = this.matchId();
-    if (!id || !this.auth.isSuperUser()) return;
+    if (!id || !this.auth.isDevToolsAllowed()) return;
     try {
       await updateDoc(doc(this.firestore, `partite/${id}`), {
         isTimerRunning: true,
@@ -834,6 +837,7 @@ export class MatchStateService {
    * per testare istantaneamente il suono in loop e il blocco del cambio portiere.
    */
   async avanzaAlProssimoCambioDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) return;
     const durataSec = this.durataTurnoSecondi();
     const rot = this.rotazionePortieri();
     const startSec =
@@ -851,7 +855,7 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     const id = this.matchId();
-    if (!id || !this.auth.isSuperUser()) return;
+    if (!id || !this.auth.isDevToolsAllowed()) return;
     try {
       await updateDoc(doc(this.firestore, `partite/${id}`), {
         cronometro: targetSec,
@@ -869,6 +873,7 @@ export class MatchStateService {
    */
   async concludiTimer(): Promise<number> {
     const id = this.matchId();
+    if (!id || !this.auth.isSuperUser()) return 0;
     const now = Date.now();
     this.endedAt.set(now);
     const wasPausedDev = this.isPausedDev();
@@ -949,6 +954,9 @@ export class MatchStateService {
     isAutogoal: boolean,
     assistMan: PlayerPerformance | null = null,
   ): Promise<{ evento: EventoGol; portiereSubitoNome: string | null }> {
+    if (!this.auth.isSuperUser()) {
+      return { evento: null as any, portiereSubitoNome: null };
+    }
     const defendingTeam = teamVantaggio === 'A' ? 'B' : 'A';
     const portiereInfo =
       defendingTeam === 'A' ? this.portieriInfoA() : this.portieriInfoB();
@@ -1020,6 +1028,7 @@ export class MatchStateService {
   }
 
   async annullaUltimoGolGenerale(): Promise<EventoGol | null> {
+    if (!this.auth.isSuperUser()) return null;
     const list = this.eventiGol();
     if (list.length === 0) return null;
     const ultimo = list[list.length - 1];
@@ -1027,6 +1036,7 @@ export class MatchStateService {
   }
 
   async annullaUltimoGolSquadra(team: 'A' | 'B'): Promise<EventoGol | null> {
+    if (!this.auth.isSuperUser()) return null;
     const list = this.eventiGol();
     for (let i = list.length - 1; i >= 0; i--) {
       if (list[i].teamVantaggio === team) {

@@ -394,15 +394,17 @@
                 [compact]="true"
                 [showWhatsAppShare]="false"
               ></app-ai-tts-button>
-              <button
-                type="button"
-                class="ai-circle-btn"
-                (click)="generaVerdetto(true)"
-                [disabled]="isGeneratingVerdetto()"
-                title="Rigenera il verdetto con Gemini"
-              >
-                <ion-icon name="refresh-outline" [class.spin]="isGeneratingVerdetto()"></ion-icon>
-              </button>
+              @if (isAdmin()) {
+                <button
+                  type="button"
+                  class="ai-circle-btn"
+                  (click)="generaVerdetto(true)"
+                  [disabled]="isGeneratingVerdetto()"
+                  title="Rigenera il verdetto con Gemini (Mister & Presidente)"
+                >
+                  <ion-icon name="refresh-outline" [class.spin]="isGeneratingVerdetto()"></ion-icon>
+                </button>
+              }
             </div>
           }
         </div>
@@ -425,20 +427,24 @@
             <p class="empty-prompt-text">
               Chi comanda davvero tra <b>{{ comp.playerA.nome }}</b> e <b>{{ comp.playerB.nome }}</b>?
             </p>
-            <button
-              type="button"
-              class="verdetto-call-btn"
-              (click)="generaVerdetto(false)"
-              [disabled]="isGeneratingVerdetto()"
-            >
-              @if (isGeneratingVerdetto()) {
-                <ion-spinner name="crescent"></ion-spinner>
-                <span>Gemini sta analizzando la rivalità...</span>
-              } @else {
-                <ion-icon name="sparkles"></ion-icon>
-                <span>🎙️ Genera Verdetto del Match</span>
-              }
-            </button>
+            @if (isAdmin()) {
+              <button
+                type="button"
+                class="verdetto-call-btn"
+                (click)="generaVerdetto(false)"
+                [disabled]="isGeneratingVerdetto()"
+              >
+                @if (isGeneratingVerdetto()) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <span>Gemini sta analizzando la rivalità...</span>
+                } @else {
+                  <ion-icon name="sparkles"></ion-icon>
+                  <span>🎙️ Genera Verdetto del Match</span>
+                }
+              </button>
+            } @else {
+              <span class="empty-hint">Nessun verdetto AI redatto finora per questo confronto.</span>
+            }
           </div>
         }
       </div>

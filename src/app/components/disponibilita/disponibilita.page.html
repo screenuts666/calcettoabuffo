@@ -3,16 +3,18 @@
     <ion-title>Disponibilità</ion-title>
 
     <ion-buttons slot="end">
-      <!-- Condividi Disponibilità su WhatsApp (Pulsante Unico & Minimale) -->
-      <ion-button
-        fill="clear"
-        class="share-wa-header-btn"
-        (click)="condividiSuWhatsApp()"
-        title="Condividi disponibilità su WhatsApp"
-        aria-label="Condividi disponibilità su WhatsApp"
-      >
-        <ion-icon name="logo-whatsapp" slot="icon-only" color="success" aria-hidden="true"></ion-icon>
-      </ion-button>
+      <!-- Condividi Disponibilità su WhatsApp (Pulsante Unico & Minimale, solo Mister & Presidente) -->
+      @if (auth.isSuperUser()) {
+        <ion-button
+          fill="clear"
+          class="share-wa-header-btn"
+          (click)="condividiSuWhatsApp()"
+          title="Condividi disponibilità su WhatsApp"
+          aria-label="Condividi disponibilità su WhatsApp"
+        >
+          <ion-icon name="logo-whatsapp" slot="icon-only" color="success" aria-hidden="true"></ion-icon>
+        </ion-button>
+      }
       <app-theme-toggle></app-theme-toggle>
     </ion-buttons>
   </ion-toolbar>
@@ -164,8 +166,8 @@
             </div>
           }
 
-          <!-- DEV SIMULATION BAR COMPATTA -->
-          @if (isDevMode) {
+          <!-- DEV SIMULATION BAR COMPATTA (SOLO PRESIDENTE IN AMBIENTE DEV) -->
+          @if (auth.isDevToolsAllowed()) {
             <div class="weekly-dev-simulation-bar">
               <button
                 type="button"

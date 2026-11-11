@@ -197,7 +197,7 @@ export class StepSquadreComponent implements OnInit {
   });
 
   async generaPronostico(force = false) {
-    if (this.isGeneratingPronostico()) return;
+    if (!this.isAdmin || this.isGeneratingPronostico()) return;
     const odds = this.currentOdds();
     if (!odds) {
       const toast = await this.toastCtrl.create({
@@ -277,6 +277,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   async apriMatchmaking() {
+    if (!this.isAdmin) return;
     const convocati = this.state.convocati();
     const inCampo = [...this.state.teamA(), ...this.state.teamB()];
 
@@ -319,6 +320,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   async applicaSquadre(proposal: MatchmakingProposal) {
+    if (!this.isAdmin) return;
     this.state.teamA.set([...proposal.teamA]);
     this.state.teamB.set([...proposal.teamB]);
     this.state.markSquadreModified();
@@ -334,6 +336,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   spostaIn(giocatore: any, target: 'A' | 'B') {
+    if (!this.isAdmin) return;
     if (target === 'A') {
       this.state.teamB.update((list) =>
         list.filter((g) => g.id !== giocatore.id),
@@ -369,6 +372,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   async apriSelettorePortiereFisso(team: 'A' | 'B') {
+    if (!this.isAdmin) return;
     const players = team === 'A' ? this.state.teamA() : this.state.teamB();
     const teamNome = team === 'A' ? 'Bianchi' : 'Neri';
     const currFixedId =
@@ -405,6 +409,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   confermaSquadre() {
+    if (!this.isAdmin) return;
     this.state.hasUnconfirmedSquadre.set(false);
     this.state.inizializzaRotazionePortieri(false);
     this.state.status.set('pronta');

@@ -106,8 +106,8 @@
               </div>
             }
 
-            <!-- CONTROLLI ESCLUSIVI MODALITÀ DEV -->
-            @if (isDevModeActive) {
+            <!-- CONTROLLI ESCLUSIVI MODALITÀ DEV (SOLO PRESIDENTE IN DEV) -->
+            @if (auth.isDevToolsAllowed()) {
               <div class="dev-timer-controls">
                 <button
                   type="button"

@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Firestore, doc, getDoc, setDoc, onSnapshot } from '@angular/fire/firestore';
 import { TtsService } from './tts.service';
+import { AuthService } from './auth.service';
 import { computeTextHash } from '../utils/text-sanitizer';
 
 export type GkSoundId =
@@ -133,6 +134,7 @@ export class SoundSettingsService {
 
   private firestore = inject(Firestore, { optional: true });
   private tts = inject(TtsService, { optional: true });
+  private auth = inject(AuthService, { optional: true });
   private htmlAudioCambio: HTMLAudioElement | null = null;
   private htmlSynthAudio: HTMLAudioElement | null = null;
   private wavBlobUrlCache = new Map<string, string>();
@@ -255,7 +257,7 @@ export class SoundSettingsService {
       }
     } catch {}
 
-    if (this.firestore) {
+    if (this.firestore && this.auth?.isSuperUser()) {
       try {
         this.isSavingCloud.set(true);
         await setDoc(
@@ -358,7 +360,7 @@ export class SoundSettingsService {
       }
     } catch {}
 
-    if (this.firestore) {
+    if (this.firestore && this.auth?.isSuperUser()) {
       try {
         this.isSavingCloud.set(true);
         await setDoc(

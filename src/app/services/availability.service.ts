@@ -957,7 +957,7 @@ export class AvailabilityService {
    * per testare la conservazione della priorità e il modal Storico Voti.
    */
   async simulaVotiCompagniDev(): Promise<void> {
-    if (environment.production || !this.firestore) return;
+    if (!this.auth.isDevToolsAllowed() || !this.firestore) return;
 
     const weekKey = this.activeWeekKey();
     const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
@@ -1145,7 +1145,7 @@ export class AvailabilityService {
    * DEV ONLY: Cancella TUTTI i voti della settimana attiva su Firestore (reset completo a 0 voti).
    */
   async cancellaTuttiIVotiDev(): Promise<void> {
-    if (environment.production || !this.firestore) return;
+    if (!this.auth.isDevToolsAllowed() || !this.firestore) return;
 
     const weekKey = this.activeWeekKey();
     const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);
@@ -1166,7 +1166,7 @@ export class AvailabilityService {
    * DEV ONLY: Azzera tutti i voti simulati tenendo solo il voto dell'utente reale se loggato.
    */
   async resetVotiCompagniDev(): Promise<void> {
-    if (environment.production || !this.firestore) return;
+    if (!this.auth.isDevToolsAllowed() || !this.firestore) return;
 
     const weekKey = this.activeWeekKey();
     const docRef = doc(this.firestore, `weekly_availability/${weekKey}`);

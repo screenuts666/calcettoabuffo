@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed, isDevMode } from '@angular/core';
 import { V2FeaturesService } from './v2-features.service';
 import {
   ActivatedRouteSnapshot,
@@ -122,6 +122,7 @@ export class AuthService {
 
   readonly isGuest = computed<boolean>(() => this.role() === 'guest');
   readonly isAtleta = computed<boolean>(() => this.role() === 'user');
+  readonly isAthlete = this.isAtleta;
   readonly isPresidente = computed<boolean>(() => this.role() === 'presidente');
   readonly isSuperUser = computed<boolean>(
     () => this.role() === 'superuser' || this.role() === 'presidente',
@@ -133,12 +134,23 @@ export class AuthService {
    */
   readonly isAdmin = this.isSuperUser;
 
-  /** Helper espliciti per la gestione gara (Mister & Presidente) */
+  /** Helper espliciti per la gestione gara e club (Mister & Presidente) */
   readonly canManageMatch = this.isSuperUser;
+  readonly canManageClub = this.isSuperUser;
+  readonly isMisterOrPresidente = this.isSuperUser;
   readonly isAdminOrMister = this.isSuperUser;
 
   /** Alias per `isLoggedIn`: true se l'utente ha effettuato il login Firebase */
   readonly isAuthenticated = this.isLoggedIn;
+
+  /**
+   * Autorizzazione strumenti e simulazioni DEV:
+   * Solo ED ESCLUSIVAMENTE consentito se l'utente è `Presidente` E ci si trova in ambiente DEV.
+   * Mai visibile o eseguibile da Atleti, Tifosi o Guest, né in produzione.
+   */
+  readonly isDevToolsAllowed = computed<boolean>(
+    () => this.isPresidente() && (!environment.production || isDevMode()),
+  );
 
   /**
    * ID del giocatore associato all'utente corrente.

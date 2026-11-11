@@ -277,6 +277,7 @@ export class StepConvocatiComponent {
   }
 
   sollecitaForseWhatsApp(): void {
+    if (!this.isAdmin) return;
     const forse = this.maybePlayers();
     if (forse.length === 0) return;
     const names = forse.map((p) => p.soprannome || p.nome).join(', ');

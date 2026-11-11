@@ -663,7 +663,7 @@
           <div>
             <h4>
               Versione v{{ appUpdate.version }}
-              @if (isDevEnvironment) {
+              @if (authService.isDevToolsAllowed()) {
                 <span class="dev-pill">DEV</span>
               }
             </h4>

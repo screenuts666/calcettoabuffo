@@ -91,6 +91,9 @@ export class BackupRestoreService {
    * e avvia il download locale del file sul dispositivo.
    */
   async exportDatabaseSnapshot(): Promise<{ filename: string; payload: DatabaseBackupPayload }> {
+    if (!this.authService.isSuperUser()) {
+      throw new Error('Accesso negato: solo il Presidente o il Mister possono esportare il backup del database.');
+    }
     const { filename, jsonStr, payload } = await this.buildBackupPayload();
 
     const blob = new Blob([jsonStr], { type: 'application/json' });

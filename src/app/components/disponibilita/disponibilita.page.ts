@@ -260,50 +260,50 @@ export class DisponibilitaPage implements OnInit {
 
   constructor() {
     addIcons({
-      calendar,
-      calendarOutline,
+      logoWhatsapp,
       chevronBack,
       chevronForward,
       todayOutline,
+      pauseCircleOutline,
+      footballOutline,
+      sparklesOutline,
+      flame,
+      flash,
+      trashOutline,
+      addCircleOutline,
+      checkmarkCircle,
+      lockClosedOutline,
+      timeOutline,
       sunnyOutline,
+      giftOutline,
+      layersOutline,
+      closeOutline,
+      trophyOutline,
+      listOutline,
+      calendar,
+      calendarOutline,
       rainyOutline,
       partlySunnyOutline,
-      giftOutline,
-      checkmarkCircle,
       checkmarkCircleOutline,
       closeCircle,
-      closeOutline,
-      logoWhatsapp,
       navigateOutline,
       locationOutline,
       peopleOutline,
-      footballOutline,
-      timeOutline,
       informationCircleOutline,
       shieldCheckmarkOutline,
-      pauseCircleOutline,
       playCircleOutline,
       shareSocialOutline,
-      sparklesOutline,
       refreshOutline,
-      flame,
       helpCircle,
       helpCircleOutline,
       shieldCheckmark,
       radioButtonOff,
-      lockClosedOutline,
       lockOpenOutline,
       people,
-      flash,
-      addCircleOutline,
       removeCircleOutline,
-      layersOutline,
       checkboxOutline,
       chevronDownOutline,
       chevronUpOutline,
-      trashOutline,
-      listOutline,
-      trophyOutline,
     });
 
     // Flusso Auth & Atleta per Disponibilità:
@@ -525,7 +525,10 @@ export class DisponibilitaPage implements OnInit {
   /** Verifica se la settimana corrente ha ancora attività viva (partite in corso/programmate o giorni votabili) */
   readonly currentWeekHasPendingActivity = computed<boolean>(() => {
     const matchesCount = this.availabilityService.currentWeekMatches().length;
-    return matchesCount > 0 || this.availabilityService.isFromMatchDayOnwardsThisWeek();
+    return (
+      matchesCount > 0 ||
+      this.availabilityService.isFromMatchDayOnwardsThisWeek()
+    );
   });
 
   /** Verifica se nella settimana corrente ci sono giorni senza partita con voti/quorum per una 2ª partita */
@@ -533,7 +536,9 @@ export class DisponibilitaPage implements OnInit {
     if (!this.isCurrentWeekActive()) return false;
     const days = this.activeWeekDaysList().filter((d) => !d.isPast);
     const daysWithMatches = days.filter((d) => d.matches.length > 0);
-    const candidateDays = days.filter((d) => d.matches.length === 0 && d.count > 0);
+    const candidateDays = days.filter(
+      (d) => d.matches.length === 0 && d.count > 0,
+    );
     return daysWithMatches.length >= 1 && candidateDays.length > 0;
   });
 
@@ -1001,9 +1006,7 @@ export class DisponibilitaPage implements OnInit {
   readonly activeHistoryDay = computed(() => {
     const dateStr = this.historyModalDateStr();
     if (!dateStr || !this.auth.isSuperUser()) return null;
-    return (
-      this.activeWeekDaysList().find((d) => d.dateStr === dateStr) || null
-    );
+    return this.activeWeekDaysList().find((d) => d.dateStr === dateStr) || null;
   });
 
   /** Giorni della settimana attiva che hanno raggiunto il quorum (>= 10 voti) per la creazione partita da parte del Mister */
@@ -1186,6 +1189,10 @@ export class DisponibilitaPage implements OnInit {
   readonly isDevMode = !environment.production;
 
   async simulaVotiCompagniDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) {
+      console.warn('Azione non autorizzata: solo il Presidente in ambiente DEV può simulare i voti.');
+      return;
+    }
     try {
       await this.availabilityService.simulaVotiCompagniDev();
       const t = await this.toastCtrl.create({
@@ -1208,6 +1215,7 @@ export class DisponibilitaPage implements OnInit {
   }
 
   async resetVotiCompagniDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) return;
     try {
       await this.availabilityService.resetVotiCompagniDev();
       const t = await this.toastCtrl.create({
@@ -1223,6 +1231,10 @@ export class DisponibilitaPage implements OnInit {
   }
 
   async cancellaTuttiIVotiDev(): Promise<void> {
+    if (!this.auth.isDevToolsAllowed()) {
+      console.warn('Azione non autorizzata: solo il Presidente in ambiente DEV può cancellare tutti i voti.');
+      return;
+    }
     try {
       await this.availabilityService.cancellaTuttiIVotiDev();
       const t = await this.toastCtrl.create({
@@ -1393,8 +1405,9 @@ export class DisponibilitaPage implements OnInit {
     }
   }
 
-  // Condividi disponibilità su WhatsApp (Azione diretta One-Tap con testo ultra-compatto)
+  // Condividi disponibilità su WhatsApp (Azione riservata a Mister & Presidente)
   async condividiSuWhatsApp() {
+    if (!this.auth.isSuperUser()) return;
     await this.shareService.shareWeeklyAvailability(this.topVotedDayInfo());
   }
 

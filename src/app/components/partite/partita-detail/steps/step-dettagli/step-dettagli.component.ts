@@ -195,6 +195,7 @@ export class StepDettagliComponent {
   }
 
   impostaModalitaEntrambe(modalita: 'rotazione' | 'fisso') {
+    if (!this.isAdmin) return;
     this.state.impostaModalitaPortiere('A', modalita);
     this.state.impostaModalitaPortiere('B', modalita);
     this.state.salvaSetupPredefinito();
@@ -202,6 +203,7 @@ export class StepDettagliComponent {
   }
 
   toggleModalitaMiste() {
+    if (!this.isAdmin) return;
     // Se non sono già miste, imposta A fisso e B rotazione
     if (this.state.modalitaPortieriA() === this.state.modalitaPortieriB()) {
       this.state.impostaModalitaPortiere('A', 'fisso');
@@ -326,6 +328,7 @@ export class StepDettagliComponent {
   }
 
   aggiornaLuogo(val: string, mapsUrl?: string | null) {
+    if (!this.isAdmin) return;
     this.state.luogo.set(val);
     const resolvedUrl = mapsUrl || this.campiService.getGoogleMapsUrl(val);
     this.state.campoGoogleMapsUrl.set(resolvedUrl);
@@ -334,6 +337,7 @@ export class StepDettagliComponent {
   }
 
   onLuogoInput(val: string) {
+    if (!this.isAdmin) return;
     this.aggiornaLuogo(val);
     clearTimeout(this.searchTimer);
     if (!val || val.trim().length < 2) {
@@ -356,6 +360,7 @@ export class StepDettagliComponent {
   }
 
   selezionaCampo(campo: CampoDaGioco) {
+    if (!this.isAdmin) return;
     this.aggiornaLuogo(campo.nome, campo.googleMapsUrl);
     this.suggerimentiCampi.set([]);
   }

@@ -59,6 +59,7 @@ import { MatchStateService } from '../../match-state.service';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 import { SoundSettingsService } from '../../../../../services/sound-settings.service';
+import { AuthService } from '../../../../../services/auth.service';
 import { ImpostazioniPage } from '../../../../impostazioni/impostazioni.page';
 
 @Component({
@@ -72,6 +73,7 @@ import { ImpostazioniPage } from '../../../../impostazioni/impostazioni.page';
 export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
   public soundSettings = inject(SoundSettingsService);
+  public auth = inject(AuthService);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -412,6 +414,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
    * Ferma l'allarme in loop, applica lo switch effettivo ai nuovi portieri e fa ripartire il countdown del nuovo turno (es. 05:00).
    */
   async fermaCambio() {
+    if (!this.isAdmin) return;
     this.triggerHaptic(40);
     this.fermaAudio();
     await this.state.confermaCambioPortiere();
@@ -429,6 +432,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   async suonaCambioManuale() {
+    if (!this.isAdmin) return;
     this.triggerHaptic(35);
     if (this.state.cambioAttivo()) {
       await this.fermaCambio();
@@ -500,6 +504,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────────────
 
   async avviaMatch() {
+    if (!this.isAdmin) return;
     this.triggerHaptic(40);
     if (this.state.isTimerRunning() && !this.state.isPausedDev()) return;
 
@@ -528,7 +533,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
    * ESCLUSIVO MODALITÀ DEV: Pausa / Riprendi timer in diretta per testare comodamente il match.
    */
   async togglePausaDev() {
-    if (!this.isDevModeActive || !this.isAdmin) return;
+    if (!this.auth.isDevToolsAllowed()) return;
     this.triggerHaptic(30);
     if (this.state.isPausedDev()) {
       await this.state.riprendiTimerDev();
@@ -544,7 +549,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
    * ESCLUSIVO MODALITÀ DEV: Avanza rapidamente il countdown a -5s dal cambio portiere.
    */
   async avanzaCambioDev() {
-    if (!this.isDevModeActive || !this.isAdmin) return;
+    if (!this.auth.isDevToolsAllowed()) return;
     this.triggerHaptic(30);
     this.ultimoCambioTurno = -1;
     await this.state.avanzaAlProssimoCambioDev();
@@ -563,6 +568,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // ──────────────────────────────────────────────────────────────────────
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
+    if (!this.isAdmin) return;
     if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
       await this.mostraToastFeedback(
         "Fischia prima l'inizio con FISCHIO D'INIZIO per sbloccare i gol!",
@@ -615,6 +621,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   selezionaMarcatoreNelPicker(player: PlayerPerformance, isAutogoal = false) {
+    if (!this.isAdmin) return;
     this.triggerHaptic(35);
     if (isAutogoal) {
       const team = this.goalPickerTeam();
@@ -658,6 +665,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     isAutogoal: boolean,
     assistMan: PlayerPerformance | null = null,
   ) {
+    if (!this.isAdmin) return;
     const { portiereSubitoNome } = await this.state.aggiungiGolPartita(
       giocatore,
       teamVantaggio,
@@ -681,6 +689,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   async rimuoviUltimoGol(team: 'A' | 'B') {
+    if (!this.isAdmin) return;
     this.triggerHaptic(30);
     const rimosso = await this.state.annullaUltimoGolSquadra(team);
     if (!rimosso) return;
@@ -706,6 +715,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   async finisciMatch() {
+    if (!this.isAdmin) return;
     const alert = await this.alertCtrl.create({
       header: 'Fischio Finale',
       message:
