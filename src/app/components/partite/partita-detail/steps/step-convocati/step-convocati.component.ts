@@ -180,11 +180,15 @@ export class StepConvocatiComponent {
       dName !== 'utente' &&
       dName !== 'mister'
     ) {
-      const byName = list.find(
-        (g) =>
-          g.nome?.toLowerCase().trim() === dName ||
-          g.soprannome?.toLowerCase().trim() === dName,
-      );
+      const byName = list.find((g) => {
+        const gn = g.nome?.toLowerCase().trim();
+        const sn = g.soprannome?.toLowerCase().trim();
+        return (
+          gn === dName ||
+          sn === dName ||
+          (gn && (gn.startsWith(dName) || dName.startsWith(gn)))
+        );
+      });
       if (byName) return byName;
     }
     return null;
@@ -194,13 +198,15 @@ export class StepConvocatiComponent {
   readonly isMyPlayerConvocato = computed<boolean>(() => {
     const p = this.myPlayer();
     if (p) {
-      return Boolean(p.selezionato);
+      const live = this.state.tutti().find((g) => g.id === p.id);
+      if (live?.selezionato) return true;
     }
     const pid = this.auth.linkedPlayerId();
     const uid = this.auth.firebaseUser()?.uid;
     const convocati = this.state.convocati();
     return convocati.some(
       (c) =>
+        (p && c.id === p.id) ||
         (pid && (c.id === pid || (c as any).playerId === pid)) ||
         (uid && (c.linkedUid === uid || (c as any).uid === uid)),
     );
@@ -404,6 +410,11 @@ export class StepConvocatiComponent {
    * Modificabile in qualsiasi momento finché la partita è nello step 'convocati'.
    */
   async toggleMioRsvp(target: 'yes' | 'no'): Promise<void> {
+    const p = this.myPlayer();
+    if (this.isAdmin && p) {
+      await this.toggleSelezione(p);
+      return;
+    }
     if (this.isMyPlayerConvocato()) {
       await this.impostaMioRsvp('no');
     } else {

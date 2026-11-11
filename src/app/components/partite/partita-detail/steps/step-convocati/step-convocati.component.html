@@ -22,7 +22,9 @@
           }
           <span>{{ formatBadgeInfo().label }}</span>
         </span>
+      </div>
 
+      <div class="lsb-right">
         @if (isAdmin) {
           <button
             type="button"
@@ -38,11 +40,7 @@
             ></ion-icon>
             <span>{{ maxCap() === 16 ? 'Max 16' : 'Max 14' }}</span>
           </button>
-        }
-      </div>
 
-      <div class="lsb-right">
-        @if (isAdmin) {
           <button
             type="button"
             class="dev-mini-pill"
@@ -60,8 +58,8 @@
             type="button"
             class="self-presence-quick-pill"
             [class.active]="isMyPlayerConvocato()"
-            [class.declined]="myRsvpStatus() === 'no' && !isMyPlayerConvocato()"
-            [class.maybe]="myRsvpStatus() === 'maybe' && !isMyPlayerConvocato()"
+            [class.declined]="!isMyPlayerConvocato() && myRsvpStatus() === 'no'"
+            [class.maybe]="!isMyPlayerConvocato() && myRsvpStatus() === 'maybe'"
             [disabled]="isSavingRsvp() || (isCapReached() && !isMyPlayerConvocato())"
             (click)="toggleMioRsvp('yes')"
             [title]="
@@ -71,29 +69,35 @@
             "
             [attr.aria-label]="
               isMyPlayerConvocato()
-                ? 'In lista convocati. Clicca per toglierti'
+                ? 'Sei in lista. Clicca per toglierti'
                 : 'Aggiungiti ai convocati'
             "
           >
             <ion-icon
               [name]="
                 isMyPlayerConvocato()
-                  ? 'checkmark-circle'
+                  ? 'checkmark'
                   : isCapReached()
                     ? 'lock-closed-outline'
-                    : (myRsvpStatus() === 'no' ? 'close-circle-outline' : (myRsvpStatus() === 'maybe' ? 'help-circle-outline' : 'person-add-outline'))
+                    : myRsvpStatus() === 'no'
+                      ? 'close'
+                      : myRsvpStatus() === 'maybe'
+                        ? 'help'
+                        : 'add'
               "
               aria-hidden="true"
             ></ion-icon>
             <span>
               {{
                 isMyPlayerConvocato()
-                  ? 'In lista (Togli)'
+                  ? 'In lista'
                   : isCapReached()
                     ? 'Completo'
-                    : (myRsvpStatus() === 'no'
-                      ? 'Assente (Aggiungi)'
-                      : (myRsvpStatus() === 'maybe' ? 'In forse (Aggiungi)' : '+ Convocami'))
+                    : myRsvpStatus() === 'no'
+                      ? 'Assente'
+                      : myRsvpStatus() === 'maybe'
+                        ? 'In forse'
+                        : 'Partecipa'
               }}
             </span>
           </button>
@@ -244,7 +248,7 @@
               <span>
                 {{
                   isMyPlayerConvocato()
-                    ? 'In lista (Togli)'
+                    ? 'In lista'
                     : isCapReached()
                       ? 'Partita al completo'
                       : 'Partecipo'

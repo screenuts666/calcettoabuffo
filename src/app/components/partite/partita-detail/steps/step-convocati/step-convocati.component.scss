@@ -29,22 +29,25 @@
   align-items: center;
   justify-content: space-between;
   flex-wrap: nowrap;
-  gap: 5px;
-  padding: 7px 9px;
+  gap: 6px;
+  padding: 6px 10px;
   border-radius: 12px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   box-shadow: var(--app-card-shadow);
-  overflow: hidden;
+  overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .lsb-left {
     display: flex;
     align-items: center;
-    gap: 4.5px;
+    gap: 5px;
+    flex-shrink: 0;
     min-width: 0;
-    flex: 1 1 auto;
-    flex-wrap: nowrap;
-    overflow: hidden;
+    white-space: nowrap;
 
     .lsb-count {
       font-size: 13.5px;
@@ -100,26 +103,35 @@
         color: var(--app-text-muted);
       }
     }
+  }
+
+  .lsb-right {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto;
+    white-space: nowrap;
 
     .cap-toggle-pill {
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      height: 24px;
-      padding: 0 6px;
-      border-radius: 999px;
-      font-size: 10.5px;
+      height: 26px;
+      padding: 0 7px;
+      border-radius: 7px;
+      font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.18s ease;
       background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       color: var(--app-text-secondary);
       flex-shrink: 0;
 
       ion-icon {
-        font-size: 0.8rem;
+        font-size: 0.82rem;
       }
 
       &.is-extended {
@@ -132,30 +144,23 @@
         transform: scale(0.95);
       }
     }
-  }
-
-  .lsb-right {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-    margin-left: auto;
 
     .dev-mini-pill {
       display: inline-flex;
       align-items: center;
       gap: 3px;
-      height: 28px;
-      padding: 0 6px;
+      height: 26px;
+      padding: 0 7px;
       border-radius: 7px;
-      background: rgba(255, 179, 0, 0.14);
-      border: 1px dashed #ffb300;
+      background: rgba(255, 179, 0, 0.12);
+      border: 1px dashed rgba(255, 179, 0, 0.6);
       color: #ffb300;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       white-space: nowrap;
       flex-shrink: 0;
+      transition: all 0.18s ease;
 
       ion-icon {
         font-size: 0.82rem;
@@ -170,12 +175,12 @@
       display: inline-flex;
       align-items: center;
       gap: 3.5px;
-      height: 28px;
+      height: 26px;
       padding: 0 8px;
-      border-radius: 999px;
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px dashed rgba(16, 185, 129, 0.45);
-      color: #34d399;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: var(--app-text-secondary);
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
@@ -184,36 +189,49 @@
       flex-shrink: 0;
 
       ion-icon {
-        font-size: 0.88rem;
+        font-size: 0.85rem;
       }
 
       &.active {
-        background: var(--app-primary, #10b981);
-        border: 1px solid var(--app-primary, #10b981);
-        color: #ffffff;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+        background: rgba(16, 185, 129, 0.18);
+        border: 1px solid rgba(16, 185, 129, 0.5);
+        color: #34d399;
 
         ion-icon {
-          color: #ffffff;
+          color: #34d399;
         }
 
-        &:hover {
-          background: rgba(239, 68, 68, 0.85);
-          border-color: #ef4444;
-          box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+        &:active {
+          transform: scale(0.95);
         }
       }
 
       &.declined {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px dashed rgba(239, 68, 68, 0.4);
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.4);
         color: #f87171;
+
+        ion-icon {
+          color: #f87171;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
 
       &.maybe {
-        background: rgba(245, 158, 11, 0.1);
-        border: 1px dashed rgba(245, 158, 11, 0.4);
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.4);
         color: #fbbf24;
+
+        ion-icon {
+          color: #fbbf24;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
 
       &:disabled {
@@ -226,7 +244,7 @@
       }
 
       &:active:not(:disabled) {
-        transform: scale(0.96);
+        transform: scale(0.95);
       }
     }
   }

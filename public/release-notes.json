@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.81",
+    "date": "11/11/2026",
+    "title": "UI Convocati Perfetta: Zero Collisioni, Allineamento Spazi e Stato Presenza Pulito",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Pulsante Presenza Inequivocabile & Senza Sovrapposizioni: il pulsante mostra con chiarezza estrema lo stato reale del tuo voto ('In lista' in verde smeraldo, 'Assente' in rosso tenue, 'In forse' in ambra o 'Partecipa'). Con un solo tap entri o ti togli dai convocati istantaneamente.",
+      "UI Sobria & Zero Emoji: rimossi testi prolissi con parentesi, emoji nei pulsanti e lo sgradevole hover rosso acceso per un'esperienza sobria e pulita.",
+      "Visualizzazione Mobile Calibrata: spazio ottimizzato su display mobile senza più elementi tagliati a metà o compressi."
+    ],
+    "superUserChanges": [
+      "Fix Collisione Grafica Barra Convocati: riposizionato il toggle 'Max 14/16' nel gruppo comandi di destra ed eliminato il clipping da .lsb-left, garantendo che nessun pulsante ('Max 16' o 'Top 16') venga mai tagliato o schiacciato.",
+      "Allineamento Immediato Presenza Mister: il tocco del pulsante rapido per il Mister esegue direttamente la logica 'toggleSelezione', con verifica immediata del CAP (14 o 16) e sincronizzazione infallibile con la rosa."
+    ]
+  },
+  {
     "version": "2.0.80",
     "date": "11/11/2026",
     "title": "Chiarezza Totale Stato Voto & Convocazione: Azioni Dirette e Zero Emoji",
