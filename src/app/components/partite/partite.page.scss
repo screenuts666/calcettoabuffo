@@ -279,6 +279,24 @@
       color: var(--app-text-muted);
       font-weight: 500;
     }
+
+    // Disabilita la X nativa dei browser per i campi type="search"
+    &::-webkit-search-decoration,
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-results-button,
+    &::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      display: none;
+    }
+
+    // Neutralizza il fastidioso box azzurro/giallo dell'autofill del browser
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--app-text-primary, #ffffff);
+      -webkit-box-shadow: 0 0 0px 1000px transparent inset;
+      transition: background-color 5000s ease-in-out 0s;
+    }
   }
 
   .search-clear-btn {

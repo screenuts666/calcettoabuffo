@@ -15,6 +15,20 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.73",
+    "date": "11/11/2026",
+    "title": "Fix Autofill Indesiderato Credenziali nella Ricerca Partite",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Risolto Autocompletamento Fastidioso: la barra di ricerca delle partite è stata resa a prova di autofill per Chrome, Safari, Edge e password manager, evitando che vengano inserite credenziali o email salvate (come admin@admin.com) al posto della ricerca.",
+      "Interfaccia di Ricerca Più Pulita: rimosse decorazioni e bottoni nativi del browser per mantenere sempre lo stile coerente con il tema e i pulsanti custom dell'app."
+    ],
+    "superUserChanges": [
+      "Blindatura Attributi Input & Password Manager: impostati type='search', autocomplete='off', autocorrect='off', spellcheck='false' e attributi anti-password manager (data-form-type, data-lpignore, data-1p-ignore, data-bwignore) per impedire qualsiasi iniezione di credenziali nel campo di ricerca."
+    ]
+  },
+  {
     "version": "2.0.72",
     "date": "11/11/2026",
     "title": "Uscita Rapida alla Home, Guard Modifiche Non Salvate & Reset Convocati per Mister e Presidente",

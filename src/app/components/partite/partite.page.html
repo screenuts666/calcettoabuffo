@@ -79,10 +79,20 @@
     <div class="search-box-wrap" role="search">
       <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
       <input
-        type="text"
+        type="search"
+        name="partite_search_query"
+        id="partite-search-input"
         class="custom-search-input"
         placeholder="Cerca mese, meteo, giocatore, campo..."
         aria-label="Cerca partita per mese, meteo, giocatore o campo"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        data-form-type="other"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        data-bwignore="true"
         [value]="searchQuery()"
         (input)="onSearchInput($event)"
       />
