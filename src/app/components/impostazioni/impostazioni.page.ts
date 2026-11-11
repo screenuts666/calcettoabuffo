@@ -91,7 +91,7 @@ import {
   isLegacySuperUserEmail,
 } from '../../models/user-profile.model';
 
-export type SettingsTab = 'account' | 'ruoli' | 'portiere' | 'match' | 'sistema';
+export type SettingsTab = 'account' | 'ruoli' | 'audio' | 'sistema' | 'portiere' | 'match';
 
 @Component({
   selector: 'app-impostazioni',
@@ -252,11 +252,13 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
       this.activeTab.set('account');
       return;
     }
-    if (targetTab === 'ruoli' && !this.authService.isPresidente()) {
+    const normalized: SettingsTab =
+      targetTab === 'portiere' || targetTab === 'match' ? 'audio' : targetTab;
+    if (normalized === 'ruoli' && !this.authService.isPresidente()) {
       this.activeTab.set('account');
       return;
     }
-    this.activeTab.set(targetTab || 'account');
+    this.activeTab.set(normalized || 'account');
   }
 
   ngOnDestroy() {
@@ -264,16 +266,18 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
   }
 
   setTab(tab: SettingsTab) {
-    if (!this.authService.isSuperUser() && tab !== 'account') {
+    const normalized: SettingsTab =
+      tab === 'portiere' || tab === 'match' ? 'audio' : tab;
+    if (!this.authService.isSuperUser() && normalized !== 'account') {
       this.activeTab.set('account');
       return;
     }
-    if (tab === 'ruoli' && !this.authService.isPresidente()) {
+    if (normalized === 'ruoli' && !this.authService.isPresidente()) {
       this.activeTab.set('account');
       return;
     }
     this.soundSettings.stopPreview();
-    this.activeTab.set(tab);
+    this.activeTab.set(normalized);
   }
 
   async vaiAllaMiaScheda(playerId: string) {

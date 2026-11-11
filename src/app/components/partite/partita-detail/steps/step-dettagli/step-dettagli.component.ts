@@ -36,6 +36,8 @@ import {
   addOutline,
   chevronUpOutline,
   chevronDownOutline,
+  lockClosedOutline,
+  timerOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { CampiService } from '../../../../../services/campi.service';
@@ -118,6 +120,7 @@ export class StepDettagliComponent {
 
   readonly MIN_CURRENT_SEASON_DATE = MIN_CURRENT_SEASON_DATE;
   readonly CURRENT_SEASON = CURRENT_SEASON;
+  readonly turnMinutesOptions = [3, 4, 5, 6, 7, 8, 10];
 
   suggerimentiCampi = signal<CampoDaGioco[]>([]);
   isSearchingCampi = signal<boolean>(false);
@@ -159,7 +162,18 @@ export class StepDettagliComponent {
       addOutline,
       chevronUpOutline,
       chevronDownOutline,
+      lockClosedOutline,
+      timerOutline,
     });
+  }
+
+  get isTurnDurationLocked(): boolean {
+    return this.state.isMatchStartedOrCompleted();
+  }
+
+  impostaDurataTurno(min: number) {
+    if (!this.isAdmin || this.isTurnDurationLocked) return;
+    this.state.impostaDurataTurnoMinuti(min);
   }
 
   getRegolePortieriLabel(): string {

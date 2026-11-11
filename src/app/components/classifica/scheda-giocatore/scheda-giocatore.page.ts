@@ -26,11 +26,15 @@ import {
   IonSpinner,
   IonBackButton,
   ToastController,
+  AlertController,
 } from '@ionic/angular/standalone';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
 import {
   close,
+  closeOutline,
+  trashOutline,
+  expandOutline,
   trophy,
   analytics,
   football,
@@ -73,6 +77,7 @@ import {
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
+import { TrashService } from 'src/app/services/trash.service';
 import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
@@ -115,6 +120,8 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   public auth = inject(AuthService);
+  private trashService = inject(TrashService);
+  private alertCtrl = inject(AlertController);
   private geminiService = inject(GeminiService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
@@ -126,6 +133,7 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
 
   isClaiming = signal<boolean>(false);
   privatePhoneNumber = signal<string | null>(null);
+  isPhotoZoomOpen = signal<boolean>(false);
 
   // Tab di navigazione interna gerarchica
   activeTab = signal<'stats' | 'chemistry' | 'history'>('stats');
@@ -242,6 +250,9 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
       analytics,
       football,
       close,
+      closeOutline,
+      trashOutline,
+      expandOutline,
       shieldOutline,
       medal,
       diamond,
@@ -292,11 +303,55 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe();
   }
 
+  hasRealPhoto(fotoUrl?: string | null): boolean {
+    if (!fotoUrl || typeof fotoUrl !== 'string') return false;
+    const clean = fotoUrl.trim();
+    if (!clean || clean === 'null' || clean === 'undefined') return false;
+    if (
+      clean.includes('ionicframework.com') ||
+      clean.includes('default-avatar.svg')
+    ) {
+      return false;
+    }
+    return true;
+  }
+
+  apriZoomFoto() {
+    if (this.hasRealPhoto(this.prof?.fotoUrl)) {
+      this.isPhotoZoomOpen.set(true);
+    }
+  }
+
+  chiudiZoomFoto() {
+    this.isPhotoZoomOpen.set(false);
+  }
+
   modificaGiocatore() {
     const p = this.prof;
     if (p?.id && this.canEdit) {
       this.router.navigate(['/giocatori', p.id, 'modifica']);
     }
+  }
+
+  async eliminaGiocatore() {
+    const p = this.prof;
+    if (!p?.id || !this.isAdmin) return;
+    const alert = await this.alertCtrl.create({
+      header: 'Elimina Giocatore?',
+      message: `Vuoi spostare "${p.nome}" nel Cestino? Potrai annullare subito o ripristinarlo entro 24 ore.`,
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Sposta nel Cestino (24h)',
+          role: 'destructive',
+          handler: async () => {
+            await this.trashService.softDeletePlayer(p);
+            this.router.navigate(['/tabs/rosa']);
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   async reclamaQuestoGiocatore() {

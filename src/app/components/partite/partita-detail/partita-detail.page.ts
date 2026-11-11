@@ -396,11 +396,10 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.state.orarioInizioReale.set(orarioInizioStr);
       this.state.orarioFineReale.set(orarioFineStr);
       this.state.isTimerRunning.set(matchData.isTimerRunning || false);
-      const turnSec = (matchData.rotazionePortieri?.durataTurnoMinuti || 5) * 60;
-      const isPastFirstTurn = (matchData.cronometro || 0) >= turnSec;
+      this.state.isPausedDev.set(Boolean(matchData.isPausedDev));
       this.state.cambioAttivo.set(
-        matchData.isTimerRunning && isPastFirstTurn
-          ? matchData.cambioAttivo || false
+        matchData.isTimerRunning || matchData.isPausedDev
+          ? Boolean(matchData.cambioAttivo)
           : false
       );
 

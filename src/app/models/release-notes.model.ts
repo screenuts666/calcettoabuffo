@@ -15,6 +15,24 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.69",
+    "date": "11/11/2026",
+    "title": "Rosa FUT 3 Colonne, Impostazioni Audio EA FC, Lightbox Foto & Cambio Portiere Confermato",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Rosa Giocatori Stile FUT (3 per riga): nuova griglia a 3 colonne con card verticali FIFA Ultimate Team, bordo/bagliore in base al Tier MMR, ruolo abbreviato (ATT, DIF, FAS, CEN, POR), avatar circolare e mini-stats compatte.",
+      "Zoom Foto Profilo a Schermo Intero: nella Scheda Dettaglio Giocatore ora puoi toccare la foto dell'atleta per aprirla in un'anteprima Lightbox full-screen ad alta definizione.",
+      "Header & Tab Impostazioni Riprogettati: rimosse le icone superflue che troncavano i testi e unificate le impostazioni sonore nella nuova tab 'Audio' in stile EA Sports FC.",
+      "Durata Turno in Porta nel Pre-Partita: la durata dei turni del portiere è ora visibile direttamente nelle regole della singola partita."
+    ],
+    "superUserChanges": [
+      "Conferma Manuale Cambio Portiere & Freeze Portiere Attivo: allo scadere del turno l'allarme suona in loop continuo, ma i portieri precedenti restano ufficialmente in porta finché non premi 'FERMA SUONO E CAMBIA PORTIERI', attribuendo correttamente eventuali gol segnati a fine azione.",
+      "Durata Turno Bloccata al Fischio d'Inizio: il selettore durata turno (3'–10') nello Step 1 Pre-Partita si blocca automaticamente non appena la gara viene avviata.",
+      "Controlli Pausa & Test Rapido Riservati a DEV: aggiunto il pulsante 'Pausa DEV / Riprendi DEV' e l'avanzamento rapido '-5s' esclusivamente in ambiente di sviluppo, mantenendo il timer di produzione protetto da pause involontarie."
+    ]
+  },
+  {
     "version": "2.0.68",
     "date": "11/11/2026",
     "title": "Restyling Partite, Disponibilità, Rosa a Player Card & Account Unificato",

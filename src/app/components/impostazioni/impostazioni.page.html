@@ -10,9 +10,6 @@
       >
         <ion-icon name="arrow-back-outline"></ion-icon>
       </button>
-      <div class="gear-badge">
-        <ion-icon name="person-circle-outline"></ion-icon>
-      </div>
       <div class="mtb-title-text">
         <span class="mtb-title">Account & Impostazioni</span>
       </div>
@@ -31,23 +28,10 @@
         </span>
       }
     </div>
-
-    <div class="mtb-actions">
-      <!-- Bottone Chiudi X -->
-      <button
-        type="button"
-        class="mtb-close-btn"
-        (click)="chiudi()"
-        aria-label="Chiudi"
-        title="Chiudi"
-      >
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
-    </div>
   </div>
 
   @if (authService.isSuperUser()) {
-    <!-- BARRA DI NAVIGAZIONE SCHEDE -->
+    <!-- BARRA DI NAVIGAZIONE SCHEDE (SOLO TESTO PULITO, ZERO ICONE) -->
     <div class="settings-tabs-bar">
       <button
         type="button"
@@ -55,7 +39,6 @@
         [class.active]="activeTab() === 'account'"
         (click)="setTab('account')"
       >
-        <ion-icon name="person-circle-outline"></ion-icon>
         <span>Account</span>
       </button>
       @if (authService.isPresidente()) {
@@ -65,27 +48,16 @@
           [class.active]="activeTab() === 'ruoli'"
           (click)="setTab('ruoli')"
         >
-          <ion-icon name="people-outline"></ion-icon>
           <span>Ruoli</span>
         </button>
       }
       <button
         type="button"
         class="s-tab-btn"
-        [class.active]="activeTab() === 'portiere'"
-        (click)="setTab('portiere')"
+        [class.active]="activeTab() === 'audio'"
+        (click)="setTab('audio')"
       >
-        <ion-icon name="volume-high"></ion-icon>
-        <span>Portieri</span>
-      </button>
-      <button
-        type="button"
-        class="s-tab-btn"
-        [class.active]="activeTab() === 'match'"
-        (click)="setTab('match')"
-      >
-        <ion-icon name="football-outline"></ion-icon>
-        <span>Match</span>
+        <span>Audio</span>
       </button>
       <button
         type="button"
@@ -93,7 +65,6 @@
         [class.active]="activeTab() === 'sistema'"
         (click)="setTab('sistema')"
       >
-        <ion-icon name="construct-outline"></ion-icon>
         <span>Sistema</span>
       </button>
     </div>
@@ -317,59 +288,25 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 1: SUONO CAMBIO PORTIERE (ESCLUSIVO SUPER USER)                 -->
+    <!-- TAB AUDIO UNIFICATA (STILE FIFA / EA SPORTS FC)                     -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (authService.isSuperUser() && activeTab() === 'portiere') {
-
-      <!-- RIGA AUDIO CAMBIO SELEZIONATO (COMPATTA & PULITA) -->
-      <div
-        class="active-sound-row"
-        [class.is-playing]="soundSettings.previewingSoundId() === activePreset.id"
-      >
-        <div class="asr-left">
-          <span class="asr-emoji">{{ activePreset.emoji }}</span>
-          <div class="asr-info">
-            <span class="asr-label">Audio Cambio</span>
-            <strong class="asr-name">{{ activePreset.name }}</strong>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="asr-test-btn"
-          [class.playing]="soundSettings.previewingSoundId() === activePreset.id"
-          (click)="toggleAnteprimaSuono(activePreset.id)"
-          title="Ascolta anteprima audio"
-        >
-          <ion-icon
-            [name]="soundSettings.previewingSoundId() === activePreset.id ? 'stop' : 'play'"
-          ></ion-icon>
-          <span>{{ soundSettings.previewingSoundId() === activePreset.id ? 'Stop' : 'Testa' }}</span>
-        </button>
-      </div>
-
-      <!-- OPZIONI CAMBIO PORTIERE & TURNI -->
-      <div class="settings-section-card">
+    @if (authService.isSuperUser() && activeTab() === 'audio') {
+      <!-- SEZIONE 1: AVVISO CAMBIO PORTIERE -->
+      <div class="settings-section-card fc-audio-card">
         <div class="ssc-header">
-          <span class="ssc-icon">📢</span>
+          <ion-icon name="volume-high" class="ssc-ion-icon"></ion-icon>
           <div>
-            <h4>Avvisi & Turni</h4>
+            <h4>Avviso Cambio Portiere</h4>
           </div>
         </div>
 
-        <div class="toggles-list">
-          <!-- Annuncio Vocale Portieri -->
+        <div class="fc-audio-rows">
+          <!-- Annuncio Vocale -->
           <div
-            class="toggle-row"
-            [class.active]="cfg.voiceAnnouncement"
+            class="fc-audio-row"
             (click)="toggleVoiceAnnouncement()"
           >
-            <div class="tr-left">
-              <span class="tr-emoji">🗣️</span>
-              <div class="tr-text">
-                <strong>Annuncio vocale</strong>
-              </div>
-            </div>
+            <span class="fc-row-label">Annuncio Vocale</span>
             <button
               type="button"
               class="pill-switch"
@@ -380,18 +317,12 @@
             </button>
           </div>
 
-          <!-- Vibrazione Continua -->
+          <!-- Vibrazione -->
           <div
-            class="toggle-row"
-            [class.active]="cfg.vibrationAlert"
+            class="fc-audio-row"
             (click)="toggleVibrationAlert()"
           >
-            <div class="tr-left">
-              <span class="tr-emoji">📳</span>
-              <div class="tr-text">
-                <strong>Vibrazione al cambio</strong>
-              </div>
-            </div>
+            <span class="fc-row-label">Vibrazione</span>
             <button
               type="button"
               class="pill-switch"
@@ -403,205 +334,127 @@
           </div>
         </div>
 
-        <!-- Selettore Durata Turno in Porta -->
-        <div class="turn-duration-box">
-          <div class="tdb-top">
-            <span>⏱️ <strong>Durata turno:</strong></span>
-            <span class="tdb-val">{{ cfg.gkTurnMinutes }} min</span>
+        <!-- Selettore Tono Cambio -->
+        <div class="fc-tone-subsection">
+          <div class="fc-tone-header">
+            <span>Tono Cambio</span>
+            <strong class="fc-tone-current">{{ activePreset.name }}</strong>
           </div>
-          <div class="tdb-chips">
-            @for (min of turnMinutesOptions; track min) {
-              <button
-                type="button"
-                class="tdb-chip"
-                [class.active]="cfg.gkTurnMinutes === min"
-                [disabled]="!authService.isAdmin()"
-                (click)="setTurnMinutes(min)"
+
+          <div class="fc-tones-list">
+            @for (s of soundSettings.gkPresets; track s.id) {
+              @let isSelected = cfg.selectedGkSoundId === s.id;
+              @let isPreviewing = soundSettings.previewingSoundId() === s.id;
+
+              <div
+                class="fc-tone-item"
+                [class.selected]="isSelected"
+                [class.previewing]="isPreviewing"
+                (click)="selezionaSuonoPortiere(s.id)"
               >
-                {{ min }}'{{ min === 5 ? ' (Std)' : '' }}
-              </button>
+                <div class="fc-tone-left">
+                  <span class="fc-radio-dot" [class.checked]="isSelected"></span>
+                  <span class="fc-tone-name">{{ s.name }}</span>
+                </div>
+
+                <button
+                  type="button"
+                  class="fc-mini-play-btn"
+                  [class.playing]="isPreviewing"
+                  (click)="toggleAnteprimaSuono(s.id, $event)"
+                  [title]="isPreviewing ? 'Ferma anteprima' : 'Ascolta tono'"
+                  aria-label="Ascolta tono"
+                >
+                  <ion-icon [name]="isPreviewing ? 'stop' : 'play'"></ion-icon>
+                </button>
+              </div>
             }
           </div>
         </div>
       </div>
 
-      <!-- CATALOGO SEGNALI CAMBIO PORTIERE -->
-      <div class="sounds-catalog-header">
-        <h4>Suoni Portiere</h4>
-      </div>
+      <!-- SEZIONE 2: EFFETTI PARTITA (FISCHIETTO & SEGNALE GOL) -->
+      <div class="settings-section-card fc-audio-card">
+        <div class="ssc-header">
+          <ion-icon name="football-outline" class="ssc-ion-icon"></ion-icon>
+          <div>
+            <h4>Effetti Partita</h4>
+          </div>
+        </div>
 
-      <div class="sounds-grid">
-        @for (s of soundSettings.gkPresets; track s.id; let idx = $index) {
-          @let isSelected = cfg.selectedGkSoundId === s.id;
-          @let isPreviewing = soundSettings.previewingSoundId() === s.id;
-
-          <div
-            class="sound-card"
-            [class.selected]="isSelected"
-            [class.previewing]="isPreviewing"
-            (click)="selezionaSuonoPortiere(s.id)"
-          >
-            <div class="sc-left">
-              <div class="sc-emoji-box">
-                <span class="sc-emoji">{{ s.emoji }}</span>
-                <span class="sc-index">#{{ idx + 1 }}</span>
-              </div>
-
-              <div class="sc-body">
-                <div class="sc-title-row">
-                  <strong class="sc-name">{{ s.name }}</strong>
-                  @if (isSelected) {
-                    <span class="sc-active-check">
-                      <ion-icon name="checkmark-circle"></ion-icon> Attivo
-                    </span>
-                  }
-                </div>
-
-                <div class="sc-badges-row">
-                  <span class="sc-badge cat">{{ s.badge }}</span>
-                  <span class="sc-badge freq">{{ s.freqLabel }}</span>
-                </div>
-
-                <p class="sc-desc">{{ s.description }}</p>
-              </div>
-            </div>
-
-            <div class="sc-right">
+        <div class="fc-audio-rows">
+          <!-- Fischietto Inizio/Fine -->
+          <div class="fc-audio-row">
+            <span class="fc-row-label" (click)="toggleMatchWhistleEffects()">Fischietto Inizio/Fine</span>
+            <div class="fc-row-controls">
               <button
                 type="button"
-                class="preview-btn"
-                [class.playing]="isPreviewing"
-                (click)="toggleAnteprimaSuono(s.id, $event)"
-                [title]="isPreviewing ? 'Ferma anteprima' : 'Ascolta anteprima suono'"
+                class="fc-mini-play-btn with-label"
+                [class.playing]="soundSettings.previewingEffectId() === 'whistle_kickoff'"
+                (click)="testaEffetto('whistle_kickoff')"
+                title="Prova fischio d'inizio"
               >
-                <ion-icon [name]="isPreviewing ? 'stop' : 'play'"></ion-icon>
-                <span>{{ isPreviewing ? 'STOP' : 'PROVA' }}</span>
+                <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_kickoff' ? 'stop' : 'play'"></ion-icon>
+                <span>Inizio</span>
+              </button>
+              <button
+                type="button"
+                class="fc-mini-play-btn with-label"
+                [class.playing]="soundSettings.previewingEffectId() === 'whistle_final'"
+                (click)="testaEffetto('whistle_final')"
+                title="Prova fischio finale"
+              >
+                <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_final' ? 'stop' : 'play'"></ion-icon>
+                <span>Fine</span>
+              </button>
+              <button
+                type="button"
+                class="pill-switch"
+                [class.on]="cfg.matchWhistleEffects"
+                [disabled]="!authService.isAdmin()"
+                (click)="toggleMatchWhistleEffects()"
+              >
+                <span class="knob"></span>
               </button>
             </div>
           </div>
-        }
-      </div>
-    }
 
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 2: EFFETTI MATCH & FISCHIETTO ARBITRO (ESCLUSIVO SUPER USER)   -->
-    <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (authService.isSuperUser() && activeTab() === 'match') {
-      <!-- CARD 1: FISCHIETTO ARBITRO (CALCIO D'INIZIO & FINE PARTITA) -->
-      <div class="effect-card" [class.enabled]="cfg.matchWhistleEffects">
-        <div class="ec-header" (click)="toggleMatchWhistleEffects()">
-          <div class="ec-icon-box whistle">🏁</div>
-          <div class="ec-info">
-            <div class="ec-title-row">
-              <h4>Fischietto Arbitro</h4>
-              <span class="ec-badge" [class.on]="cfg.matchWhistleEffects">
-                {{ cfg.matchWhistleEffects ? 'ATTIVO' : 'DISATTIVATO' }}
-              </span>
+          <!-- Segnale Gol -->
+          <div class="fc-audio-row">
+            <span class="fc-row-label" (click)="toggleGoalSoundEffects()">Segnale Gol</span>
+            <div class="fc-row-controls">
+              <button
+                type="button"
+                class="fc-mini-play-btn"
+                [class.playing]="soundSettings.previewingEffectId() === 'goal_celebration'"
+                (click)="testaEffetto('goal_celebration')"
+                title="Prova segnale gol"
+              >
+                <ion-icon [name]="soundSettings.previewingEffectId() === 'goal_celebration' ? 'stop' : 'play'"></ion-icon>
+              </button>
+              <button
+                type="button"
+                class="pill-switch"
+                [class.on]="cfg.goalSoundEffects"
+                [disabled]="!authService.isAdmin()"
+                (click)="toggleGoalSoundEffects()"
+              >
+                <span class="knob"></span>
+              </button>
             </div>
           </div>
-          <button
-            type="button"
-            class="pill-switch"
-            [class.on]="cfg.matchWhistleEffects"
-            [disabled]="!authService.isAdmin()"
-          >
-            <span class="knob"></span>
-          </button>
-        </div>
-
-        <div class="ec-actions-row">
-          <div class="ec-buttons-grid">
-            <button
-              type="button"
-              class="ec-btn"
-              [class.playing]="soundSettings.previewingEffectId() === 'whistle_kickoff'"
-              (click)="testaEffetto('whistle_kickoff')"
-            >
-              <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_kickoff' ? 'stop' : 'play'"></ion-icon>
-              <span>Fischio Inizio</span>
-            </button>
-            <button
-              type="button"
-              class="ec-btn"
-              [class.playing]="soundSettings.previewingEffectId() === 'whistle_final'"
-              (click)="testaEffetto('whistle_final')"
-            >
-              <ion-icon [name]="soundSettings.previewingEffectId() === 'whistle_final' ? 'stop' : 'play'"></ion-icon>
-              <span>Triplice Fischio</span>
-            </button>
-          </div>
         </div>
       </div>
 
-      <!-- CARD 2: CELEBRAZIONE GOL -->
-      <div class="effect-card" [class.enabled]="cfg.goalSoundEffects">
-        <div class="ec-header" (click)="toggleGoalSoundEffects()">
-          <div class="ec-icon-box goal">🎺</div>
-          <div class="ec-info">
-            <div class="ec-title-row">
-              <h4>Celebrazione Gol</h4>
-              <span class="ec-badge" [class.on]="cfg.goalSoundEffects">
-                {{ cfg.goalSoundEffects ? 'ATTIVO' : 'DISATTIVATO' }}
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="pill-switch"
-            [class.on]="cfg.goalSoundEffects"
-            [disabled]="!authService.isAdmin()"
-          >
-            <span class="knob"></span>
-          </button>
-        </div>
-
-        <div class="ec-actions-row">
-          <button
-            type="button"
-            class="ec-btn highlight"
-            [class.playing]="soundSettings.previewingEffectId() === 'goal_celebration'"
-            (click)="testaEffetto('goal_celebration')"
-          >
-            <ion-icon [name]="soundSettings.previewingEffectId() === 'goal_celebration' ? 'stop' : 'play'"></ion-icon>
-            <span>Fanfara Gol</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- CARD 3: TROMBONE AUTOGOL -->
-      <div class="effect-card" [class.enabled]="cfg.autogoalSoundEffects">
-        <div class="ec-header" (click)="toggleAutogoalSoundEffects()">
-          <div class="ec-icon-box autogoal">🎷</div>
-          <div class="ec-info">
-            <div class="ec-title-row">
-              <h4>Gaffe Autogol</h4>
-              <span class="ec-badge" [class.on]="cfg.autogoalSoundEffects">
-                {{ cfg.autogoalSoundEffects ? 'ATTIVO' : 'DISATTIVATO' }}
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            class="pill-switch"
-            [class.on]="cfg.autogoalSoundEffects"
-            [disabled]="!authService.isAdmin()"
-          >
-            <span class="knob"></span>
-          </button>
-        </div>
-
-        <div class="ec-actions-row">
-          <button
-            type="button"
-            class="ec-btn warning"
-            [class.playing]="soundSettings.previewingEffectId() === 'sad_trombone'"
-            (click)="testaEffetto('sad_trombone')"
-          >
-            <ion-icon [name]="soundSettings.previewingEffectId() === 'sad_trombone' ? 'stop' : 'play'"></ion-icon>
-            <span>Trombone Autogol</span>
-          </button>
-        </div>
-      </div>
+      <!-- RIPRISTINA SUONI PREDEFINITI IN FONDO ALLA TAB AUDIO -->
+      <button
+        type="button"
+        class="fc-reset-audio-btn"
+        (click)="ripristinaDefaultAudio()"
+      >
+        <ion-icon name="refresh-outline"></ion-icon>
+        <span>Ripristina suoni predefiniti</span>
+      </button>
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -901,17 +754,6 @@
             <ion-icon name="cloud-download-outline"></ion-icon>
             <div class="sab-text">
               <strong>{{ isExportingBackup() ? 'Download...' : 'Scarica Backup (.json)' }}</strong>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            class="sys-action-btn"
-            (click)="ripristinaDefaultAudio()"
-          >
-            <ion-icon name="refresh-outline"></ion-icon>
-            <div class="sab-text">
-              <strong>Ripristina suoni</strong>
             </div>
           </button>
         </div>

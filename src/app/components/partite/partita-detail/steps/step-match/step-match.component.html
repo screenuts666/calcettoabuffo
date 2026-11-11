@@ -1,4 +1,4 @@
-<!-- ─── BANNER CAMBIO PORTIERE (CON PULSANTONE STOP GIGANTESCO) ─── -->
+<!-- ─── BANNER CAMBIO PORTIERE (CON PULSANTONE STOP GIGANTESCO & FREEZE PORTIERE ATTIVO) ─── -->
 @if (state.cambioAttivo()) {
   <div
     class="cambio-banner"
@@ -11,31 +11,29 @@
     <div class="cambio-content">
       <div class="cambio-text-group">
         <div class="cambio-title-row">
-          <span class="cambio-title"><ion-icon name="time-outline"></ion-icon> CAMBIO PORTIERE!</span>
+          <span class="cambio-title"><ion-icon name="time-outline"></ion-icon> TURNO SCADUTO · CAMBIO PORTIERE!</span>
           <span class="cambio-preset-tag">{{ soundSettings.selectedGkPreset().name }}</span>
         </div>
         <div class="cambio-gk-names-box">
-          @if (state.modalitaPortieriA() === 'rotazione' && state.modalitaPortieriB() === 'rotazione') {
-            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) & <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri)</span>
-          } @else if (state.modalitaPortieriA() === 'rotazione') {
-            <span>In porta: <strong>{{ state.portieriInfoA().attuale?.nome }}</strong> (Bianchi) · Neri: {{ state.portieriInfoB().attuale?.nome }} (Fisso)</span>
-          } @else {
-            <span>In porta: <strong>{{ state.portieriInfoB().attuale?.nome }}</strong> (Neri) · Bianchi: {{ state.portieriInfoA().attuale?.nome }} (Fisso)</span>
-          }
+          <div class="cambio-still-in-goal">
+            Ancora in porta ora: <strong>{{ state.portieriInfoA().attuale?.nome || '—' }}</strong> (Bianchi) / <strong>{{ state.portieriInfoB().attuale?.nome || '—' }}</strong> (Neri)
+          </div>
+          <div class="cambio-next-entering">
+            Pronti a entrare: <strong>{{ prossimiPortieriCambioLabel() }}</strong>
+          </div>
         </div>
       </div>
     </div>
     @if (isAdmin) {
       <button type="button" class="cambio-stop-btn-giant" (click)="$event.stopPropagation(); fermaCambio()">
-        <ion-icon name="volume-mute"></ion-icon>
-        <span>Silenzia Allarme</span>
+        <span>🔊 FERMA SUONO E CAMBIA PORTIERI ({{ prossimiPortieriCambioLabel() }})</span>
       </button>
     }
   </div>
 }
 
 <!-- ─── BANNER PRE-PARTITA (MODIFICA SQUADRE/CONVOCATI PRIMA DEL FISCHIO D'INIZIO) ─── -->
-@if (isAdmin && state.status() === 'pronta' && !state.isTimerRunning() && state.cronometro() === 0 && state.eventiGol().length === 0) {
+@if (isAdmin && state.status() === 'pronta' && !state.isTimerRunning() && !state.isPausedDev() && state.cronometro() === 0 && state.eventiGol().length === 0) {
   <div class="pre-match-card ion-padding-horizontal">
     <div class="pm-inner">
       <div class="pm-text">
@@ -52,7 +50,11 @@
 <!-- ─── COCKPIT BORDO CAMPO: TIMER + TABELLONE + GOL RAPIDO CON FOTO ──── -->
 <div class="courtside-cockpit">
   <!-- Barra Superiore: Info Campo + Cronometro + Play/Pausa -->
-  <div class="timer-bar-card" [class.is-running]="state.isTimerRunning()">
+  <div
+    class="timer-bar-card"
+    [class.is-running]="state.isTimerRunning() && !state.isPausedDev()"
+    [class.is-paused-dev]="state.isPausedDev()"
+  >
     <div class="tb-left">
       <div class="tb-meta-line">
         <span><ion-icon name="location-outline"></ion-icon> {{ state.luogo() || 'Campo' }}</span>
@@ -70,14 +72,18 @@
         }
       </div>
       <div class="tb-clock-wrap">
-        <span class="live-dot" [class.active]="state.isTimerRunning()"></span>
+        <span
+          class="live-dot"
+          [class.active]="state.isTimerRunning() && !state.isPausedDev()"
+          [class.paused-dev]="state.isPausedDev()"
+        ></span>
         <span class="giant-timer">{{ state.formatTimer() }}</span>
       </div>
     </div>
 
     <div class="tb-right">
       @if (isAdmin) {
-        @if (!state.isTimerRunning() && state.cronometro() <= 0) {
+        @if (!state.isTimerRunning() && !state.isPausedDev() && state.cronometro() <= 0) {
           <button
             type="button"
             class="timer-action-btn kickoff"
@@ -86,17 +92,55 @@
             <ion-icon name="play"></ion-icon>
             <span>FISCHIO D'INIZIO</span>
           </button>
-        } @else if (state.isTimerRunning()) {
-          <div class="timer-live-badge">
-            <span class="live-dot-pulse"></span>
-            <span>IN CORSO</span>
+        } @else if (state.isTimerRunning() || state.isPausedDev()) {
+          <div class="timer-live-row">
+            @if (state.isPausedDev()) {
+              <div class="timer-live-badge paused-dev">
+                <ion-icon name="pause"></ion-icon>
+                <span>PAUSA DEV</span>
+              </div>
+            } @else {
+              <div class="timer-live-badge">
+                <span class="live-dot-pulse"></span>
+                <span>IN CORSO</span>
+              </div>
+            }
+
+            <!-- CONTROLLI ESCLUSIVI MODALITÀ DEV -->
+            @if (isDevModeActive) {
+              <div class="dev-timer-controls">
+                <button
+                  type="button"
+                  class="dev-pause-btn"
+                  [class.is-resuming]="state.isPausedDev()"
+                  (click)="togglePausaDev()"
+                  [title]="state.isPausedDev() ? 'Riprendi timer partita (Solo DEV)' : 'Metti in pausa timer partita (Solo DEV)'"
+                >
+                  <span>{{ state.isPausedDev() ? '▶ Riprendi DEV' : '⏸ Pausa DEV' }}</span>
+                </button>
+                @if (!state.cambioAttivo() && (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione')) {
+                  <button
+                    type="button"
+                    class="dev-skip-btn"
+                    (click)="avanzaCambioDev()"
+                    title="Porta il countdown a -5s dal cambio portiere (Solo DEV)"
+                  >
+                    <span>⏩ -5s</span>
+                  </button>
+                }
+              </div>
+            }
           </div>
         }
       }
       @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
-        <div class="next-gk-mini-pill">
+        <div class="next-gk-mini-pill" [class.alarm-ringing]="state.cambioAttivo()">
           <ion-icon name="hand-left-outline"></ion-icon>
-          <span>Cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong></span>
+          @if (state.cambioAttivo()) {
+            <span><strong>ALLARME CAMBIO (00:00)</strong></span>
+          } @else {
+            <span>Cambio tra <strong>{{ state.minutiRimanentiAlCambio() }}</strong></span>
+          }
         </div>
       }
     </div>

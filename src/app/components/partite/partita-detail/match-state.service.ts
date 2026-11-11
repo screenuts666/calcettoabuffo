@@ -147,7 +147,37 @@ export class MatchStateService {
   orarioInizioReale = signal<string | null>(null);
   orarioFineReale = signal<string | null>(null);
   isTimerRunning = signal<boolean>(false);
+  isPausedDev = signal<boolean>(false);
   rotazionePortieri = signal<RotazionePortieri | null>(null);
+
+  /**
+   * Macchina a stati del timer / cambio portiere in diretta:
+   * - 'running': partita in corso normale
+   * - 'alarm_ringing': countdown turno a 00:00, allarme in loop, portieri precedenti ANCORA in porta fino allo stop manuale
+   * - 'paused_dev': timer messo in pausa in modalità sviluppatore (DEV)
+   */
+  liveTurnState = computed<'running' | 'alarm_ringing' | 'paused_dev'>(() => {
+    if (this.isPausedDev()) return 'paused_dev';
+    if (this.cambioAttivo()) return 'alarm_ringing';
+    return 'running';
+  });
+
+  /**
+   * True non appena il Fischio d'Inizio è stato premuto (o la partita è in corso/conclusa).
+   * Blocca la modifica della Durata Turno in Porta.
+   */
+  isMatchStartedOrCompleted = computed<boolean>(() => {
+    return (
+      this.isTimerRunning() ||
+      this.isPausedDev() ||
+      (this.cronometro() || 0) > 0 ||
+      (this.accumulatedTime() || 0) > 0 ||
+      !!this.startedAt() ||
+      this.status() === 'in_corso' ||
+      this.status() === 'conclusa' ||
+      this.matchConcluso()
+    );
+  });
 
   convocati = computed(() =>
     this.tutti().filter((g) => g?.selezionato === true),
@@ -224,15 +254,41 @@ export class MatchStateService {
     return `Ogni ${this.durataTurnoMinuti()} min`;
   });
 
+  /**
+   * Indice del turno portiere ATTUALMENTE CONFERMATO in porta.
+   * REGOLA CRITICA: finché l'allarme cambio sta suonando (`alarm_ringing`),
+   * `turnoConfermatoIndex` NON avanza, mantenendo i portieri precedenti ufficialmente in porta!
+   */
   turnoAttualeIndex = computed(() => {
-    return Math.floor(this.cronometro() / this.durataTurnoSecondi());
+    const rot = this.rotazionePortieri();
+    if (rot && typeof rot.turnoConfermatoIndex === 'number') {
+      return Math.max(0, rot.turnoConfermatoIndex);
+    }
+    const rawTurn = Math.floor(this.cronometro() / this.durataTurnoSecondi());
+    if (this.cambioAttivo() && rawTurn > 0) {
+      return rawTurn - 1;
+    }
+    return Math.max(0, rawTurn);
+  });
+
+  /**
+   * Secondi rimanenti allo scadere del turno corrente del portiere.
+   * Calcolato sempre sulla differenza di timestamp/secondi reali dal `turnoStartCronometroSec`.
+   */
+  secondiRimanentiAlCambio = computed(() => {
+    if (this.cambioAttivo()) return 0;
+    const durataSec = this.durataTurnoSecondi();
+    const rot = this.rotazionePortieri();
+    const startSec =
+      rot && typeof rot.turnoStartCronometroSec === 'number'
+        ? rot.turnoStartCronometroSec
+        : this.turnoAttualeIndex() * durataSec;
+    const elapsedInTurn = Math.max(0, this.cronometro() - startSec);
+    return Math.max(0, durataSec - elapsedInTurn);
   });
 
   minutiRimanentiAlCambio = computed(() => {
-    const sec = this.cronometro();
-    const durataSec = this.durataTurnoSecondi();
-    const passati = sec % durataSec;
-    const rim = durataSec - passati;
+    const rim = this.secondiRimanentiAlCambio();
     const m = Math.floor(rim / 60)
       .toString()
       .padStart(2, '0');
@@ -361,6 +417,32 @@ export class MatchStateService {
     return arr;
   }
 
+  /**
+   * Imposta la durata del turno in porta (Step 1 Pre-Partita).
+   * Rigorosamente bloccata non appena il Fischio d'Inizio viene premuto.
+   */
+  impostaDurataTurnoMinuti(minuti: number) {
+    if (this.isMatchStartedOrCompleted()) return;
+    const validMin = Math.max(1, Math.min(30, Math.round(minuti)));
+    const current = this.rotazionePortieri() || {
+      teamA: this.teamA().map((p) => p.id),
+      teamB: this.teamB().map((p) => p.id),
+      durataTurnoMinuti: validMin,
+      modalitaA: 'rotazione',
+      modalitaB: 'rotazione',
+      turnoConfermatoIndex: 0,
+      turnoStartCronometroSec: 0,
+    };
+
+    this.rotazionePortieri.set({
+      ...current,
+      durataTurnoMinuti: validMin,
+    });
+    this.soundSettings?.updateConfig({ gkTurnMinutes: validMin });
+    this.salvaSetupPredefinito();
+    this.triggerAutoSave(true);
+  }
+
   impostaModalitaPortiere(team: 'A' | 'B', modalita: ModalitaPortiere) {
     const current = this.rotazionePortieri() || {
       teamA: this.teamA().map((p) => p.id),
@@ -371,6 +453,8 @@ export class MatchStateService {
         5,
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
+      turnoConfermatoIndex: 0,
+      turnoStartCronometroSec: 0,
     };
 
     if (team === 'A') {
@@ -409,6 +493,8 @@ export class MatchStateService {
       durataTurnoMinuti: this.durataTurnoMinuti(),
       modalitaA: 'rotazione',
       modalitaB: 'rotazione',
+      turnoConfermatoIndex: 0,
+      turnoStartCronometroSec: 0,
     };
 
     if (team === 'A') {
@@ -459,15 +545,15 @@ export class MatchStateService {
         teamBIds.every((id) => current.teamB?.includes(id)) &&
         current.teamB?.length === teamBIds.length;
       if (validA && validB) {
-        if (!current.modalitaA || !current.modalitaB) {
-          this.rotazionePortieri.set({
-            ...current,
-            modalitaA,
-            modalitaB,
-            portiereFissoAId: defaultFissoA,
-            portiereFissoBId: defaultFissoB,
-          });
-        }
+        this.rotazionePortieri.set({
+          ...current,
+          modalitaA,
+          modalitaB,
+          portiereFissoAId: defaultFissoA,
+          portiereFissoBId: defaultFissoB,
+          turnoConfermatoIndex: current.turnoConfermatoIndex ?? 0,
+          turnoStartCronometroSec: current.turnoStartCronometroSec ?? 0,
+        });
         return;
       }
     }
@@ -480,6 +566,8 @@ export class MatchStateService {
       teamA: modalitaA === 'rotazione' ? this.shuffleIds(teamAIds) : teamAIds,
       teamB: modalitaB === 'rotazione' ? this.shuffleIds(teamBIds) : teamBIds,
       durataTurnoMinuti: this.durataTurnoMinuti(),
+      turnoConfermatoIndex: current?.turnoConfermatoIndex ?? 0,
+      turnoStartCronometroSec: current?.turnoStartCronometroSec ?? 0,
     };
     this.rotazionePortieri.set(nuovaRotazione);
   }
@@ -534,6 +622,7 @@ export class MatchStateService {
 
   async setCambioPortiereAttivo(attivo: boolean): Promise<void> {
     this.cambioAttivo.set(attivo);
+    this.salvaSnapshotLocale();
     const id = this.matchId();
     if (!id || !this.auth.isSuperUser()) return;
     try {
@@ -546,19 +635,60 @@ export class MatchStateService {
   }
 
   /**
+   * Conferma manualmente il cambio portiere (chiamato SOLO al click su "FERMA SUONO E CAMBIA PORTIERI"):
+   * 1. Ferma lo stato `cambioAttivo` (`alarm_ringing` -> `running`)
+   * 2. Avanza `turnoConfermatoIndex` applicando lo switch effettivo ai nuovi portieri (`Bianchi` e `Neri`)
+   * 3. Imposta `turnoStartCronometroSec = cronometro()` facendo ripartire il countdown del nuovo turno per intero (es. `05:00`)
+   */
+  async confermaCambioPortiere(): Promise<void> {
+    const nextTurnIndex = this.turnoAttualeIndex() + 1;
+    const nowCronometro = this.cronometro();
+    const currentRot: RotazionePortieri = this.rotazionePortieri() || {
+      teamA: this.teamA().map((p) => p.id),
+      teamB: this.teamB().map((p) => p.id),
+      durataTurnoMinuti: this.durataTurnoMinuti(),
+      modalitaA: 'rotazione',
+      modalitaB: 'rotazione',
+    };
+
+    const updatedRot: RotazionePortieri = {
+      ...currentRot,
+      turnoConfermatoIndex: nextTurnIndex,
+      turnoStartCronometroSec: nowCronometro,
+    };
+
+    this.cambioAttivo.set(false);
+    this.rotazionePortieri.set(updatedRot);
+    this.salvaSnapshotLocale();
+
+    const id = this.matchId();
+    if (!id || !this.auth.isSuperUser()) return;
+    try {
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        cambioAttivo: false,
+        rotazionePortieri: sanitizeForFirestore(updatedRot),
+      });
+    } catch (err) {
+      console.warn('Errore conferma cambio portiere:', err);
+    }
+  }
+
+  /**
    * Avvia il timer della partita (Fischio d'Inizio).
-   * Una volta avviato, il match scorre ininterrotto fino al fischio finale definitivo:
-   * non è possibile mettere in pausa per evitare corruzioni del conteggio.
+   * In produzione il match scorre ininterrotto fino al fischio finale definitivo;
+   * in modalità sviluppatore (DEV) sono disponibili i controlli di pausa/riprendi/test.
    */
   async avviaTimer(): Promise<void> {
     const id = this.matchId();
     if (!id) return;
-    if (this.isTimerRunning()) return;
+    if (this.isTimerRunning() && !this.isPausedDev()) return;
 
-    const startAt = this.startedAt() || this.timerStartAt() || Date.now();
+    const now = Date.now();
+    const startAt = this.startedAt() || now;
     this.startedAt.set(startAt);
-    this.timerStartAt.set(startAt);
+    this.timerStartAt.set(now);
     this.isTimerRunning.set(true);
+    this.isPausedDev.set(false);
 
     const orarioInizioStr = new Intl.DateTimeFormat('it-IT', {
       timeZone: 'Europe/Rome',
@@ -567,12 +697,29 @@ export class MatchStateService {
     }).format(new Date(startAt));
     this.orarioInizioReale.set(orarioInizioStr);
 
+    // Assicura l'inizializzazione di turnoConfermatoIndex e turnoStartCronometroSec
+    const curRot = this.rotazionePortieri();
+    if (
+      curRot &&
+      (curRot.turnoConfermatoIndex === undefined ||
+        curRot.turnoStartCronometroSec === undefined)
+    ) {
+      this.rotazionePortieri.set({
+        ...curRot,
+        turnoConfermatoIndex: curRot.turnoConfermatoIndex ?? 0,
+        turnoStartCronometroSec: curRot.turnoStartCronometroSec ?? 0,
+      });
+    }
+
     const payload: Record<string, unknown> = {
       isTimerRunning: true,
+      isPausedDev: false,
       startedAt: startAt,
-      timerStartAt: startAt,
+      timerStartAt: now,
+      accumulatedTime: this.accumulatedTime(),
       inizioPartita: Timestamp.fromMillis(startAt),
       orarioInizioReale: orarioInizioStr,
+      rotazionePortieri: sanitizeForFirestore(this.rotazionePortieri()),
     };
 
     // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
@@ -599,23 +746,126 @@ export class MatchStateService {
   }
 
   /**
+   * ESCLUSIVO MODALITÀ DEV: Mette in pausa il timer della partita e il countdown del cambio portiere,
+   * congelando `accumulatedTime` al secondo esatto corrente.
+   */
+  async pausaTimerDev(): Promise<void> {
+    if (!this.isTimerRunning() || this.isPausedDev()) return;
+    const now = Date.now();
+    const base = this.timerStartAt() || this.startedAt() || now;
+    const elapsedSinceResume = Math.max(0, Math.floor((now - base) / 1000));
+    const currentSec =
+      this.timerStartAt() && this.accumulatedTime() > 0
+        ? this.accumulatedTime() + elapsedSinceResume
+        : Math.max(this.cronometro(), elapsedSinceResume);
+
+    this.cronometro.set(currentSec);
+    this.accumulatedTime.set(currentSec);
+    this.timerStartAt.set(null);
+    this.isTimerRunning.set(false);
+    this.isPausedDev.set(true);
+    this.salvaSnapshotLocale();
+
+    const id = this.matchId();
+    if (!id || !this.auth.isSuperUser()) return;
+    try {
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        isTimerRunning: false,
+        isPausedDev: true,
+        timerStartAt: null,
+        cronometro: currentSec,
+        accumulatedTime: currentSec,
+      });
+    } catch (err) {
+      console.warn('Errore pausa timer DEV:', err);
+    }
+  }
+
+  /**
+   * ESCLUSIVO MODALITÀ DEV: Riprende il timer della partita dalla pausa DEV,
+   * ricalcolando `timerStartAt = Date.now()` per preservare l'offset di `accumulatedTime`.
+   */
+  async riprendiTimerDev(): Promise<void> {
+    if (this.isTimerRunning() && !this.isPausedDev()) return;
+    const now = Date.now();
+    this.timerStartAt.set(now);
+    this.isTimerRunning.set(true);
+    this.isPausedDev.set(false);
+    this.salvaSnapshotLocale();
+
+    const id = this.matchId();
+    if (!id || !this.auth.isSuperUser()) return;
+    try {
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        isTimerRunning: true,
+        isPausedDev: false,
+        timerStartAt: now,
+        accumulatedTime: this.accumulatedTime(),
+      });
+    } catch (err) {
+      console.warn('Errore ripresa timer DEV:', err);
+    }
+  }
+
+  /**
+   * ESCLUSIVO MODALITÀ DEV: Porta il timer a -5 secondi dallo scadere del turno corrente
+   * per testare istantaneamente il suono in loop e il blocco del cambio portiere.
+   */
+  async avanzaAlProssimoCambioDev(): Promise<void> {
+    const durataSec = this.durataTurnoSecondi();
+    const rot = this.rotazionePortieri();
+    const startSec =
+      rot && typeof rot.turnoStartCronometroSec === 'number'
+        ? rot.turnoStartCronometroSec
+        : this.turnoAttualeIndex() * durataSec;
+    const targetSec = startSec + Math.max(0, durataSec - 5);
+    const now = Date.now();
+
+    this.cronometro.set(targetSec);
+    this.accumulatedTime.set(targetSec);
+    if (this.isTimerRunning()) {
+      this.timerStartAt.set(now);
+    }
+    this.salvaSnapshotLocale();
+
+    const id = this.matchId();
+    if (!id || !this.auth.isSuperUser()) return;
+    try {
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        cronometro: targetSec,
+        accumulatedTime: targetSec,
+        timerStartAt: this.isTimerRunning() ? now : null,
+      });
+    } catch (err) {
+      console.warn('Errore avanzamento rapido DEV:', err);
+    }
+  }
+
+  /**
    * Chiusura definitiva del cronometro al Fischio Finale.
-   * Calcola la durata effettiva reale come (endedAt - startedAt) e persiste il risultato.
+   * Calcola la durata effettiva reale e persiste il risultato.
    */
   async concludiTimer(): Promise<number> {
     const id = this.matchId();
     const now = Date.now();
     this.endedAt.set(now);
+    const wasPausedDev = this.isPausedDev();
     this.isTimerRunning.set(false);
+    this.isPausedDev.set(false);
+    this.cambioAttivo.set(false);
 
     const start =
       this.startedAt() || this.timerStartAt() || now - this.cronometro() * 1000;
-    const durataSec = Math.max(0, Math.floor((now - start) / 1000));
-    const durataFinale =
-      this.accumulatedTime() > 0 && !this.startedAt()
-        ? this.accumulatedTime() +
-          Math.max(0, Math.floor((now - (this.timerStartAt() || now)) / 1000))
-        : durataSec;
+    let durataFinale: number;
+    if (wasPausedDev) {
+      durataFinale = this.accumulatedTime() || this.cronometro();
+    } else if (this.timerStartAt()) {
+      durataFinale =
+        this.accumulatedTime() +
+        Math.max(0, Math.floor((now - this.timerStartAt()!) / 1000));
+    } else {
+      durataFinale = Math.max(0, Math.floor((now - start) / 1000));
+    }
 
     this.cronometro.set(durataFinale);
     this.accumulatedTime.set(durataFinale);
@@ -643,6 +893,8 @@ export class MatchStateService {
         this.syncStatus.notifySyncPending();
         await updateDoc(doc(this.firestore, `partite/${id}`), {
           isTimerRunning: false,
+          isPausedDev: false,
+          cambioAttivo: false,
           timerStartAt: null,
           startedAt: start,
           endedAt: now,
@@ -833,6 +1085,7 @@ export class MatchStateService {
           }
 
           this.isTimerRunning.set(data.isTimerRunning || false);
+          this.isPausedDev.set(Boolean(data.isPausedDev));
           this.accumulatedTime.set(data.accumulatedTime || 0);
           this.timerStartAt.set(data.timerStartAt || null);
           const startMs =
@@ -879,16 +1132,12 @@ export class MatchStateService {
             );
           }
           this.status.set(data.status || 'da_definire');
-          // Allarme cambio consentito solo se il timer è attivo e la partita ha superato la durata del primo turno
-          const turnSec = this.durataTurnoSecondi();
-          const isPastFirstTurn =
-            (data.cronometro || this.cronometro() || 0) >= turnSec;
+          this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.cambioAttivo.set(
-            data.isTimerRunning && isPastFirstTurn
-              ? data.cambioAttivo || false
+            (data.isTimerRunning || data.isPausedDev)
+              ? Boolean(data.cambioAttivo)
               : false,
           );
-          this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.fotoUrl.set(data.fotoUrl || null);
           this.fotoPath.set(data.fotoPath || null);
           this.pronosticoAi.set(data.pronosticoAi || null);
@@ -1116,6 +1365,8 @@ export class MatchStateService {
         orarioInizioReale: this.orarioInizioReale(),
         orarioFineReale: this.orarioFineReale(),
         isTimerRunning: this.isTimerRunning(),
+        isPausedDev: this.isPausedDev(),
+        cambioAttivo: this.cambioAttivo(),
         rotazionePortieri: this.rotazionePortieri(),
         matchConcluso: this.matchConcluso(),
         pagelleInserite: this.pagelleInserite(),
@@ -1184,6 +1435,10 @@ export class MatchStateService {
           this.orarioFineReale.set(snap.orarioFineReale);
         if (typeof snap.isTimerRunning === 'boolean')
           this.isTimerRunning.set(snap.isTimerRunning);
+        if (typeof snap.isPausedDev === 'boolean')
+          this.isPausedDev.set(snap.isPausedDev);
+        if (typeof snap.cambioAttivo === 'boolean')
+          this.cambioAttivo.set(snap.cambioAttivo);
         if (snap.rotazionePortieri)
           this.rotazionePortieri.set(snap.rotazionePortieri);
         if (snap.step) this.step.set(snap.step);
@@ -1398,6 +1653,8 @@ export class MatchStateService {
       orarioInizioReale: orarioInizioStr,
       orarioFineReale: orarioFineStr,
       isTimerRunning: this.isTimerRunning(),
+      isPausedDev: this.isPausedDev(),
+      cambioAttivo: this.cambioAttivo(),
       status: this.status(),
       fotoUrl: this.fotoUrl() || null,
       fotoPath: this.fotoPath() || null,
@@ -1484,6 +1741,7 @@ export class MatchStateService {
     this.orarioInizioReale.set(null);
     this.orarioFineReale.set(null);
     this.isTimerRunning.set(false);
+    this.isPausedDev.set(false);
     this.cambioAttivo.set(false);
     this.rimuoviSnapshotLocale();
   }

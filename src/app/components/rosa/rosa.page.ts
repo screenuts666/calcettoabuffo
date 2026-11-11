@@ -238,6 +238,99 @@ export class RosaPage {
   }
 
   /**
+   * Restituisce i metadati FUT Card (Ruolo abbreviato, Tier, MMR e colore accento)
+   */
+  getFutCardInfo(g: Giocatore): {
+    roleShort: string;
+    tierId: string;
+    tierLabel: string;
+    mmrDisplay: string;
+    color: string;
+  } {
+    const ruoloRaw = ((g.ruoloPreferito as string) || '').toLowerCase().trim();
+    let roleShort = 'GIOC';
+    if (ruoloRaw.includes('attacc')) roleShort = 'ATT';
+    else if (ruoloRaw.includes('difens')) roleShort = 'DIF';
+    else if (ruoloRaw.includes('fasc') || ruoloRaw.includes('estern')) roleShort = 'FAS';
+    else if (ruoloRaw.includes('centroc')) roleShort = 'CEN';
+    else if (ruoloRaw.includes('portier')) roleShort = 'POR';
+
+    const stats = this.statsEngine.statsResult()?.allTime?.get(g.id);
+    if (stats && stats.partiteGiocate > 0 && stats.isRanked && stats.tier) {
+      return {
+        roleShort,
+        tierId: stats.tier.id || 'argento',
+        tierLabel: stats.tier.label,
+        mmrDisplay: String(Math.round(stats.currentMmr)),
+        color: stats.tier.color || '#10b981',
+      };
+    }
+
+    return {
+      roleShort,
+      tierId: 'unranked',
+      tierLabel: 'Base',
+      mmrDisplay: '—',
+      color: '#64748b',
+    };
+  }
+
+  /**
+   * Restituisce la stringa ultra-compatta per il footer della card FUT: es. "DX • '96 • 185cm"
+   */
+  getFutMiniStats(g: Giocatore): string {
+    if (!g) return '—';
+    const parts: string[] = [];
+
+    // 1. Piede abbreviato (DX / SX / AMB)
+    const piedeRaw = ((g.piedePreferito as string) || '').toLowerCase().trim();
+    if (piedeRaw.startsWith('destr') || piedeRaw === 'dx') {
+      parts.push('DX');
+    } else if (piedeRaw.startsWith('sinistr') || piedeRaw === 'sx') {
+      parts.push('SX');
+    } else if (piedeRaw.startsWith('ambi')) {
+      parts.push('AMB');
+    }
+
+    // 2. Anno di nascita abbreviato ('96)
+    if (!g.nascondiAnnoNascita) {
+      const rawData = (g.dataNascita || '').trim();
+      const rawAnno = g.annoNascita ? String(g.annoNascita).trim() : '';
+      let yearStr = '';
+
+      if (rawData.includes('/')) {
+        const segs = rawData.split('/');
+        if (segs.length === 3 && segs[2].length === 4) {
+          yearStr = segs[2].slice(-2);
+        }
+      } else if (rawData.includes('-')) {
+        const segs = rawData.split('-');
+        if (segs.length === 3 && segs[0].length === 4) {
+          yearStr = segs[0].slice(-2);
+        }
+      } else if (/^\d{4}$/.test(rawData)) {
+        yearStr = rawData.slice(-2);
+      }
+
+      if (!yearStr && /^\d{4}$/.test(rawAnno)) {
+        yearStr = rawAnno.slice(-2);
+      }
+
+      if (yearStr) {
+        parts.push(`'${yearStr}`);
+      }
+    }
+
+    // 3. Altezza compatta (185cm)
+    const h = (g.altezza || '').toString().trim().replace(/\s*cm$/i, '');
+    if (h) {
+      parts.push(`${h}cm`);
+    }
+
+    return parts.length > 0 ? parts.join(' • ') : '—';
+  }
+
+  /**
    * Restituisce l'indicatore Ruolo / Tier MMR del giocatore per la Player Card
    */
   getPlayerBadgeInfo(g: Giocatore): { label: string; color: string } {

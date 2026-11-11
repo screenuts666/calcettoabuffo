@@ -73,15 +73,32 @@
       }
 
       .cambio-gk-names-box {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         opacity: 0.98;
         font-weight: 600;
-        line-height: 1.35;
+        line-height: 1.4;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
 
-        strong {
-          font-weight: 900;
-          color: #fffa65;
-          text-decoration: underline;
+        .cambio-still-in-goal {
+          font-size: 0.84rem;
+          color: rgba(255, 255, 255, 0.92);
+
+          strong {
+            font-weight: 800;
+            color: #ffffff;
+          }
+        }
+
+        .cambio-next-entering {
+          font-size: 0.92rem;
+
+          strong {
+            font-weight: 900;
+            color: #fffa65;
+            text-decoration: underline;
+          }
         }
       }
     }
@@ -89,18 +106,21 @@
 
   .cambio-stop-btn-giant {
     width: 100%;
-    min-height: 58px;
+    min-height: 60px;
+    padding: 8px 14px;
     background: #ffffff;
     color: #dc2626;
     border: 3px solid rgba(255, 255, 255, 0.95);
     border-radius: 16px;
-    font-size: 1.2rem;
+    font-size: 1.02rem;
     font-weight: 900;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
+    line-height: 1.25;
+    text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.6);
     cursor: pointer;
     z-index: 2;
@@ -108,7 +128,8 @@
     animation: stop-btn-pulse 0.9s ease-in-out infinite alternate;
 
     ion-icon {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
+      flex-shrink: 0;
     }
 
     &:hover, &:active {
@@ -253,6 +274,15 @@
     );
   }
 
+  &.is-paused-dev {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: linear-gradient(
+      135deg,
+      rgba(245, 158, 11, 0.12) 0%,
+      var(--app-surface-subtle) 100%
+    );
+  }
+
   .tb-left {
     display: flex;
     flex-direction: column;
@@ -303,6 +333,11 @@
           background: #2dd36f;
           box-shadow: 0 0 10px #2dd36f;
           animation: liveBlink 1.3s ease-in-out infinite;
+        }
+
+        &.paused-dev {
+          background: #f59e0b;
+          box-shadow: 0 0 8px #f59e0b;
         }
       }
 
@@ -359,19 +394,33 @@
       }
     }
 
+    .timer-live-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .timer-live-badge {
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      height: 44px;
-      padding: 0 16px;
-      border-radius: 14px;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
       background: rgba(45, 211, 111, 0.16);
       border: 1.5px solid rgba(45, 211, 111, 0.45);
       color: #2dd36f;
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 900;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.6px;
+
+      &.paused-dev {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.5);
+        color: #fbbf24;
+      }
 
       .live-dot-pulse {
         width: 8px;
@@ -380,6 +429,37 @@
         background: #2dd36f;
         box-shadow: 0 0 10px #2dd36f;
         animation: liveBlink 1.2s infinite;
+      }
+    }
+
+    .dev-timer-controls {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+
+      .dev-pause-btn,
+      .dev-skip-btn {
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 10px;
+        border: 1px dashed rgba(245, 158, 11, 0.6);
+        background: rgba(245, 158, 11, 0.14);
+        color: #fbbf24;
+        font-size: 0.75rem;
+        font-weight: 800;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+
+        &.is-resuming {
+          border-color: rgba(45, 211, 111, 0.65);
+          background: rgba(45, 211, 111, 0.18);
+          color: #2dd36f;
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
       }
     }
 
@@ -394,6 +474,17 @@
       padding: 3px 10px;
       border-radius: 8px;
       white-space: nowrap;
+
+      &.alarm-ringing {
+        background: rgba(239, 68, 68, 0.18);
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        color: #f87171;
+
+        ion-icon,
+        strong {
+          color: #f87171;
+        }
+      }
 
       ion-icon {
         font-size: 14px;

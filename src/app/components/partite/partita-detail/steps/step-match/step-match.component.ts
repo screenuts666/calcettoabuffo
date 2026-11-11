@@ -7,8 +7,10 @@ import {
   Input,
   signal,
   computed,
+  isDevMode,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from 'src/environments/environment';
 import {
   IonButton,
   IonIcon,
@@ -25,6 +27,7 @@ import {
   timeOutline,
   play,
   pause,
+  playSkipForwardOutline,
   add,
   remove,
   stop,
@@ -76,14 +79,39 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   @Input() isAdmin: boolean = false;
 
+  /**
+   * Controllo Pausa / Stop / Fast-Forward visibile ESCLUSIVAMENTE in ambiente DEV (`!environment.production || isDevMode()`).
+   */
+  readonly isDevModeActive: boolean = !environment.production || isDevMode();
+
   private timerRef: ReturnType<typeof setInterval> | null = null;
   private wakeLock: any = null;
 
-  // Traccia l'ultimo minuto di cambio già triggerato per evitare doppioni
+  // Traccia l'ultimo turno di cambio già triggerato per evitare doppioni
   private ultimoCambioTurno: number = -1;
   private ultimoPreAlertTurno: number = -1;
 
   isSequenzaAperta = signal<boolean>(false);
+
+  /**
+   * Etichetta con i nomi dei NUOVI portieri pronti a subentrare quando si clicca
+   * su "🔊 FERMA SUONO E CAMBIA PORTIERI ([Nuovo Bianchi] / [Nuovo Neri])".
+   */
+  prossimiPortieriCambioLabel = computed<string>(() => {
+    const nextA =
+      this.state.modalitaPortieriA() === 'rotazione'
+        ? this.state.portieriInfoA().prossimo?.nome ||
+          this.state.portieriInfoA().attuale?.nome ||
+          'Bianchi'
+        : `${this.state.portieriInfoA().attuale?.nome || 'Bianchi'} (Fisso)`;
+    const nextB =
+      this.state.modalitaPortieriB() === 'rotazione'
+        ? this.state.portieriInfoB().prossimo?.nome ||
+          this.state.portieriInfoB().attuale?.nome ||
+          'Neri'
+        : `${this.state.portieriInfoB().attuale?.nome || 'Neri'} (Fisso)`;
+    return `${nextA} / ${nextB}`;
+  });
 
   // ─── STATO VISUAL GOAL & ASSIST PICKER CON FOTO (BORDO CAMPO) ────────────
   goalPickerOpen = signal<boolean>(false);
@@ -119,6 +147,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       time,
       timeOutline,
       play,
+      playSkipForwardOutline,
       football,
       footballOutline,
       arrowUndoOutline,
@@ -149,11 +178,11 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const currentTurn = this.state.turnoAttualeIndex();
-    this.ultimoCambioTurno = currentTurn;
-    this.ultimoPreAlertTurno = currentTurn;
+    this.ultimoCambioTurno = this.state.cambioAttivo() ? currentTurn : -1;
+    this.ultimoPreAlertTurno = -1;
 
-    // Se la partita è all'inizio (inferiore alla durata del primo turno), azzera categoricamente qualsiasi allarme residuo
-    if (this.state.cronometro() < this.state.durataTurnoSecondi()) {
+    // Se la partita è a 00:00 e non è stata avviata, azzera categoricamente qualsiasi allarme residuo
+    if (this.state.cronometro() === 0 && !this.state.isTimerRunning()) {
       this.state.setCambioPortiereAttivo(false);
       this.soundSettings.stopMatchCambioAlarm();
     }
@@ -173,19 +202,20 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       once: true,
     });
 
-    // ─── TIMER PRINCIPALE ──────────────────────────────────────────────
+    // ─── TIMER PRINCIPALE BASATO SU TIMESTAMP REALI (Date.now()) ───────
     this.timerRef = setInterval(() => {
-      if (this.state.isTimerRunning()) {
-        const start =
-          this.state.startedAt() || this.state.timerStartAt() || Date.now();
-        const diffSec = Math.floor((Date.now() - start) / 1000);
+      if (this.state.isTimerRunning() && !this.state.isPausedDev()) {
+        const now = Date.now();
+        const base =
+          this.state.timerStartAt() || this.state.startedAt() || now;
+        const elapsedSinceResume = Math.max(
+          0,
+          Math.floor((now - base) / 1000),
+        );
         const newCronometro =
-          this.state.accumulatedTime() > 0 && !this.state.startedAt()
-            ? this.state.accumulatedTime() +
-              Math.floor(
-                (Date.now() - (this.state.timerStartAt() || Date.now())) / 1000,
-              )
-            : diffSec;
+          this.state.timerStartAt() && this.state.accumulatedTime() > 0
+            ? this.state.accumulatedTime() + elapsedSinceResume
+            : elapsedSinceResume;
         this.state.cronometro.set(newCronometro);
 
         // Salvataggio periodico di sicurezza in locale ogni 5 secondi
@@ -193,7 +223,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
           this.state.salvaSnapshotLocale();
         }
 
-        // ─── LOGICA SUONO CAMBIO & PREAVVISO -30s (configurabile) ───────────
+        // ─── MACCHINA A STATI CAMBIO PORTIERE ('running' -> 'alarm_ringing') ───
         const hasRotatingTeam =
           this.state.modalitaPortieriA() === 'rotazione' ||
           this.state.modalitaPortieriB() === 'rotazione';
@@ -201,20 +231,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         if (this.isAdmin && hasRotatingTeam) {
           const turnSec = this.state.durataTurnoSecondi();
           const turnIndex = this.state.turnoAttualeIndex();
-          const secInTurn = newCronometro % turnSec;
-          const secRim = turnSec - secInTurn;
+          const secRim = this.state.secondiRimanentiAlCambio();
 
-          // Protezione assoluta: nel primo turno (< turnSec), nessun cambio o allarme è ammesso
-          if (newCronometro < turnSec) {
-            if (this.state.cambioAttivo()) {
-              this.state.setCambioPortiereAttivo(false);
-              this.fermaAudio();
-            }
-          } else {
-            // Preavviso toast prima del cambio (-30s standard, -10s in DEV)
+          if (!this.state.cambioAttivo()) {
+            // Preavviso toast prima del cambio (-30s standard, -10s per turni brevi)
             const isPreAlertTime =
               (turnSec >= 60 && secRim === 30) ||
-              (turnSec === 30 && secRim === 10);
+              (turnSec < 60 && secRim === 10);
             if (isPreAlertTime && this.ultimoPreAlertTurno !== turnIndex) {
               this.ultimoPreAlertTurno = turnIndex;
               this.mostraToastFeedback(
@@ -223,14 +246,16 @@ export class StepMatchComponent implements OnInit, OnDestroy {
               );
             }
 
-            // Cambio portiere quando scade il turno
+            // Quando il countdown del turno arriva a 00:00 -> stato 'alarm_ringing'
+            // I portieri precedenti RIMANGONO in porta finché non si clicca su "FERMA SUONO E CAMBIA PORTIERI"
             if (
               newCronometro > 0 &&
-              turnIndex > 0 &&
-              turnIndex !== this.ultimoCambioTurno
+              secRim === 0 &&
+              this.ultimoCambioTurno !== turnIndex
             ) {
               this.ultimoCambioTurno = turnIndex;
               this.state.setCambioPortiereAttivo(true);
+              this.inviaNotificaWebCambioPortiere();
             }
           }
         }
@@ -238,12 +263,16 @@ export class StepMatchComponent implements OnInit, OnDestroy {
         this.state.cronometro.set(this.state.accumulatedTime());
       }
 
-      // ─── GESTIONE AUDIO CAMBIO (reattivo allo stato cambioAttivo) ──────
+      // ─── GESTIONE AUDIO IN LOOP CONTINUO FINO ALLO STOP MANUALE ──────
       if (this.isAdmin) {
-        const cambioAttivo = this.state.cambioAttivo();
-        if (cambioAttivo && !this.soundSettings.isMatchAlarmPlaying()) {
+        const shouldPlayAlarm =
+          this.state.cambioAttivo() && !this.state.isPausedDev();
+        if (shouldPlayAlarm && !this.soundSettings.isMatchAlarmPlaying()) {
           this.avviaAudio();
-        } else if (!cambioAttivo && this.soundSettings.isMatchAlarmPlaying()) {
+        } else if (
+          !shouldPlayAlarm &&
+          this.soundSettings.isMatchAlarmPlaying()
+        ) {
           this.fermaAudio();
         }
       }
@@ -378,19 +407,33 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   // SUONO CAMBIO PORTIERE & IMPOSTAZIONI
   // ──────────────────────────────────────────────────────────────────────
 
+  /**
+   * Click su "🔊 FERMA SUONO E CAMBIA PORTIERI":
+   * Ferma l'allarme in loop, applica lo switch effettivo ai nuovi portieri e fa ripartire il countdown del nuovo turno (es. 05:00).
+   */
   async fermaCambio() {
-    this.triggerHaptic(30);
-    await this.state.setCambioPortiereAttivo(false);
+    this.triggerHaptic(40);
     this.fermaAudio();
+    await this.state.confermaCambioPortiere();
+    this.ultimoCambioTurno = -1;
+    this.ultimoPreAlertTurno = -1;
+
+    const newA = this.state.portieriInfoA().attuale?.nome;
+    const newB = this.state.portieriInfoB().attuale?.nome;
+    if (newA || newB) {
+      await this.mostraToastFeedback(
+        `Cambio confermato! In porta: ${newA || '—'} (Bianchi) / ${newB || '—'} (Neri)`,
+        'success',
+      );
+    }
   }
 
   async suonaCambioManuale() {
     this.triggerHaptic(35);
-    const nuovoStato = !this.state.cambioAttivo();
-    await this.state.setCambioPortiereAttivo(nuovoStato);
-    if (!nuovoStato) {
-      this.fermaAudio();
+    if (this.state.cambioAttivo()) {
+      await this.fermaCambio();
     } else {
+      await this.state.setCambioPortiereAttivo(true);
       this.avviaAudio();
     }
   }
@@ -398,7 +441,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   async apriImpostazioniSuoni() {
     const modal = await this.modalCtrl.create({
       component: ImpostazioniPage,
-      componentProps: { initialTab: 'portiere' },
+      componentProps: { initialTab: 'audio' },
       mode: 'ios',
     });
     await modal.present();
@@ -409,16 +452,39 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   };
 
   private buildCambioSpeechText(): string {
-    const currA = this.state.portieriInfoA().attuale?.nome;
-    const currB = this.state.portieriInfoB().attuale?.nome;
-    if (currA && currB) {
-      return `Attenzione! Cambio portiere! In porta ${currA} per i Bianchi e ${currB} per i Neri!`;
-    } else if (currA) {
-      return `Attenzione! Cambio portiere! In porta ${currA} per i Bianchi!`;
-    } else if (currB) {
-      return `Attenzione! Cambio portiere! In porta ${currB} per i Neri!`;
+    const nextA =
+      this.state.modalitaPortieriA() === 'rotazione'
+        ? this.state.portieriInfoA().prossimo?.nome
+        : this.state.portieriInfoA().attuale?.nome;
+    const nextB =
+      this.state.modalitaPortieriB() === 'rotazione'
+        ? this.state.portieriInfoB().prossimo?.nome
+        : this.state.portieriInfoB().attuale?.nome;
+    if (nextA && nextB) {
+      return `Attenzione! Cambio portiere! Prepararsi ${nextA} per i Bianchi e ${nextB} per i Neri!`;
+    } else if (nextA) {
+      return `Attenzione! Cambio portiere! Prepararsi ${nextA} per i Bianchi!`;
+    } else if (nextB) {
+      return `Attenzione! Cambio portiere! Prepararsi ${nextB} per i Neri!`;
     }
     return 'Attenzione! Cambio portiere!';
+  }
+
+  private inviaNotificaWebCambioPortiere() {
+    try {
+      if (
+        typeof Notification !== 'undefined' &&
+        Notification.permission === 'granted'
+      ) {
+        new Notification('🔊 CAMBIO PORTIERE!', {
+          body: `Entrano in porta: ${this.prossimiPortieriCambioLabel()}. Apri l'app per fermare il suono e confermare il cambio.`,
+          tag: 'calcetto-gk-change',
+          requireInteraction: true,
+        });
+      }
+    } catch {
+      // Ignora su browser/dispositivi senza Web Notification API
+    }
   }
 
   private avviaAudio() {
@@ -430,17 +496,28 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   // ──────────────────────────────────────────────────────────────────────
-  // TIMER PARTITA (SOLO FISCHIO D'INIZIO E FISCHIO FINALE - NESSUNA PAUSA)
+  // TIMER PARTITA & CONTROLLI ESCLUSIVI MODALITÀ DEV
   // ──────────────────────────────────────────────────────────────────────
 
   async avviaMatch() {
     this.triggerHaptic(40);
-    if (this.state.isTimerRunning()) return;
+    if (this.state.isTimerRunning() && !this.state.isPausedDev()) return;
+
+    try {
+      if (
+        typeof Notification !== 'undefined' &&
+        Notification.permission === 'default'
+      ) {
+        Notification.requestPermission().catch(() => {});
+      }
+    } catch {
+      // ignore
+    }
 
     // Se avviamo il cronometro dall'inizio (00:00), azzeriamo e silenziamo categoricamente qualsiasi allarme residuo
     if (this.state.cronometro() === 0) {
-      this.ultimoCambioTurno = 0;
-      this.ultimoPreAlertTurno = 0;
+      this.ultimoCambioTurno = -1;
+      this.ultimoPreAlertTurno = -1;
       this.soundSettings.stopMatchCambioAlarm();
       await this.state.setCambioPortiereAttivo(false);
     }
@@ -448,8 +525,35 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * @deprecated Pausa disabilitata: il match scorre continuo fino al fischio finale.
+   * ESCLUSIVO MODALITÀ DEV: Pausa / Riprendi timer in diretta per testare comodamente il match.
    */
+  async togglePausaDev() {
+    if (!this.isDevModeActive || !this.isAdmin) return;
+    this.triggerHaptic(30);
+    if (this.state.isPausedDev()) {
+      await this.state.riprendiTimerDev();
+      await this.mostraToastFeedback('▶ Timer DEV ripreso', 'success');
+    } else if (this.state.isTimerRunning()) {
+      this.fermaAudio();
+      await this.state.pausaTimerDev();
+      await this.mostraToastFeedback('⏸ Timer messo in Pausa DEV', 'warning');
+    }
+  }
+
+  /**
+   * ESCLUSIVO MODALITÀ DEV: Avanza rapidamente il countdown a -5s dal cambio portiere.
+   */
+  async avanzaCambioDev() {
+    if (!this.isDevModeActive || !this.isAdmin) return;
+    this.triggerHaptic(30);
+    this.ultimoCambioTurno = -1;
+    await this.state.avanzaAlProssimoCambioDev();
+    await this.mostraToastFeedback(
+      '⏩ Countdown portato a -5s dal cambio (DEV)',
+      'warning',
+    );
+  }
+
   async toggleTimer() {
     await this.avviaMatch();
   }

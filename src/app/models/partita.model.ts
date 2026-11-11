@@ -63,6 +63,10 @@ export interface RotazionePortieri {
   teamA: string[]; // array di playerId ordinati (1°, 2°, 3°, ...)
   teamB: string[]; // array di playerId ordinati (1°, 2°, 3°, ...)
   durataTurnoMinuti?: number; // default 5 minuti
+  /** Indice del turno portiere attualmente in porta (avanza SOLO alla conferma manuale post-allarme) */
+  turnoConfermatoIndex?: number;
+  /** Secondo del cronometro gara in cui è iniziato il turno portiere corrente */
+  turnoStartCronometroSec?: number;
 }
 
 export type MatchFormat = 'calcetto' | 'calcio_a_6' | 'calcio_a_7' | 'calcio_a_8' | 'calcio_a_11';
@@ -102,6 +106,7 @@ export interface Partita {
   orarioInizioReale?: string | null; // Stringa HH:mm inizio effettivo (es. "19:05")
   orarioFineReale?: string | null;   // Stringa HH:mm fine effettiva (es. "20:03")
   isTimerRunning?: boolean;
+  isPausedDev?: boolean;
   status: TMatchStatus;
   step?: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni';
   cambioAttivo?: boolean;

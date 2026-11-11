@@ -197,27 +197,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 7px 4px;
+    padding: 8px 6px;
     border-radius: 11px;
     border: 1px solid var(--app-card-border);
     background: var(--app-surface-subtle);
     color: var(--app-text-secondary);
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     font-weight: 800;
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.15s ease;
 
-    ion-icon {
-      font-size: 0.95rem;
-      flex-shrink: 0;
-    }
-
     span {
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     &.active {
@@ -230,6 +222,208 @@
     &:active {
       transform: scale(0.96);
     }
+  }
+}
+
+// ─── TAB AUDIO UNIFICATA STILE FIFA / EA SPORTS FC ──────────────────────────
+.fc-audio-card {
+  gap: 10px;
+
+  .ssc-ion-icon {
+    font-size: 1.2rem;
+    color: #2dd36f;
+    flex-shrink: 0;
+  }
+}
+
+.fc-audio-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fc-audio-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+
+  .fc-row-label {
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: var(--app-text-primary);
+    flex: 1;
+    min-width: 0;
+  }
+
+  .fc-row-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+}
+
+.fc-tone-subsection {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--app-card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .fc-tone-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--app-text-secondary);
+    padding: 0 2px;
+
+    .fc-tone-current {
+      color: #2dd36f;
+      font-weight: 800;
+    }
+  }
+
+  .fc-tones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .fc-tone-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 40px;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: var(--app-card-bg);
+    border: 1px solid var(--app-card-border);
+    cursor: pointer;
+    transition: all 0.14s ease;
+
+    &.selected {
+      border-color: rgba(45, 211, 111, 0.55);
+      background: rgba(45, 211, 111, 0.08);
+    }
+
+    &.previewing {
+      border-color: #ef4444;
+    }
+
+    .fc-tone-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 0;
+      flex: 1;
+
+      .fc-radio-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid var(--app-text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        &.checked {
+          border-color: #2dd36f;
+
+          &::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2dd36f;
+          }
+        }
+      }
+
+      .fc-tone-name {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--app-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
+
+.fc-mini-play-btn {
+  height: 30px;
+  min-width: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--app-card-border);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.14s ease;
+
+  ion-icon {
+    font-size: 0.85rem;
+  }
+
+  &.playing {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.93);
+  }
+}
+
+.fc-reset-audio-btn {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px dashed var(--app-card-border);
+  background: var(--app-surface-subtle);
+  color: var(--app-text-secondary);
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  ion-icon {
+    font-size: 1rem;
+  }
+
+  &:hover {
+    color: var(--app-text-primary);
+    border-color: var(--app-text-secondary);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 

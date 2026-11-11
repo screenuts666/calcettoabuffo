@@ -5,9 +5,14 @@
     </ion-buttons>
     <ion-title>{{ prof?.nome || 'Scheda Giocatore' }}</ion-title>
     <ion-buttons slot="end">
-      @if (canEdit && prof?.id) {
+      @if ((isAdmin || canEdit) && prof?.id) {
         <ion-button (click)="modificaGiocatore()" title="Modifica Scheda Giocatore">
           <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+      }
+      @if (isAdmin && prof?.id) {
+        <ion-button color="danger" (click)="eliminaGiocatore()" title="Elimina Giocatore">
+          <ion-icon name="trash-outline"></ion-icon>
         </ion-button>
       }
       <app-theme-toggle></app-theme-toggle>
@@ -29,7 +34,10 @@
   <div class="profile-header-compact">
     <div
       class="profile-avatar-wrapper"
+      [class.is-zoomable]="hasRealPhoto(prof?.fotoUrl)"
       [style.--tier-color]="prof?.tier?.color || '#888'"
+      (click)="apriZoomFoto()"
+      [title]="hasRealPhoto(prof?.fotoUrl) ? 'Tocca per ingrandire la foto' : ''"
     >
       <app-player-avatar
         class="avatar-img"
@@ -40,6 +48,10 @@
         <span class="avatar-form-badge on-fire">🔥</span>
       } @else if (prof?.form?.status === 'in_crisis') {
         <span class="avatar-form-badge in-crisis">❄️</span>
+      } @else if (hasRealPhoto(prof?.fotoUrl)) {
+        <span class="avatar-zoom-hint">
+          <ion-icon name="expand-outline"></ion-icon>
+        </span>
       }
     </div>
 
@@ -867,5 +879,41 @@
 
   <!-- SPACER INFERIORE -->
   <div class="profile-scroll-bottom-spacer"></div>
+  }
+
+  <!-- LIGHTBOX FULL-SCREEN FOTO PROFILO -->
+  @if (isPhotoZoomOpen() && hasRealPhoto(prof?.fotoUrl)) {
+    <div
+      class="avatar-lightbox-overlay"
+      (click)="chiudiZoomFoto()"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Foto di ' + (prof?.nome || 'Giocatore')"
+    >
+      <button
+        type="button"
+        class="lightbox-close-btn"
+        (click)="$event.stopPropagation(); chiudiZoomFoto()"
+        aria-label="Chiudi foto"
+        title="Chiudi"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+
+      <img
+        class="lightbox-full-img"
+        [src]="getAvatar(prof?.fotoUrl)"
+        [alt]="prof?.nome"
+        (click)="$event.stopPropagation()"
+        (error)="onImgError($event)"
+      />
+
+      <div class="lightbox-caption" (click)="$event.stopPropagation()">
+        <strong>{{ prof?.nome }}</strong>
+        @if (prof?.soprannome) {
+          <span>"{{ prof.soprannome }}"</span>
+        }
+      </div>
+    </div>
   }
 </ion-content>

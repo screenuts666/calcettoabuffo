@@ -101,155 +101,61 @@
     }
 
     @if (giocatoriFiltrati().length > 0) {
-      <div class="rosa-cards-grid">
+      <div class="rosa-fut-grid">
         @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
-          @let badge = getPlayerBadgeInfo(g);
-          @let etaShort = getEtaEAnnoShort(g);
-          @let fisicoShort = getFisicoShort(g);
-          @let playerPhone = canViewPhone(g) ? getPhoneForPlayer(g.id) : null;
+          @let fut = getFutCardInfo(g);
+          @let miniStats = getFutMiniStats(g);
 
           <article
-            class="rosa-player-card"
+            class="fut-player-card"
+            [attr.data-tier]="fut.tierId"
+            [style.--tier-color]="fut.color"
             [class.is-me]="isMyPlayer(g.id)"
             (click)="apriDettagliGiocatore(g)"
           >
-            <div class="rpc-main-row">
-              <!-- AVATAR + INDICATORE RUOLO/MAGLIA -->
-              <div class="rpc-avatar-wrap">
-                <ion-avatar
-                  class="rpc-avatar"
-                  [style.border-color]="badge.color"
-                >
+            <!-- HEADER CARTA: RUOLO ABBREVIATO + TIER/MMR COMPATTO -->
+            <div class="fut-card-top">
+              <span class="fut-role-tag">{{ fut.roleShort }}</span>
+              <span class="fut-tier-pill" [title]="fut.tierLabel">
+                @if (fut.mmrDisplay !== '—') {
+                  <strong>{{ fut.mmrDisplay }}</strong>
+                } @else {
+                  <span>{{ fut.tierLabel }}</span>
+                }
+              </span>
+            </div>
+
+            <!-- CENTRO: AVATAR CIRCOLARE (54px-60px) CON ANELLO TIER -->
+            <div class="fut-avatar-section">
+              <div class="fut-avatar-ring">
+                <ion-avatar class="fut-avatar">
                   <app-player-avatar
                     [fotoUrl]="g.fotoUrl"
                     [alt]="g.nome"
                   ></app-player-avatar>
                 </ion-avatar>
                 @if (g.numeroMaglia !== null && g.numeroMaglia !== undefined && g.numeroMaglia !== '') {
-                  <span class="rpc-jersey-badge">#{{ g.numeroMaglia }}</span>
+                  <span class="fut-jersey-num">#{{ g.numeroMaglia }}</span>
+                } @else if (isMyPlayer(g.id)) {
+                  <span class="fut-me-tag">TU</span>
                 }
-              </div>
-
-              <!-- INFO PRINCIPALI + SPEC BADGES PULITI -->
-              <div class="rpc-body">
-                <div class="rpc-header-line">
-                  <div class="rpc-title-cluster">
-                    <h3 class="rpc-name">{{ g.nome }}</h3>
-                    @if (isMyPlayer(g.id)) {
-                      <span class="rpc-me-badge">Tu</span>
-                    }
-                    <span
-                      class="rpc-tier-badge"
-                      [style.color]="badge.color"
-                      [style.border-color]="badge.color + '55'"
-                      [style.background]="badge.color + '16'"
-                    >
-                      {{ badge.label }}
-                    </span>
-                  </div>
-
-                  @if (canEditPlayer(g.id)) {
-                    <div class="rpc-quick-actions" (click)="$event.stopPropagation()">
-                      <button
-                        type="button"
-                        class="rpc-icon-btn edit"
-                        title="Modifica scheda"
-                        (click)="modificaGiocatore(g, $event)"
-                      >
-                        <ion-icon name="create-outline"></ion-icon>
-                      </button>
-                      @if (isAdmin) {
-                        <button
-                          type="button"
-                          class="rpc-icon-btn delete"
-                          title="Elimina giocatore"
-                          (click)="eliminaGiocatore(g, $event)"
-                        >
-                          <ion-icon name="trash-outline"></ion-icon>
-                        </button>
-                      }
-                    </div>
-                  }
-                </div>
-
-                @if (g.soprannome) {
-                  <div class="rpc-nickname">"{{ g.soprannome }}"</div>
-                }
-
-                <!-- SPEC BADGES PULITI (ZERO EMOJI) -->
-                <div class="rpc-specs-row">
-                  @if (etaShort) {
-                    <span class="rpc-spec-pill">{{ etaShort }}</span>
-                  }
-                  @if (g.piedePreferito) {
-                    <span class="rpc-spec-pill foot">{{ g.piedePreferito }}</span>
-                  }
-                  @if (fisicoShort) {
-                    <span class="rpc-spec-pill">{{ fisicoShort }}</span>
-                  }
-                  @if (!etaShort && !g.piedePreferito && !fisicoShort) {
-                    <span class="rpc-spec-pill muted">Profilo base</span>
-                  }
-                </div>
               </div>
             </div>
 
-            <!-- DETTAGLI AGGIUNTIVI / TELEFONO PRIVATO -->
-            @if (playerPhone || g.professione || g.origini || g.statoCivile || g.vizi) {
-              <div class="rpc-footer-row">
-                @if (playerPhone) {
-                  <div
-                    class="rpc-phone-bar"
-                    title="Numero privato visibile solo al Mister e al giocatore proprietario"
-                    (click)="$event.stopPropagation()"
-                  >
-                    <span class="rpc-phone-num">
-                      <ion-icon name="lock-closed-outline"></ion-icon>
-                      <span>{{ playerPhone }}</span>
-                    </span>
-                    <div class="rpc-phone-links">
-                      <a
-                        [href]="getTelUrl(playerPhone)"
-                        class="rpc-phone-action call"
-                        (click)="$event.stopPropagation()"
-                        title="Chiama {{ g.nome }}"
-                      >
-                        <ion-icon name="call-outline"></ion-icon>
-                        <span>Chiama</span>
-                      </a>
-                      <a
-                        [href]="getWhatsAppUrl(playerPhone)"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="rpc-phone-action wa"
-                        (click)="$event.stopPropagation()"
-                        title="WhatsApp {{ g.nome }}"
-                      >
-                        <ion-icon name="logo-whatsapp"></ion-icon>
-                        <span>WA</span>
-                      </a>
-                    </div>
-                  </div>
-                }
-
-                @if (g.professione || g.origini || g.statoCivile || g.vizi) {
-                  <div class="rpc-tags-wrap">
-                    @if (g.professione) {
-                      <span class="rpc-extra-tag">{{ g.professione }}</span>
-                    }
-                    @if (g.origini) {
-                      <span class="rpc-extra-tag">{{ g.origini }}</span>
-                    }
-                    @if (g.statoCivile) {
-                      <span class="rpc-extra-tag">{{ g.statoCivile }}</span>
-                    }
-                    @if (g.vizi) {
-                      <span class="rpc-extra-tag gold">{{ g.vizi }}</span>
-                    }
-                  </div>
+            <!-- FASCIA NOME + SOPRANNOME AD ALTEZZA FISSA -->
+            <div class="fut-identity-band">
+              <h3 class="fut-player-name">{{ g.nome }}</h3>
+              <div class="fut-player-nick">
+                @if (g.soprannome) {
+                  "{{ g.soprannome }}"
                 }
               </div>
-            }
+            </div>
+
+            <!-- FOOTER MINI-STATS (1 RIGA ULTRA-COMPATTA) -->
+            <div class="fut-card-footer">
+              <span class="fut-mini-stats">{{ miniStats }}</span>
+            </div>
           </article>
         }
       </div>

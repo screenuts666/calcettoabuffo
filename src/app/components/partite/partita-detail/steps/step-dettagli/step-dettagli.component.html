@@ -218,12 +218,43 @@
 
           @if (state.modalitaPortieriA() !== state.modalitaPortieriB()) {
             <div class="gk-mixed-sub-row">
-              <button type="button" class="team-sub-toggle" (click)="toggleModalitaA()">
+              <button type="button" class="team-sub-toggle" [disabled]="isTurnDurationLocked" (click)="toggleModalitaA()">
                 <span>Bianchi: <strong>{{ state.modalitaPortieriA() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
               </button>
-              <button type="button" class="team-sub-toggle" (click)="toggleModalitaB()">
+              <button type="button" class="team-sub-toggle" [disabled]="isTurnDurationLocked" (click)="toggleModalitaB()">
                 <span>Neri: <strong>{{ state.modalitaPortieriB() === 'fisso' ? 'Fisso' : 'Rotazione' }}</strong></span>
               </button>
+            </div>
+          }
+
+          <!-- SELETTORE DURATA TURNO IN PORTA (PRE-PARTITA, BLOCCATO A MATCH AVVIATO) -->
+          @if (state.modalitaPortieriA() === 'rotazione' || state.modalitaPortieriB() === 'rotazione') {
+            <div class="gk-turn-duration-prematch" [class.is-locked]="isTurnDurationLocked">
+              <div class="gktd-header">
+                <span class="gktd-label">
+                  <ion-icon name="timer-outline"></ion-icon>
+                  <span>Durata Turno in Porta: <strong>{{ state.durataTurnoMinuti() }}'</strong></span>
+                </span>
+                @if (isTurnDurationLocked) {
+                  <span class="gktd-locked-badge">
+                    <ion-icon name="lock-closed-outline"></ion-icon>
+                    <span>Bloccato (Match avviato)</span>
+                  </span>
+                }
+              </div>
+              <div class="gktd-chips-row">
+                @for (min of turnMinutesOptions; track min) {
+                  <button
+                    type="button"
+                    class="gktd-chip"
+                    [class.active]="state.durataTurnoMinuti() === min"
+                    [disabled]="isTurnDurationLocked"
+                    (click)="impostaDurataTurno(min)"
+                  >
+                    {{ min }}'{{ min === 5 ? ' Std' : '' }}
+                  </button>
+                }
+              </div>
             </div>
           }
         </div>

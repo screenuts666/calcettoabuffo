@@ -200,312 +200,254 @@
   font-size: 0.88rem;
 }
 
-// ─── GRIGLIA RESPONSIVA DI PLAYER CARD MODERNE ───────────────────────────────
-.rosa-cards-grid {
+// ─── GRIGLIA A 3 COLONNE STILE FUT (FIFA ULTIMATE TEAM) ──────────────────────
+.rosa-fut-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  padding: 4px 14px 20px;
+  padding: 4px 12px 24px;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
-.rosa-player-card {
+.fut-player-card {
+  --tier-color: #64748b;
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 7px 8px;
+  border-radius: 14px;
+  background: linear-gradient(
+    160deg,
+    rgba(30, 41, 59, 0.96) 0%,
+    rgba(15, 23, 42, 0.98) 65%,
+    rgba(9, 14, 26, 1) 100%
+  );
+  border: 1.5px solid color-mix(in srgb, var(--tier-color) 55%, rgba(255, 255, 255, 0.12));
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   cursor: pointer;
-  transition: transform 0.14s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  overflow: hidden;
+  user-select: none;
+  transition: transform 0.14s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+
+  // Accento luminoso superiore basato sul Tier
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 12%;
+    right: 12%;
+    height: 2.5px;
+    border-radius: 0 0 4px 4px;
+    background: var(--tier-color);
+    box-shadow: 0 0 10px var(--tier-color);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  // Varianti Tier con sfumatura dedicata
+  &[data-tier='fenomeno'] {
+    background: linear-gradient(160deg, #3b0d16 0%, #180910 65%, #0d0609 100%);
+  }
+  &[data-tier='diamante'] {
+    background: linear-gradient(160deg, #0f294a 0%, #0b192e 65%, #07101f 100%);
+  }
+  &[data-tier='platino'] {
+    background: linear-gradient(160deg, #0b2e36 0%, #091d24 65%, #061217 100%);
+  }
+  &[data-tier='oro'] {
+    background: linear-gradient(160deg, #332709 0%, #1c1607 65%, #110d04 100%);
+  }
+  &[data-tier='argento'] {
+    background: linear-gradient(160deg, #27272a 0%, #18181b 65%, #0f0f12 100%);
+  }
+  &[data-tier='bronzo'] {
+    background: linear-gradient(160deg, #2e1c0f 0%, #1a110a 65%, #100a06 100%);
+  }
 
   &.is-me {
-    border-color: rgba(16, 185, 129, 0.48);
-    background: linear-gradient(
-      145deg,
-      rgba(16, 185, 129, 0.07) 0%,
-      var(--app-card-bg) 70%
-    );
+    box-shadow:
+      0 0 0 1.5px #10b981,
+      0 6px 16px rgba(16, 185, 129, 0.22);
   }
 
   &:hover {
-    border-color: rgba(45, 211, 111, 0.4);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+    box-shadow:
+      0 6px 18px rgba(0, 0, 0, 0.36),
+      0 0 12px color-mix(in srgb, var(--tier-color) 35%, transparent);
   }
 
   &:active {
-    transform: scale(0.985);
+    transform: scale(0.96);
   }
 
-  .rpc-main-row {
+  // 1. Header Carta: Ruolo abbreviato + Tier/MMR compatto
+  .fut-card-top {
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 0;
+    justify-content: space-between;
+    gap: 4px;
+    margin-bottom: 6px;
+
+    .fut-role-tag {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      padding: 2px 5px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+
+    .fut-tier-pill {
+      font-size: 10px;
+      font-weight: 900;
+      padding: 2px 5px;
+      border-radius: 5px;
+      color: var(--tier-color);
+      background: color-mix(in srgb, var(--tier-color) 16%, rgba(0, 0, 0, 0.35));
+      border: 1px solid color-mix(in srgb, var(--tier-color) 45%, transparent);
+      line-height: 1.1;
+      white-space: nowrap;
+
+      strong {
+        font-weight: 900;
+      }
+    }
   }
 
-  .rpc-avatar-wrap {
-    position: relative;
-    flex-shrink: 0;
+  // 2. Centro: Avatar circolare (56px) con anello del colore del Tier
+  .fut-avatar-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px 0 6px;
 
-    .rpc-avatar {
-      width: 56px;
-      height: 56px;
+    .fut-avatar-ring {
+      position: relative;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
-      border: 2px solid var(--ion-color-success);
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
-      background: var(--app-surface-subtle);
+      padding: 2px;
+      background: radial-gradient(
+        circle at 50% 30%,
+        var(--tier-color),
+        color-mix(in srgb, var(--tier-color) 45%, #0f172a)
+      );
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 
-      app-player-avatar,
-      img {
+      .fut-avatar {
         width: 100%;
         height: 100%;
         border-radius: 50%;
-        object-fit: cover;
-        display: block;
-      }
-    }
+        border: 1.5px solid #0f172a;
+        background: #1e293b;
+        overflow: hidden;
 
-    .rpc-jersey-badge {
-      position: absolute;
-      bottom: -3px;
-      right: -4px;
-      padding: 1px 6px;
-      border-radius: 999px;
-      background: #0f172a;
-      color: #f8fafc;
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
-      font-size: 0.65rem;
-      font-weight: 900;
-      line-height: 1.25;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        app-player-avatar,
+        img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+          display: block;
+        }
+      }
+
+      .fut-jersey-num {
+        position: absolute;
+        bottom: -3px;
+        right: -4px;
+        padding: 1px 5px;
+        border-radius: 999px;
+        background: #0f172a;
+        color: #f8fafc;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        font-size: 9.5px;
+        font-weight: 900;
+        line-height: 1.2;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
+      }
+
+      .fut-me-tag {
+        position: absolute;
+        bottom: -3px;
+        left: -4px;
+        padding: 1px 5px;
+        border-radius: 999px;
+        background: #10b981;
+        color: #03150c;
+        font-size: 9px;
+        font-weight: 900;
+        line-height: 1.2;
+      }
     }
   }
 
-  .rpc-body {
-    flex: 1;
-    min-width: 0;
+  // 3. Fascia Nome & Soprannome (altezza fissa per uniformità totale)
+  .fut-identity-band {
+    width: 100%;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    align-items: center;
+    gap: 1px;
+    margin-bottom: 6px;
+    min-width: 0;
 
-    .rpc-header-line {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 8px;
-
-      .rpc-title-cluster {
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 6px;
-        min-width: 0;
-
-        .rpc-name {
-          margin: 0;
-          font-size: 0.98rem;
-          font-weight: 800;
-          color: var(--app-text-primary);
-          line-height: 1.2;
-          letter-spacing: -0.01em;
-        }
-
-        .rpc-me-badge {
-          font-size: 0.64rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.03em;
-          padding: 1px 6px;
-          border-radius: 6px;
-          background: rgba(16, 185, 129, 0.18);
-          color: #10b981;
-          border: 1px solid rgba(16, 185, 129, 0.38);
-        }
-
-        .rpc-tier-badge {
-          font-size: 0.65rem;
-          font-weight: 800;
-          padding: 1px 7px;
-          border-radius: 999px;
-          border: 1px solid rgba(100, 116, 139, 0.35);
-          white-space: nowrap;
-          line-height: 1.3;
-        }
-      }
-
-      .rpc-quick-actions {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        flex-shrink: 0;
-
-        .rpc-icon-btn {
-          width: 28px;
-          height: 28px;
-          border-radius: 8px;
-          border: 1px solid var(--app-card-border);
-          background: var(--app-surface-subtle);
-          color: var(--app-text-secondary);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: all 0.14s ease;
-
-          ion-icon {
-            font-size: 0.92rem;
-          }
-
-          &.edit:hover {
-            color: #38bdf8;
-            border-color: rgba(56, 189, 248, 0.45);
-            background: rgba(56, 189, 248, 0.1);
-          }
-
-          &.delete:hover {
-            color: #f87171;
-            border-color: rgba(239, 68, 68, 0.45);
-            background: rgba(239, 68, 68, 0.1);
-          }
-
-          &:active {
-            transform: scale(0.92);
-          }
-        }
-      }
-    }
-
-    .rpc-nickname {
-      font-size: 0.78rem;
-      font-style: italic;
-      color: var(--app-text-secondary);
+    .fut-player-name {
+      margin: 0;
+      width: 100%;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #f8fafc;
       line-height: 1.2;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
 
-    // ─── SPEC BADGES PULITI SENZA EMOJI ────────────────────────────────────────
-    .rpc-specs-row {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-top: 3px;
-
-      .rpc-spec-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 2px 8px;
-        border-radius: 6px;
-        background: var(--app-surface-subtle);
-        border: 1px solid var(--app-card-border);
-        color: var(--app-text-secondary);
-        font-size: 0.72rem;
-        font-weight: 700;
-        line-height: 1.3;
-        white-space: nowrap;
-
-        &.foot {
-          color: var(--app-text-primary);
-          border-color: rgba(45, 211, 111, 0.28);
-          background: rgba(45, 211, 111, 0.08);
-        }
-
-        &.muted {
-          opacity: 0.65;
-          font-weight: 600;
-        }
-      }
+    .fut-player-nick {
+      width: 100%;
+      height: 15px;
+      line-height: 15px;
+      font-size: 11.5px;
+      font-style: italic;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
-  .rpc-footer-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 8px;
-    border-top: 1px solid var(--app-card-border);
+  // 4. Footer Mini-Stats: divisore sottile + 1 riga ultra-compatta
+  .fut-card-footer {
+    width: 100%;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.09);
+    text-align: center;
+    min-width: 0;
 
-    .rpc-phone-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 4px 8px;
-      border-radius: 9px;
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid rgba(56, 189, 248, 0.28);
-
-      .rpc-phone-num {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.74rem;
-        font-weight: 700;
-        color: #38bdf8;
-
-        ion-icon {
-          font-size: 0.82rem;
-        }
-      }
-
-      .rpc-phone-links {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-
-        .rpc-phone-action {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          padding: 3px 7px;
-          border-radius: 6px;
-          text-decoration: none;
-          font-size: 0.68rem;
-          font-weight: 800;
-
-          ion-icon {
-            font-size: 0.78rem;
-          }
-
-          &.call {
-            background: rgba(56, 189, 248, 0.18);
-            color: #38bdf8;
-          }
-
-          &.wa {
-            background: rgba(37, 211, 102, 0.18);
-            border: 1px solid rgba(37, 211, 102, 0.35);
-            color: #25d366;
-          }
-        }
-      }
-    }
-
-    .rpc-tags-wrap {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-
-      .rpc-extra-tag {
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: var(--app-text-secondary);
-        background: var(--app-surface-subtle);
-        border: 1px solid var(--app-card-border);
-        padding: 2px 7px;
-        border-radius: 6px;
-
-        &.gold {
-          border-color: var(--app-accent-gold-border);
-          background: var(--app-accent-gold-subtle);
-          color: var(--app-accent-gold);
-        }
-      }
+    .fut-mini-stats {
+      display: block;
+      width: 100%;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #cbd5e1;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      letter-spacing: -0.01em;
     }
   }
 }
