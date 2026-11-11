@@ -168,7 +168,17 @@
         <div class="member-search-box">
           <ion-icon name="search-outline"></ion-icon>
           <input
-            type="text"
+            type="search"
+            name="member_search_no_autofill"
+            id="member-search-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
             placeholder="Cerca membro o email..."
             [value]="memberSearchQuery()"
             (input)="memberSearchQuery.set($any($event.target).value)"

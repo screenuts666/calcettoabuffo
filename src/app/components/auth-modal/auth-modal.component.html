@@ -309,7 +309,17 @@
               <div class="cpb-search">
                 <ion-icon name="search-outline"></ion-icon>
                 <input
-                  type="text"
+                  type="search"
+                  name="claim_player_search_no_autofill"
+                  id="claim-player-search-input"
+                  autocomplete="off"
+                  autocorrect="off"
+                  autocapitalize="off"
+                  spellcheck="false"
+                  data-form-type="other"
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  data-bwignore="true"
                   placeholder="Cerca il tuo nome in rosa..."
                   [ngModel]="playerSearchQuery()"
                   (ngModelChange)="playerSearchQuery.set($event)"

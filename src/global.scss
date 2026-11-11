@@ -572,6 +572,50 @@ ion-item:focus-visible {
   border-radius: 8px;
 }
 
+// Neutralizza browser autofill indesiderato (giallo/azzurro/popup credenziali) su tutti gli input di ricerca
+input[type="search"],
+input.custom-search-input,
+.searchbar-input,
+ion-searchbar input {
+  outline: none !important;
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--app-text-primary, #ffffff) !important;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    transition: background-color 5000s ease-in-out 0s !important;
+  }
+
+  &::-webkit-search-decoration,
+  &::-webkit-search-cancel-button,
+  &::-webkit-search-results-button,
+  &::-webkit-search-results-decoration {
+    -webkit-appearance: none !important;
+    display: none !important;
+  }
+}
+
+// Disabilita focus outline cyan/blue invasivo da tocco mouse/touch su pill compatti, bottoni e searchbar
+.custom-searchbar,
+.custom-searchbar input,
+.searchbar-input,
+.cap-toggle-pill,
+.dev-mini-pill,
+.self-presence-quick-pill,
+.vf-pill,
+.btn-share-whatsapp,
+.btn-copy-invite {
+  &:focus {
+    outline: none !important;
+  }
+  &:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
 // Utility per Screen Reader Only (testo accessibile non visibile a schermo)
 .sr-only {
   position: absolute !important;

@@ -15,6 +15,22 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.82",
+    "date": "11/11/2026",
+    "title": "Blindatura Globale Anti-Autofill & Fix Contorno e Fuoriuscita Barra Convocati",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Zero Suggerimenti e Credenziali Indesiderate: estesa la blindatura anti-autofill a tutte le barre di ricerca dell'app (Convocati, Rosa, Confronto 1v1, Area Segreta, Membri e Registrazione). Il browser non sovrapporrà più pop-up di credenziali o riquadri d'autocompletamento.",
+      "Bordi e Focus Ring Puliti: eliminati i fastidiosi contorni azzurri/cyan al tocco sui pulsanti e sugli input di ricerca.",
+      "Barra Convocati Perfettamente Contenuta: calibrati i margini e il padding della barra di stato per evitare qualsiasi imperfezione o fuoriuscita grafica sui bordi laterali."
+    ],
+    "superUserChanges": [
+      "Blindatura Attributi Input Globali: applicati type='search', data-form-type='other', data-lpignore, data-1p-ignore e data-bwignore su tutti gli ion-searchbar e input testuali.",
+      "CSS Reset su :focus e -webkit-autofill: neutralizzati -webkit-autofill e focus ring invasivi sui bottoni veloci (.cap-toggle-pill, .dev-mini-pill, .self-presence-quick-pill)."
+    ]
+  },
+  {
     "version": "2.0.81",
     "date": "11/11/2026",
     "title": "UI Convocati Perfetta: Zero Collisioni, Allineamento Spazi e Stato Presenza Pulito",

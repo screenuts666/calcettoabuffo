@@ -719,7 +719,17 @@
         <div class="search-bar-box">
           <ion-icon name="search"></ion-icon>
           <input
-            type="text"
+            type="search"
+            name="audit_players_search_no_autofill"
+            id="audit-players-search-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
             placeholder="Cerca giocatore..."
             [ngModel]="searchPlayer()"
             (ngModelChange)="searchPlayer.set($event)"

@@ -169,6 +169,17 @@
       <!-- 3. SEARCH BAR + SELETTORE VISTA FISSO A 3 PILL (ZERO SCROLL ORIZZONTALE) -->
       <div class="search-and-filter-block">
         <ion-searchbar
+          type="search"
+          name="convocati_search_no_autofill"
+          id="convocati-search-input"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          data-bwignore="true"
           placeholder="Cerca giocatore o ruolo..."
           aria-label="Cerca giocatore per nome, piede o ruolo"
           [value]="state.filtro()"

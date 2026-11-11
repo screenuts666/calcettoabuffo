@@ -14,6 +14,17 @@
   <div class="giocatori-container">
     <div class="search-wrapper ion-padding">
       <ion-searchbar
+        type="search"
+        name="rosa_search_no_autofill"
+        id="rosa-search-input"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        data-form-type="other"
+        data-lpignore="true"
+        data-1p-ignore="true"
+        data-bwignore="true"
         placeholder="Cerca per nome, soprannome, ruolo, piede..."
         [value]="filtro()"
         (ionInput)="filtro.set($event.detail.value || '')"

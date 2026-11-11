@@ -833,6 +833,17 @@
         </ion-toolbar>
         <div class="picker-searchbar-wrapper">
           <ion-searchbar
+            type="search"
+            name="confronto_search_no_autofill"
+            id="confronto-search-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
             placeholder="Cerca giocatore per nome..."
             [value]="pickerSearchQuery()"
             (ionInput)="aggiornaRicerca($event)"
