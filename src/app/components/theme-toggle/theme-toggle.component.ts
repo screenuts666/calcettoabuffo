@@ -2,7 +2,6 @@ import {
   Component,
   inject,
   computed,
-  signal,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -10,7 +9,6 @@ import { Router } from '@angular/router';
 import {
   IonIcon,
   ModalController,
-  ToastController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -31,6 +29,7 @@ import {
   peopleOutline,
   personAddOutline,
   chevronForwardOutline,
+  chevronDownOutline,
   closeOutline,
 } from 'ionicons/icons';
 import { environment } from 'src/environments/environment';
@@ -40,18 +39,13 @@ import { AuthService } from '../../services/auth.service';
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { Giocatore } from '../../models/giocatore.model';
 import {
-  ImpostazioniModalComponent,
   SettingsTab,
-} from '../impostazioni-modal/impostazioni-modal.component';
+} from '../impostazioni/impostazioni.page';
 import {
   AuthModalComponent,
   AuthModalView,
 } from '../auth-modal/auth-modal.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
-import {
-  UserMenuModalComponent,
-  UserMenuActionResult,
-} from '../user-menu-modal/user-menu-modal.component';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -67,7 +61,6 @@ export class ThemeToggleComponent {
   public authService = inject(AuthService);
   public statsEngine = inject(StatsEngineService);
   private modalCtrl = inject(ModalController);
-  private toastCtrl = inject(ToastController);
   private router = inject(Router);
 
   readonly isDevEnvironment: boolean = !environment.production;
@@ -95,8 +88,6 @@ export class ThemeToggleComponent {
     return pl?.nome || this.authService.displayName() || 'Utente';
   });
 
-  readonly isDesktopMenuOpen = signal<boolean>(false);
-
   constructor() {
     addIcons({
       sunny,
@@ -116,28 +107,15 @@ export class ThemeToggleComponent {
       peopleOutline,
       personAddOutline,
       chevronForwardOutline,
+      chevronDownOutline,
       closeOutline,
     });
   }
 
-  get currentIcon(): string {
-    const mode = this.themeService.mode();
-    if (mode === 'light') return 'sunny';
-    if (mode === 'dark') return 'moon';
-    return this.themeService.isDarkEffective()
-      ? 'moon-outline'
-      : 'sunny-outline';
-  }
-
-  closeDesktopMenu() {
-    this.isDesktopMenuOpen.set(false);
-  }
-
   /**
-   * Click sul badge Utente nell'Header:
-   * - Se NON è loggato: apre direttamente il modale di Login / Registrazione
-   * - Su Desktop: apre/chiude il menu a discesa nativo ancorato all'avatar (ZERO MODALI!)
-   * - Su Mobile: apre il bottom sheet con profilo completo
+   * Click sull'unico pill Utente nell'Header:
+   * - Se NON è loggato: apre il modale di Login / Registrazione
+   * - Se è loggato: naviga direttamente alla vista unificata Account & Impostazioni (tab 'account' di default)
    */
   async onUserHeaderClick(event?: Event) {
     if (event) {
@@ -148,67 +126,14 @@ export class ThemeToggleComponent {
       return;
     }
 
-    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
-    const modal = await this.modalCtrl.create({
-      component: UserMenuModalComponent,
-      breakpoints: isDesktop ? undefined : [0, 0.78, 1],
-      initialBreakpoint: isDesktop ? undefined : 0.78,
-      handle: !isDesktop,
-      mode: 'ios',
-      cssClass: 'user-menu-sheet-modal',
-    });
-    await modal.present();
-
-    const { data } = await modal.onWillDismiss<UserMenuActionResult>();
-    if (!data) return;
-
-    if (data.type === 'navigate') {
-      await this.router.navigate(data.url, { queryParams: data.queryParams });
-    } else if (data.type === 'auth') {
-      await this.openAuthModal('login', data.openClaimPicker);
-    } else if (data.type === 'settings') {
-      await this.openThemeMenu();
-    } else if (data.type === 'logout') {
-      await this.authService.logout();
-      const toast = await this.toastCtrl.create({
-        message: 'Logout effettuato.',
-        duration: 2000,
-        position: 'bottom',
-        mode: 'ios',
-        color: 'medium',
-      });
-      await toast.present();
-    }
-  }
-
-  async navigaDaDropdown(url: any[], queryParams?: any) {
-    this.closeDesktopMenu();
-    await this.router.navigate(url, { queryParams });
-  }
-
-  async apriClaimDaDropdown() {
-    this.closeDesktopMenu();
-    await this.openAuthModal('login', true);
-  }
-
-  async eseguiLogoutDaDropdown() {
-    this.closeDesktopMenu();
-    await this.authService.logout();
-    const toast = await this.toastCtrl.create({
-      message: 'Logout effettuato.',
-      duration: 2000,
-      position: 'bottom',
-      mode: 'ios',
-      color: 'medium',
-    });
-    await toast.present();
+    await this.openThemeMenu('account');
   }
 
   async openAuthModal(
     initialMode: AuthModalView = 'login',
     openClaimPicker = false,
   ) {
-    const isDesktop = window.innerWidth >= 768;
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
     const currentUrl = this.router.url;
     this.authService.setReturnUrl(currentUrl);
     const modal = await this.modalCtrl.create({
@@ -220,22 +145,17 @@ export class ThemeToggleComponent {
     await modal.present();
     const { data } = await modal.onWillDismiss();
     if (data === 'open-settings') {
-      await this.openThemeMenu();
+      await this.openThemeMenu('account');
     }
   }
 
-  async openThemeMenu(tab?: SettingsTab) {
-    if (window.innerWidth >= 768) {
-      await this.router.navigate(['/impostazioni'], {
-        queryParams: tab ? { tab } : undefined,
-      });
-      return;
+  async openThemeMenu(tab: SettingsTab = 'account') {
+    const topModal = await this.modalCtrl.getTop();
+    if (topModal) {
+      await this.modalCtrl.dismiss();
     }
-    const modal = await this.modalCtrl.create({
-      component: ImpostazioniModalComponent,
-      componentProps: tab ? { initialTab: tab } : undefined,
-      mode: 'ios',
+    await this.router.navigate(['/impostazioni'], {
+      queryParams: tab && tab !== 'account' ? { tab } : undefined,
     });
-    await modal.present();
   }
 }

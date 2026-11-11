@@ -95,9 +95,9 @@ export interface CalendarDayCell {
 }
 
 @Component({
-  selector: 'app-calendario',
-  templateUrl: './calendario.page.html',
-  styleUrls: ['./calendario.page.scss'],
+  selector: 'app-disponibilita',
+  templateUrl: './disponibilita.page.html',
+  styleUrls: ['./disponibilita.page.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -112,7 +112,7 @@ export interface CalendarDayCell {
     PlayerAvatarComponent,
   ],
 })
-export class CalendarioPage implements OnInit {
+export class DisponibilitaPage implements OnInit {
   public auth = inject(AuthService);
   public statsEngine = inject(StatsEngineService);
   public availabilityService = inject(AvailabilityService);
@@ -407,12 +407,51 @@ export class CalendarioPage implements OnInit {
 
   readonly navigazioneHeaderLabel = computed(() => {
     if (this.viewMode() === 'week') {
-      return this.availabilityService.activeWeekRangeLabel();
+      const days = this.availabilityService.activeWeekDays();
+      if (!days || days.length < 7) {
+        return this.availabilityService.activeWeekRangeLabel();
+      }
+      const dStart = new Date(days[0].date);
+      const dEnd = new Date(days[6].date);
+      const startDay = dStart.getDate();
+      const endDay = dEnd.getDate();
+      const shortMonthEnd = dEnd
+        .toLocaleDateString('it-IT', { month: 'short' })
+        .replace('.', '');
+      const capMonthEnd =
+        shortMonthEnd.charAt(0).toUpperCase() + shortMonthEnd.slice(1);
+      if (dStart.getMonth() !== dEnd.getMonth()) {
+        const shortMonthStart = dStart
+          .toLocaleDateString('it-IT', { month: 'short' })
+          .replace('.', '');
+        const capMonthStart =
+          shortMonthStart.charAt(0).toUpperCase() + shortMonthStart.slice(1);
+        return `${startDay} ${capMonthStart} - ${endDay} ${capMonthEnd}`;
+      }
+      return `${startDay}-${endDay} ${capMonthEnd}`;
     }
     if (this.viewMode() === 'month') {
       return this.meseAnnoLabel();
     }
     return `${this.selectedMonth().getFullYear()}`;
+  });
+
+  readonly isCurrentPeriod = computed<boolean>(() => {
+    const mode = this.viewMode();
+    if (mode === 'week') {
+      return (
+        this.availabilityService.activeWeekKey() ===
+        this.availabilityService.currentIsoWeekKey()
+      );
+    }
+    const now = new Date();
+    if (mode === 'month') {
+      return (
+        this.selectedMonth().getFullYear() === now.getFullYear() &&
+        this.selectedMonth().getMonth() === now.getMonth()
+      );
+    }
+    return this.selectedMonth().getFullYear() === now.getFullYear();
   });
 
   // Panoramica dei 12 mesi per la vista Anno (riservata a Mister/Presidente)

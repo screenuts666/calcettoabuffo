@@ -39,8 +39,8 @@ import { HeadToHeadComparison } from 'src/app/models/confronto.model';
 
 @Component({
   selector: 'app-dettaglio-chimica',
-  templateUrl: './dettaglio-chimica.component.html',
-  styleUrls: ['./dettaglio-chimica.component.scss'],
+  templateUrl: './dettaglio-chimica.page.html',
+  styleUrls: ['./dettaglio-chimica.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -58,7 +58,7 @@ import { HeadToHeadComparison } from 'src/app/models/confronto.model';
     ThemeToggleComponent,
   ],
 })
-export class DettaglioChimicaComponent implements OnInit {
+export class DettaglioChimicaPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private location = inject(Location);

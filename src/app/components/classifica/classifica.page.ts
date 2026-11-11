@@ -67,10 +67,14 @@ import {
   filter,
   closeCircle,
   shieldCheckmark,
+  hourglassOutline,
 } from 'ionicons/icons';
 import { Giocatore, GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
-import { StatsEngineService, BASE_INITIAL_MMR } from 'src/app/services/stats-engine.service';
+import {
+  StatsEngineService,
+  BASE_INITIAL_MMR,
+} from 'src/app/services/stats-engine.service';
 import {
   MmrTier,
   PlayerChemistryProfile,
@@ -87,10 +91,7 @@ import {
   getStagionePartita,
   getStagioniDisponibili,
 } from 'src/app/utils/season-utils';
-import {
-  getAvatarUrl,
-  handleAvatarError,
-} from 'src/app/utils/avatar-utils';
+import { getAvatarUrl, handleAvatarError } from 'src/app/utils/avatar-utils';
 
 export type CriterioOrdinamento =
   | 'punti'
@@ -116,7 +117,12 @@ export const CRITERI_ORDINAMENTO: CriterioOption[] = [
   { id: 'gol', label: 'Gol', icon: 'football', unit: 'GOL' },
   { id: 'mediaVoto', label: 'Media Voto', icon: 'star', unit: 'MEDIA' },
   { id: 'assist', label: 'Assist', icon: 'flash', unit: 'ASSIST' },
-  { id: 'portieri', label: 'Portieri 🧤', icon: 'shield-outline', unit: 'GOL/50m' },
+  {
+    id: 'portieri',
+    label: 'Portieri 🧤',
+    icon: 'shield-outline',
+    unit: 'GOL/50m',
+  },
   { id: 'wins', label: 'Vittorie', icon: 'flame', unit: 'VITTORIE' },
   { id: 'presenze', label: 'Presenze', icon: 'people', unit: 'PRESENZE' },
   { id: 'minuti', label: 'Minuti ⏱️', icon: 'time-outline', unit: 'TEMPO' },
@@ -280,8 +286,14 @@ export class ClassificaPage {
           let matchSec = 3000;
           if (typeof p.cronometro === 'number' && p.cronometro > 0) {
             matchSec = p.cronometro;
-          } else if (typeof p.accumulatedTime === 'number' && p.accumulatedTime > 0) {
-            matchSec = p.accumulatedTime > 10000 ? Math.round(p.accumulatedTime / 1000) : p.accumulatedTime;
+          } else if (
+            typeof p.accumulatedTime === 'number' &&
+            p.accumulatedTime > 0
+          ) {
+            matchSec =
+              p.accumulatedTime > 10000
+                ? Math.round(p.accumulatedTime / 1000)
+                : p.accumulatedTime;
           }
           // Se per qualsiasi errore umano o dimenticanza il timer supera le 6 ore (21600 sec),
           // viene automaticamente limitato a 3600 sec (60 min)
@@ -326,7 +338,9 @@ export class ClassificaPage {
               (eg: any) =>
                 eg.assistId === g.id ||
                 (!eg.assistId && eg.assistNome && eg.assistNome === g.nome),
-            ).length || (playerObj.assist || 0);
+            ).length ||
+            playerObj.assist ||
+            0;
 
           golTotali += golFatti;
           assistTotali += assistFatti;
@@ -353,28 +367,36 @@ export class ClassificaPage {
       const allTimeMmr = statsRes.allTime.get(g.id);
       const isRanked = partiteGiocate > 0;
       const seasonStartMmr = playerMmr?.seasonStartMmr ?? BASE_INITIAL_MMR;
-      const mmrVal = isRanked && playerMmr ? Math.round(playerMmr.currentMmr) : seasonStartMmr;
+      const mmrVal =
+        isRanked && playerMmr
+          ? Math.round(playerMmr.currentMmr)
+          : seasonStartMmr;
       const mmrDisplay = isRanked ? mmrVal.toString() : '—';
       const tier = isRanked && playerMmr ? playerMmr.tier : UNRANKED_TIER;
-      const peakMmr = isRanked ? (allTimeMmr?.peakMmr ?? (playerMmr?.currentMmr ?? mmrVal)) : 0;
-      const pastSeasonsBanners = playerMmr?.pastSeasonsBanners || allTimeMmr?.pastSeasonsBanners || [];
-      const form = isRanked && playerMmr?.form ? playerMmr.form : {
-        currentStreak: 0,
-        currentDrawStreak: 0,
-        bestDrawStreak: 0,
-        status: 'neutral' as const,
-        statusLabel: 'Costante',
-        emoji: '➖',
-        multiplier: 1.0,
-        bestWinStreak: 0,
-        worstLossStreak: 0,
-        recentForm: [],
-      };
+      const peakMmr = isRanked
+        ? (allTimeMmr?.peakMmr ?? playerMmr?.currentMmr ?? mmrVal)
+        : 0;
+      const pastSeasonsBanners =
+        playerMmr?.pastSeasonsBanners || allTimeMmr?.pastSeasonsBanners || [];
+      const form =
+        isRanked && playerMmr?.form
+          ? playerMmr.form
+          : {
+              currentStreak: 0,
+              currentDrawStreak: 0,
+              bestDrawStreak: 0,
+              status: 'neutral' as const,
+              statusLabel: 'Costante',
+              emoji: '➖',
+              multiplier: 1.0,
+              bestWinStreak: 0,
+              worstLossStreak: 0,
+              recentForm: [],
+            };
 
       // Trend dall'ultima partita giocata (delta punti con segno)
-      const history = isRanked ? (playerMmr?.history || []) : [];
-      const lastMatch =
-        history.length > 0 ? history[history.length - 1] : null;
+      const history = isRanked ? playerMmr?.history || [] : [];
+      const lastMatch = history.length > 0 ? history[history.length - 1] : null;
       const lastDelta = lastMatch ? lastMatch.delta : null;
       const lastDeltaDisplay =
         lastDelta !== null
@@ -397,10 +419,11 @@ export class ClassificaPage {
           ? Math.round((wins / partiteGiocate) * 1000) / 10
           : 0;
 
-      const portiereStats = StatsEngineService.calculateGoalkeeperStatsForPlayer(
-        g.id,
-        partiteStagione,
-      );
+      const portiereStats =
+        StatsEngineService.calculateGoalkeeperStatsForPlayer(
+          g.id,
+          partiteStagione,
+        );
 
       return {
         ...g,
@@ -475,8 +498,7 @@ export class ClassificaPage {
           }
           return b.puntiVal - a.puntiVal;
 
-
-      case 'presenze':
+        case 'presenze':
           if (b.partiteGiocate !== a.partiteGiocate) {
             return b.partiteGiocate - a.partiteGiocate;
           }
@@ -575,7 +597,9 @@ export class ClassificaPage {
       return ordinata.filter((p) => p.isRanked && p.form.status === 'on_fire');
     }
     if (filtro === 'in_crisis') {
-      return ordinata.filter((p) => p.isRanked && p.form.status === 'in_crisis');
+      return ordinata.filter(
+        (p) => p.isRanked && p.form.status === 'in_crisis',
+      );
     }
     if (filtro !== 'all') {
       return ordinata.filter((p) => p.isRanked && p.tier.id === filtro);
@@ -637,7 +661,7 @@ export class ClassificaPage {
     for (const [p1Id, prof] of chemMap.entries()) {
       for (const s of prof.allSynergies) {
         if (s.matchesTogether < 2) continue;
-        const pairKey = [p1Id, s.partnerId].sort().join("___");
+        const pairKey = [p1Id, s.partnerId].sort().join('___');
         if (seenPairs.has(pairKey)) continue;
         seenPairs.add(pairKey);
 
@@ -697,7 +721,7 @@ export class ClassificaPage {
     for (const [p1Id, prof] of chemMap.entries()) {
       for (const n of prof.allNemesis) {
         if (n.matchesAgainst < 2) continue;
-        const pairKey = [p1Id, n.opponentId].sort().join("___");
+        const pairKey = [p1Id, n.opponentId].sort().join('___');
         if (seenRivals.has(pairKey)) continue;
         seenRivals.add(pairKey);
 
@@ -711,21 +735,21 @@ export class ClassificaPage {
         const matches = n.matchesAgainst;
 
         const isEquilibrio = p1Wins === p2Wins;
-        let dominatorNome = "Pari";
+        let dominatorNome = 'Pari';
         let dominancePercent = 50;
-        let statusLabel = "⚖️ Derby in Equilibrio";
-        let statusClass = "status-equal";
+        let statusLabel = '⚖️ Derby in Equilibrio';
+        let statusClass = 'status-equal';
 
         if (p1Wins > p2Wins) {
           dominatorNome = p1Nome;
           dominancePercent = Math.round((p1Wins / matches) * 100);
-          statusLabel = "😈 Nemesi: " + p1Nome;
-          statusClass = "status-p1";
+          statusLabel = '😈 Nemesi: ' + p1Nome;
+          statusClass = 'status-p1';
         } else if (p2Wins > p1Wins) {
           dominatorNome = p2Nome;
           dominancePercent = Math.round((p2Wins / matches) * 100);
-          statusLabel = "😈 Nemesi: " + p2Nome;
-          statusClass = "status-p2";
+          statusLabel = '😈 Nemesi: ' + p2Nome;
+          statusClass = 'status-p2';
         }
 
         rivalries.push({
@@ -758,11 +782,18 @@ export class ClassificaPage {
 
   constructor() {
     addIcons({
-      flame,
+      shieldCheckmark,
       logoWhatsapp,
       trophy,
-      football,
       people,
+      filter,
+      closeCircle,
+      hourglassOutline,
+      informationCircleOutline,
+      chevronForward,
+      swapHorizontal,
+      flame,
+      football,
       star,
       sparkles,
       timeOutline,
@@ -782,15 +813,9 @@ export class ClassificaPage {
       flash,
       trendingUp,
       trendingDown,
-      swapHorizontal,
-      chevronForward,
       chevronDown,
       chevronUp,
       helpCircleOutline,
-      informationCircleOutline,
-      filter,
-      closeCircle,
-      shieldCheckmark,
     });
   }
 
@@ -884,7 +909,7 @@ export class ClassificaPage {
         };
       case 'minuti':
         return {
-          valore: g.minutiGiocatiDisplay || "0' 00\"",
+          valore: g.minutiGiocatiDisplay || '0\' 00"',
           etichetta: 'TEMPO',
           subText: g.partiteGiocate > 0 ? `${g.partiteGiocate} gare` : '',
           subType: 'muted',
@@ -970,17 +995,9 @@ export class ClassificaPage {
     lista.forEach((g) => {
       const idx = g.rankAssoluto - 1;
       const medaglia =
-        idx === 0
-          ? '🥇'
-          : idx === 1
-            ? '🥈'
-            : idx === 2
-              ? '🥉'
-              : `${idx + 1}°`;
+        idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}°`;
 
-      const soprannome = g.soprannome
-        ? ` ("${g.soprannome}")`
-        : '';
+      const soprannome = g.soprannome ? ` ("${g.soprannome}")` : '';
       const formIcon =
         g.form.status === 'on_fire'
           ? ' 🔥'
@@ -1007,7 +1024,7 @@ export class ClassificaPage {
         msg += `   └ ⏱️ *${g.minutiGiocatiDisplay}* | 👥 ${g.partiteGiocate} gare | 🏆 ${g.puntiDisplay} pt | ⭐ ${g.mediaVotoDisplay}\n`;
       } else if (this.criterioOrdinamento() === 'portieri') {
         const ps = g.portiereStats;
-        msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPortaDisplay || (ps?.minutiInPorta + '\'')} (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
+        msg += `   └ 🧤 *${ps?.mediaGolSubiti50m.toFixed(2)} gol/50m* | Subiti: ${ps?.golSubiti} | Minuti: ${ps?.minutiInPortaDisplay || ps?.minutiInPorta + "'"} (${ps?.turniInPorta} turni) | 🛡️ Clean Sheet: ${ps?.cleanSheetTurni}\n`;
       } else {
         msg += `   └ 🏆 *${g.puntiDisplay} Punti* | 👥 ${g.partiteGiocate} gare | ⭐ ${g.mediaVotoDisplay} | ⚽ ${g.golTotali} gol | 👟 ${g.assistTotali} assist\n`;
       }
@@ -1082,7 +1099,8 @@ export class ClassificaPage {
   async logoutAdmin() {
     const alert = await this.alertController.create({
       header: '👑 Menu Super User',
-      message: 'Vuoi ispezionare i calcoli del motore o uscire dalla modalità Admin?',
+      message:
+        'Vuoi ispezionare i calcoli del motore o uscire dalla modalità Admin?',
       buttons: [
         {
           text: '🔬 Apri Area Segreta (Calcoli & MMR)',

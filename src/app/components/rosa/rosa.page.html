@@ -14,7 +14,7 @@
   <div class="giocatori-container">
     <div class="search-wrapper ion-padding">
       <ion-searchbar
-        placeholder="Cerca per nome, piede, anno..."
+        placeholder="Cerca per nome, soprannome, ruolo, piede..."
         [value]="filtro()"
         (ionInput)="filtro.set($event.detail.value || '')"
         mode="ios"
@@ -26,321 +26,245 @@
         <div class="counter-badge">
           <ion-icon name="people"></ion-icon>
           @if (filtro().trim()) {
-          <span
-            >Trovati <b>{{ giocatoriFiltrati().length }}</b> su {{
-            tuttiIGiocatori().length }} giocatori</span
-          >
+            <span>
+              Trovati <b>{{ giocatoriFiltrati().length }}</b> su {{ tuttiIGiocatori().length }} giocatori
+            </span>
           } @else {
-          <span><b>{{ tuttiIGiocatori().length }}</b> giocatori in rosa</span>
+            <span><b>{{ tuttiIGiocatori().length }}</b> giocatori in rosa</span>
           }
         </div>
       </div>
 
       <!-- BANNER ISCRIZIONE DIRETTA IN ROSA (PER UTENTI SENZA SCHEDA GIOCATORE) -->
       @if (auth.isAuthenticated() && !auth.hasLinkedPlayer()) {
-      <div
-        style="
-          margin-top: 10px;
-          padding: 12px 14px;
-          border-radius: 14px;
-          background: rgba(16, 185, 129, 0.12);
-          border: 1px solid rgba(16, 185, 129, 0.38);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-        "
-      >
-        <div style="flex: 1; min-width: 180px">
-          <div style="font-size: 0.82rem; font-weight: 800; color: #10b981">
-            ⚽ Non hai ancora una scheda collegata!
+        <div class="unlinked-rosa-banner">
+          <div class="urb-text">
+            <div class="urb-title">Non hai ancora una scheda collegata</div>
+            <div class="urb-sub">
+              Tocca il tuo nome nella lista se sei già presente, oppure aggiungiti ora in rosa.
+            </div>
           </div>
-          <div
-            style="
-              font-size: 0.74rem;
-              color: var(--app-text-secondary);
-              margin-top: 2px;
-            "
+          <button
+            type="button"
+            class="urb-btn"
+            (click)="creaMiaSchedaInRosa()"
           >
-            Tocca il tuo nome nella lista se sei già presente, oppure aggiungiti
-            ora in rosa.
-          </div>
+            <ion-icon name="person-add-outline"></ion-icon>
+            <span>Crea la mia Scheda</span>
+          </button>
         </div>
-        <button
-          type="button"
-          (click)="creaMiaSchedaInRosa()"
-          style="
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: none;
-            background: #10b981;
-            color: #04130b;
-            font-weight: 800;
-            font-size: 0.78rem;
-            cursor: pointer;
-            white-space: nowrap;
-          "
-        >
-          ➕ Crea la mia Scheda
-        </button>
-      </div>
       }
 
       <!-- CESTINO 24 ORE GIOCATORI (SOLO MISTER) -->
       @if (isAdmin && trashService.deletedPlayers().length > 0) {
-      <div
-        style="
-          margin-top: 10px;
-          padding: 10px 12px;
-          border-radius: 14px;
-          background: rgba(245, 158, 11, 0.11);
-          border: 1px dashed rgba(245, 158, 11, 0.45);
-        "
-      >
-        <div
-          style="
-            font-size: 0.75rem;
-            font-weight: 800;
-            color: #f59e0b;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          "
-        >
-          <span>🗑️ Cestino Giocatori (Ripristino entro 24h)</span>
-          <span>{{ trashService.deletedPlayers().length }}</span>
-        </div>
-        @for (item of trashService.deletedPlayers(); track item.id) {
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 6px 8px;
-            border-radius: 9px;
-            background: rgba(0, 0, 0, 0.18);
-            margin-top: 4px;
-            font-size: 0.76rem;
-          "
-        >
-          <div
-            style="
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            "
-          >
-            <strong>{{ item.label }}</strong>
-            <span style="opacity: 0.72; font-size: 0.7rem; margin-left: 6px">
-              ⏳ {{ trashService.formatRemainingTime(item.expiresAt) }}
-            </span>
+        <div class="rosa-trash-box">
+          <div class="rtb-header">
+            <span>Cestino Giocatori (Ripristino 24h)</span>
+            <span class="rtb-count">{{ trashService.deletedPlayers().length }}</span>
           </div>
-          <div
-            style="display: flex; align-items: center; gap: 6px; flex-shrink: 0"
-          >
-            <button
-              type="button"
-              (click)="trashService.restoreItem(item.id)"
-              style="
-                padding: 4px 10px;
-                border-radius: 8px;
-                border: 1px solid rgba(16, 185, 129, 0.5);
-                background: rgba(16, 185, 129, 0.18);
-                color: #10b981;
-                font-weight: 800;
-                font-size: 0.72rem;
-                cursor: pointer;
-              "
-            >
-              ↩️ Ripristina
-            </button>
-            <button
-              type="button"
-              (click)="trashService.permanentlyDeleteItem(item.id)"
-              title="Elimina definitivamente"
-              style="
-                padding: 4px 8px;
-                border-radius: 8px;
-                border: 1px solid rgba(239, 68, 68, 0.4);
-                background: rgba(239, 68, 68, 0.14);
-                color: #ef4444;
-                font-weight: 800;
-                font-size: 0.72rem;
-                cursor: pointer;
-              "
-            >
-              ✕
-            </button>
-          </div>
+          @for (item of trashService.deletedPlayers(); track item.id) {
+            <div class="rtb-row">
+              <div class="rtb-info">
+                <strong>{{ item.label }}</strong>
+                <span class="rtb-exp">{{ trashService.formatRemainingTime(item.expiresAt) }}</span>
+              </div>
+              <div class="rtb-actions">
+                <button
+                  type="button"
+                  class="rtb-restore-btn"
+                  (click)="trashService.restoreItem(item.id)"
+                >
+                  <ion-icon name="arrow-undo-outline"></ion-icon>
+                  <span>Ripristina</span>
+                </button>
+                <button
+                  type="button"
+                  class="rtb-del-btn"
+                  (click)="trashService.permanentlyDeleteItem(item.id)"
+                  title="Elimina definitivamente"
+                >
+                  <ion-icon name="close-outline"></ion-icon>
+                </button>
+              </div>
+            </div>
+          }
         </div>
-        }
-      </div>
       }
     </div>
 
     @if (giocatoriFiltrati().length === 0) {
-    <div class="ion-padding ion-text-center">
-      <p>
-        Nessun giocatore trovato. Prova a rimuovere i filtri o aggiungi nuovi
-        giocatori.
-      </p>
-    </div>
-    } @if (giocatoriFiltrati().length > 0) {
-    <ion-list mode="ios" class="giocatori-list">
-      @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
-      <ion-item-sliding #slidingItem>
-        <ion-item
-          lines="full"
-          class="player-item"
-          (click)="apriDettagliGiocatore(g)"
-        >
-          <ion-avatar slot="start">
-            <app-player-avatar
-              [fotoUrl]="g.fotoUrl"
-              [alt]="g.nome"
-            ></app-player-avatar>
-          </ion-avatar>
-          <ion-label>
-            <div class="name-row">
-              <h3>{{ g.nome }}</h3>
-              @if (g.numeroMaglia !== null && g.numeroMaglia !== undefined) {
-              <span class="detail-pill">#{{ g.numeroMaglia }}</span>
-              } @if (isMyPlayer(g.id)) {
-              <span
-                class="detail-pill"
-                style="
-                  background: rgba(16, 185, 129, 0.15);
-                  color: #10b981;
-                  font-weight: 800;
-                "
-                >⚽ Tu</span
-              >
-              } @if (g.soprannome) {
-              <span class="nickname">"{{ g.soprannome }}"</span>
-              }
-            </div>
-            <div class="player-stats">
-              <span>🎂 {{ getDataNascitaDisplay(g) }}</span>
-              <span>| 👟 {{ g.piedePreferito || 'N.D.' }}</span>
-              <span>| 📏 {{ g.altezza ? g.altezza + ' cm' : 'N.D.' }}</span>
-              <span>| ⚖️ {{ g.peso ? g.peso + ' kg' : 'N.D.' }}</span>
-            </div>
-            @let playerPhone = canViewPhone(g) ? getPhoneForPlayer(g.id) : null;
-            @if (playerPhone || g.professione || g.origini || g.statoCivile ||
-            g.vizi) {
-            <div class="player-details-row">
-              @if (playerPhone) {
-              <span
-                class="detail-pill"
-                style="
-                  background: rgba(56, 189, 248, 0.12);
-                  color: #38bdf8;
-                  border: 1px solid rgba(56, 189, 248, 0.35);
-                  font-weight: 700;
-                  gap: 6px;
-                  padding: 2px 6px;
-                "
-                title="Numero privato visibile solo al Mister e al giocatore proprietario"
-                (click)="$event.stopPropagation()"
-              >
-                <span>🔒 {{ playerPhone }}</span>
-                <a
-                  [href]="getTelUrl(playerPhone)"
-                  (click)="$event.stopPropagation()"
-                  title="Chiama {{ g.nome }}"
-                  style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 3px;
-                    padding: 2px 6px;
-                    border-radius: 5px;
-                    background: rgba(56, 189, 248, 0.2);
-                    color: #38bdf8;
-                    text-decoration: none;
-                    font-size: 0.68rem;
-                    font-weight: 800;
-                  "
+      <div class="ion-padding ion-text-center empty-rosa-state">
+        <p>
+          Nessun giocatore trovato. Prova a rimuovere i filtri o aggiungi nuovi giocatori.
+        </p>
+      </div>
+    }
+
+    @if (giocatoriFiltrati().length > 0) {
+      <div class="rosa-cards-grid">
+        @for (g of giocatoriFiltrati(); track (g.id || g.nome) + '_' + $index) {
+          @let badge = getPlayerBadgeInfo(g);
+          @let etaShort = getEtaEAnnoShort(g);
+          @let fisicoShort = getFisicoShort(g);
+          @let playerPhone = canViewPhone(g) ? getPhoneForPlayer(g.id) : null;
+
+          <article
+            class="rosa-player-card"
+            [class.is-me]="isMyPlayer(g.id)"
+            (click)="apriDettagliGiocatore(g)"
+          >
+            <div class="rpc-main-row">
+              <!-- AVATAR + INDICATORE RUOLO/MAGLIA -->
+              <div class="rpc-avatar-wrap">
+                <ion-avatar
+                  class="rpc-avatar"
+                  [style.border-color]="badge.color"
                 >
-                  <ion-icon
-                    name="call-outline"
-                    style="font-size: 0.78rem"
-                  ></ion-icon>
-                  <span>Chiama</span>
-                </a>
-                <a
-                  [href]="getWhatsAppUrl(playerPhone)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  (click)="$event.stopPropagation()"
-                  title="Invia messaggio WhatsApp a {{ g.nome }}"
-                  style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 3px;
-                    padding: 2px 6px;
-                    border-radius: 5px;
-                    background: rgba(37, 211, 102, 0.2);
-                    border: 1px solid rgba(37, 211, 102, 0.4);
-                    color: #25d366;
-                    text-decoration: none;
-                    font-size: 0.68rem;
-                    font-weight: 800;
-                  "
-                >
-                  <ion-icon
-                    name="logo-whatsapp"
-                    style="font-size: 0.78rem"
-                  ></ion-icon>
-                  <span>WA</span>
-                </a>
-              </span>
-              } @if (g.professione) {
-              <span class="detail-pill">💼 {{ g.professione }}</span> } @if
-              (g.origini) {
-              <span class="detail-pill">📍 {{ g.origini }}</span> } @if
-              (g.statoCivile) {
-              <span class="detail-pill">💍 {{ g.statoCivile }}</span> } @if
-              (g.vizi) {
-              <span class="detail-pill vizi-pill">🍺 {{ g.vizi }}</span> }
+                  <app-player-avatar
+                    [fotoUrl]="g.fotoUrl"
+                    [alt]="g.nome"
+                  ></app-player-avatar>
+                </ion-avatar>
+                @if (g.numeroMaglia !== null && g.numeroMaglia !== undefined && g.numeroMaglia !== '') {
+                  <span class="rpc-jersey-badge">#{{ g.numeroMaglia }}</span>
+                }
+              </div>
+
+              <!-- INFO PRINCIPALI + SPEC BADGES PULITI -->
+              <div class="rpc-body">
+                <div class="rpc-header-line">
+                  <div class="rpc-title-cluster">
+                    <h3 class="rpc-name">{{ g.nome }}</h3>
+                    @if (isMyPlayer(g.id)) {
+                      <span class="rpc-me-badge">Tu</span>
+                    }
+                    <span
+                      class="rpc-tier-badge"
+                      [style.color]="badge.color"
+                      [style.border-color]="badge.color + '55'"
+                      [style.background]="badge.color + '16'"
+                    >
+                      {{ badge.label }}
+                    </span>
+                  </div>
+
+                  @if (canEditPlayer(g.id)) {
+                    <div class="rpc-quick-actions" (click)="$event.stopPropagation()">
+                      <button
+                        type="button"
+                        class="rpc-icon-btn edit"
+                        title="Modifica scheda"
+                        (click)="modificaGiocatore(g, $event)"
+                      >
+                        <ion-icon name="create-outline"></ion-icon>
+                      </button>
+                      @if (isAdmin) {
+                        <button
+                          type="button"
+                          class="rpc-icon-btn delete"
+                          title="Elimina giocatore"
+                          (click)="eliminaGiocatore(g, $event)"
+                        >
+                          <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (g.soprannome) {
+                  <div class="rpc-nickname">"{{ g.soprannome }}"</div>
+                }
+
+                <!-- SPEC BADGES PULITI (ZERO EMOJI) -->
+                <div class="rpc-specs-row">
+                  @if (etaShort) {
+                    <span class="rpc-spec-pill">{{ etaShort }}</span>
+                  }
+                  @if (g.piedePreferito) {
+                    <span class="rpc-spec-pill foot">{{ g.piedePreferito }}</span>
+                  }
+                  @if (fisicoShort) {
+                    <span class="rpc-spec-pill">{{ fisicoShort }}</span>
+                  }
+                  @if (!etaShort && !g.piedePreferito && !fisicoShort) {
+                    <span class="rpc-spec-pill muted">Profilo base</span>
+                  }
+                </div>
+              </div>
             </div>
+
+            <!-- DETTAGLI AGGIUNTIVI / TELEFONO PRIVATO -->
+            @if (playerPhone || g.professione || g.origini || g.statoCivile || g.vizi) {
+              <div class="rpc-footer-row">
+                @if (playerPhone) {
+                  <div
+                    class="rpc-phone-bar"
+                    title="Numero privato visibile solo al Mister e al giocatore proprietario"
+                    (click)="$event.stopPropagation()"
+                  >
+                    <span class="rpc-phone-num">
+                      <ion-icon name="lock-closed-outline"></ion-icon>
+                      <span>{{ playerPhone }}</span>
+                    </span>
+                    <div class="rpc-phone-links">
+                      <a
+                        [href]="getTelUrl(playerPhone)"
+                        class="rpc-phone-action call"
+                        (click)="$event.stopPropagation()"
+                        title="Chiama {{ g.nome }}"
+                      >
+                        <ion-icon name="call-outline"></ion-icon>
+                        <span>Chiama</span>
+                      </a>
+                      <a
+                        [href]="getWhatsAppUrl(playerPhone)"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="rpc-phone-action wa"
+                        (click)="$event.stopPropagation()"
+                        title="WhatsApp {{ g.nome }}"
+                      >
+                        <ion-icon name="logo-whatsapp"></ion-icon>
+                        <span>WA</span>
+                      </a>
+                    </div>
+                  </div>
+                }
+
+                @if (g.professione || g.origini || g.statoCivile || g.vizi) {
+                  <div class="rpc-tags-wrap">
+                    @if (g.professione) {
+                      <span class="rpc-extra-tag">{{ g.professione }}</span>
+                    }
+                    @if (g.origini) {
+                      <span class="rpc-extra-tag">{{ g.origini }}</span>
+                    }
+                    @if (g.statoCivile) {
+                      <span class="rpc-extra-tag">{{ g.statoCivile }}</span>
+                    }
+                    @if (g.vizi) {
+                      <span class="rpc-extra-tag gold">{{ g.vizi }}</span>
+                    }
+                  </div>
+                }
+              </div>
             }
-          </ion-label>
-        </ion-item>
-        @if (canEditPlayer(g.id)) {
-        <ion-item-options side="end">
-          <ion-item-option
-            color="primary"
-            (click)="modificaGiocatore(g, slidingItem)"
-          >
-            <ion-icon name="create" slot="icon-only"></ion-icon>
-          </ion-item-option>
-          @if (isAdmin) {
-          <ion-item-option
-            color="danger"
-            (click)="eliminaGiocatore(g, slidingItem)"
-          >
-            <ion-icon name="trash" slot="icon-only"></ion-icon>
-          </ion-item-option>
-          }
-        </ion-item-options>
+          </article>
         }
-      </ion-item-sliding>
-      }
-    </ion-list>
+      </div>
     }
   </div>
-  @if(isAdmin || (auth.isAuthenticated() && !auth.hasLinkedPlayer())) {
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button
-      color="success"
-      [title]="isAdmin ? 'Nuovo Giocatore' : 'Crea la mia Scheda in Rosa'"
-      (click)="isAdmin ? creaNuovoGiocatore() : creaMiaSchedaInRosa()"
-    >
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+
+  @if (isAdmin || (auth.isAuthenticated() && !auth.hasLinkedPlayer())) {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button
+        color="success"
+        [title]="isAdmin ? 'Nuovo Giocatore' : 'Crea la mia Scheda in Rosa'"
+        (click)="isAdmin ? creaNuovoGiocatore() : creaMiaSchedaInRosa()"
+      >
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
   }
 </ion-content>

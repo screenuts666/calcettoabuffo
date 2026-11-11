@@ -1,14 +1,13 @@
 <div class="header-actions-group">
-  <!-- PILL UTENTE LOGGATO / ACCEDI (ATTIVO SIA IN DEV CHE IN PROD) -->
   @if (authService.isAccountEnabled()) {
     @if (authService.isLoggedIn()) {
       <button
         type="button"
         class="user-header-pill"
-        [class.is-open]="isDesktopMenuOpen()"
         [attr.data-role]="authService.role()"
         (click)="onUserHeaderClick($event)"
-        [title]="authService.displayName() + ' (' + authService.roleMeta().badgeText + ') - Menu'"
+        [title]="displayName() + ' • Account & Impostazioni (v' + appUpdate.version + ')'"
+        aria-label="Account e Impostazioni"
       >
         <div class="uhp-avatar">
           <app-player-avatar
@@ -19,120 +18,22 @@
         <div class="uhp-info">
           <span class="uhp-name">{{ shortUserName() }}</span>
           <span class="uhp-role-badge" [attr.data-role]="authService.role()">
-            {{ authService.roleMeta().emoji }} {{ authService.roleLabel() }}
+            {{ authService.roleLabel() }}
           </span>
         </div>
+        <ion-icon name="chevron-down-outline" class="uhp-chevron" aria-hidden="true"></ion-icon>
       </button>
-
-      <!-- DROPDOWN NATIVO DESKTOP (ZERO MODALI SU DESKTOP!) -->
-      @if (isDesktopMenuOpen()) {
-        <div class="desktop-menu-backdrop" (click)="closeDesktopMenu()"></div>
-        <div class="desktop-profile-dropdown" (click)="$event.stopPropagation()">
-          <!-- HERO CARD -->
-          <div class="dpd-hero" [attr.data-role]="authService.role()">
-            <div class="dpd-avatar">
-              <app-player-avatar
-                [fotoUrl]="userAvatarUrl()"
-                [alt]="displayName()"
-              ></app-player-avatar>
-              <span class="dpd-role-emoji">{{ authService.roleMeta().emoji }}</span>
-            </div>
-            <div class="dpd-hero-info">
-              <strong class="dpd-name">{{ displayName() }}</strong>
-              <span class="dpd-role-tag" [attr.data-role]="authService.role()">
-                {{ authService.roleMeta().emoji }} {{ authService.roleMeta().label }}
-              </span>
-              @if (linkedPlayer(); as lp) {
-                <span class="dpd-linked-chip">⚽ In rosa: <strong>{{ lp.nome }}</strong></span>
-              }
-              @if (authService.firebaseUser()?.email; as email) {
-                <span class="dpd-email">{{ email }}</span>
-              }
-            </div>
-          </div>
-
-          <div class="dpd-divider"></div>
-
-          <!-- AZIONI PROFILO / ATLETA -->
-          <div class="dpd-section">
-            @if (linkedPlayer(); as lp) {
-              <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', lp.id])">
-                <ion-icon name="person-outline"></ion-icon>
-                <span>Scheda Atleta</span>
-              </button>
-              <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', lp.id, 'modifica'])">
-                <ion-icon name="create-outline"></ion-icon>
-                <span>Modifica Scheda</span>
-              </button>
-            } @else {
-              <button type="button" class="dpd-item highlight" (click)="apriClaimDaDropdown()">
-                <ion-icon name="football-outline"></ion-icon>
-                <span>Collega Scheda</span>
-              </button>
-              <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/giocatori', 'nuovo'], { selfClaim: '1' })">
-                <ion-icon name="person-add-outline"></ion-icon>
-                <span>Nuova Scheda</span>
-              </button>
-            }
-          </div>
-
-          <!-- SEZIONE MISTER / PRESIDENTE -->
-          @if (authService.isSuperUser()) {
-            <div class="dpd-divider"></div>
-            <div class="dpd-section">
-              <button type="button" class="dpd-item accent-purple" (click)="navigaDaDropdown(['/area-segreta'])">
-                <ion-icon name="shield-checkmark-outline"></ion-icon>
-                <span>Area Segreta</span>
-              </button>
-              @if (authService.isPresidente()) {
-                <button type="button" class="dpd-item accent-gold" (click)="navigaDaDropdown(['/impostazioni'], { tab: 'ruoli' })">
-                  <ion-icon name="people-outline"></ion-icon>
-                  <span>Membri & Ruoli</span>
-                </button>
-              }
-            </div>
-          }
-
-          <div class="dpd-divider"></div>
-
-          <!-- SEZIONE APP & ESCI -->
-          <div class="dpd-section">
-            <button type="button" class="dpd-item" (click)="navigaDaDropdown(['/impostazioni'])">
-              <ion-icon name="settings-outline"></ion-icon>
-              <span>Impostazioni</span>
-            </button>
-            <button type="button" class="dpd-item danger" (click)="eseguiLogoutDaDropdown()">
-              <ion-icon name="log-out-outline"></ion-icon>
-              <span>Esci</span>
-            </button>
-          </div>
-        </div>
-      }
     } @else {
       <button
         type="button"
         class="user-login-pill"
         (click)="onUserHeaderClick($event)"
-        title="Accedi o Registrati"
+        title="Accedi o Impostazioni"
+        aria-label="Accedi o Impostazioni"
       >
-        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-icon name="person-circle-outline" aria-hidden="true"></ion-icon>
         <span class="ulp-label">Accedi</span>
       </button>
     }
   }
-
-  <!-- BOTTONE IMPOSTAZIONI & VERSIONE (DESIGN PULITO, ZERO BORDO PESANTE) -->
-  <button
-    type="button"
-    class="header-settings-btn"
-    (click)="openThemeMenu()"
-    [title]="'Impostazioni (v' + appUpdate.version + (isDevEnvironment ? ' [DEV]' : '') + ')'"
-    aria-label="Impostazioni"
-  >
-    @if (isDevEnvironment) {
-      <span class="dev-mode-mini-pill">DEV</span>
-    }
-    <span class="version-mini-pill">v{{ appUpdate.version }}</span>
-    <ion-icon name="settings-outline" class="gear-mini-icon"></ion-icon>
-  </button>
 </div>

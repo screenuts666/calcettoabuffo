@@ -16,6 +16,7 @@ import {
   ModalController,
   AlertController,
   ToastController,
+  ActionSheetController,
   IonList,
   IonItem,
   IonItemSliding,
@@ -84,6 +85,8 @@ import {
   navigateOutline,
   openOutline,
   sunnyOutline,
+  statsChartOutline,
+  checkmarkOutline,
 } from 'ionicons/icons';
 import { getMatchFormatByPlayerCount } from 'src/app/models/partita.model';
 import { FotoViewerModalComponent } from './foto-viewer-modal/foto-viewer-modal.component';
@@ -171,6 +174,7 @@ export class PartitePage {
   private modalCtrl = inject(ModalController);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
+  private actionSheetCtrl = inject(ActionSheetController);
   private auth = inject(AuthService);
   readonly trashService = inject(TrashService);
   readonly campiService = inject(CampiService);
@@ -220,6 +224,61 @@ export class PartitePage {
   filtroMeteo = signal<string>('all'); // 'all' | 'sereno' | 'nuvoloso' | 'pioggia'
   filtroFormato = signal<string>('all'); // 'all' | 'calcetto' | 'calcio_a_6' | 'calcio_a_7'
   isFiltriCampettoOpen = signal<boolean>(false);
+  isKpiDrawerOpen = signal<boolean>(false);
+
+  toggleKpiDrawer() {
+    this.isKpiDrawerOpen.update((v) => !v);
+  }
+
+  readonly sortButtonLabel = computed<string>(() => {
+    const crit = this.criterioOrdinamento();
+    if (crit === 'gol') return 'Più Gol';
+    return this.ordineCrescente() ? 'Meno recenti' : 'Più recenti';
+  });
+
+  async apriMenuOrdinamento() {
+    const crit = this.criterioOrdinamento();
+    const asc = this.ordineCrescente();
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Ordina Partite',
+      mode: 'ios',
+      buttons: [
+        {
+          text:
+            crit === 'data' && !asc ? '✓ Più recenti' : 'Più recenti',
+          icon: 'calendar-outline',
+          handler: () => {
+            this.criterioOrdinamento.set('data');
+            this.ordineCrescente.set(false);
+          },
+        },
+        {
+          text:
+            crit === 'data' && asc ? '✓ Meno recenti' : 'Meno recenti',
+          icon: 'time-outline',
+          handler: () => {
+            this.criterioOrdinamento.set('data');
+            this.ordineCrescente.set(true);
+          },
+        },
+        {
+          text:
+            crit === 'gol' ? '✓ Più gol segnati' : 'Più gol segnati',
+          icon: 'football-outline',
+          handler: () => {
+            this.criterioOrdinamento.set('gol');
+            this.ordineCrescente.set(false);
+          },
+        },
+        {
+          text: 'Annulla',
+          role: 'cancel',
+          icon: 'close',
+        },
+      ],
+    });
+    await actionSheet.present();
+  }
 
   readonly isAnyFilterActive = computed(() => {
     return (
@@ -424,6 +483,9 @@ export class PartitePage {
       `• Media: ${mediaGolPartita} gol a gara\n` +
       `• Ritmo: ${ritmoGolAlMinuto} gol/min (1 gol ogni ${minutiPerGol} minuti)`;
 
+    const mediaSecondiGara =
+      concluse.length > 0 ? Math.round(totaleSecondi / concluse.length) : 0;
+
     return {
       totalePartite,
       partiteConcluse: concluse.length,
@@ -435,6 +497,8 @@ export class PartitePage {
       totaleAssist,
       totaleSecondi,
       tempoTotaleDisplay: formatTempoTotale(totaleSecondi),
+      durataMediaDisplay:
+        mediaSecondiGara > 0 ? formatTempoTotale(mediaSecondiGara) : '-',
       mediaVotiStagione,
     };
   });
@@ -882,6 +946,8 @@ export class PartitePage {
       shieldCheckmark,
       openOutline,
       sunnyOutline,
+      statsChartOutline,
+      checkmarkOutline,
     });
 
     this.route.queryParams.subscribe((params) => {

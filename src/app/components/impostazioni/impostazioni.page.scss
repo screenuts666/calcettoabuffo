@@ -1633,69 +1633,241 @@
   }
 }
 
-.athlete-card {
-  .linked-athlete-row {
+.ssc-ion-icon {
+  font-size: 1.25rem;
+  color: #2dd36f;
+  flex-shrink: 0;
+}
+
+.account-hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-color: rgba(45, 211, 111, 0.28);
+
+  &[data-role='presidente'] {
+    border-color: rgba(251, 191, 36, 0.4);
+  }
+
+  &[data-role='superuser'] {
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+
+  .ahc-profile-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: var(--app-surface-subtle);
-    border: 1px solid var(--app-card-border);
-    margin-top: 8px;
+    gap: 14px;
 
-    .lar-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .ahc-avatar-wrap {
+      flex-shrink: 0;
+
+      .ahc-avatar {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        border: 2px solid rgba(45, 211, 111, 0.45);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .ahc-info {
+      flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
 
-      .lar-badge {
-        font-size: 0.68rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
-        background: rgba(34, 197, 94, 0.15);
-        color: #4ade80;
-        white-space: nowrap;
+      .ahc-name-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .ahc-name {
+          margin: 0;
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--app-text-primary);
+          line-height: 1.2;
+        }
+
+        .ahc-role-pill {
+          font-size: 0.68rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          padding: 2px 8px;
+          border-radius: 999px;
+          background: rgba(45, 211, 111, 0.14);
+          color: #2dd36f;
+          border: 1px solid rgba(45, 211, 111, 0.35);
+
+          &[data-role='presidente'] {
+            background: rgba(251, 191, 36, 0.16);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.45);
+          }
+
+          &[data-role='superuser'] {
+            background: rgba(56, 189, 248, 0.16);
+            color: #38bdf8;
+            border-color: rgba(56, 189, 248, 0.45);
+          }
+        }
       }
 
-      .lar-name {
-        font-size: 0.88rem;
-        color: var(--app-text-primary);
+      .ahc-email {
+        font-size: 0.78rem;
+        color: var(--app-text-secondary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      .ahc-link-status {
+        margin-top: 2px;
+
+        .ahc-status-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-size: 0.74rem;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 8px;
+
+          ion-icon {
+            font-size: 0.9rem;
+            flex-shrink: 0;
+          }
+
+          &.linked {
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+          }
+
+          &.unlinked {
+            background: rgba(245, 158, 11, 0.12);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+          }
+        }
+      }
+    }
+  }
+
+  .ahc-quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 4px;
+    border-top: 1px solid var(--app-card-border);
+  }
+
+  .ahc-action-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--app-card-border);
+    background: var(--app-surface-subtle);
+    color: var(--app-text-primary);
+    text-align: left;
+    cursor: pointer;
+    transition: transform 0.12s ease, border-color 0.15s ease;
+
+    > ion-icon:first-child {
+      font-size: 1.3rem;
+      color: #2dd36f;
+      flex-shrink: 0;
     }
 
-    .btn-unlink-athlete {
+    &.primary {
+      background: rgba(45, 211, 111, 0.1);
+      border-color: rgba(45, 211, 111, 0.38);
+    }
+
+    &.secondary {
+      > ion-icon:first-child {
+        color: #38bdf8;
+      }
+    }
+
+    .ahc-btn-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      strong {
+        font-size: 0.84rem;
+        font-weight: 800;
+        color: var(--app-text-primary);
+      }
+
+      small {
+        font-size: 0.7rem;
+        color: var(--app-text-secondary);
+      }
+    }
+
+    .ahc-chevron {
+      font-size: 1rem;
+      color: var(--app-text-secondary);
+      opacity: 0.7;
+      flex-shrink: 0;
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  .ahc-unlink-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 2px;
+
+    .btn-unlink-inline {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 5px 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      background: rgba(239, 68, 68, 0.08);
-      color: #f87171;
-      font-size: 0.75rem;
-      font-weight: 700;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--app-text-secondary);
+      font-size: 0.72rem;
+      font-weight: 600;
       cursor: pointer;
 
-      &:active {
-        transform: scale(0.96);
+      ion-icon {
+        font-size: 0.85rem;
+        color: #f87171;
+      }
+
+      &:hover {
+        color: #f87171;
       }
     }
   }
 
   .unlinked-athlete-block {
-    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--app-card-border);
 
     .uab-hint {
       font-size: 0.78rem;
       color: var(--app-text-secondary);
-      margin: 0 0 8px;
+      margin: 0;
+      line-height: 1.35;
     }
 
     .uab-form-row {
@@ -1704,12 +1876,13 @@
 
       .uab-select {
         flex: 1;
-        padding: 8px 10px;
+        min-width: 0;
+        padding: 9px 10px;
         border-radius: 10px;
         border: 1px solid var(--app-card-border);
         background: var(--app-surface-subtle);
         color: var(--app-text-primary);
-        font-size: 0.85rem;
+        font-size: 0.84rem;
         outline: none;
       }
 
@@ -1721,10 +1894,11 @@
         border-radius: 10px;
         border: none;
         background: #2dd36f;
-        color: #000000;
+        color: #041f11;
         font-size: 0.82rem;
         font-weight: 800;
         cursor: pointer;
+        flex-shrink: 0;
 
         &:disabled {
           opacity: 0.5;
@@ -1736,7 +1910,16 @@
         }
       }
     }
+
+    .uab-create-btn {
+      margin-top: 2px;
+    }
   }
+}
+
+.logout-card {
+  padding: 8px !important;
+  border-color: rgba(239, 68, 68, 0.25);
 }
 
 // ─── RESPONSIVE DESKTOP ENHANCEMENTS (>= 768px) ──────────────────────────

@@ -11,15 +11,15 @@
         <ion-icon name="arrow-back-outline"></ion-icon>
       </button>
       <div class="gear-badge">
-        <ion-icon name="settings-outline"></ion-icon>
+        <ion-icon name="person-circle-outline"></ion-icon>
       </div>
       <div class="mtb-title-text">
-        <span class="mtb-title">Impostazioni</span>
+        <span class="mtb-title">Account & Impostazioni</span>
       </div>
       @if (authService.isPresidente()) {
-        <span class="su-pill presidente-pill">🎩 Presidente</span>
+        <span class="su-pill presidente-pill">Presidente</span>
       } @else if (authService.isSuperUser()) {
-        <span class="su-pill">👔 Mister</span>
+        <span class="su-pill">Mister</span>
       }
       @if (authService.isSuperUser()) {
         <span
@@ -49,6 +49,15 @@
   @if (authService.isSuperUser()) {
     <!-- BARRA DI NAVIGAZIONE SCHEDE -->
     <div class="settings-tabs-bar">
+      <button
+        type="button"
+        class="s-tab-btn"
+        [class.active]="activeTab() === 'account'"
+        (click)="setTab('account')"
+      >
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <span>Account</span>
+      </button>
       @if (authService.isPresidente()) {
         <button
           type="button"
@@ -76,7 +85,7 @@
         (click)="setTab('match')"
       >
         <ion-icon name="football-outline"></ion-icon>
-        <span>Match & Gol</span>
+        <span>Match</span>
       </button>
       <button
         type="button"
@@ -84,7 +93,7 @@
         [class.active]="activeTab() === 'sistema'"
         (click)="setTab('sistema')"
       >
-        <ion-icon name="sparkles-outline"></ion-icon>
+        <ion-icon name="construct-outline"></ion-icon>
         <span>Sistema</span>
       </button>
     </div>
@@ -103,7 +112,7 @@
       <!-- AUTORIZZA VIA EMAIL (PRE-ACCESSO) -->
       <div class="settings-section-card roles-card">
         <div class="ssc-header">
-          <span class="ssc-icon">✉️</span>
+          <ion-icon name="mail-outline" class="ssc-ion-icon"></ion-icon>
           <div>
             <h4>Autorizza Email</h4>
           </div>
@@ -123,8 +132,8 @@
               [value]="newPreAuthRole()"
               (change)="newPreAuthRole.set($any($event.target).value)"
             >
-              <option value="superuser">👔 Mister</option>
-              <option value="user">⚽ Atleta</option>
+              <option value="superuser">Mister</option>
+              <option value="user">Atleta</option>
             </select>
             <button
               type="button"
@@ -147,7 +156,7 @@
                 @for (item of authList; track item.id || item.email) {
                   <div class="preauth-chip">
                     <span class="p-role-badge" [class.mister]="item.role === 'superuser'">
-                      {{ item.role === 'superuser' ? '👔 Mister' : '⚽ Atleta' }}
+                      {{ item.role === 'superuser' ? 'Mister' : 'Atleta' }}
                     </span>
                     <span class="p-email">{{ item.email }}</span>
                     <button
@@ -169,7 +178,7 @@
       <!-- MEMBRI DEL CLUB (GESTIONE RUOLI STILE WHATSAPP) -->
       <div class="settings-section-card members-card">
         <div class="ssc-header">
-          <span class="ssc-icon">👥</span>
+          <ion-icon name="people-outline" class="ssc-ion-icon"></ion-icon>
           <div>
             <h4>Membri del Club</h4>
           </div>
@@ -596,87 +605,100 @@
     }
 
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    <!-- TAB 3: TEMA, SCHEDA ATLETA, VERSIONE APP & GESTIONE MISTER          -->
+    <!-- TAB ACCOUNT: PROFILO ATLETA, TEMA, VERSIONE APP & LOGOUT           -->
     <!-- ═══════════════════════════════════════════════════════════════════ -->
-    @if (!authService.isSuperUser() || activeTab() === 'sistema') {
-      <!-- SEZIONE TEMA VISUALE (COMPATTA) -->
-      <div class="settings-section-card">
-        <div class="ssc-header">
-          <span class="ssc-icon">🎨</span>
-          <div>
-            <h4>Tema</h4>
-          </div>
-        </div>
+    @if (!authService.isSuperUser() || activeTab() === 'account') {
+      <!-- HERO PROFILE CARD -->
+      <div class="settings-section-card account-hero-card" [attr.data-role]="authService.role()">
+        @if (authService.isLoggedIn()) {
+          <div class="ahc-profile-top">
+            <div class="ahc-avatar-wrap">
+              <ion-avatar class="ahc-avatar">
+                <app-player-avatar
+                  [fotoUrl]="userAvatarUrl()"
+                  [alt]="displayName()"
+                ></app-player-avatar>
+              </ion-avatar>
+            </div>
 
-        <div class="theme-compact-selector">
-          <button
-            type="button"
-            class="theme-segment-btn"
-            [class.active]="themeService.mode() === 'light'"
-            (click)="setTheme('light')"
-          >
-            <span class="ts-icon">☀️</span>
-            <span>Chiaro</span>
-          </button>
+            <div class="ahc-info">
+              <div class="ahc-name-row">
+                <h3 class="ahc-name">{{ displayName() }}</h3>
+                <span class="ahc-role-pill" [attr.data-role]="authService.role()">
+                  {{ authService.roleMeta().label }}
+                </span>
+              </div>
 
-          <button
-            type="button"
-            class="theme-segment-btn"
-            [class.active]="themeService.mode() === 'dark'"
-            (click)="setTheme('dark')"
-          >
-            <span class="ts-icon">🌙</span>
-            <span>Scuro</span>
-          </button>
+              @if (authService.firebaseUser()?.email; as email) {
+                <span class="ahc-email">{{ email }}</span>
+              }
 
-          <button
-            type="button"
-            class="theme-segment-btn"
-            [class.active]="themeService.mode() === 'auto'"
-            (click)="setTheme('auto')"
-          >
-            <span class="ts-icon">⚙️</span>
-            <span>Auto</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- SEZIONE SCHEDA ATLETA (OPZIONALE PER MISTER & PRESIDENTE) -->
-      @if (authService.isSuperUser()) {
-        <div class="settings-section-card athlete-card">
-          <div class="ssc-header">
-            <span class="ssc-icon">⚽</span>
-            <div>
-              <h4>Scheda Atleta</h4>
+              <div class="ahc-link-status">
+                @if (linkedPlayer(); as lp) {
+                  <span class="ahc-status-chip linked">
+                    <ion-icon name="checkmark-circle"></ion-icon>
+                    <span>Scheda collegata: <strong>{{ lp.nome }}</strong></span>
+                  </span>
+                } @else {
+                  <span class="ahc-status-chip unlinked">
+                    <ion-icon name="alert-circle-outline"></ion-icon>
+                    <span>Nessuna scheda atleta collegata</span>
+                  </span>
+                }
+              </div>
             </div>
           </div>
 
-          @if (authService.hasLinkedPlayer()) {
-            <div class="linked-athlete-row">
-              <div class="lar-left">
-                <span class="lar-badge">Collegato</span>
-                <strong class="lar-name">{{ currentLinkedPlayerName() }}</strong>
-              </div>
+          <!-- AZIONI RAPIDE SCHEDA ATLETA -->
+          @if (linkedPlayer(); as lp) {
+            <div class="ahc-quick-actions">
               <button
                 type="button"
-                class="btn-unlink-athlete"
-                (click)="scollegaSchedaAtleta()"
-                title="Scollega atleta"
+                class="ahc-action-btn primary"
+                (click)="vaiAllaMiaScheda(lp.id)"
               >
-                <ion-icon name="unlink-outline"></ion-icon>
-                <span>Scollega</span>
+                <ion-icon name="stats-chart-outline"></ion-icon>
+                <div class="ahc-btn-text">
+                  <strong>Vai alla mia Scheda Statistiche</strong>
+                  <small>Trend, pagelle, presenze e trofei</small>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="ahc-chevron"></ion-icon>
               </button>
+
+              <button
+                type="button"
+                class="ahc-action-btn secondary"
+                (click)="modificaMioProfiloAtleta(lp.id)"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+                <div class="ahc-btn-text">
+                  <strong>Modifica Profilo Atleta</strong>
+                  <small>Foto, soprannome, ruolo e piede</small>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="ahc-chevron"></ion-icon>
+              </button>
+
+              <div class="ahc-unlink-footer">
+                <button
+                  type="button"
+                  class="btn-unlink-inline"
+                  (click)="scollegaSchedaAtleta()"
+                >
+                  <ion-icon name="unlink-outline"></ion-icon>
+                  <span>Scollega scheda atleta da questo account</span>
+                </button>
+              </div>
             </div>
           } @else {
             <div class="unlinked-athlete-block">
-              <p class="uab-hint">Opzionale: collega la tua scheda se scendi in campo.</p>
+              <p class="uab-hint">Collega la tua scheda giocatore in rosa per accedere rapidamente a statistiche e convocazioni:</p>
               <div class="uab-form-row">
                 <select
                   class="uab-select"
                   [value]="selectedPlayerToLink()"
                   (change)="selectedPlayerToLink.set($any($event.target).value)"
                 >
-                  <option value="">-- Seleziona Atleta --</option>
+                  <option value="">-- Seleziona Atleta in Rosa --</option>
                   @for (p of availablePlayersToLink(); track p.id) {
                     <option [value]="p.id">{{ p.nome }}{{ p.soprannome ? ' ("' + p.soprannome + '")' : '' }}</option>
                   }
@@ -691,90 +713,27 @@
                   <span>Collega</span>
                 </button>
               </div>
+
+              <button
+                type="button"
+                class="ahc-action-btn secondary uab-create-btn"
+                (click)="creaNuovaSchedaAtleta()"
+              >
+                <ion-icon name="person-add-outline"></ion-icon>
+                <div class="ahc-btn-text">
+                  <strong>Crea Nuova Scheda Atleta</strong>
+                  <small>Non sei ancora in rosa? Registra il tuo profilo</small>
+                </div>
+                <ion-icon name="chevron-forward-outline" class="ahc-chevron"></ion-icon>
+              </button>
             </div>
           }
-        </div>
-      }
-
-      <!-- SEZIONE AMMINISTRAZIONE / MISTER -->
-      @if (authService.isSuperUser()) {
-        <div class="settings-section-card su-card">
+        } @else {
+          <!-- NON AUTENTICATO -->
           <div class="ssc-header">
-            <span class="ssc-icon">{{ authService.isPresidente() ? '🎩' : '👔' }}</span>
+            <ion-icon name="lock-closed-outline" class="ssc-ion-icon"></ion-icon>
             <div>
-              <h4>{{ authService.isPresidente() ? 'Amministrazione' : 'Gestione Mister' }}</h4>
-            </div>
-          </div>
-
-          <div class="system-actions-list">
-            <button
-              type="button"
-              class="sys-action-btn gold"
-              (click)="apriAreaSegreta()"
-            >
-              <ion-icon name="shield-checkmark"></ion-icon>
-              <div class="sab-text">
-                <strong>🔬 Area Segreta</strong>
-              </div>
-            </button>
-
-            <!-- SALVA SU GOOGLE DRIVE -->
-            <button
-              type="button"
-              class="sys-action-btn drive"
-              [disabled]="isSavingToDrive() || isExportingBackup()"
-              (click)="salvaBackupSuGoogleDrive()"
-            >
-              <ion-icon name="logo-google"></ion-icon>
-              <div class="sab-text">
-                <strong>☁️ {{ isSavingToDrive() ? 'Salvataggio Drive...' : 'Backup su Google Drive' }}</strong>
-                <small>Cartella "Calcetto Abbuffo - Backup"</small>
-              </div>
-            </button>
-
-            <!-- SCARICA FILE LOCALE JSON -->
-            <button
-              type="button"
-              class="sys-action-btn"
-              [disabled]="isExportingBackup() || isSavingToDrive()"
-              (click)="scaricaBackupDatabase()"
-            >
-              <ion-icon name="cloud-download-outline"></ion-icon>
-              <div class="sab-text">
-                <strong>💾 {{ isExportingBackup() ? 'Download...' : 'Scarica Backup (.json)' }}</strong>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="sys-action-btn"
-              (click)="ripristinaDefaultAudio()"
-            >
-              <ion-icon name="refresh-outline"></ion-icon>
-              <div class="sab-text">
-                <strong>🔄 Ripristina suoni</strong>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              class="sys-action-btn danger"
-              (click)="logoutSuperUser()"
-            >
-              <ion-icon name="log-out-outline"></ion-icon>
-              <div class="sab-text">
-                <strong>🚪 Esci</strong>
-              </div>
-            </button>
-          </div>
-        </div>
-      } @else {
-        <!-- ACCESSO DIRETTO -->
-        <div class="settings-section-card">
-          <div class="ssc-header">
-            <span class="ssc-icon">🔐</span>
-            <div>
-              <h4>Accesso Riservato</h4>
+              <h4>Accesso Account</h4>
             </div>
           </div>
           <div class="system-actions-list">
@@ -783,19 +742,62 @@
               class="sys-action-btn gold"
               (click)="promptLoginSuperUser()"
             >
-              <ion-icon name="lock-closed-outline"></ion-icon>
+              <ion-icon name="person-circle-outline"></ion-icon>
               <div class="sab-text">
-                <strong>Accedi</strong>
+                <strong>Accedi o Registrati</strong>
+                <small>Collega la tua scheda atleta o accedi come Mister</small>
               </div>
             </button>
           </div>
+        }
+      </div>
+
+      <!-- SEZIONE TEMA VISUALE (SENZA EMOJI) -->
+      <div class="settings-section-card">
+        <div class="ssc-header">
+          <ion-icon name="color-palette-outline" class="ssc-ion-icon"></ion-icon>
+          <div>
+            <h4>Tema</h4>
+          </div>
         </div>
-      }
+
+        <div class="theme-compact-selector">
+          <button
+            type="button"
+            class="theme-segment-btn"
+            [class.active]="themeService.mode() === 'light'"
+            (click)="setTheme('light')"
+          >
+            <ion-icon name="sunny-outline"></ion-icon>
+            <span>Chiaro</span>
+          </button>
+
+          <button
+            type="button"
+            class="theme-segment-btn"
+            [class.active]="themeService.mode() === 'dark'"
+            (click)="setTheme('dark')"
+          >
+            <ion-icon name="moon-outline"></ion-icon>
+            <span>Scuro</span>
+          </button>
+
+          <button
+            type="button"
+            class="theme-segment-btn"
+            [class.active]="themeService.mode() === 'auto'"
+            (click)="setTheme('auto')"
+          >
+            <ion-icon name="contrast-outline"></ion-icon>
+            <span>Auto</span>
+          </button>
+        </div>
+      </div>
 
       <!-- SEZIONE VERSIONE, NOTE DI RILASCIO & CACHE -->
       <div class="settings-section-card">
         <div class="ssc-header">
-          <span class="ssc-icon">🚀</span>
+          <ion-icon name="information-circle-outline" class="ssc-ion-icon"></ion-icon>
           <div>
             <h4>
               Versione v{{ appUpdate.version }}
@@ -814,7 +816,7 @@
           >
             <ion-icon name="sparkles-outline"></ion-icon>
             <div class="sab-text">
-              <strong>✨ Note di Rilascio</strong>
+              <strong>Note di Rilascio</strong>
             </div>
           </button>
 
@@ -825,7 +827,91 @@
           >
             <ion-icon name="refresh-outline"></ion-icon>
             <div class="sab-text">
-              <strong>🔄 Aggiorna App & Cache</strong>
+              <strong>Aggiorna App & Cache</strong>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- PULSANTE ESCI (LOGOUT) IN FONDO -->
+      @if (authService.isLoggedIn()) {
+        <div class="settings-section-card logout-card">
+          <div class="system-actions-list">
+            <button
+              type="button"
+              class="sys-action-btn danger"
+              (click)="logoutSuperUser()"
+            >
+              <ion-icon name="log-out-outline"></ion-icon>
+              <div class="sab-text">
+                <strong>Esci</strong>
+              </div>
+            </button>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- TAB SISTEMA: AREA SEGRETA, BACKUP & STRUMENTI MISTER/PRESIDENTE    -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    @if (authService.isSuperUser() && activeTab() === 'sistema') {
+      <div class="settings-section-card su-card">
+        <div class="ssc-header">
+          <ion-icon name="shield-checkmark-outline" class="ssc-ion-icon"></ion-icon>
+          <div>
+            <h4>{{ authService.isPresidente() ? 'Amministrazione & Backup' : 'Strumenti Mister & Backup' }}</h4>
+          </div>
+        </div>
+
+        <div class="system-actions-list">
+          <button
+            type="button"
+            class="sys-action-btn gold"
+            (click)="apriAreaSegreta()"
+          >
+            <ion-icon name="shield-checkmark"></ion-icon>
+            <div class="sab-text">
+              <strong>Area Segreta</strong>
+              <small>Parametri algoritmo, formule MMR e simulatore</small>
+            </div>
+          </button>
+
+          <!-- SALVA SU GOOGLE DRIVE -->
+          <button
+            type="button"
+            class="sys-action-btn drive"
+            [disabled]="isSavingToDrive() || isExportingBackup()"
+            (click)="salvaBackupSuGoogleDrive()"
+          >
+            <ion-icon name="logo-google"></ion-icon>
+            <div class="sab-text">
+              <strong>{{ isSavingToDrive() ? 'Salvataggio Drive...' : 'Backup su Google Drive' }}</strong>
+              <small>Cartella "Calcetto Abbuffo - Backup"</small>
+            </div>
+          </button>
+
+          <!-- SCARICA FILE LOCALE JSON -->
+          <button
+            type="button"
+            class="sys-action-btn"
+            [disabled]="isExportingBackup() || isSavingToDrive()"
+            (click)="scaricaBackupDatabase()"
+          >
+            <ion-icon name="cloud-download-outline"></ion-icon>
+            <div class="sab-text">
+              <strong>{{ isExportingBackup() ? 'Download...' : 'Scarica Backup (.json)' }}</strong>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            class="sys-action-btn"
+            (click)="ripristinaDefaultAudio()"
+          >
+            <ion-icon name="refresh-outline"></ion-icon>
+            <div class="sab-text">
+              <strong>Ripristina suoni</strong>
             </div>
           </button>
         </div>

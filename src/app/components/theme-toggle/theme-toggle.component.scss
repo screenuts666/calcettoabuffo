@@ -9,17 +9,22 @@
 .user-header-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 32px;
-  padding: 2px 7px 2px 3px;
+  gap: 6px;
+  height: 34px;
+  padding: 2px 9px 2px 3px;
   border-radius: 999px;
   border: 1px solid var(--app-card-border);
   background: var(--app-surface-subtle);
   color: var(--app-text-primary);
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-  max-width: 140px;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  max-width: 155px;
   flex-shrink: 0;
+
+  &[data-role='presidente'] {
+    border-color: rgba(168, 85, 247, 0.48);
+    background: rgba(168, 85, 247, 0.1);
+  }
 
   &[data-role='superuser'] {
     border-color: rgba(251, 191, 36, 0.45);
@@ -31,17 +36,21 @@
     background: rgba(45, 211, 111, 0.08);
   }
 
+  &:hover {
+    background: var(--app-surface-hover);
+  }
+
   &:active {
     transform: scale(0.95);
   }
 
   .uhp-avatar {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     pointer-events: none;
   }
 
@@ -54,25 +63,25 @@
     pointer-events: none;
 
     .uhp-name {
-      font-size: 0.68rem;
+      font-size: 0.74rem;
       font-weight: 800;
       color: var(--app-text-primary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 80px;
-
-      @media (max-width: 360px) {
-        display: none;
-      }
+      max-width: 82px;
     }
 
     .uhp-role-badge {
-      font-size: 0.54rem;
+      font-size: 0.56rem;
       font-weight: 800;
       letter-spacing: 0.2px;
       color: var(--app-text-secondary);
       white-space: nowrap;
+
+      &[data-role='presidente'] {
+        color: #c084fc;
+      }
 
       &[data-role='superuser'] {
         color: #fbbf24;
@@ -88,29 +97,31 @@
     }
   }
 
-  @media (max-width: 480px) {
-    max-width: 95px;
-    padding: 2px 6px 2px 2px;
-    gap: 4px;
+  .uhp-chevron {
+    font-size: 0.78rem;
+    color: var(--app-text-muted);
+    flex-shrink: 0;
+    margin-left: 1px;
   }
 
-  @media (max-width: 360px) {
-    max-width: 32px;
-    padding: 2px;
+  @media (max-width: 480px) {
+    max-width: 118px;
+    padding: 2px 7px 2px 3px;
+    gap: 5px;
   }
 }
 
 .user-login-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 9px;
+  gap: 5px;
+  height: 34px;
+  padding: 0 11px;
   border-radius: 999px;
   border: 1px solid rgba(45, 211, 111, 0.35);
   background: rgba(45, 211, 111, 0.1);
   color: #2dd36f;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
@@ -125,249 +136,11 @@
   }
 
   ion-icon {
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     flex-shrink: 0;
   }
 
   .ulp-label {
     line-height: 1;
-  }
-}
-
-.header-settings-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  height: 32px;
-  padding: 0 7px;
-  border-radius: 999px;
-  border: 1px solid var(--app-card-border);
-  background: var(--app-surface-subtle);
-  color: var(--app-text-primary);
-  cursor: pointer;
-  outline: none;
-  box-shadow: none;
-  transition: transform 0.15s ease, background 0.15s ease;
-  flex-shrink: 0;
-
-  &:hover {
-    background: var(--app-card-border);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  .dev-mode-mini-pill {
-    font-size: 0.55rem;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    padding: 1px 4px;
-    border-radius: 4px;
-    background: rgba(255, 196, 9, 0.16);
-    color: #ffc409;
-    border: 1px solid rgba(255, 196, 9, 0.35);
-    line-height: 1.1;
-    text-transform: uppercase;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    white-space: nowrap;
-    flex-shrink: 0;
-
-    @media (max-width: 520px) {
-      display: none !important;
-    }
-  }
-
-  .version-mini-pill {
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-    padding: 1px 5px;
-    border-radius: 5px;
-    background: rgba(45, 211, 111, 0.12);
-    color: #2dd36f;
-    border: 1px solid rgba(45, 211, 111, 0.25);
-    line-height: 1.1;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    white-space: nowrap;
-    flex-shrink: 0;
-
-    @media (max-width: 600px) {
-      display: none !important;
-    }
-  }
-
-  .gear-mini-icon {
-    font-size: 1.15rem;
-    color: var(--app-text-primary);
-    flex-shrink: 0;
-  }
-}
-
-// ─── DESKTOP DROPDOWN NATIVO (ZERO MODALI SU DESKTOP!) ─────────────────────
-.desktop-menu-backdrop {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99998 !important;
-  background: transparent;
-}
-
-.desktop-profile-dropdown {
-  position: fixed !important;
-  top: 54px !important;
-  right: 12px !important;
-  width: 310px !important;
-  max-width: calc(100vw - 24px) !important;
-  background: var(--app-card-bg) !important;
-  border: 1px solid var(--app-card-border) !important;
-  border-radius: 18px !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
-  z-index: 99999 !important;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: dpdFadeIn 0.14s cubic-bezier(0.16, 1, 0.3, 1);
-
-  .dpd-hero {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: var(--app-surface-subtle);
-
-    .dpd-avatar {
-      position: relative;
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      overflow: hidden;
-      flex-shrink: 0;
-
-      .dpd-role-emoji {
-        position: absolute;
-        bottom: -2px;
-        right: -2px;
-        font-size: 0.75rem;
-        background: var(--app-card-bg);
-        border-radius: 50%;
-        padding: 1px;
-      }
-    }
-
-    .dpd-hero-info {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-
-      .dpd-name {
-        font-size: 0.92rem;
-        font-weight: 800;
-        color: var(--app-text-primary);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .dpd-role-tag {
-        font-size: 0.7rem;
-        font-weight: 800;
-        color: var(--app-primary);
-      }
-
-      .dpd-linked-chip {
-        font-size: 0.72rem;
-        color: #60a5fa;
-        margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .dpd-email {
-        font-size: 0.7rem;
-        color: var(--app-text-secondary);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-    }
-  }
-
-  .dpd-divider {
-    height: 1px;
-    background: var(--app-card-border);
-  }
-
-  .dpd-section {
-    padding: 5px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-
-    .dpd-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: none;
-      background: transparent;
-      color: var(--app-text-primary);
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      text-align: left;
-      transition: background 0.12s ease;
-
-      ion-icon {
-        font-size: 1.05rem;
-        color: var(--app-text-secondary);
-        flex-shrink: 0;
-      }
-
-      &:hover {
-        background: var(--app-surface-hover);
-      }
-
-      &.highlight {
-        color: #2dd36f;
-        ion-icon { color: #2dd36f; }
-      }
-
-      &.accent-purple {
-        color: #c084fc;
-        ion-icon { color: #c084fc; }
-      }
-
-      &.accent-gold {
-        color: #fbbf24;
-        ion-icon { color: #fbbf24; }
-      }
-
-      &.danger {
-        color: #ef4444;
-        ion-icon { color: #ef4444; }
-
-        &:hover {
-          background: rgba(239, 68, 68, 0.12);
-        }
-      }
-    }
-  }
-}
-
-@keyframes dpdFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }

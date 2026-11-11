@@ -66,8 +66,8 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
 
 @Component({
   selector: 'app-form-giocatore',
-  templateUrl: './form-giocatore.component.html',
-  styleUrls: ['./form-giocatore.component.scss'],
+  templateUrl: './form-giocatore.page.html',
+  styleUrls: ['./form-giocatore.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -92,7 +92,7 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonIcon,
   ],
 })
-export class FormGiocatoreComponent implements OnInit, OnDestroy {
+export class FormGiocatorePage implements OnInit, OnDestroy {
   private firestore = inject(Firestore);
   private storage = inject(Storage);
   private loadingController = inject(LoadingController);
@@ -448,4 +448,4 @@ export class FormGiocatoreComponent implements OnInit, OnDestroy {
   }
 }
 
-export { FormGiocatoreComponent as GiocatoreEditPage };
+export { FormGiocatorePage as GiocatoreEditPage };

@@ -34,47 +34,56 @@
 }
 
 // ==========================================
-// BARRA 1: SELETTORE STAGIONE UNIFICATO
+// BARRA 1: SELETTORE STAGIONE + RIEPILOGO TOGGLE
 // ==========================================
 .season-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
   background: var(--app-header-bg, var(--app-card-bg));
-  padding: 6px 12px 6px;
+  padding: 6px 12px;
   border-bottom: 1px solid var(--app-border-color);
 }
 
 .season-pills {
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .season-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 16px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
+    flex-shrink: 0;
+
+    @media (max-width: 390px) {
+      display: none;
+    }
   }
 
   .season-pill-count {
     background: rgba(255, 255, 255, 0.08);
     color: var(--app-text-primary);
-    padding: 1px 6px;
-    border-radius: 10px;
-    font-size: 0.68rem;
+    padding: 1px 5px;
+    border-radius: 8px;
+    font-size: 0.65rem;
     font-weight: 800;
   }
 
@@ -95,93 +104,174 @@
   }
 }
 
-// ==========================================
-// MINI DASHBOARD KPI STAGIONE
-// ==========================================
-.season-kpi-bar {
-  display: flex;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--app-surface-subtle);
-  border-bottom: 1px solid var(--app-border-color);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
-}
-
-.kpi-pill {
+.kpi-drawer-toggle-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding: 4px 9px;
-  border-radius: 10px;
-  background: var(--app-card-bg);
+  border-radius: 16px;
+  background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.72rem;
-  font-weight: 600;
+  font-size: 0.71rem;
+  font-weight: 700;
+  cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
+  transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 0.85rem;
+    font-size: 0.84rem;
+    color: var(--ion-color-success);
+  }
+
+  .toggle-chevron {
+    font-size: 0.72rem;
     color: var(--app-text-muted);
   }
 
-  strong {
-    color: var(--app-text-primary);
-    font-weight: 800;
-  }
+  &.active {
+    background: var(--app-primary-subtle);
+    border-color: var(--ion-color-success);
+    color: var(--ion-color-success);
 
-  small {
-    color: var(--app-text-muted);
-  }
-
-  .kpi-metric-split {
-    color: var(--app-text-muted);
-    font-size: 0.68rem;
-    font-weight: 600;
-  }
-
-  &.highlight {
-    border-color: rgba(var(--app-primary-rgb), 0.3);
-
-    ion-icon {
-      color: var(--app-accent-orange);
-    }
-
-    strong {
+    .toggle-chevron {
       color: var(--ion-color-success);
     }
   }
 
-  &.rating {
-    border-color: rgba(var(--app-accent-gold-rgb), 0.35);
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+// ==========================================
+// DRAWER STATISTICHE STAGIONALI A SCOMPARSA
+// ==========================================
+.season-kpi-drawer {
+  padding: 8px 12px 10px;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-border-color);
+  animation: fadeInDown 0.18s ease-out;
+}
+
+.kpi-grid-box {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  .kpi-stat-card:nth-child(2) {
+    grid-column: span 1;
+  }
+
+  .kpi-stat-card:nth-child(3) {
+    grid-column: span 2;
+  }
+
+  @media (min-width: 540px) {
+    grid-template-columns: repeat(3, 1fr);
+
+    .kpi-stat-card:nth-child(3) {
+      grid-column: span 1;
+    }
+  }
+}
+
+.kpi-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  min-width: 0;
+
+  .ksc-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--app-surface-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 
     ion-icon {
-      color: var(--app-accent-gold);
+      font-size: 1rem;
+      color: var(--ion-color-success);
+    }
+  }
+
+  .ksc-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.2;
+
+    .ksc-val {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--app-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      small {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--app-text-secondary);
+      }
     }
 
-    strong {
-      color: var(--app-accent-gold);
+    .ksc-sub {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--app-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  &.highlight {
+    border-color: rgba(var(--app-primary-rgb), 0.35);
+
+    .ksc-icon {
+      background: rgba(var(--app-primary-rgb), 0.14);
+
+      ion-icon {
+        color: var(--app-accent-orange, #f59e0b);
+      }
+    }
+
+    .ksc-val {
+      color: var(--ion-color-success);
     }
   }
 }
 
 // ==========================================
-// BARRA 2: SEARCH RAPIDA
+// BARRA 2: SEARCH + FILTRI + ORDINAMENTO SULLA STESSA RIGA
 // ==========================================
-.search-section {
-  padding: 6px 12px 4px 12px;
+.search-and-sort-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 8px;
   background: var(--app-header-bg, var(--app-card-bg));
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .search-box-wrap {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 12px;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   transition: border-color 0.2s ease;
@@ -192,18 +282,19 @@
   }
 
   .search-icon {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: var(--app-text-muted);
     flex-shrink: 0;
   }
 
   .custom-search-input {
     flex: 1;
+    min-width: 0;
     background: transparent;
     border: none;
     outline: none;
     color: var(--app-text-primary);
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 600;
 
     &::placeholder {
@@ -222,6 +313,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.95rem;
+    flex-shrink: 0;
 
     &:hover {
       color: var(--app-text-primary);
@@ -229,23 +321,10 @@
   }
 }
 
-// ==========================================
-// BARRA 3: CRITERI DI ORDINAMENTO + FILTRO CAMPETTO
-// ==========================================
-.sort-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px 8px 12px;
-  background: var(--app-header-bg, var(--app-card-bg));
-  border-bottom: 1px solid var(--app-border-color);
-  overflow-x: hidden;
-}
-
 .filter-trigger-btn {
   position: relative;
-  min-width: 44px;
-  min-height: 44px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -258,7 +337,7 @@
   transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
   }
 
   &.active {
@@ -269,8 +348,8 @@
 
   .filter-dot {
     position: absolute;
-    top: 5px;
-    right: 5px;
+    top: 4px;
+    right: 4px;
     width: 6px;
     height: 6px;
     border-radius: 50%;
@@ -279,99 +358,65 @@
   }
 }
 
-.active-filters-chips-wrap {
+.sort-trigger-btn {
+  height: 36px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 10px;
+  background: var(--app-surface-subtle);
+  border: 1px solid var(--app-card-border);
+  color: var(--app-text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+
+  ion-icon {
+    font-size: 0.9rem;
+    color: var(--ion-color-success);
+  }
+
+  &.active {
+    background: var(--app-primary-subtle);
+    border-color: var(--ion-color-success);
+    color: var(--ion-color-success);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.active-filters-bar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
-  flex-shrink: 0;
-
-  .clear-all-filters-btn {
-    background: transparent;
-    border: none;
-    color: var(--app-text-muted);
-    font-size: 0.68rem;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: underline;
-    white-space: nowrap;
-    padding: 2px 4px;
-
-    &:hover {
-      color: var(--app-accent-red, #ef4444);
-    }
-  }
+  padding: 5px 12px 6px;
+  background: var(--app-header-bg, var(--app-card-bg));
+  border-bottom: 1px solid var(--app-border-color);
 }
 
 .active-filter-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 10px;
   background: var(--app-accent-orange-subtle);
   border: 1px solid var(--app-accent-orange-border);
   color: var(--app-accent-orange);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
-  flex-shrink: 0;
 
   ion-icon {
-    font-size: 0.85rem;
-  }
-}
-
-.sort-scroll {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
-}
-
-.sort-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: 12px;
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  color: var(--app-text-secondary);
-  font-size: 0.74rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  ion-icon {
-    font-size: 0.84rem;
-  }
-
-  .sort-direction-indicator {
-    font-size: 0.65rem;
-    margin-left: 2px;
-    font-weight: 900;
-  }
-
-  &.active {
-    background: var(--ion-color-success);
-    color: var(--app-black);
-    border-color: var(--ion-color-success);
-    font-weight: 800;
-    box-shadow: 0 2px 8px rgba(var(--app-primary-rgb), 0.22);
-
-    ion-icon {
-      color: var(--app-black);
-    }
-  }
-
-  &:active {
-    transform: scale(0.96);
+    font-size: 0.82rem;
   }
 }
 
@@ -993,7 +1038,9 @@
   height: 44px;
   color: var(--app-text-muted);
   font-size: 1.35rem;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+  transition:
+    transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s ease;
   flex-shrink: 0;
 
   &.is-open {
@@ -1456,7 +1503,9 @@
   border: none;
   cursor: pointer;
   box-shadow: 0 3px 12px rgba(var(--app-primary-rgb), 0.35);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease;
 
   ion-icon {
     font-size: 1.25rem;

@@ -15,6 +15,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.68",
+    "date": "11/11/2026",
+    "title": "Restyling Partite, Disponibilità, Rosa a Player Card & Account Unificato",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Tab Partite senza Scroll Orizzontale: riepilogo stagionale a scomparsa ('Riepilogo ▾') con griglia a tutta larghezza e selettore di ordinamento integrato a fianco della barra di ricerca.",
+      "Barra Settimana Disponibilità Ottimizzata: nuovo layout compatto su schermi mobile (375px–393px) con pulsante 'Oggi' intelligente mostrato solo fuori dalla settimana corrente.",
+      "Account & Impostazioni Unificati: un unico pulsante profilo nell'header superiore apre direttamente la pagina Account & Impostazioni con accesso rapido alla propria Scheda Statistiche e modifica profilo.",
+      "Rosa Giocatori a Player Card Moderne: nuova griglia di card con avatar e fascia Ruolo/Tier MMR in evidenza e badge anagrafici/fisici puliti senza emoji."
+    ],
+    "superUserChanges": [
+      "Refactoring Semantico & Architetturale: riallineati nomi di cartelle, file, selettori e classi TypeScript (DisponibilitaPage, ImpostazioniPage, SchedaGiocatorePage, DettaglioChimicaPage, FormGiocatorePage) con redirect di sicurezza per i link legacy.",
+      "Pulizia Codice Morto & Tab Admin: rimossi componenti e modali orfani (user-menu-modal, match-collage-banner, match-rsvp-widget, mmr.service) e ripulite tutte le doppie icone/emoji nei pulsanti di amministrazione."
+    ]
+  },
+  {
     "version": "2.0.67",
     "date": "10/11/2026",
     "title": "Audit & Refactoring Accessibilità WCAG 2.2 Livello AA (Contrasto Outdoor, ARIA & Navigazione)",

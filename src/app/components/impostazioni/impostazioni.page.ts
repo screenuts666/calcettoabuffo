@@ -13,6 +13,7 @@ import {
   IonHeader,
   IonIcon,
   IonContent,
+  IonAvatar,
   ModalController,
   AlertController,
   ToastController,
@@ -27,8 +28,11 @@ import {
   stop,
   checkmarkCircle,
   sunny,
+  sunnyOutline,
   moon,
+  moonOutline,
   contrastOutline,
+  colorPaletteOutline,
   sparklesOutline,
   refreshOutline,
   shieldCheckmark,
@@ -47,6 +51,7 @@ import {
   syncOutline,
   mailOutline,
   personOutline,
+  personCircleOutline,
   peopleOutline,
   personAddOutline,
   personRemoveOutline,
@@ -61,6 +66,10 @@ import {
   cloudDownloadOutline,
   cloudUploadOutline,
   logoGoogle,
+  statsChartOutline,
+  chevronForwardOutline,
+  constructOutline,
+  informationCircleOutline,
 } from 'ionicons/icons';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -71,6 +80,8 @@ import { SoundSettingsService, GkSoundId } from '../../services/sound-settings.s
 import { StatsEngineService } from '../../services/stats-engine.service';
 import { BackupRestoreService } from '../../services/backup-restore.service';
 import { AuthModalComponent } from '../auth-modal/auth-modal.component';
+import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
+import { Giocatore } from '../../models/giocatore.model';
 import {
   AppUserProfile,
   AuthorizedRoleDoc,
@@ -80,12 +91,12 @@ import {
   isLegacySuperUserEmail,
 } from '../../models/user-profile.model';
 
-export type SettingsTab = 'ruoli' | 'portiere' | 'match' | 'sistema';
+export type SettingsTab = 'account' | 'ruoli' | 'portiere' | 'match' | 'sistema';
 
 @Component({
-  selector: 'app-impostazioni-modal',
-  templateUrl: './impostazioni-modal.component.html',
-  styleUrls: ['./impostazioni-modal.component.scss'],
+  selector: 'app-impostazioni',
+  templateUrl: './impostazioni.page.html',
+  styleUrls: ['./impostazioni.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -93,9 +104,11 @@ export type SettingsTab = 'ruoli' | 'portiere' | 'match' | 'sistema';
     IonHeader,
     IonIcon,
     IonContent,
+    IonAvatar,
+    PlayerAvatarComponent,
   ],
 })
-export class ImpostazioniModalComponent implements OnInit, OnDestroy {
+export class ImpostazioniPage implements OnInit, OnDestroy {
   public themeService = inject(ThemeService);
   public appUpdate = inject(AppUpdateService);
   public authService = inject(AuthService);
@@ -108,13 +121,30 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute, { optional: true });
 
-  @Input() initialTab: SettingsTab = 'portiere';
+  @Input() initialTab: SettingsTab = 'account';
 
-  activeTab = signal<SettingsTab>('portiere');
+  activeTab = signal<SettingsTab>('account');
   readonly isDevEnvironment: boolean = !environment.production;
   readonly turnMinutesOptions = [3, 4, 5, 6, 7, 8, 10];
   readonly isPresidenteEmail = isPresidenteEmail;
   readonly isLegacySuperUserEmail = isLegacySuperUserEmail;
+
+  // ─── STATO PROFILO & ACCOUNT ───────────────────────────────────────────────
+  readonly linkedPlayer = computed<Giocatore | null>(() => {
+    const pid = this.authService.linkedPlayerId();
+    if (!pid) return null;
+    const all = this.statsEngine.giocatoriRaw() || [];
+    return all.find((g) => g.id === pid) || null;
+  });
+
+  readonly displayName = computed<string>(() => {
+    const lp = this.linkedPlayer();
+    return lp?.nome || this.authService.displayName() || 'Utente';
+  });
+
+  readonly userAvatarUrl = computed<string | null>(() => {
+    return this.linkedPlayer()?.fotoUrl || this.authService.photoURL() || null;
+  });
 
   // ─── STATO GESTIONE RUOLI (PRESIDENTE) ────────────────────────────────────
   memberSearchQuery = signal<string>('');
@@ -158,8 +188,11 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       stop,
       checkmarkCircle,
       sunny,
+      sunnyOutline,
       moon,
+      moonOutline,
       contrastOutline,
+      colorPaletteOutline,
       sparklesOutline,
       refreshOutline,
       shieldCheckmark,
@@ -178,6 +211,7 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       syncOutline,
       mailOutline,
       personOutline,
+      personCircleOutline,
       peopleOutline,
       personAddOutline,
       personRemoveOutline,
@@ -192,21 +226,37 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
       cloudDownloadOutline,
       cloudUploadOutline,
       logoGoogle,
+      statsChartOutline,
+      chevronForwardOutline,
+      constructOutline,
+      informationCircleOutline,
     });
   }
 
   ngOnInit() {
     const queryTab = this.route?.snapshot?.queryParams?.['tab'] as SettingsTab | undefined;
-    const targetTab = queryTab || this.initialTab;
+    this.applyTab(queryTab || this.initialTab || 'account');
 
-    if (this.authService.isPresidente()) {
-      this.activeTab.set(targetTab || 'ruoli');
-    } else if (this.authService.isSuperUser()) {
-      this.activeTab.set(targetTab === 'ruoli' ? 'portiere' : (targetTab || 'portiere'));
-    } else {
-      this.activeTab.set('sistema');
-    }
+    this.route?.queryParams?.subscribe((params) => {
+      const qTab = params?.['tab'] as SettingsTab | undefined;
+      if (qTab) {
+        this.applyTab(qTab);
+      }
+    });
+
     this.soundSettings.unlockAudioOnUserGesture();
+  }
+
+  private applyTab(targetTab: SettingsTab) {
+    if (!this.authService.isSuperUser()) {
+      this.activeTab.set('account');
+      return;
+    }
+    if (targetTab === 'ruoli' && !this.authService.isPresidente()) {
+      this.activeTab.set('account');
+      return;
+    }
+    this.activeTab.set(targetTab || 'account');
   }
 
   ngOnDestroy() {
@@ -214,16 +264,37 @@ export class ImpostazioniModalComponent implements OnInit, OnDestroy {
   }
 
   setTab(tab: SettingsTab) {
-    if (!this.authService.isSuperUser() && tab !== 'sistema') {
-      this.activeTab.set('sistema');
+    if (!this.authService.isSuperUser() && tab !== 'account') {
+      this.activeTab.set('account');
       return;
     }
     if (tab === 'ruoli' && !this.authService.isPresidente()) {
-      this.activeTab.set('portiere');
+      this.activeTab.set('account');
       return;
     }
     this.soundSettings.stopPreview();
     this.activeTab.set(tab);
+  }
+
+  async vaiAllaMiaScheda(playerId: string) {
+    await this.chiudi();
+    setTimeout(() => {
+      this.router.navigate(['/giocatori', playerId]);
+    }, 100);
+  }
+
+  async modificaMioProfiloAtleta(playerId: string) {
+    await this.chiudi();
+    setTimeout(() => {
+      this.router.navigate(['/giocatori', playerId, 'modifica']);
+    }, 100);
+  }
+
+  async creaNuovaSchedaAtleta() {
+    await this.chiudi();
+    setTimeout(() => {
+      this.router.navigate(['/giocatori', 'nuovo'], { queryParams: { selfClaim: '1' } });
+    }, 100);
   }
 
   async chiudi() {

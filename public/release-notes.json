@@ -1,22 +1,23 @@
 [
   {
-    "version": "2.0.67",
-    "date": "10/11/2026",
-    "title": "Audit & Refactoring Accessibilità WCAG 2.2 Livello AA (Contrasto Outdoor, ARIA & Navigazione)",
+    "version": "2.0.68",
+    "date": "11/11/2026",
+    "title": "Restyling Partite, Disponibilità, Rosa a Player Card & Account Unificato",
     "isMajor": false,
     "target": "all",
     "userChanges": [
-      "Contrasto Outdoor Potenziato (WCAG 1.4.3 & 1.4.11): testi secondari, orari, indirizzi e contatori con contrasto >= 4.5:1 e bordi UI/checkbox >= 3:1 per la massima leggibilità al campetto anche sotto la luce diretta.",
-      "Target Tattili & Spaziatura (WCAG 2.5.8): area cliccabile minima di 44x44px con distanziamento anti-errore su checkbox disponibilità, frecce settimana e filtri.",
-      "Semantica, Screen Reader & Movimento Ridotto: supporto VoiceOver/TalkBack con attributi ARIA, focus visibile ad alto contrasto e rispetto automatico di prefers-reduced-motion."
+      "Tab Partite senza Scroll Orizzontale: riepilogo stagionale a scomparsa ('Riepilogo ▾') con griglia a tutta larghezza e selettore di ordinamento integrato a fianco della barra di ricerca.",
+      "Barra Settimana Disponibilità Ottimizzata: nuovo layout compatto su schermi mobile (375px–393px) con pulsante 'Oggi' intelligente mostrato solo fuori dalla settimana corrente.",
+      "Account & Impostazioni Unificati: un unico pulsante profilo nell'header superiore apre direttamente la pagina Account & Impostazioni con accesso rapido alla propria Scheda Statistiche e modifica profilo.",
+      "Rosa Giocatori a Player Card Moderne: nuova griglia di card con avatar e fascia Ruolo/Tier MMR in evidenza e badge anagrafici/fisici puliti senza emoji."
     ],
     "superUserChanges": [
-      "Live Regions in Diretta & Gestione Match (WCAG 4.1.3): annunci dinamici aria-live su punteggio in diretta, allarme cambio portiere, contatore convocati e bilanciamento MMR.",
-      "Accessibilità Tastiera & Ruoli Interattivi: supporto completo tastiera/Switch Control su accordion partite, sondaggio disponibilità, selezione convocati e scambio giocatori tra squadre."
+      "Refactoring Semantico & Architetturale: riallineati nomi di cartelle, file, selettori e classi TypeScript (DisponibilitaPage, ImpostazioniPage, SchedaGiocatorePage, DettaglioChimicaPage, FormGiocatorePage) con redirect di sicurezza per i link legacy.",
+      "Pulizia Codice Morto & Tab Admin: rimossi componenti e modali orfani (user-menu-modal, match-collage-banner, match-rsvp-widget, mmr.service) e ripulite tutte le doppie icone/emoji nei pulsanti di amministrazione."
     ]
   },
   {
-    "version": "NEXT",
+    "version": "2.0.67",
     "date": "10/11/2026",
     "title": "Audit & Refactoring Accessibilità WCAG 2.2 Livello AA (Contrasto Outdoor, ARIA & Navigazione)",
     "isMajor": false,

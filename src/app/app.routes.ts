@@ -17,9 +17,19 @@ export const routes: Routes = [
   {
     path: 'impostazioni',
     loadComponent: () =>
-      import('./components/impostazioni-modal/impostazioni-modal.component').then(
-        (m) => m.ImpostazioniModalComponent
+      import('./components/impostazioni/impostazioni.page').then(
+        (m) => m.ImpostazioniPage
       ),
+  },
+  {
+    path: 'account',
+    redirectTo: 'impostazioni',
+    pathMatch: 'full',
+  },
+  {
+    path: 'calendario',
+    redirectTo: 'disponibilita',
+    pathMatch: 'full',
   },
   {
     path: 'match/:id',
@@ -54,31 +64,31 @@ export const routes: Routes = [
     path: 'giocatori/nuovo',
     canActivate: [canCreatePlayerGuard],
     loadComponent: () =>
-      import('./components/rosa/form-giocatore/form-giocatore.component').then(
-        (m) => m.FormGiocatoreComponent
+      import('./components/rosa/form-giocatore/form-giocatore.page').then(
+        (m) => m.FormGiocatorePage
       ),
   },
   {
     path: 'giocatori/:id/modifica',
     canActivate: [canEditPlayerGuard],
     loadComponent: () =>
-      import('./components/rosa/form-giocatore/form-giocatore.component').then(
-        (m) => m.FormGiocatoreComponent
+      import('./components/rosa/form-giocatore/form-giocatore.page').then(
+        (m) => m.FormGiocatorePage
       ),
   },
   {
     path: 'giocatori/:id',
     loadComponent: () =>
       import(
-        './components/classifica/scheda-giocatore/scheda-giocatore.component'
-      ).then((m) => m.SchedaGiocatoreComponent),
+        './components/classifica/scheda-giocatore/scheda-giocatore.page'
+      ).then((m) => m.SchedaGiocatorePage),
   },
   {
     path: 'chimica/:p1/:p2',
     loadComponent: () =>
       import(
-        './components/classifica/dettaglio-chimica/dettaglio-chimica.component'
-      ).then((m) => m.DettaglioChimicaComponent),
+        './components/classifica/dettaglio-chimica/dettaglio-chimica.page'
+      ).then((m) => m.DettaglioChimicaPage),
   },
   {
     path: '1v1/:p1/:p2',

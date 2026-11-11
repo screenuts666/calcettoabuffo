@@ -56,7 +56,7 @@ import { MatchStateService } from '../../match-state.service';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
 import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.component';
 import { SoundSettingsService } from '../../../../../services/sound-settings.service';
-import { ImpostazioniModalComponent } from '../../../../impostazioni-modal/impostazioni-modal.component';
+import { ImpostazioniPage } from '../../../../impostazioni/impostazioni.page';
 
 @Component({
   selector: 'app-step-match',
@@ -397,7 +397,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   async apriImpostazioniSuoni() {
     const modal = await this.modalCtrl.create({
-      component: ImpostazioniModalComponent,
+      component: ImpostazioniPage,
       componentProps: { initialTab: 'portiere' },
       mode: 'ios',
     });

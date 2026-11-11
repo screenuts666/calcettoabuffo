@@ -6,8 +6,8 @@
     </ion-buttons>
   </ion-toolbar>
 
-  <!-- BARRA 1: SELETTORE STAGIONE UNIFICATO -->
-  <div class="season-header-bar" role="region" aria-label="Filtro stagione">
+  <!-- BARRA 1: SELETTORE STAGIONE + TOGGLE RIEPILOGO KPI (ZERO SCROLL ORIZZONTALE) -->
+  <div class="season-header-bar" role="region" aria-label="Filtro stagione e riepilogo">
     <div class="season-pills">
       @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
         <button
@@ -24,42 +24,66 @@
         </button>
       }
     </div>
+
+    <button
+      type="button"
+      class="kpi-drawer-toggle-btn"
+      [class.active]="isKpiDrawerOpen()"
+      [attr.aria-expanded]="isKpiDrawerOpen()"
+      (click)="toggleKpiDrawer()"
+      title="Mostra o nascondi statistiche stagionali"
+    >
+      <ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>
+      <span>Riepilogo</span>
+      <ion-icon [name]="isKpiDrawerOpen() ? 'chevron-up' : 'chevron-down'" class="toggle-chevron" aria-hidden="true"></ion-icon>
+    </button>
   </div>
 
-  <!-- MINI DASHBOARD KPI DELLA STAGIONE -->
-  <div class="season-kpi-bar" role="status" aria-live="polite" aria-label="Statistiche riepilogative della stagione">
-    <div class="kpi-pill" title="Totale partite">
-      <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
-      <span><strong>{{ kpiStagione().totalePartite }}</strong> Gare</span>
-    </div>
-    <div class="kpi-pill highlight" [title]="kpiStagione().golTooltip">
-      <ion-icon name="flame-outline" aria-hidden="true"></ion-icon>
-      <span><strong>{{ kpiStagione().totaleGol }}</strong> Gol <small>({{ kpiStagione().mediaGolPartita }}/gara • {{ kpiStagione().ritmoGolAlMinuto }}/min)</small></span>
-    </div>
-    <div class="kpi-pill" title="Assist totali registrati">
-      <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
-      <span><strong>{{ kpiStagione().totaleAssist }}</strong> Assist</span>
-    </div>
-    <div class="kpi-pill" title="Tempo effettivo di gioco totale">
-      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-      <span><strong>{{ kpiStagione().tempoTotaleDisplay }}</strong></span>
-    </div>
-    @if (kpiStagione().mediaVotiStagione !== '-') {
-      <div class="kpi-pill rating" title="Media pagelle generale della stagione">
-        <ion-icon name="star" aria-hidden="true"></ion-icon>
-        <span>Media <strong>{{ kpiStagione().mediaVotiStagione }}</strong></span>
+  <!-- DRAWER STATISTICHE STAGIONALI A SCOMPARSA (GRIGLIA COMPATTA SENZA SCROLL) -->
+  @if (isKpiDrawerOpen()) {
+    <div class="season-kpi-drawer" role="region" aria-label="Statistiche riepilogative della stagione">
+      <div class="kpi-grid-box">
+        <div class="kpi-stat-card">
+          <div class="ksc-icon">
+            <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="ksc-body">
+            <span class="ksc-val">{{ kpiStagione().totalePartite }} <small>Gare</small></span>
+            <span class="ksc-sub">{{ kpiStagione().partiteConcluse }} concluse</span>
+          </div>
+        </div>
+
+        <div class="kpi-stat-card highlight" [title]="kpiStagione().golTooltip">
+          <div class="ksc-icon">
+            <ion-icon name="flame-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="ksc-body">
+            <span class="ksc-val">{{ kpiStagione().totaleGol }} <small>Gol</small></span>
+            <span class="ksc-sub">{{ kpiStagione().mediaGolPartita }}/gara • {{ kpiStagione().ritmoGolAlMinuto }}/min</span>
+          </div>
+        </div>
+
+        <div class="kpi-stat-card">
+          <div class="ksc-icon">
+            <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="ksc-body">
+            <span class="ksc-val">{{ kpiStagione().tempoTotaleDisplay }}</span>
+            <span class="ksc-sub">Media {{ kpiStagione().durataMediaDisplay }}/gara</span>
+          </div>
+        </div>
       </div>
-    }
-  </div>
+    </div>
+  }
 
-  <!-- BARRA 2: SEARCH BOX RAPIDA (Mesi, Meteo, Formato, Campetto, Giocatori) -->
-  <div class="search-section">
+  <!-- BARRA 2: SEARCH BAR + FILTRI AVANZATI + ORDINAMENTO INTEGRATO SULLA STESSA RIGA -->
+  <div class="search-and-sort-row">
     <div class="search-box-wrap" role="search">
       <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
       <input
         type="text"
         class="custom-search-input"
-        placeholder="Cerca mese (es. Marzo), meteo (pioggia), giocatore, campo..."
+        placeholder="Cerca mese, meteo, giocatore, campo..."
         aria-label="Cerca partita per mese, meteo, giocatore o campo"
         [value]="searchQuery()"
         (input)="onSearchInput($event)"
@@ -76,10 +100,7 @@
         </button>
       }
     </div>
-  </div>
 
-  <!-- BARRA 3: CRITERI DI ORDINAMENTO + FILTRI AVANZATI COLLASSABILI -->
-  <div class="sort-bar">
     <!-- Pulsante Filtri Avanzati -->
     <button
       type="button"
@@ -96,64 +117,58 @@
       }
     </button>
 
-    @if (!isFiltriCampettoOpen() && isAnyFilterActive()) {
-      <div class="active-filters-chips-wrap">
-        @if (activeFilterCampettoLabel(); as activeCampetto) {
-          <button
-            type="button"
-            class="active-filter-pill"
-            (click)="resetFiltroCampetto()"
-            title="Tocca per rimuovere il filtro campetto"
-          >
-            <span>{{ activeCampetto }}</span>
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-        }
-        @if (activeFilterFormatoLabel(); as activeFormato) {
-          <button
-            type="button"
-            class="active-filter-pill"
-            (click)="resetFiltroFormato()"
-            title="Tocca per rimuovere il filtro formato"
-          >
-            <span>{{ activeFormato }}</span>
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-        }
-        @if (activeFilterMeteoLabel(); as activeMeteo) {
-          <button
-            type="button"
-            class="active-filter-pill"
-            (click)="resetFiltroMeteo()"
-            title="Tocca per rimuovere il filtro meteo"
-          >
-            <span>{{ activeMeteo }}</span>
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-        }
-      </div>
-    }
+    <!-- Pulsante Ordinamento Integrato -->
+    <button
+      type="button"
+      class="sort-trigger-btn"
+      [class.active]="criterioOrdinamento() !== 'data' || ordineCrescente()"
+      (click)="apriMenuOrdinamento()"
+      title="Cambia ordinamento partite"
+      aria-label="Ordina partite"
+    >
+      <ion-icon name="swap-vertical-outline" aria-hidden="true"></ion-icon>
+      <span>{{ sortButtonLabel() }}</span>
+    </button>
+  </div>
 
-    <!-- Scroll Criteri di Ordinamento Partite -->
-    <div class="sort-scroll">
-      @for (c of CRITERI_ORDINAMENTO; track (c.id || '') + '_' + $index) {
+  <!-- PILL FILTRI ATTIVI (SE PRESENTI E CASSETTO CHIUSO) -->
+  @if (!isFiltriCampettoOpen() && isAnyFilterActive()) {
+    <div class="active-filters-bar">
+      @if (activeFilterCampettoLabel(); as activeCampetto) {
         <button
           type="button"
-          class="sort-chip"
-          [class.active]="criterioOrdinamento() === c.id"
-          (click)="selezionaCriterio(c.id)"
+          class="active-filter-pill"
+          (click)="resetFiltroCampetto()"
+          title="Tocca per rimuovere il filtro campetto"
         >
-          <ion-icon [name]="c.icon"></ion-icon>
-          <span>{{ c.label }}</span>
-          @if (criterioOrdinamento() === c.id) {
-            <span class="sort-direction-indicator">
-              {{ ordineCrescente() ? '▲' : '▼' }}
-            </span>
-          }
+          <span>{{ activeCampetto }}</span>
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
+      }
+      @if (activeFilterFormatoLabel(); as activeFormato) {
+        <button
+          type="button"
+          class="active-filter-pill"
+          (click)="resetFiltroFormato()"
+          title="Tocca per rimuovere il filtro formato"
+        >
+          <span>{{ activeFormato }}</span>
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
+      }
+      @if (activeFilterMeteoLabel(); as activeMeteo) {
+        <button
+          type="button"
+          class="active-filter-pill"
+          (click)="resetFiltroMeteo()"
+          title="Tocca per rimuovere il filtro meteo"
+        >
+          <span>{{ activeMeteo }}</span>
+          <ion-icon name="close-circle"></ion-icon>
         </button>
       }
     </div>
-  </div>
+  }
 
   <!-- CASSETTO FILTRI AVANZATI (Campetto, Formato, Meteo) -->
   @if (isFiltriCampettoOpen()) {

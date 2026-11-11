@@ -33,10 +33,12 @@
       </button>
 
       <div class="dyn-nav-label-wrapper" role="status" aria-live="polite">
-        <ion-icon [name]="viewMode() === 'week' ? 'checkbox-outline' : 'calendar-outline'" aria-hidden="true"></ion-icon>
-        <h2 class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</h2>
+        <span class="dyn-nav-label">{{ navigazioneHeaderLabel() }}</span>
         @if (viewMode() === 'week' && availabilityService.activeWeekTag(); as tag) {
-          <span class="micro-badge-week" [class.this-week]="tag === 'Questa Settimana'">{{ tag === 'Questa Settimana' ? 'Questa' : 'Prossima' }}</span>
+          <span class="dyn-nav-subtag" [class.this-week]="tag === 'Questa Settimana'">
+            <span class="subtag-dot"></span>
+            {{ tag === 'Questa Settimana' ? 'Questa sett.' : 'Prossima sett.' }}
+          </span>
         }
       </div>
 
@@ -52,16 +54,18 @@
     </div>
 
     <div class="dyn-nav-actions">
-      <button
-        type="button"
-        class="btn-dyn-today"
-        (click)="navigaOggi()"
-        title="Torna ad oggi / settimana corrente"
-        aria-label="Torna a oggi"
-      >
-        <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
-        <span>Oggi</span>
-      </button>
+      @if (!isCurrentPeriod()) {
+        <button
+          type="button"
+          class="btn-dyn-today"
+          (click)="navigaOggi()"
+          title="Torna ad oggi / settimana corrente"
+          aria-label="Torna a oggi"
+        >
+          <ion-icon name="today-outline" aria-hidden="true"></ion-icon>
+          <span>Oggi</span>
+        </button>
+      }
 
       <!-- ZOOM TEMPORALE AD UNICO PULSANTE CICLICO (S -> M -> A) -->
       @if (canUseZoom()) {

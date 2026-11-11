@@ -14,7 +14,7 @@ export const routes: Routes = [
       {
         path: 'disponibilita',
         loadComponent: () =>
-          import('../calendario/calendario.page').then((m) => m.CalendarioPage),
+          import('../disponibilita/disponibilita.page').then((m) => m.DisponibilitaPage),
       },
       {
         path: 'calendario',
@@ -49,8 +49,8 @@ export const routes: Routes = [
       {
         path: 'chimica/:p1/:p2',
         loadComponent: () =>
-          import('../classifica/dettaglio-chimica/dettaglio-chimica.component').then(
-            (m) => m.DettaglioChimicaComponent,
+          import('../classifica/dettaglio-chimica/dettaglio-chimica.page').then(
+            (m) => m.DettaglioChimicaPage,
           ),
       },
       {

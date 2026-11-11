@@ -56,6 +56,7 @@ import {
   mic,
   globeOutline,
   diceOutline,
+  flashOutline,
 } from 'ionicons/icons';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
@@ -65,10 +66,7 @@ import {
   HeadToHeadComparison,
   PlayerComparisonProfile,
 } from 'src/app/models/confronto.model';
-import {
-  getAvatarUrl,
-  handleAvatarError,
-} from 'src/app/utils/avatar-utils';
+import { getAvatarUrl, handleAvatarError } from 'src/app/utils/avatar-utils';
 import {
   ALL_SEASONS,
   CURRENT_SEASON,
@@ -202,11 +200,19 @@ export class ConfrontoPage implements OnInit {
     const gMap = new Map(giocatori.map((g) => [g.id, g]));
     const pairOpponents = new Map<
       string,
-      { p1Id: string; p2Id: string; p1Wins: number; draws: number; p2Wins: number; total: number }
+      {
+        p1Id: string;
+        p2Id: string;
+        p1Wins: number;
+        draws: number;
+        p2Wins: number;
+        total: number;
+      }
     >();
 
     for (const p of partite) {
-      if (!p.pagelleInserite && !p.matchConcluso && p.status !== 'conclusa') continue;
+      if (!p.pagelleInserite && !p.matchConcluso && p.status !== 'conclusa')
+        continue;
       const teamA = (p.teamA || []).map((x: any) => x.id);
       const teamB = (p.teamB || []).map((x: any) => x.id);
       const scoreA = Number(p.scoreA) || 0;
@@ -219,7 +225,14 @@ export class ConfrontoPage implements OnInit {
           const key = `${p1}_${p2}`;
           let entry = pairOpponents.get(key);
           if (!entry) {
-            entry = { p1Id: p1, p2Id: p2, p1Wins: 0, draws: 0, p2Wins: 0, total: 0 };
+            entry = {
+              p1Id: p1,
+              p2Id: p2,
+              p1Wins: 0,
+              draws: 0,
+              p2Wins: 0,
+              total: 0,
+            };
             pairOpponents.set(key, entry);
           }
           entry.total++;
@@ -279,35 +292,36 @@ export class ConfrontoPage implements OnInit {
 
   constructor() {
     addIcons({
+      arrowBack,
+      logoWhatsapp,
+      diceOutline,
       swapHorizontal,
+      flashOutline,
+      chevronForward,
+      refreshOutline,
+      sparkles,
+      flash,
+      people,
+      flame,
+      star,
+      close,
       trophy,
       shield,
       shieldOutline,
       football,
-      star,
-      flame,
       snow,
-      people,
       ribbon,
       trendingUp,
-      close,
       repeat,
-      logoWhatsapp,
       chevronDown,
-      chevronForward,
-      arrowBack,
       checkmarkCircle,
       medal,
       remove,
       arrowUp,
       arrowDown,
-      flash,
-      sparkles,
       timeOutline,
-      refreshOutline,
       mic,
       globeOutline,
-      diceOutline,
     });
 
     // Effetto per caricamento verdetto cache
@@ -324,7 +338,10 @@ export class ConfrontoPage implements OnInit {
 
   async caricaVerdettoCache(idA: string, idB: string) {
     try {
-      const cached = await this.geminiService.getCachedConfrontoVerdetto(idA, idB);
+      const cached = await this.geminiService.getCachedConfrontoVerdetto(
+        idA,
+        idB,
+      );
       this.verdettoAi.set(cached);
     } catch {
       this.verdettoAi.set(null);
@@ -459,7 +476,7 @@ export class ConfrontoPage implements OnInit {
     } else {
       this.playerBId.set(g.id);
     }
-    
+
     // Chiudi istantaneamente la modale
     await this.chiudiSelettore();
 
@@ -489,7 +506,11 @@ export class ConfrontoPage implements OnInit {
   }
 
   aggiornaRicerca(event: any) {
-    this.pickerSearchQuery.set(event.detail?.value !== undefined ? event.detail.value : (event.target?.value || ''));
+    this.pickerSearchQuery.set(
+      event.detail?.value !== undefined
+        ? event.detail.value
+        : event.target?.value || '',
+    );
   }
 
   // Condivisione su WhatsApp del confronto 1v1
@@ -501,10 +522,13 @@ export class ConfrontoPage implements OnInit {
     const pB = comp.playerB;
     const sc = comp.scontriContro;
     const stg = this.stagioneSelezionata();
-    const stgLabel = stg === ALL_SEASONS ? 'Tutte le Stagioni' : `Stagione ${stg}`;
+    const stgLabel =
+      stg === ALL_SEASONS ? 'Tutte le Stagioni' : `Stagione ${stg}`;
 
     const lines: string[] = [];
-    lines.push(`⚔️ *CONFRONTO 1v1: ${pA.nome.toUpperCase()} vs ${pB.nome.toUpperCase()}* ⚔️`);
+    lines.push(
+      `⚔️ *CONFRONTO 1v1: ${pA.nome.toUpperCase()} vs ${pB.nome.toUpperCase()}* ⚔️`,
+    );
     lines.push(`📅 *${stgLabel}*`);
     lines.push('');
     lines.push(`📊 *Bilancio Scontri Diretti (${sc.totalePartite} gare):*`);
@@ -518,7 +542,9 @@ export class ConfrontoPage implements OnInit {
       lines.push(`"${this.verdettoAi()}"`);
       lines.push('');
     }
-    lines.push(`🔗 *Guarda il testa a testa:* ${window.location.origin}/confronto/${pA.id}/${pB.id}`);
+    lines.push(
+      `🔗 *Guarda il testa a testa:* ${window.location.origin}/confronto/${pA.id}/${pB.id}`,
+    );
 
     const text = lines.join('\n');
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;

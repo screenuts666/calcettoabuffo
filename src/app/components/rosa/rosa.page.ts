@@ -11,13 +11,7 @@ import {
   IonToolbar,
   IonTitle,
   IonContent,
-  IonList,
-  IonItem,
   IonAvatar,
-  IonLabel,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
   IonIcon,
   IonSearchbar,
   AlertController,
@@ -37,24 +31,31 @@ import { addIcons } from 'ionicons';
 import {
   add,
   trash,
+  trashOutline,
   person,
   create,
+  createOutline,
   search,
   closeCircle,
+  closeOutline,
   people,
   refreshOutline,
   personAddOutline,
   callOutline,
   logoWhatsapp,
+  shieldOutline,
+  lockClosedOutline,
+  arrowUndoOutline,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
+import { StatsEngineService } from 'src/app/services/stats-engine.service';
 import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
 } from 'src/app/utils/whatsapp-formatter';
-import { formatDataNascitaEdEta } from 'src/app/utils/date-utils';
+import { calcolaEta, formatDataNascitaEdEta } from 'src/app/utils/date-utils';
 import {
   DEFAULT_AVATAR,
   getAvatarUrl,
@@ -75,13 +76,7 @@ import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component'
     IonToolbar,
     IonTitle,
     IonContent,
-    IonList,
-    IonItem,
     IonAvatar,
-    IonLabel,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
     IonIcon,
     IonSearchbar,
     IonFab,
@@ -96,6 +91,7 @@ export class RosaPage {
   private alertController = inject(AlertController);
   readonly auth = inject(AuthService);
   readonly trashService = inject(TrashService);
+  readonly statsEngine = inject(StatsEngineService);
   private router = inject(Router);
 
   readonly DEFAULT_AVATAR = DEFAULT_AVATAR;
@@ -152,15 +148,21 @@ export class RosaPage {
     addIcons({
       add,
       trash,
+      trashOutline,
       person,
       create,
+      createOutline,
       search,
       closeCircle,
+      closeOutline,
       people,
       refreshOutline,
       personAddOutline,
       callOutline,
       logoWhatsapp,
+      shieldOutline,
+      lockClosedOutline,
+      arrowUndoOutline,
     });
 
     effect(() => {
@@ -235,6 +237,91 @@ export class RosaPage {
     return formatDataNascitaEdEta(g);
   }
 
+  /**
+   * Restituisce l'indicatore Ruolo / Tier MMR del giocatore per la Player Card
+   */
+  getPlayerBadgeInfo(g: Giocatore): { label: string; color: string } {
+    const stats = this.statsEngine.statsResult()?.allTime?.get(g.id);
+    if (stats && stats.partiteGiocate > 0 && stats.isRanked && stats.tier) {
+      return {
+        label: g.ruoloPreferito ? `${g.ruoloPreferito} • ${stats.tier.label}` : stats.tier.label,
+        color: stats.tier.color || '#10b981',
+      };
+    }
+    if (g.ruoloPreferito) {
+      return {
+        label: String(g.ruoloPreferito),
+        color: '#10b981',
+      };
+    }
+    return {
+      label: 'Rosa',
+      color: '#64748b',
+    };
+  }
+
+  /**
+   * Formato compatto senza emoji: es. "30 anni ('96)"
+   */
+  getEtaEAnnoShort(g: Giocatore): string | null {
+    if (!g) return null;
+    const rawData = (g.dataNascita || '').trim();
+    const rawAnno = g.annoNascita ? String(g.annoNascita).trim() : '';
+
+    if (g.nascondiAnnoNascita && rawData) {
+      const parts = rawData.split('/');
+      if (parts.length >= 2) {
+        return `${parts[0]}/${parts[1]}`;
+      }
+      return null;
+    }
+
+    const eta = calcolaEta(rawData || rawAnno);
+    let yearStr = '';
+
+    if (rawData.includes('/')) {
+      const parts = rawData.split('/');
+      if (parts.length === 3 && parts[2].length === 4) {
+        yearStr = parts[2].slice(-2);
+      }
+    } else if (rawData.includes('-')) {
+      const parts = rawData.split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        yearStr = parts[0].slice(-2);
+      }
+    } else if (/^\d{4}$/.test(rawData)) {
+      yearStr = rawData.slice(-2);
+    }
+
+    if (!yearStr && /^\d{4}$/.test(rawAnno)) {
+      yearStr = rawAnno.slice(-2);
+    }
+
+    if (eta !== null && yearStr) {
+      return `${eta} anni ('${yearStr})`;
+    }
+    if (eta !== null) {
+      return `${eta} anni`;
+    }
+    if (rawData) {
+      return rawData;
+    }
+    return null;
+  }
+
+  /**
+   * Formato fisico compatto senza emoji: es. "185cm • 71kg"
+   */
+  getFisicoShort(g: Giocatore): string | null {
+    if (!g) return null;
+    const h = (g.altezza || '').toString().trim().replace(/\s*cm$/i, '');
+    const w = (g.peso || '').toString().trim().replace(/\s*kg$/i, '');
+    if (h && w) return `${h}cm • ${w}kg`;
+    if (h) return `${h}cm`;
+    if (w) return `${w}kg`;
+    return null;
+  }
+
   apriDettagliGiocatore(g: Giocatore) {
     this.router.navigate(['/giocatori', g.id]);
   }
@@ -249,23 +336,23 @@ export class RosaPage {
     });
   }
 
-  modificaGiocatore(g: Giocatore, slidingItem?: IonItemSliding) {
-    slidingItem?.close();
+  modificaGiocatore(g: Giocatore, event?: Event) {
+    event?.stopPropagation();
     this.router.navigate(['/giocatori', g.id, 'modifica']);
   }
 
-  async eliminaGiocatore(g: Giocatore, slidingItem: IonItemSliding) {
+  async eliminaGiocatore(g: Giocatore, event?: Event) {
+    event?.stopPropagation();
     if (!this.isAdmin) return;
     const alert = await this.alertController.create({
       header: 'Elimina Giocatore?',
       message: `Vuoi spostare "${g.nome}" nel Cestino? Potrai annullare subito o ripristinarlo entro 24 ore.`,
       buttons: [
-        { text: 'Annulla', role: 'cancel', handler: () => slidingItem.close() },
+        { text: 'Annulla', role: 'cancel' },
         {
           text: 'Sposta nel Cestino (24h)',
           role: 'destructive',
           handler: async () => {
-            slidingItem.close();
             await this.trashService.softDeletePlayer(g);
           },
         },

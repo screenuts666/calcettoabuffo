@@ -4,5 +4,4 @@ export { AiTtsButtonComponent } from '../../components/ai-tts-button/ai-tts-butt
 export { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 export { MatchPhotoComponent } from '../../components/partite/match-photo/match-photo.component';
 export { FotoViewerModalComponent } from '../../components/partite/foto-viewer-modal/foto-viewer-modal.component';
-export { UserMenuModalComponent } from '../../components/user-menu-modal/user-menu-modal.component';
 

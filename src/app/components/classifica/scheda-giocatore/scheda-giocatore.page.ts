@@ -89,8 +89,8 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
 
 @Component({
   selector: 'app-scheda-giocatore',
-  templateUrl: './scheda-giocatore.component.html',
-  styleUrls: ['./scheda-giocatore.component.scss'],
+  templateUrl: './scheda-giocatore.page.html',
+  styleUrls: ['./scheda-giocatore.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
@@ -111,7 +111,7 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
     ThemeToggleComponent,
   ],
 })
-export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
+export class SchedaGiocatorePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   public auth = inject(AuthService);
@@ -401,4 +401,4 @@ export class SchedaGiocatoreComponent implements OnInit, OnDestroy {
   }
 }
 
-export { SchedaGiocatoreComponent as GiocatoreDetailPage };
+export { SchedaGiocatorePage as GiocatoreDetailPage };

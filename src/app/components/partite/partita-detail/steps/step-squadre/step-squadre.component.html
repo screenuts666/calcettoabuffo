@@ -5,7 +5,10 @@
       <div class="cta-glow"></div>
       <div class="cta-inner">
         <div class="cta-left">
-          <ion-icon name="swap-horizontal-outline" class="cta-icon-vector"></ion-icon>
+          <ion-icon
+            name="swap-horizontal-outline"
+            class="cta-icon-vector"
+          ></ion-icon>
           <div class="cta-text">
             <span class="cta-title">Bilancia Squadre</span>
             <span class="cta-sub">Algoritmo MMR e chimica di squadra</span>
@@ -67,14 +70,19 @@
         class="gk-fixed-selector-bar team-a"
         [class.read-only]="!isAdmin"
         (click)="isAdmin ? apriSelettorePortiereFisso('A') : null"
-        [title]="isAdmin ? 'Tocca per scegliere chi va in porta per tutta la gara' : 'Portiere fisso Bianchi'"
+        [title]="
+          isAdmin
+            ? 'Tocca per scegliere chi va in porta per tutta la gara'
+            : 'Portiere fisso Bianchi'
+        "
       >
         <div class="fixed-bar-left">
           <ion-icon name="shield-outline" class="fixed-icon-vector"></ion-icon>
           <div class="fixed-info">
             <span class="fixed-title">
               <strong>{{
-                state.portieriInfoA().attuale?.nome || (isAdmin ? "Scegli portiere" : "Portiere designato")
+                state.portieriInfoA().attuale?.nome ||
+                  (isAdmin ? "Scegli portiere" : "Portiere designato")
               }}</strong>
             </span>
             <small class="fixed-sub">
@@ -104,10 +112,14 @@
           [class.interactive-row]="isAdmin"
           [attr.role]="isAdmin ? 'button' : null"
           [attr.tabindex]="isAdmin ? '0' : null"
-          [attr.aria-label]="isAdmin ? 'Sposta ' + g.nome + ' nella squadra Neri' : null"
+          [attr.aria-label]="
+            isAdmin ? 'Sposta ' + g.nome + ' nella squadra Neri' : null
+          "
           (click)="isAdmin ? spostaIn(g, 'B') : null"
           (keydown.enter)="isAdmin ? spostaIn(g, 'B') : null"
-          (keydown.space)="isAdmin ? spostaIn(g, 'B') : null; $event.preventDefault()"
+          (keydown.space)="
+            isAdmin ? spostaIn(g, 'B') : null; $event.preventDefault()
+          "
           [title]="isAdmin ? 'Tocca per spostare in Neri' : ''"
         >
           <div
@@ -190,14 +202,19 @@
         class="gk-fixed-selector-bar team-b"
         [class.read-only]="!isAdmin"
         (click)="isAdmin ? apriSelettorePortiereFisso('B') : null"
-        [title]="isAdmin ? 'Tocca per scegliere chi va in porta per tutta la gara' : 'Portiere fisso Neri'"
+        [title]="
+          isAdmin
+            ? 'Tocca per scegliere chi va in porta per tutta la gara'
+            : 'Portiere fisso Neri'
+        "
       >
         <div class="fixed-bar-left">
           <ion-icon name="shield-outline" class="fixed-icon-vector"></ion-icon>
           <div class="fixed-info">
             <span class="fixed-title">
               <strong>{{
-                state.portieriInfoB().attuale?.nome || (isAdmin ? "Scegli portiere" : "Portiere designato")
+                state.portieriInfoB().attuale?.nome ||
+                  (isAdmin ? "Scegli portiere" : "Portiere designato")
               }}</strong>
             </span>
             <small class="fixed-sub">
@@ -227,10 +244,14 @@
           [class.interactive-row]="isAdmin"
           [attr.role]="isAdmin ? 'button' : null"
           [attr.tabindex]="isAdmin ? '0' : null"
-          [attr.aria-label]="isAdmin ? 'Sposta ' + g.nome + ' nella squadra Bianchi' : null"
+          [attr.aria-label]="
+            isAdmin ? 'Sposta ' + g.nome + ' nella squadra Bianchi' : null
+          "
           (click)="isAdmin ? spostaIn(g, 'A') : null"
           (keydown.enter)="isAdmin ? spostaIn(g, 'A') : null"
-          (keydown.space)="isAdmin ? spostaIn(g, 'A') : null; $event.preventDefault()"
+          (keydown.space)="
+            isAdmin ? spostaIn(g, 'A') : null; $event.preventDefault()
+          "
           [title]="isAdmin ? 'Tocca per spostare in Bianchi' : ''"
         >
           <div
@@ -415,7 +436,9 @@
               }
             </button>
           } @else {
-            <span class="ai-waiting-tag">In attesa dell'elaborazione del Mister</span>
+            <span class="ai-waiting-tag"
+              >In attesa dell'elaborazione del Mister</span
+            >
           }
         </div>
       }
