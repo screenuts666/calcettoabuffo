@@ -3,6 +3,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  ViewChild,
   inject,
   signal,
   computed,
@@ -48,6 +49,8 @@ import {
   checkmark,
   logoWhatsapp,
   shareSocialOutline,
+  homeOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 
 import { AuthService } from '../../../services/auth.service';
@@ -103,6 +106,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   public auth = inject(AuthService);
   private shareService = inject(ShareService);
 
+  @ViewChild(IonContent) content?: IonContent;
   @Input() matchData: any;
   isLoading = signal<boolean>(false);
   isInviteLink = signal<boolean>(false);
@@ -110,8 +114,20 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   private querySub?: Subscription;
 
   get isAdmin(): boolean {
-    return this.auth.isAdmin();
+    return this.auth.isSuperUser();
   }
+
+  /**
+   * Mostra il pulsante rapido "Torna alla Home" quando il tasto '←' scala lo step del wizard
+   * (es. Convocati, Squadre, Diretta Live, Report non concluso) così l'utente può uscire con 1 tap.
+   */
+  readonly showQuickHomeBtn = computed<boolean>(() => {
+    const s = this.state.step();
+    if (this.isAdmin && !this.state.matchConcluso() && s !== 'dettagli') {
+      return true;
+    }
+    return false;
+  });
 
   constructor() {
     addIcons({
@@ -124,6 +140,16 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       checkmark,
       logoWhatsapp,
       shareSocialOutline,
+      homeOutline,
+      refreshOutline,
+    });
+
+    // Riporta sempre lo scroll in cima quando si cambia step (evita che Step 3 Squadre parta tagliato)
+    effect(() => {
+      const _step = this.state.step();
+      setTimeout(() => {
+        this.content?.scrollToTop(150);
+      }, 25);
     });
 
     // Flusso Deep-Link & Auth Redirect:
@@ -548,21 +574,78 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     this.state.cambiaStep(step);
   }
 
-  tornaIndietroDestinazione() {
-    if (this.isAdmin) {
-      this.state.flushAutoSave();
-      this.state.salvaSnapshotLocale();
-    }
+  private eseguiNavigazioneUscita(forceHome: boolean = false) {
     const returnUrl =
       this.route.snapshot.queryParamMap.get('returnUrl') ||
-      (history.state && history.state.returnUrl);
-    if (returnUrl) {
+      (typeof history !== 'undefined' && history.state && history.state.returnUrl);
+
+    if (returnUrl && typeof returnUrl === 'string' && returnUrl.startsWith('/')) {
       this.router.navigateByUrl(returnUrl);
-    } else if (window.history.length > 1) {
+      return;
+    }
+
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+
+    if (!forceHome && hasInAppHistory) {
       this.location.back();
     } else {
       this.router.navigate(['/partite']);
     }
+  }
+
+  async verificaUscitaSicura(onProceed: () => void): Promise<void> {
+    if (!this.state.needsExitConfirmation()) {
+      if (this.isAdmin) {
+        await this.state.flushAutoSave();
+        this.state.salvaSnapshotLocale();
+      }
+      onProceed();
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Uscire dalla schermata?',
+      message:
+        'Hai delle modifiche non ancora confermate/salvate. Vuoi salvare prima di uscire?',
+      mode: 'ios',
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel',
+        },
+        {
+          text: 'Esci senza salvare',
+          role: 'destructive',
+          handler: () => {
+            this.state.scartaModifichePendenti();
+            onProceed();
+          },
+        },
+        {
+          text: 'Salva ed Esci',
+          handler: async () => {
+            await this.state.salvaTuttoEdEsci();
+            onProceed();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  tornaIndietroDestinazione() {
+    this.verificaUscitaSicura(() => {
+      this.eseguiNavigazioneUscita(false);
+    });
+  }
+
+  tornaDirettoAllaHome() {
+    this.verificaUscitaSicura(() => {
+      this.eseguiNavigazioneUscita(true);
+    });
   }
 
   async gestisciIndietro() {
@@ -584,17 +667,30 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
     // Step intermedi: scala allo step precedente senza uscire dal flusso
     if (currentStep === 'convocati') {
+      await this.state.flushAutoSave();
       this.state.cambiaStep('dettagli');
       return;
     }
 
     if (currentStep === 'squadre') {
-      this.state.cambiaStep('convocati');
+      if (this.state.needsExitConfirmation()) {
+        await this.verificaUscitaSicura(() => {
+          this.state.cambiaStep('convocati');
+        });
+      } else {
+        this.state.cambiaStep('convocati');
+      }
       return;
     }
 
     if (currentStep === 'prestazioni' && !this.state.matchConcluso()) {
-      this.state.cambiaStep('match');
+      if (this.state.needsExitConfirmation()) {
+        await this.verificaUscitaSicura(() => {
+          this.state.cambiaStep('match');
+        });
+      } else {
+        this.state.cambiaStep('match');
+      }
       return;
     }
 

@@ -1,9 +1,23 @@
 <ion-header class="ion-no-border">
   <ion-toolbar class="detail-header-toolbar">
     <ion-buttons slot="start">
-      <ion-button (click)="gestisciIndietro()" aria-label="Torna indietro" title="Torna indietro">
+      <ion-button
+        (click)="gestisciIndietro()"
+        aria-label="Torna indietro"
+        title="Torna indietro"
+      >
         <ion-icon name="arrow-back"></ion-icon>
       </ion-button>
+      @if (showQuickHomeBtn()) {
+        <ion-button
+          class="home-quick-btn"
+          (click)="tornaDirettoAllaHome()"
+          aria-label="Torna subito alla Home Partite"
+          title="Uscita rapida alla Home / Lista Partite"
+        >
+          <ion-icon name="home-outline"></ion-icon>
+        </ion-button>
+      }
     </ion-buttons>
 
     <ion-title class="detail-header-title">{{

@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.0.72",
+    "date": "11/11/2026",
+    "title": "Uscita Rapida alla Home, Guard Modifiche Non Salvate & Reset Convocati per Mister e Presidente",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Uscita Rapida alla Home / Partite: in tutte le schermate di dettaglio e sotto-pagine profonde (Scheda Giocatore, Intesa di Coppia, Confronto 1v1, Impostazioni e Area Segreta) è ora presente un'icona Home per tornare istantaneamente alla vista principale con un solo tocco.",
+      "Navigazione e Deep Link Protetti: risolti tutti i casi in cui, arrivando da link condivisi WhatsApp o con cronologia vuota, il tasto Indietro bloccava la navigazione; ora viene sempre garantito il rientro fluido e immediato a Partite.",
+      "Layout Step 3 Squadre Ottimizzato: risolto il taglio superiore sulla card 'Bilancia Squadre', ora perfettamente spaziata e visibile sotto lo stepper fisso."
+    ],
+    "superUserChanges": [
+      "Reset / Svuota Tutti i Convocati: nello Step 2 Convocati di Gestione Match è ora presente per Mister e Presidente il pulsante 'Svuota' (con dialog di conferma obbligatorio) per azzerare in un colpo solo le convocazioni, pulire le formazioni collegate e ripartire da capo.",
+      "Guard Modifiche Non Salvate & Dialog di Uscita: previene perdite di dati accidentali in Gestione Match e Modifica Giocatore se ci sono modifiche pendenti o salvataggi in corso, consentendo di scegliere se Salvare ed uscire, Uscire senza salvare o Annullare.",
+      "Auto-Save Reattivo & Uscita Veloce dal Wizard: quando si è negli step Convocati, Squadre o Pagelle, il tasto Home permette a Mister e Presidente di uscire dal flusso in un istante, sincronizzando automaticamente lo stato."
+    ]
+  },
+  {
     "version": "2.0.71",
     "date": "11/11/2026",
     "title": "Disponibilità: CAP 14 (7vs7), Sblocco 8vs8 (16 Posti), Priorità Immutabile 1° Voto e Storico Voti",

@@ -6,7 +6,7 @@ import {
   signal,
   OnDestroy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import {
@@ -49,6 +49,7 @@ import {
   arrowBack,
   cloudUpload,
   cloudDone,
+  homeOutline,
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/services/auth.service';
 import { DevDbSyncService } from 'src/app/services/dev-db-sync.service';
@@ -220,7 +221,6 @@ export interface MatchAuditSheet {
     IonButtons,
     IonButton,
     IonIcon,
-    IonBackButton,
     PlayerAvatarComponent,
     ThemeToggleComponent,
   ],
@@ -231,6 +231,7 @@ export class AreaSegretaPage implements OnDestroy {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   private router = inject(Router);
+  private location = inject(Location);
   public devDbSync = inject(DevDbSyncService);
 
   readonly BASE_INITIAL_MMR = BASE_INITIAL_MMR;
@@ -353,6 +354,7 @@ export class AreaSegretaPage implements OnDestroy {
       arrowBack,
       cloudUpload,
       cloudDone,
+      homeOutline,
     });
 
     this.countdownInterval = setInterval(() => {
@@ -373,6 +375,21 @@ export class AreaSegretaPage implements OnDestroy {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
+  }
+
+  tornaIndietro() {
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+    if (hasInAppHistory) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/classifica']);
+    }
+  }
+
+  tornaDirettoAllaHome() {
+    this.router.navigate(['/partite']);
   }
 
   setTab(tab: SecretTab) {

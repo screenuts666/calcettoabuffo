@@ -70,6 +70,7 @@ import {
   chevronForwardOutline,
   constructOutline,
   informationCircleOutline,
+  homeOutline,
 } from 'ionicons/icons';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
@@ -230,6 +231,7 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
       chevronForwardOutline,
       constructOutline,
       informationCircleOutline,
+      homeOutline,
     });
   }
 
@@ -307,12 +309,24 @@ export class ImpostazioniPage implements OnInit, OnDestroy {
     if (top) {
       await this.modalCtrl.dismiss();
     } else {
-      if (window.history.length > 1) {
+      const hasInAppHistory =
+        typeof window !== 'undefined' &&
+        (window.history.state?.navigationId ?? 0) > 1;
+      if (hasInAppHistory) {
         window.history.back();
       } else {
-        await this.router.navigate(['/']);
+        await this.router.navigate(['/partite']);
       }
     }
+  }
+
+  async tornaDirettoAllaHome() {
+    this.soundSettings.stopPreview();
+    const top = await this.modalCtrl.getTop();
+    if (top) {
+      await this.modalCtrl.dismiss();
+    }
+    await this.router.navigate(['/partite']);
   }
 
   // ─── GESTIONE RUOLI (WHATSAPP-STYLE ADMIN MANAGEMENT) ─────────────────────

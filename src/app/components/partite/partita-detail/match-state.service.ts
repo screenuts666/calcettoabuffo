@@ -150,6 +150,28 @@ export class MatchStateService {
   isPausedDev = signal<boolean>(false);
   rotazionePortieri = signal<RotazionePortieri | null>(null);
 
+  // Stato reattivo di salvataggio / modifiche pendenti per Guard di navigazione
+  isAutoSavePending = signal<boolean>(false);
+  isSavingInFlight = signal<boolean>(false);
+  hasUnconfirmedSquadre = signal<boolean>(false);
+  hasUnconfirmedPrestazioni = signal<boolean>(false);
+
+  readonly isSaving = computed<boolean>(
+    () => this.isAutoSavePending() || this.isSavingInFlight(),
+  );
+
+  readonly isDirty = computed<boolean>(
+    () =>
+      this.isAutoSavePending() ||
+      this.hasUnconfirmedSquadre() ||
+      this.hasUnconfirmedPrestazioni(),
+  );
+
+  readonly needsExitConfirmation = computed<boolean>(
+    () =>
+      this.auth.isSuperUser() && (this.isDirty() || this.isSavingInFlight()),
+  );
+
   /**
    * Macchina a stati del timer / cambio portiere in diretta:
    * - 'running': partita in corso normale
@@ -1077,11 +1099,21 @@ export class MatchStateService {
           this.scoreB.set(data.scoreB || 0);
           this.eventiGol.set(data.eventiGol || []);
 
-          if (Array.isArray(data.teamA) && data.teamA.length > 0) {
-            this.teamA.set(data.teamA);
+          if (Array.isArray(data.teamA)) {
+            if (
+              data.teamA.length > 0 ||
+              (Array.isArray(data.convocati) && data.convocati.length === 0)
+            ) {
+              this.teamA.set(data.teamA);
+            }
           }
-          if (Array.isArray(data.teamB) && data.teamB.length > 0) {
-            this.teamB.set(data.teamB);
+          if (Array.isArray(data.teamB)) {
+            if (
+              data.teamB.length > 0 ||
+              (Array.isArray(data.convocati) && data.convocati.length === 0)
+            ) {
+              this.teamB.set(data.teamB);
+            }
           }
 
           this.isTimerRunning.set(data.isTimerRunning || false);
@@ -1149,8 +1181,8 @@ export class MatchStateService {
           if (data.formato) {
             this.formato.set(data.formato);
           }
-          if (data.rsvp) {
-            this.rsvp.set(data.rsvp);
+          if (data.rsvp !== undefined) {
+            this.rsvp.set(data.rsvp || {});
           }
 
           if (Array.isArray(data.convocati) || data.rsvp) {
@@ -1484,8 +1516,103 @@ export class MatchStateService {
     if (nuovoStep === 'squadre') {
       this.sincronizzaConvocatiInSquadre();
     }
+    if (nuovoStep === 'match') {
+      this.hasUnconfirmedSquadre.set(false);
+    }
     this.step.set(nuovoStep);
     this.triggerAutoSave(true);
+  }
+
+  /**
+   * Resetta a zero tutti i giocatori convocati (Step 2 - Solo Mister e Presidente),
+   * pulendo anche Bianchi/Neri collegati e le risposte RSVP, e salvando subito su Firestore.
+   */
+  async svuotaTuttiConvocati(): Promise<void> {
+    if (!this.auth.isSuperUser()) return;
+
+    this.tutti.update((list) =>
+      list.map((g) => ({
+        ...g,
+        selezionato: false,
+        selfRegistered: false,
+        source: undefined,
+        rsvpStatus: undefined,
+      })),
+    );
+    this.rsvp.set({});
+    this.teamA.set([]);
+    this.teamB.set([]);
+    this.hasUnconfirmedSquadre.set(false);
+
+    const curRot = this.rotazionePortieri();
+    if (curRot) {
+      this.rotazionePortieri.set({
+        ...curRot,
+        teamA: [],
+        teamB: [],
+        portiereFissoAId: null,
+        portiereFissoBId: null,
+      });
+    }
+
+    if (!this.matchConcluso() && this.status() !== 'in_corso') {
+      this.status.set('da_definire');
+    }
+    this.formato.set('5vs5');
+
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+    }
+    this.isAutoSavePending.set(false);
+    this.salvaSnapshotLocale();
+
+    if (this.matchId()) {
+      await this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso());
+    }
+  }
+
+  markSquadreModified(): void {
+    if (!this.auth.isSuperUser()) return;
+    this.hasUnconfirmedSquadre.set(true);
+    this.triggerAutoSave(true);
+  }
+
+  markPrestazioniModified(): void {
+    if (!this.auth.isSuperUser()) return;
+    this.hasUnconfirmedPrestazioni.set(true);
+    this.triggerAutoSave(false);
+  }
+
+  async salvaTuttoEdEsci(): Promise<void> {
+    if (!this.auth.isSuperUser()) return;
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+    }
+    this.isAutoSavePending.set(false);
+
+    if (this.step() === 'squadre' && this.hasUnconfirmedSquadre()) {
+      this.inizializzaRotazionePortieri(false);
+      if (this.status() === 'da_definire') {
+        this.status.set('pronta');
+      }
+    }
+
+    this.hasUnconfirmedSquadre.set(false);
+    this.hasUnconfirmedPrestazioni.set(false);
+
+    await this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso());
+  }
+
+  scartaModifichePendenti(): void {
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+    }
+    this.isAutoSavePending.set(false);
+    this.hasUnconfirmedSquadre.set(false);
+    this.hasUnconfirmedPrestazioni.set(false);
   }
 
   triggerAutoSave(immediate: boolean = false): void {
@@ -1498,6 +1625,7 @@ export class MatchStateService {
       this.totaleConvocati() === 0 &&
       !this.luogo().trim()
     ) {
+      this.isAutoSavePending.set(false);
       return;
     }
 
@@ -1507,18 +1635,22 @@ export class MatchStateService {
     }
 
     if (immediate) {
+      this.isAutoSavePending.set(false);
       this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
         (err) => console.warn('Errore auto-salvataggio immediato:', err),
       );
     } else {
+      this.isAutoSavePending.set(true);
       this.autoSaveTimer = setTimeout(() => {
+        this.autoSaveTimer = undefined;
+        this.isAutoSavePending.set(false);
         this.salvaInDatabase(
           this.pagelleInserite(),
           this.matchConcluso(),
         ).catch((err) =>
           console.warn('Errore auto-salvataggio debounced:', err),
         );
-      }, 700);
+      }, 450);
     }
   }
 
@@ -1526,6 +1658,7 @@ export class MatchStateService {
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
       this.autoSaveTimer = undefined;
+      this.isAutoSavePending.set(false);
       return this.salvaInDatabase(
         this.pagelleInserite(),
         this.matchConcluso(),
@@ -1670,6 +1803,7 @@ export class MatchStateService {
     const payload = sanitizeForFirestore(rawPayload);
 
     try {
+      this.isSavingInFlight.set(true);
       this.syncStatus.notifySyncPending();
 
       if (this.matchId()) {
@@ -1700,6 +1834,8 @@ export class MatchStateService {
         err,
       );
       this.syncStatus.notifySyncError();
+    } finally {
+      this.isSavingInFlight.set(false);
     }
   }
 

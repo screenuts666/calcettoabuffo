@@ -29,6 +29,7 @@ import {
   calendarOutline,
   flame,
   people,
+  homeOutline,
 } from 'ionicons/icons';
 import { ConfrontoService } from 'src/app/services/confronto.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
@@ -138,6 +139,7 @@ export class DettaglioChimicaPage implements OnInit {
       calendarOutline,
       flame,
       people,
+      homeOutline,
     });
   }
 
@@ -155,11 +157,18 @@ export class DettaglioChimicaPage implements OnInit {
   }
 
   tornaIndietro() {
-    if (window.history.length > 1) {
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+    if (hasInAppHistory) {
       this.location.back();
     } else {
       this.router.navigate(['/classifica'], { queryParams: { tab: 'chimica' } });
     }
+  }
+
+  tornaDirettoAllaHome() {
+    this.router.navigate(['/partite']);
   }
 
   vaiAlConfronto1v1() {

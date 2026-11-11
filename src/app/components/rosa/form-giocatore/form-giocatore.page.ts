@@ -6,10 +6,11 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
   signal,
+  computed,
   ElementRef,
   ViewChild,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
@@ -24,9 +25,8 @@ import {
   IonSelect,
   IonSelectOption,
   IonAvatar,
-  IonCheckbox,
-  IonBackButton,
   IonIcon,
+  AlertController,
   LoadingController,
   ToastController,
 } from '@ionic/angular/standalone';
@@ -51,6 +51,7 @@ import {
   personAddOutline,
   callOutline,
   lockClosedOutline,
+  homeOutline,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { PiedePreferito } from 'src/app/models/piede-preferito.enum';
@@ -81,7 +82,6 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
     IonContent,
     IonButtons,
     IonButton,
-    IonBackButton,
     IonItem,
     IonInput,
     IonTextarea,
@@ -95,11 +95,13 @@ import { PlayerAvatarComponent } from '../../player-avatar/player-avatar.compone
 export class FormGiocatorePage implements OnInit, OnDestroy {
   private firestore = inject(Firestore);
   private storage = inject(Storage);
+  private alertCtrl = inject(AlertController);
   private loadingController = inject(LoadingController);
   private toastController = inject(ToastController);
   public auth = inject(AuthService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
 
   @Input() giocatore: Giocatore | null = null;
 
@@ -133,6 +135,36 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
 
   anteprimaFoto = signal<string | null>(null);
   fileSelezionato: File | null = null;
+  hasSelectedFile = signal<boolean>(false);
+  private initialSnapshot = signal<string>('');
+
+  private computeCurrentSnapshot(): string {
+    return JSON.stringify({
+      nome: this.nome().trim(),
+      soprannome: this.soprannome().trim(),
+      numeroMaglia: this.numeroMaglia().toString().trim(),
+      bio: this.bio().trim(),
+      dataNascita: this.dataNascita().trim(),
+      piedePreferito: this.piedePreferito(),
+      ruoloPreferito: this.ruoloPreferito() ?? null,
+      altezza: this.altezza().toString().trim(),
+      peso: this.peso().toString().trim(),
+      professione: this.professione().trim(),
+      origini: this.origini().trim(),
+      statoCivile: this.statoCivile().trim(),
+      vizi: this.vizi().trim(),
+      phoneNumber: this.phoneNumber().trim(),
+      anteprimaFoto: this.anteprimaFoto() || '',
+    });
+  }
+
+  readonly isDirty = computed<boolean>(() => {
+    if (!this.canEdit) return false;
+    if (this.hasSelectedFile()) return true;
+    const init = this.initialSnapshot();
+    if (!init) return false;
+    return this.computeCurrentSnapshot() !== init;
+  });
 
   @ViewChild('f') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -146,6 +178,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
       personAddOutline,
       callOutline,
       lockClosedOutline,
+      homeOutline,
     });
   }
 
@@ -220,6 +253,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
             this.anteprimaFoto.set(photo);
           }
         }
+        this.initialSnapshot.set(this.computeCurrentSnapshot());
       }
     });
   }
@@ -249,22 +283,84 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
     this.statoCivile.set(g.statoCivile || '');
     this.vizi.set(g.vizi || '');
     this.anteprimaFoto.set(g.fotoUrl || null);
+    this.initialSnapshot.set(this.computeCurrentSnapshot());
 
     if (g.id && this.auth.canViewPlayerPhone(g)) {
       this.auth.getPlayerPhoneNumber(g.id).then((phone) => {
         if (phone !== null) {
           this.phoneNumber.set(phone);
+          this.initialSnapshot.set(this.computeCurrentSnapshot());
         }
       });
     }
   }
 
-  annulla() {
-    if (this.giocatore?.id) {
+  private navigaUscita(forceHome: boolean = false) {
+    if (forceHome) {
+      this.router.navigate(['/partite']);
+      return;
+    }
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+    if (hasInAppHistory) {
+      this.location.back();
+    } else if (this.giocatore?.id) {
       this.router.navigate(['/giocatori', this.giocatore.id]);
     } else {
       this.router.navigate(['/rosa']);
     }
+  }
+
+  async verificaUscita(onProceed: () => void, forceHome: boolean = false) {
+    if (!this.isDirty()) {
+      onProceed();
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Uscire dalla schermata?',
+      message:
+        'Hai delle modifiche non ancora confermate/salvate. Vuoi salvare prima di uscire?',
+      mode: 'ios',
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel',
+        },
+        {
+          text: 'Esci senza salvare',
+          role: 'destructive',
+          handler: () => {
+            onProceed();
+          },
+        },
+        {
+          text: 'Salva ed Esci',
+          handler: async () => {
+            if (this.nome().trim()) {
+              await this.salvaGiocatore(forceHome ? '/partite' : undefined);
+            } else {
+              onProceed();
+            }
+          },
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  gestisciIndietro() {
+    this.verificaUscita(() => this.navigaUscita(false), false);
+  }
+
+  tornaDirettoAllaHome() {
+    this.verificaUscita(() => this.navigaUscita(true), true);
+  }
+
+  annulla() {
+    this.gestisciIndietro();
   }
 
   rimuoviFoto(event?: Event) {
@@ -273,6 +369,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
     }
     if (!this.canEdit) return;
     this.fileSelezionato = null;
+    this.hasSelectedFile.set(false);
     this.anteprimaFoto.set(null);
     if (this.fileInput?.nativeElement) {
       this.fileInput.nativeElement.value = '';
@@ -291,6 +388,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
     const file = (event.target as HTMLInputElement)?.files?.[0];
     if (file) {
       this.fileSelezionato = file;
+      this.hasSelectedFile.set(true);
       this.readFileAsDataURL(file)
         .then((d) => this.anteprimaFoto.set(d))
         .catch(() => {});
@@ -305,7 +403,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
     handleAvatarError(event);
   }
 
-  async salvaGiocatore() {
+  async salvaGiocatore(customExitUrl?: string) {
     if (!this.canEdit || !this.nome().trim()) return;
 
     const loading = await this.loadingController.create({
@@ -381,13 +479,21 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
           this.giocatore.id,
           this.phoneNumber()
         );
-        await this.router.navigate(['/giocatori', this.giocatore.id]);
+        this.hasSelectedFile.set(false);
+        this.initialSnapshot.set(this.computeCurrentSnapshot());
+        if (customExitUrl) {
+          await this.router.navigateByUrl(customExitUrl);
+        } else {
+          await this.router.navigate(['/giocatori', this.giocatore.id]);
+        }
       } else if (this.isSelfRegistration) {
         // Utente che crea la propria scheda giocatore e aggancia subito l'utenza
         const newPlayerId = await this.auth.createAndClaimPlayer(
           payload,
           this.phoneNumber()
         );
+        this.hasSelectedFile.set(false);
+        this.initialSnapshot.set(this.computeCurrentSnapshot());
         const toast = await this.toastController.create({
           message: `🎉 Benvenuto in Rosa, ${payload['nome']}! La tua scheda è ora collegata al tuo account.`,
           duration: 3000,
@@ -398,7 +504,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
 
         const queryReturn = this.route.snapshot.queryParamMap.get('returnUrl');
         const pendingReturn = this.auth.consumeReturnUrl();
-        const targetReturn = queryReturn || pendingReturn;
+        const targetReturn = customExitUrl || queryReturn || pendingReturn;
         if (targetReturn && targetReturn.startsWith('/')) {
           await this.router.navigateByUrl(targetReturn);
         } else {
@@ -420,7 +526,13 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
             this.phoneNumber()
           );
         }
-        await this.router.navigate(['/rosa']);
+        this.hasSelectedFile.set(false);
+        this.initialSnapshot.set(this.computeCurrentSnapshot());
+        if (customExitUrl) {
+          await this.router.navigateByUrl(customExitUrl);
+        } else {
+          await this.router.navigate(['/rosa']);
+        }
       }
     } catch (e: any) {
       console.error('Errore nel salvataggio del giocatore:', e);

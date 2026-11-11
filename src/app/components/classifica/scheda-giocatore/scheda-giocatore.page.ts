@@ -11,7 +11,7 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   IonHeader,
@@ -24,7 +24,6 @@ import {
   IonRow,
   IonCol,
   IonSpinner,
-  IonBackButton,
   ToastController,
   AlertController,
 } from '@ionic/angular/standalone';
@@ -74,6 +73,7 @@ import {
   barChartOutline,
   fitnessOutline,
   personCircleOutline,
+  homeOutline,
 } from 'ionicons/icons';
 import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
@@ -107,7 +107,6 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
     IonButtons,
     IonButton,
     IonIcon,
-    IonBackButton,
     IonRow,
     IonCol,
     IonSpinner,
@@ -119,6 +118,7 @@ import { ThemeToggleComponent } from '../../theme-toggle/theme-toggle.component'
 export class SchedaGiocatorePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private location = inject(Location);
   public auth = inject(AuthService);
   private trashService = inject(TrashService);
   private alertCtrl = inject(AlertController);
@@ -270,6 +270,7 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
       volumeHighOutline,
       chevronDown,
       chevronUp,
+      homeOutline,
     });
 
     effect(() => {
@@ -324,6 +325,21 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
 
   chiudiZoomFoto() {
     this.isPhotoZoomOpen.set(false);
+  }
+
+  tornaIndietro() {
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+    if (hasInAppHistory) {
+      this.location.back();
+    } else {
+      this.router.navigate(['/classifica']);
+    }
+  }
+
+  tornaDirettoAllaHome() {
+    this.router.navigate(['/partite']);
   }
 
   modificaGiocatore() {

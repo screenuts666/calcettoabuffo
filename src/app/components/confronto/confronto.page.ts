@@ -57,6 +57,7 @@ import {
   globeOutline,
   diceOutline,
   flashOutline,
+  homeOutline,
 } from 'ionicons/icons';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
 import { PlayerAvatarComponent } from '../player-avatar/player-avatar.component';
@@ -322,6 +323,7 @@ export class ConfrontoPage implements OnInit {
       timeOutline,
       mic,
       globeOutline,
+      homeOutline,
     });
 
     // Effetto per caricamento verdetto cache
@@ -431,6 +433,21 @@ export class ConfrontoPage implements OnInit {
   tornaAllHub() {
     this.viewMode.set('hub');
     this.router.navigate(['/confronto']);
+  }
+
+  tornaIndietroConfronto() {
+    const hasInAppHistory =
+      typeof window !== 'undefined' &&
+      (window.history.state?.navigationId ?? 0) > 1;
+    if (hasInAppHistory) {
+      this.location.back();
+    } else {
+      this.tornaAllHub();
+    }
+  }
+
+  tornaDirettoAllaHome() {
+    this.router.navigate(['/partite']);
   }
 
   apriConfrontoCoppia(idA: string, idB: string) {

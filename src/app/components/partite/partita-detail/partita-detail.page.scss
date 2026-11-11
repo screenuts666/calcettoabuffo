@@ -7,6 +7,22 @@
     margin-inline-start: 0;
     margin-inline-end: 2px;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+
+    .home-quick-btn {
+      --padding-start: 4px;
+      --padding-end: 5px;
+      margin-inline-start: -2px;
+      font-size: 0.96rem;
+      opacity: 0.85;
+
+      &:hover,
+      &:active {
+        opacity: 1;
+        --color: var(--app-primary, #10b981);
+      }
+    }
   }
 
   .detail-header-title {

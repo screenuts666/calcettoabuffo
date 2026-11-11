@@ -38,6 +38,19 @@
           </button>
         }
 
+        @if (isAdmin && state.totaleConvocati() > 0) {
+          <button
+            type="button"
+            class="reset-convocati-pill"
+            (click)="confermaSvuotaConvocati()"
+            title="Svuota tutti i convocati"
+            aria-label="Svuota tutti i convocati"
+          >
+            <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+            <span>Svuota</span>
+          </button>
+        }
+
         @if (isAdmin && auth.hasLinkedPlayer()) {
           <button
             type="button"
@@ -229,7 +242,21 @@
               <h3 class="shb-title">CONVOCATI ({{ convocatiFiltrati().length }})</h3>
             </div>
             @if (convocatiFiltrati().length > 0) {
-              <span class="shb-hint">Tocca per rimuovere</span>
+              <div class="shb-right-actions">
+                <span class="shb-hint">Tocca per rimuovere</span>
+                @if (isAdmin && state.totaleConvocati() > 0) {
+                  <button
+                    type="button"
+                    class="shb-reset-inline-btn"
+                    (click)="confermaSvuotaConvocati()"
+                    title="Rimuovi tutti i convocati"
+                    aria-label="Svuota tutti i convocati"
+                  >
+                    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+                    <span>Reset</span>
+                  </button>
+                }
+              </div>
             }
           </div>
 

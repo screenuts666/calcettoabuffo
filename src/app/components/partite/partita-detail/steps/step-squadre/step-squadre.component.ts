@@ -321,7 +321,7 @@ export class StepSquadreComponent implements OnInit {
   async applicaSquadre(proposal: MatchmakingProposal) {
     this.state.teamA.set([...proposal.teamA]);
     this.state.teamB.set([...proposal.teamB]);
-    this.state.triggerAutoSave(true);
+    this.state.markSquadreModified();
     this.isMatchmakingOpen.set(false);
 
     const toast = await this.toastCtrl.create({
@@ -347,7 +347,7 @@ export class StepSquadreComponent implements OnInit {
       if (!this.state.teamB().find((g) => g.id === giocatore.id))
         this.state.teamB.update((l) => [...l, giocatore]);
     }
-    this.state.triggerAutoSave();
+    this.state.markSquadreModified();
   }
 
   isDiRuolo(giocatore: any): boolean {
@@ -384,7 +384,7 @@ export class StepSquadreComponent implements OnInit {
         role: isCurrent ? 'selected' : undefined,
         handler: () => {
           this.state.impostaPortiereFisso(team, p.id);
-          this.state.salvaInDatabase(false);
+          this.state.markSquadreModified();
         },
       };
     });
@@ -405,6 +405,7 @@ export class StepSquadreComponent implements OnInit {
   }
 
   confermaSquadre() {
+    this.state.hasUnconfirmedSquadre.set(false);
     this.state.inizializzaRotazionePortieri(false);
     this.state.status.set('pronta');
     this.state.cambiaStep('match');

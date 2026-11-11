@@ -1,10 +1,17 @@
 @use 'mixins' as *;
 
+:host {
+  display: block;
+  padding-top: 12px;
+  padding-bottom: 24px;
+}
+
 // ==========================================
 // CONTENITORE PULSANTE MATCHMAKING
 // ==========================================
 .matchmaking-container {
-  padding: 12px 14px 4px;
+  padding: 6px 14px 6px;
+  margin-top: 2px;
   background: transparent;
 
   .matchmaking-cta-btn {

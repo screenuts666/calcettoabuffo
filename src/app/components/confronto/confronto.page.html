@@ -2,8 +2,11 @@
   <ion-toolbar>
     @if (viewMode() === 'detail') {
       <ion-buttons slot="start">
-        <ion-button (click)="tornaAllHub()" class="back-nav-btn" aria-label="Torna all'Hub 1v1">
+        <ion-button (click)="tornaIndietroConfronto()" class="back-nav-btn" aria-label="Torna indietro" title="Torna indietro">
           <ion-icon name="arrow-back" slot="icon-only" aria-hidden="true"></ion-icon>
+        </ion-button>
+        <ion-button (click)="tornaDirettoAllaHome()" class="back-nav-btn" aria-label="Torna alla Home" title="Uscita rapida alla Home / Partite">
+          <ion-icon name="home-outline" slot="icon-only" aria-hidden="true"></ion-icon>
         </ion-button>
       </ion-buttons>
     }

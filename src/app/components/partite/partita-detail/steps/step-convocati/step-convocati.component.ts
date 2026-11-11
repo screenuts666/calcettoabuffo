@@ -7,6 +7,7 @@ import {
   IonSpinner,
   ToastController,
   ModalController,
+  AlertController,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -32,6 +33,8 @@ import {
   checkmark,
   warningOutline,
   footballOutline,
+  trashOutline,
+  refreshOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -67,6 +70,7 @@ export class StepConvocatiComponent {
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
+  private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private shareService = inject(ShareService);
 
@@ -204,6 +208,8 @@ export class StepConvocatiComponent {
       checkmark,
       warningOutline,
       footballOutline,
+      trashOutline,
+      refreshOutline,
     });
   }
 
@@ -540,5 +546,42 @@ export class StepConvocatiComponent {
       position: 'top',
     });
     await toast.present();
+  }
+
+  /**
+   * Apre il dialog di conferma per azzerare tutti i giocatori convocati (Solo Mister e Presidente).
+   */
+  async confermaSvuotaConvocati(): Promise<void> {
+    const tot = this.state.totaleConvocati();
+    if (!this.isAdmin || tot === 0) return;
+
+    const alert = await this.alertCtrl.create({
+      header: 'Svuota tutti i convocati?',
+      message: `Stai per rimuovere tutti i ${tot} giocatori convocati e riportare la partita a zero. Vuoi procedere?`,
+      mode: 'ios',
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel',
+        },
+        {
+          text: 'Sì, svuota tutto',
+          role: 'destructive',
+          handler: async () => {
+            await this.state.svuotaTuttiConvocati();
+            const toast = await this.toastCtrl.create({
+              message: 'Convocati azzerati',
+              duration: 2200,
+              color: 'medium',
+              position: 'top',
+              mode: 'ios',
+            });
+            await toast.present();
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 }

@@ -268,12 +268,14 @@ export class StepPrestazioniComponent {
   onCommentoPartitaChange(event: Event) {
     const val = (event.target as HTMLTextAreaElement)?.value ?? '';
     this.state.commentoPartita.set(val);
+    this.state.markPrestazioniModified();
   }
 
   async salvaCommentoPartita(silent = false) {
     if (!this.isAdmin || !this.state.matchId() || this.isSavingCommento()) return;
     this.isSavingCommento.set(true);
     try {
+      this.state.hasUnconfirmedPrestazioni.set(false);
       await this.state.salvaInDatabase(
         this.state.pagelleInserite(),
         this.state.matchConcluso(),
@@ -591,6 +593,7 @@ export class StepPrestazioniComponent {
     this.state.teamA().some((g: PlayerPerformance) => g.id === id)
       ? this.state.teamA.update(updateFn)
       : this.state.teamB.update(updateFn);
+    this.state.markPrestazioniModified();
   }
 
   aggiornaNote(giocatore: any, testo: string) {
@@ -599,6 +602,7 @@ export class StepPrestazioniComponent {
     this.state.teamA().some((g: PlayerPerformance) => g.id === giocatore.id)
       ? this.state.teamA.update(updateFn)
       : this.state.teamB.update(updateFn);
+    this.state.markPrestazioniModified();
   }
 
   async apriModificaRisultato() {
@@ -695,6 +699,7 @@ export class StepPrestazioniComponent {
 
   async salvaModifiche() {
     const wasArchived = this.state.pagelleInserite();
+    this.state.hasUnconfirmedPrestazioni.set(false);
     await this.state.salvaInDatabase(true, true);
     await this.mostraToast(
       wasArchived
