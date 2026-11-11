@@ -69,9 +69,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
+  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .season-pill-btn {
@@ -95,7 +94,7 @@
 }
 
 // ==========================================
-// BARRA 2: CRITERI DI ORDINAMENTO + FILTRO
+// BARRA 2: GRIGLIA FISSA / SEGMENTED BAR ZERO-SCROLL
 // ==========================================
 .sort-bar {
   display: flex;
@@ -111,8 +110,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 31px;
-  height: 31px;
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
@@ -142,6 +141,68 @@
   }
 }
 
+.sort-segmented-bar {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  border-radius: 11px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.sort-seg-tab {
+  flex: 1;
+  min-width: 0;
+  height: 29px;
+  padding: 0 4px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--app-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  .seg-divider {
+    opacity: 0.5;
+    font-weight: 500;
+  }
+
+  &.active {
+    background: var(--ion-color-success);
+    color: var(--app-black);
+    font-weight: 800;
+    box-shadow: 0 1px 6px rgba(var(--app-primary-rgb), 0.25);
+
+    .sub-mode-active {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      font-weight: 900;
+    }
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.active-filter-strip {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: var(--app-surface-subtle);
+  border-bottom: 1px solid var(--app-border-color);
+}
+
 .active-filter-pill {
   display: inline-flex;
   align-items: center;
@@ -162,66 +223,37 @@
   }
 }
 
-.sort-scroll {
-  display: flex;
-  gap: 5px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
-}
-
-.sort-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: 12px;
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  color: var(--app-text-secondary);
-  font-size: 0.74rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.18s ease;
-
-  ion-icon {
-    font-size: 0.84rem;
-  }
-
-  &.active {
-    background: var(--ion-color-success);
-    color: var(--app-black);
-    border-color: var(--ion-color-success);
-    font-weight: 800;
-    box-shadow: 0 2px 8px rgba(var(--app-primary-rgb), 0.22);
-
-    ion-icon {
-      color: var(--app-black);
-    }
-  }
-
-  &:active {
-    transform: scale(0.96);
-  }
-}
-
 // ==========================================
-// CASSETTO FILTRI COLLASSABILE
+// CASSETTO FILTRI COLLASSABILE (GRIGLIA WRAP ZERO-SCROLL)
 // ==========================================
 .filter-drawer {
   background: var(--app-surface-subtle);
-  padding: 4px 10px 7px;
+  padding: 6px 10px 8px;
   border-bottom: 1px solid var(--app-border-color);
   animation: fadeInDown 0.18s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.filter-scroll {
+.filter-drawer-section {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .filter-section-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--app-text-muted);
+  }
+}
+
+.filter-wrap-grid {
+  display: flex;
+  flex-wrap: wrap;
   gap: 5px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
 }
 
 .filter-chip {

@@ -34,7 +34,7 @@
 }
 
 // ==========================================
-// BARRA 1: SELETTORE STAGIONE + RIEPILOGO TOGGLE
+// BARRA 1: SELETTORE STAGIONE + STATS TOGGLE
 // ==========================================
 .season-header-bar {
   display: flex;
@@ -57,9 +57,9 @@
 .season-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 16px;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 14px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
@@ -69,34 +69,12 @@
   white-space: nowrap;
   transition: all 0.18s ease;
 
-  ion-icon {
-    font-size: 0.82rem;
-    flex-shrink: 0;
-
-    @media (max-width: 390px) {
-      display: none;
-    }
-  }
-
-  .season-pill-count {
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--app-text-primary);
-    padding: 1px 5px;
-    border-radius: 8px;
-    font-size: 0.65rem;
-    font-weight: 800;
-  }
-
   &.active {
     background: var(--app-primary-subtle);
     border-color: var(--ion-color-success);
     color: var(--ion-color-success);
+    font-weight: 800;
     box-shadow: 0 2px 8px var(--app-primary-subtle);
-
-    .season-pill-count {
-      background: var(--ion-color-success);
-      color: var(--app-black);
-    }
   }
 
   &:active {
@@ -108,12 +86,12 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 9px;
-  border-radius: 16px;
+  padding: 5px 9px;
+  border-radius: 14px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
   color: var(--app-text-secondary);
-  font-size: 0.71rem;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
@@ -321,23 +299,27 @@
   }
 }
 
-.filter-trigger-btn {
+.unified-filter-sort-btn {
   position: relative;
-  width: 36px;
   height: 36px;
-  display: flex;
+  padding: 0 11px;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 5px;
   border-radius: 10px;
   background: var(--app-surface-subtle);
   border: 1px solid var(--app-card-border);
-  color: var(--app-text-secondary);
+  color: var(--app-text-primary);
+  font-size: 0.73rem;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.18s ease;
 
   ion-icon {
-    font-size: 0.98rem;
+    font-size: 0.92rem;
+    color: var(--ion-color-success);
   }
 
   &.active {
@@ -355,35 +337,6 @@
     border-radius: 50%;
     background: var(--app-accent-orange);
     box-shadow: 0 0 4px var(--app-accent-orange);
-  }
-}
-
-.sort-trigger-btn {
-  height: 36px;
-  padding: 0 9px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  border-radius: 10px;
-  background: var(--app-surface-subtle);
-  border: 1px solid var(--app-card-border);
-  color: var(--app-text-primary);
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.18s ease;
-
-  ion-icon {
-    font-size: 0.9rem;
-    color: var(--ion-color-success);
-  }
-
-  &.active {
-    background: var(--app-primary-subtle);
-    border-color: var(--ion-color-success);
-    color: var(--ion-color-success);
   }
 
   &:active {
@@ -421,7 +374,7 @@
 }
 
 // ==========================================
-// CASSETTO FILTRI AVANZATI (Campetto, Formato, Meteo)
+// CASSETTO FILTRI & ORDINAMENTO UNIFICATI (GRIGLIA WRAP ZERO-SCROLL)
 // ==========================================
 .filter-drawer {
   background: var(--app-surface-subtle);
@@ -435,10 +388,10 @@
 
 .filter-drawer-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
 
-  .filter-group-label {
+  .group-label {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -447,20 +400,17 @@
     text-transform: uppercase;
     color: var(--app-text-muted);
     min-width: 68px;
+    padding-top: 4px;
     flex-shrink: 0;
-
-    ion-icon {
-      font-size: 0.8rem;
-    }
   }
 }
 
-.filter-scroll {
+.filter-wrap-grid {
   display: flex;
+  flex-wrap: wrap;
   gap: 5px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  @include hide-scrollbar;
+  flex: 1;
+  min-width: 0;
 }
 
 .filter-chip {

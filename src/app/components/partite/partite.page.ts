@@ -971,6 +971,11 @@ export class PartitePage {
     this.isFiltriCampettoOpen.update((v) => !v);
   }
 
+  impostaOrdinamentoRapido(criterio: CriterioOrdinamentoPartite, asc: boolean) {
+    this.criterioOrdinamento.set(criterio);
+    this.ordineCrescente.set(asc);
+  }
+
   selezionaFiltroCampetto(campetto: string) {
     this.filtroCampetto.set(campetto);
   }

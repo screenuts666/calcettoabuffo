@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.70",
+    "date": "11/11/2026",
+    "title": "Zero Scroll Orizzontale in Classifica & Partite, Campi Rapidi Fissi e Rework Step 2 Convocati a 2 Colonne",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Classifica con Segmented Bar Fissa: rimossa la barra scorrevole orizzontale che tagliava i bottoni; ora puoi ordinare al volo con 4 tab fisse a tutta larghezza (Punti / MMR, Gol, Media Voto, Assist).",
+      "Header Partite Ottimizzato: risolto il problema di sovrapposizione tra i pill delle stagioni ('26/27 (10)', '25/26 (11)', 'Tutte (21)') e il bottone 'Stats', e unificati ricerca e ordinamento/filtro in un'unica barra spaziosa.",
+      "Lista Convocati a Colpo d'Occhio (2 Colonne): nella scheda partita tutti i 14 convocati sono ora visibili in un'unica schermata grazie alla nuova griglia compatta a 2 colonne."
+    ],
+    "superUserChanges": [
+      "Rework Totale Step 2 Convocati (Zero-Horizontal-Scroll): eliminata la striscia orizzontale con le X rosse; introdotto header sticky con contatore live, badge formato dinamico (5vs5, 6vs6, 7vs7 o avviso dispari), toggle rapido 'Ci sono ✓', 3 filtri vista ('Tutti', 'Convocati', 'Non convocati') e sezioni raggruppate a 2 colonne ('CONVOCATI' in alto e 'DISPONIBILI DA AGGIUNGERE' sotto).",
+      "Step 1 Coordinate Più Arioso & 2 Campi Preset: card riassunto convocati cliccabile a tutta larghezza con stack ridotto a 3 avatar (+11) e selettore rapido campi fissato su 2 colonne con i soli 'Roma 6' e 'Montesacro Calcio'."
+    ]
+  },
+  {
     "version": "2.0.69",
     "date": "11/11/2026",
     "title": "Rosa FUT 3 Colonne, Impostazioni Audio EA FC, Lightbox Foto & Cambio Portiere Confermato",

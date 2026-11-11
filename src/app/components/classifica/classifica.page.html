@@ -103,93 +103,163 @@
   </div>
 
   @if (vistaSelezionata() === 'classifica') {
-    <!-- BARRA 2: CRITERI DI ORDINAMENTO + PULSANTE FILTRO COLLASSABILE -->
+    <!-- BARRA 2: SEGMENTED BAR COMPATTA A TUTTA LARGHEZZA (ZERO SCROLL ORIZZONTALE) -->
     <div class="sort-bar">
-      @if (criterioOrdinamento() !== 'portieri') {
+      <button
+        type="button"
+        class="filter-trigger-btn"
+        [class.active]="isFiltriOpen() || filtroTierOForma() !== 'all' || (criterioOrdinamento() !== 'punti' && criterioOrdinamento() !== 'mmr' && criterioOrdinamento() !== 'gol' && criterioOrdinamento() !== 'mediaVoto' && criterioOrdinamento() !== 'assist')"
+        [attr.aria-expanded]="isFiltriOpen()"
+        aria-label="Filtra per stato di forma, rango o criteri extra"
+        (click)="toggleFiltri()"
+        title="Filtra per Stato di Forma, Rango o Altre Classifiche"
+      >
+        <ion-icon name="filter" aria-hidden="true"></ion-icon>
+        @if (filtroTierOForma() !== 'all' || (criterioOrdinamento() !== 'punti' && criterioOrdinamento() !== 'mmr' && criterioOrdinamento() !== 'gol' && criterioOrdinamento() !== 'mediaVoto' && criterioOrdinamento() !== 'assist')) {
+          <span class="filter-dot" aria-hidden="true"></span>
+        }
+      </button>
+
+      <div class="sort-segmented-bar" role="group" aria-label="Criteri di ordinamento principali">
         <button
           type="button"
-          class="filter-trigger-btn"
-          [class.active]="isFiltriOpen() || filtroTierOForma() !== 'all'"
-          [attr.aria-expanded]="isFiltriOpen()"
-          aria-label="Filtra per stato di forma o rango"
-          (click)="toggleFiltri()"
-          title="Filtra per Stato di Forma o Rango"
+          class="sort-seg-tab"
+          [class.active]="criterioOrdinamento() === 'punti' || criterioOrdinamento() === 'mmr'"
+          (click)="togglePuntiMmr()"
+          title="Tocca per alternare tra Punti Classici e Rango MMR"
         >
-          <ion-icon name="filter" aria-hidden="true"></ion-icon>
-          @if (filtroTierOForma() !== 'all') {
-            <span class="filter-dot" aria-hidden="true"></span>
-          }
+          <span [class.sub-mode-active]="criterioOrdinamento() === 'punti'">Punti</span>
+          <span class="seg-divider">/</span>
+          <span [class.sub-mode-active]="criterioOrdinamento() === 'mmr'">MMR</span>
         </button>
 
-        @if (!isFiltriOpen() && activeFilterLabel(); as activeLbl) {
-          <button
-            type="button"
-            class="active-filter-pill"
-            (click)="resetFiltro()"
-            title="Tocca per rimuovere il filtro"
-          >
-            <span>{{ activeLbl }}</span>
-            <ion-icon name="close-circle"></ion-icon>
-          </button>
-        }
-      }
+        <button
+          type="button"
+          class="sort-seg-tab"
+          [class.active]="criterioOrdinamento() === 'gol'"
+          (click)="selezionaCriterio('gol')"
+        >
+          <span>Gol</span>
+        </button>
 
-      <div class="sort-scroll">
-        @for (c of CRITERI_ORDINAMENTO; track (c.id || '') + '_' + $index) {
-          <button
-            type="button"
-            class="sort-chip"
-            [class.active]="criterioOrdinamento() === c.id"
-            (click)="selezionaCriterio(c.id)"
-          >
-            <ion-icon [name]="c.icon"></ion-icon>
-            <span>{{ c.label }}</span>
-          </button>
-        }
+        <button
+          type="button"
+          class="sort-seg-tab"
+          [class.active]="criterioOrdinamento() === 'mediaVoto'"
+          (click)="selezionaCriterio('mediaVoto')"
+        >
+          <span>Media Voto</span>
+        </button>
+
+        <button
+          type="button"
+          class="sort-seg-tab"
+          [class.active]="criterioOrdinamento() === 'assist'"
+          (click)="selezionaCriterio('assist')"
+        >
+          <span>Assist</span>
+        </button>
       </div>
     </div>
 
-    <!-- CASSETTO FILTRI SECONDARI (Visibile solo quando richiesto) -->
-    @if (isFiltriOpen() && criterioOrdinamento() !== 'portieri') {
+    @if (!isFiltriOpen() && activeFilterLabel(); as activeLbl) {
+      <div class="active-filter-strip">
+        <button
+          type="button"
+          class="active-filter-pill"
+          (click)="resetFiltro()"
+          title="Tocca per rimuovere il filtro"
+        >
+          <span>Filtro attivo: {{ activeLbl }}</span>
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
+      </div>
+    }
+
+    <!-- CASSETTO FILTRI SECONDARI E CLASSIFICHE EXTRA (GRIGLIA WRAP ZERO-SCROLL) -->
+    @if (isFiltriOpen()) {
       <div class="filter-drawer">
-        <div class="filter-scroll">
-          <button
-            type="button"
-            class="filter-chip"
-            [class.active]="filtroTierOForma() === 'all'"
-            (click)="selezionaFiltro('all')"
-          >
-            Tutti
-          </button>
-          <button
-            type="button"
-            class="filter-chip on-fire"
-            [class.active]="filtroTierOForma() === 'on_fire'"
-            (click)="selezionaFiltro('on_fire')"
-          >
-            🔥 On Fire
-          </button>
-          <button
-            type="button"
-            class="filter-chip in-crisis"
-            [class.active]="filtroTierOForma() === 'in_crisis'"
-            (click)="selezionaFiltro('in_crisis')"
-          >
-            ❄️ In Crisi
-          </button>
-          @for (t of MMR_TIERS; track (t.id || '') + '_' + $index) {
+        <div class="filter-drawer-section">
+          <span class="filter-section-label">Altre classifiche:</span>
+          <div class="filter-wrap-grid">
             <button
               type="button"
-              class="filter-chip tier-chip"
-              [class.active]="filtroTierOForma() === t.id"
-              [style.--t-color]="t.color"
-              (click)="selezionaFiltro(t.id)"
+              class="filter-chip"
+              [class.active]="criterioOrdinamento() === 'portieri'"
+              (click)="selezionaCriterio('portieri')"
             >
-              <span class="tier-dot" [style.background]="t.color"></span>
-              {{ t.badge }}
+              🧤 Portieri
             </button>
-          }
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="criterioOrdinamento() === 'wins'"
+              (click)="selezionaCriterio('wins')"
+            >
+              🔥 Vittorie
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="criterioOrdinamento() === 'presenze'"
+              (click)="selezionaCriterio('presenze')"
+            >
+              👥 Presenze
+            </button>
+            <button
+              type="button"
+              class="filter-chip"
+              [class.active]="criterioOrdinamento() === 'minuti'"
+              (click)="selezionaCriterio('minuti')"
+            >
+              ⏱️ Minuti
+            </button>
+          </div>
         </div>
+
+        @if (criterioOrdinamento() !== 'portieri') {
+          <div class="filter-drawer-section">
+            <span class="filter-section-label">Filtra per Rango o Forma:</span>
+            <div class="filter-wrap-grid">
+              <button
+                type="button"
+                class="filter-chip"
+                [class.active]="filtroTierOForma() === 'all'"
+                (click)="selezionaFiltro('all')"
+              >
+                Tutti
+              </button>
+              <button
+                type="button"
+                class="filter-chip on-fire"
+                [class.active]="filtroTierOForma() === 'on_fire'"
+                (click)="selezionaFiltro('on_fire')"
+              >
+                🔥 On Fire
+              </button>
+              <button
+                type="button"
+                class="filter-chip in-crisis"
+                [class.active]="filtroTierOForma() === 'in_crisis'"
+                (click)="selezionaFiltro('in_crisis')"
+              >
+                ❄️ In Crisi
+              </button>
+              @for (t of MMR_TIERS; track (t.id || '') + '_' + $index) {
+                <button
+                  type="button"
+                  class="filter-chip tier-chip"
+                  [class.active]="filtroTierOForma() === t.id"
+                  [style.--t-color]="t.color"
+                  (click)="selezionaFiltro(t.id)"
+                >
+                  <span class="tier-dot" [style.background]="t.color"></span>
+                  {{ t.badge }}
+                </button>
+              }
+            </div>
+          </div>
+        }
       </div>
     }
   }

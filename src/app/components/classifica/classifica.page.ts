@@ -831,6 +831,15 @@ export class ClassificaPage {
     this.criterioOrdinamento.set(crit);
   }
 
+  togglePuntiMmr() {
+    const curr = this.criterioOrdinamento();
+    if (curr === 'punti') {
+      this.criterioOrdinamento.set('mmr');
+    } else {
+      this.criterioOrdinamento.set('punti');
+    }
+  }
+
   selezionaFiltro(f: string) {
     this.filtroTierOForma.set(f);
   }

@@ -28,6 +28,10 @@ import {
   paperPlaneOutline,
   peopleOutline,
   addCircleOutline,
+  addOutline,
+  checkmark,
+  warningOutline,
+  footballOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
 import {
@@ -41,7 +45,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { ShareService } from 'src/app/services/share.service';
 import { CURRENT_SEASON } from 'src/app/utils/season-utils';
 import { getMatchInviteDeepLink } from 'src/app/utils/whatsapp-formatter';
-import { normalizeRsvpStatus } from 'src/app/models/partita.model';
+import { getMatchFormatByPlayerCount, normalizeRsvpStatus } from 'src/app/models/partita.model';
 import { AuthModalComponent } from '../../../../auth-modal/auth-modal.component';
 
 @Component({
@@ -69,9 +73,71 @@ export class StepConvocatiComponent {
   readonly isDev = !environment.production;
   isSavingRsvp = signal<boolean>(false);
   isPreparingInvite = signal<boolean>(false);
+  filtroVista = signal<'tutti' | 'convocati' | 'non_convocati'>('tutti');
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();
+  }
+
+  setFiltroVista(vista: 'tutti' | 'convocati' | 'non_convocati') {
+    this.filtroVista.set(vista);
+  }
+
+  /** Conteggio giocatori non ancora convocati */
+  readonly nonConvocatiCount = computed<number>(() =>
+    Math.max(0, this.state.tutti().length - this.state.totaleConvocati())
+  );
+
+  /** Badge dinamico formato partita live (es. 10 -> 5vs5, 12 -> 6vs6, 14 -> 7vs7, o avviso Numero dispari) */
+  readonly formatBadgeInfo = computed<{
+    label: string;
+    isOdd: boolean;
+    isEmpty: boolean;
+  }>(() => {
+    const tot = this.state.totaleConvocati();
+    if (tot === 0) {
+      return { label: 'Seleziona giocatori', isOdd: false, isEmpty: true };
+    }
+    if (tot % 2 !== 0) {
+      return { label: `Numero dispari: ${tot}`, isOdd: true, isEmpty: false };
+    }
+    const half = tot / 2;
+    const fmt = getMatchFormatByPlayerCount(tot);
+    return {
+      label: `${fmt.label} (${half} vs ${half})`,
+      isOdd: false,
+      isEmpty: false,
+    };
+  });
+
+  /** Lista convocati filtrata dalla searchbar (Sezione 1 in cima) */
+  readonly convocatiFiltrati = computed<ConvocatoState[]>(() =>
+    this.state.giocatoriFiltrati().filter((g) => g.selezionato)
+  );
+
+  /** Lista disponibili non convocati filtrata dalla searchbar (Sezione 2 subito sotto) */
+  readonly disponibiliFiltrati = computed<ConvocatoState[]>(() => {
+    const list = this.state.giocatoriFiltrati().filter((g) => !g.selezionato);
+    return [...list].sort((a, b) => {
+      const rank = (g: ConvocatoState) => {
+        if (g.rsvpStatus === 'maybe') return 0;
+        if (g.rsvpStatus === 'no') return 2;
+        return 1;
+      };
+      const diff = rank(a) - rank(b);
+      if (diff !== 0) return diff;
+      return (a.nome || '').localeCompare(b.nome || '');
+    });
+  });
+
+  getRuoloShort(ruolo?: string | null): string {
+    if (!ruolo) return '';
+    const r = ruolo.trim().toUpperCase();
+    if (r.startsWith('POR')) return 'POR';
+    if (r.startsWith('DIF')) return 'DIF';
+    if (r.startsWith('CEN')) return 'CEN';
+    if (r.startsWith('ATT')) return 'ATT';
+    return r.slice(0, 3);
   }
 
   /** Stato RSVP attuale del giocatore loggato ('yes' | 'maybe' | 'no' | null) */
@@ -134,6 +200,10 @@ export class StepConvocatiComponent {
       paperPlaneOutline,
       peopleOutline,
       addCircleOutline,
+      addOutline,
+      checkmark,
+      warningOutline,
+      footballOutline,
     });
   }
 

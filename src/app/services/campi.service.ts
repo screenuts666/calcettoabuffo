@@ -25,10 +25,10 @@ export class CampiService {
   private statsEngine = inject(StatsEngineService, { optional: true });
 
   readonly campiPool = signal<CampoDaGioco[]>(CAMPI_STORICI_SEED);
-  // Campi storici/ufficiali del club (i 4 campi storici)
+  // Campi preset rapidi ufficiali del club (esclusivamente Roma 6 e Montesacro Calcio)
   readonly campiStorici = computed(() =>
-    this.campiPool().filter(
-      (c) => c.isStorico === true || CAMPI_STORICI_SEED.some((s) => s.id === c.id)
+    CAMPI_STORICI_SEED.map(
+      (seed) => this.campiPool().find((c) => c.id === seed.id) || seed
     )
   );
   private isSearching = signal<boolean>(false);

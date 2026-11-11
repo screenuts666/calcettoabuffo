@@ -13,12 +13,12 @@
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   border-radius: 14px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   box-shadow: var(--app-card-shadow);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -28,13 +28,14 @@
   }
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.985);
   }
 
   .summary-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    flex: 1;
     min-width: 0;
 
     .avatars-overlap-row {
@@ -43,11 +44,11 @@
       flex-shrink: 0;
 
       .overlap-avatar {
-        width: 32px;
-        height: 32px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         border: 2px solid var(--app-card-bg);
-        margin-left: -9px;
+        margin-left: -8px;
         overflow: hidden;
         flex-shrink: 0;
         box-shadow: 0 1px 3px var(--app-overlay-light);
@@ -67,18 +68,19 @@
       }
 
       .overlap-more-badge {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 6px;
+        border-radius: 16px;
         background: var(--app-surface-subtle);
         border: 2px solid var(--app-card-bg);
         color: var(--app-text-primary);
-        font-size: 12px;
+        font-size: 11.5px;
         font-weight: 800;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-left: -9px;
+        margin-left: -8px;
         z-index: 6;
       }
     }
@@ -87,52 +89,56 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 2px;
+      gap: 3px;
+      flex: 1;
       min-width: 0;
 
       .summary-count {
-        font-size: 0.88rem;
+        font-size: 0.92rem;
         font-weight: 800;
         color: var(--app-text-primary);
         line-height: 1.2;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .summary-format-label {
-        font-size: 0.72rem;
-        font-weight: 600;
+        font-size: 0.76rem;
+        font-weight: 700;
         color: var(--app-primary);
         line-height: 1.2;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         opacity: 0.95;
       }
     }
   }
 
-  .btn-edit-convocati {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
-    border-radius: 20px;
+  .summary-chevron-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
     background: var(--app-surface-subtle);
     border: 1px solid var(--app-card-border);
     color: var(--app-text-secondary);
-    font-size: 0.75rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-
-    &:hover {
-      background: var(--app-surface-hover);
-      color: var(--app-text-primary);
-      border-color: var(--app-border-color);
-    }
+    transition: all 0.2s ease;
 
     ion-icon {
-      font-size: 0.9rem;
+      font-size: 1.05rem;
     }
+  }
+
+  &:hover .summary-chevron-badge {
+    background: rgba(var(--app-primary-rgb), 0.14);
+    border-color: rgba(var(--app-primary-rgb), 0.4);
+    color: var(--app-primary);
+    transform: translateX(2px);
   }
 }
 
@@ -630,34 +636,41 @@
   }
 
   .campi-chips-row {
-    display: flex;
-    gap: 6px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding: 2px 2px 4px;
-    @include hide-scrollbar;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 2px 0 4px;
+    overflow: visible;
 
     .quick-campo-chip {
-      flex-shrink: 0;
+      width: 100%;
+      min-height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       background: var(--app-surface-subtle, rgba(255, 255, 255, 0.05));
       border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.1));
-      color: var(--app-text-muted, #94a3b8);
-      font-size: 12.5px;
+      color: var(--app-text-secondary, #cbd5e1);
+      font-size: 13px;
       font-weight: 700;
-      padding: 5px 11px;
-      border-radius: 9px;
+      padding: 6px 10px;
+      border-radius: 10px;
       cursor: pointer;
       transition: all 0.2s ease;
 
       &.active {
         background: rgba(16, 185, 129, 0.2);
-        border-color: rgba(16, 185, 129, 0.5);
+        border-color: rgba(16, 185, 129, 0.55);
         color: #34d399;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.18);
       }
 
       &:active {
-        transform: scale(0.96);
+        transform: scale(0.97);
       }
     }
   }

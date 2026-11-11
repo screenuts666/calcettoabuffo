@@ -2,17 +2,24 @@
 
   <!-- 1. CARD RIEPILOGO CONVOCATI (VISIBILE SE GIA' PRESENTI CONVOCATI) -->
   @if (state.totaleConvocati() > 0) {
-    <div class="convocati-summary-card ion-margin-bottom" (click)="vaiAConvocati()" title="Tocca per visualizzare o gestire i convocati">
+    <div
+      class="convocati-summary-card ion-margin-bottom"
+      role="button"
+      tabindex="0"
+      (click)="vaiAConvocati()"
+      (keydown.enter)="vaiAConvocati()"
+      title="Tocca per visualizzare o gestire i convocati"
+    >
       <div class="summary-left">
         <div class="avatars-overlap-row">
-          @for (g of state.convocati().slice(0, 5); track (g.id || g.nome) + '_' + $index) {
+          @for (g of state.convocati().slice(0, 3); track (g.id || g.nome) + '_' + $index) {
             <div class="overlap-avatar">
               <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
             </div>
           }
-          @if (state.convocati().length > 5) {
+          @if (state.convocati().length > 3) {
             <div class="overlap-more-badge">
-              +{{ state.convocati().length - 5 }}
+              +{{ state.convocati().length - 3 }}
             </div>
           }
         </div>
@@ -22,10 +29,9 @@
         </div>
       </div>
 
-      <button type="button" class="btn-edit-convocati" (click)="$event.stopPropagation(); vaiAConvocati()">
-        <ion-icon [name]="isAdmin ? 'create-outline' : 'people-outline'"></ion-icon>
-        <span>{{ isAdmin ? 'Modifica' : 'Rosa' }}</span>
-      </button>
+      <div class="summary-chevron-badge" aria-hidden="true">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </div>
     </div>
   }
 
@@ -108,8 +114,8 @@
             }
           </ion-item>
 
-          <!-- CHIP CAMPI STORICI RAPIDI (RIGOROSAMENTE 1 RIGA ORIZZONTALE) -->
-          <div class="campi-chips-row single-line-scroll" role="group" aria-label="Campi frequenti">
+          <!-- SELETTORE RAPIDO CAMPO DI GIOCO (GRIGLIA FISSA 2 COLONNE - ZERO SCROLL) -->
+          <div class="campi-chips-row" role="group" aria-label="Campi frequenti">
             @for (c of campiService.campiStorici(); track c.id) {
               <button
                 type="button"

@@ -27,23 +27,5 @@ export const CAMPI_STORICI_SEED: CampoDaGioco[] = [
     usatoCount: 2,
     isStorico: true,
   },
-  {
-    id: 'vigor',
-    nome: 'Vigor Perconti',
-    indirizzo: 'Via Grotta di Gregna, 100, 00155 Roma (Colli Aniene)',
-    googleMapsUrl:
-      'https://www.google.com/maps/search/?api=1&query=Centro+Sportivo+Vigor+Perconti+Via+Grotta+di+Gregna+100+Roma',
-    usatoCount: 5,
-    isStorico: true,
-  },
-  {
-    id: 'pro-roma',
-    nome: 'Pro Roma',
-    indirizzo: 'Via Verrio Flacco, 41, 00174 Roma (Quadraro / Tuscolano)',
-    googleMapsUrl:
-      'https://www.google.com/maps/search/?api=1&query=Centro+Sportivo+Pro+Roma+Calcio+Via+Verrio+Flacco+41+Roma',
-    usatoCount: 3,
-    isStorico: true,
-  },
 ];
 

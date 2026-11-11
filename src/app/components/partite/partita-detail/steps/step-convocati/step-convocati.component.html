@@ -1,8 +1,30 @@
 <div class="convocati-container">
-  <div class="search-header">
-    <div class="title-row">
-      <h2>{{ isAdmin ? "Seleziona Giocatori" : "Giocatori Convocati" }}</h2>
-      <div class="title-right-group">
+  <!-- =================================================================== -->
+  <!-- HEADER STICKY: CONTATORE LIVE, FORMATO AUTOMATICO, INVITO & FILTRI   -->
+  <!-- =================================================================== -->
+  <div class="convocati-sticky-header">
+    <!-- 1. BARRA DI STATO LIVE & FORMATO AUTOMATICO -->
+    <div class="live-status-bar">
+      <div class="lsb-left">
+        <span class="lsb-count" role="status" aria-live="polite">
+          {{ state.totaleConvocati() }} Convocati
+        </span>
+        <span class="lsb-dot" aria-hidden="true">•</span>
+        <span
+          class="lsb-format-badge"
+          [class.is-odd]="formatBadgeInfo().isOdd"
+          [class.is-empty]="formatBadgeInfo().isEmpty"
+        >
+          @if (formatBadgeInfo().isOdd) {
+            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+          } @else {
+            <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
+          }
+          <span>{{ formatBadgeInfo().label }}</span>
+        </span>
+      </div>
+
+      <div class="lsb-right">
         @if (isAdmin && isDev) {
           <button
             type="button"
@@ -15,19 +37,35 @@
             <span>Top 14</span>
           </button>
         }
-        <div class="count-badge" role="status" aria-live="polite">{{ state.totaleConvocati() }} Convocati</div>
+
+        @if (isAdmin && auth.hasLinkedPlayer()) {
+          <button
+            type="button"
+            class="self-presence-quick-pill"
+            [class.active]="myRsvpStatus() === 'yes'"
+            [disabled]="isSavingRsvp()"
+            (click)="toggleMioRsvp('yes')"
+            title="Conferma o rimuovi la tua presenza"
+          >
+            <ion-icon
+              [name]="myRsvpStatus() === 'yes' ? 'checkmark-circle' : 'checkmark-circle-outline'"
+              aria-hidden="true"
+            ></ion-icon>
+            <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono ✓' : 'Ci sono' }}</span>
+          </button>
+        }
       </div>
     </div>
 
-    <!-- VISTA MISTER / PRESIDENTE: BARRA UNIFICATA COMPATTA (INVITO + PRESENZA PERSONALE) -->
+    <!-- 2. BARRA AZIONI INVITO & SOLLECITO (SOLO ADMIN) -->
     @if (isAdmin) {
-      <div class="unified-admin-bar">
-        <div class="uab-row invite-row">
-          <div class="uab-left">
-            <ion-icon name="link-outline" class="uab-icon" aria-hidden="true"></ion-icon>
-            <span class="uab-label">Link Invito</span>
+      <div class="compact-invite-strip">
+        <div class="cis-main-row">
+          <div class="cis-left">
+            <ion-icon name="link-outline" class="cis-icon" aria-hidden="true"></ion-icon>
+            <span class="cis-label">Invita giocatori via link</span>
           </div>
-          <div class="uab-actions">
+          <div class="cis-actions">
             <button
               type="button"
               class="btn-share-whatsapp"
@@ -56,34 +94,6 @@
           </div>
         </div>
 
-        @if (auth.hasLinkedPlayer()) {
-          <div class="uab-row self-rsvp-row">
-            <span class="uab-sub-label">La tua presenza:</span>
-            <div class="uab-rsvp-pills">
-              <button
-                type="button"
-                class="mini-rsvp-pill yes"
-                [class.active]="myRsvpStatus() === 'yes'"
-                [disabled]="isSavingRsvp()"
-                (click)="toggleMioRsvp('yes')"
-              >
-                <ion-icon name="checkmark-circle-outline"></ion-icon>
-                <span>Partecipo</span>
-              </button>
-              <button
-                type="button"
-                class="mini-rsvp-pill no"
-                [class.active]="myRsvpStatus() === 'no'"
-                [disabled]="isSavingRsvp()"
-                (click)="impostaMioRsvp('no')"
-              >
-                <ion-icon name="close-circle-outline"></ion-icon>
-                <span>Non ci sono</span>
-              </button>
-            </div>
-          </div>
-        }
-
         @if (maybePlayers().length > 0) {
           <div class="maybe-solicit-strip">
             <div class="mss-left">
@@ -106,15 +116,50 @@
         }
       </div>
 
-      <ion-searchbar
-        placeholder="Cerca per nome, piede, ruolo..."
-        aria-label="Cerca giocatore per nome, piede o ruolo"
-        [value]="state.filtro()"
-        (ionInput)="state.filtro.set($event.detail.value || '')"
-        mode="ios"
-        class="custom-searchbar"
-      >
-      </ion-searchbar>
+      <!-- 3. SEARCH BAR + SELETTORE VISTA FISSO A 3 PILL (ZERO SCROLL ORIZZONTALE) -->
+      <div class="search-and-filter-block">
+        <ion-searchbar
+          placeholder="Cerca giocatore o ruolo..."
+          aria-label="Cerca giocatore per nome, piede o ruolo"
+          [value]="state.filtro()"
+          (ionInput)="state.filtro.set($event.detail.value || '')"
+          mode="ios"
+          class="custom-searchbar"
+        ></ion-searchbar>
+
+        <div class="view-filter-pills" role="tablist" aria-label="Filtra vista giocatori">
+          <button
+            type="button"
+            role="tab"
+            class="vf-pill"
+            [class.active]="filtroVista() === 'tutti'"
+            [attr.aria-selected]="filtroVista() === 'tutti'"
+            (click)="setFiltroVista('tutti')"
+          >
+            Tutti ({{ state.tutti().length }})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="vf-pill"
+            [class.active]="filtroVista() === 'convocati'"
+            [attr.aria-selected]="filtroVista() === 'convocati'"
+            (click)="setFiltroVista('convocati')"
+          >
+            Convocati ({{ state.totaleConvocati() }})
+          </button>
+          <button
+            type="button"
+            role="tab"
+            class="vf-pill"
+            [class.active]="filtroVista() === 'non_convocati'"
+            [attr.aria-selected]="filtroVista() === 'non_convocati'"
+            (click)="setFiltroVista('non_convocati')"
+          >
+            Non convocati ({{ nonConvocatiCount() }})
+          </button>
+        </div>
+      </div>
     }
 
     <!-- VISTA ATLETA: BOX SCELTA PRESENZA PERSONALE -->
@@ -124,7 +169,7 @@
           <div class="crb-header">
             <span class="crb-prompt">La tua presenza:</span>
             <span class="crb-status-pill" [class.confirmed]="myRsvpStatus() === 'yes'">
-              {{ myRsvpStatus() === 'yes' ? 'Confermato' : 'Non confermato' }}
+              {{ myRsvpStatus() === 'yes' ? 'Ci sono ✓' : 'Non confermato' }}
             </span>
           </div>
 
@@ -137,7 +182,7 @@
               (click)="toggleMioRsvp('yes')"
             >
               <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <span>{{ myRsvpStatus() === 'yes' ? 'Partecipo (Tocca per togliere)' : 'Partecipo' }}</span>
+              <span>{{ myRsvpStatus() === 'yes' ? 'Ci sono ✓ (Rimuovi)' : 'Ci sono ✓' }}</span>
             </button>
 
             <button
@@ -170,123 +215,140 @@
     }
   </div>
 
-  <!-- BARRA AVATAR SELEZIONATI IN ALTO (SCORREVOLE CON ICONA X TONDA PERFETTA) -->
-  @if (state.convocati().length > 0) {
-    <div class="selected-players-scroll">
-      @for (g of state.convocati(); track (g.id || g.nome) + "_" + $index) {
-        <div
-          class="selected-chip"
-          [class.is-self-registered]="g.selfRegistered"
-        >
-          <div class="avatar-wrapper">
-            <app-player-avatar
-              [fotoUrl]="g.fotoUrl"
-              [alt]="g.nome"
-            ></app-player-avatar>
-            @if (g.selfRegistered) {
-              <span
-                class="self-verified-dot"
-                title="Confermato dal giocatore"
-              >
-                <ion-icon name="checkmark-done-circle"></ion-icon>
-              </span>
-            }
-            @if (isAdmin) {
-              <button
-                type="button"
-                class="remove-btn"
-                (click)="toggleSelezione(g)"
-                title="Rimuovi dai convocati"
-                [attr.aria-label]="'Rimuovi ' + g.nome + ' dai convocati'"
-              >
-                <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
-              </button>
-            }
-          </div>
-          <span class="chip-name">{{ g.nome.split(" ")[0] }}</span>
-        </div>
-      }
-    </div>
-  }
-
   <!-- =================================================================== -->
-  <!-- VISTA MISTER / PRESIDENTE: LISTA MODERNA A SCHEDE CONVOCABILI       -->
+  <!-- VISTA MISTER / PRESIDENTE: SEZIONI RAGGRUPPATE A 2 COLONNE COMPATTE -->
   <!-- =================================================================== -->
   @if (isAdmin) {
-    <div class="sleek-players-grid" role="group" aria-label="Lista giocatori convocabili">
-      @for (
-        g of state.giocatoriFiltrati();
-        track (g.id || g.nome) + "_" + $index
-      ) {
-        <div
-          class="sleek-player-card"
-          role="button"
-          tabindex="0"
-          [class.is-selected]="g.selezionato"
-          [class.is-maybe]="g.rsvpStatus === 'maybe'"
-          [class.is-declined]="g.rsvpStatus === 'no'"
-          [attr.aria-pressed]="g.selezionato"
-          [attr.aria-label]="(g.selezionato ? 'Rimuovi ' : 'Convoca ') + g.nome"
-          (click)="toggleSelezione(g)"
-          (keydown.enter)="toggleSelezione(g)"
-          (keydown.space)="toggleSelezione(g); $event.preventDefault()"
-        >
-          <div class="spc-avatar-wrap">
-            <app-player-avatar
-              [fotoUrl]="g.fotoUrl"
-              [alt]="g.nome"
-            ></app-player-avatar>
-            @if (g.ruoloPreferito) {
-              <span class="spc-role-tag">{{ g.ruoloPreferito.slice(0, 3) }}</span>
+    <div class="grouped-sections-wrapper">
+      <!-- SEZIONE 1: CONVOCATI (IN CIMA, COLPO D'OCCHIO SU 2 COLONNE) -->
+      @if (filtroVista() !== 'non_convocati') {
+        <section class="players-section-block selected-section" aria-label="Giocatori convocati">
+          <div class="section-header-bar">
+            <div class="shb-left">
+              <span class="shb-dot selected"></span>
+              <h3 class="shb-title">CONVOCATI ({{ convocatiFiltrati().length }})</h3>
+            </div>
+            @if (convocatiFiltrati().length > 0) {
+              <span class="shb-hint">Tocca per rimuovere</span>
             }
           </div>
 
-          <div class="spc-info">
-            <div class="spc-top-line">
-              <span class="spc-name">{{ g.nome }}</span>
-              @if (g.selfRegistered) {
-                <span class="spc-rsvp-pill confirmed">
-                  <ion-icon name="checkmark-done-circle"></ion-icon>
-                  <span>Confermato</span>
-                </span>
-              } @else if (g.rsvpStatus === "maybe") {
-                <span class="spc-rsvp-pill maybe">
-                  <ion-icon name="help-circle-outline"></ion-icon>
-                  <span>In forse</span>
-                </span>
-              } @else if (g.rsvpStatus === "no") {
-                <span class="spc-rsvp-pill declined">Assente</span>
+          @if (convocatiFiltrati().length === 0) {
+            <div class="empty-section-box">
+              <span>
+                {{
+                  state.filtro().trim()
+                    ? 'Nessun convocato corrisponde alla ricerca.'
+                    : 'Nessun giocatore ancora convocato. Tocca i giocatori qui sotto per aggiungerli.'
+                }}
+              </span>
+            </div>
+          } @else {
+            <div class="compact-players-grid" role="group" aria-label="Griglia convocati">
+              @for (g of convocatiFiltrati(); track (g.id || g.nome) + '_' + $index) {
+                <button
+                  type="button"
+                  class="compact-player-pill is-selected"
+                  [attr.aria-pressed]="true"
+                  [attr.aria-label]="'Rimuovi ' + g.nome + ' dai convocati'"
+                  (click)="toggleSelezione(g)"
+                >
+                  <div class="cpp-avatar">
+                    <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                    @if (g.selfRegistered) {
+                      <span class="cpp-self-dot" title="Confermato via link"></span>
+                    }
+                  </div>
+
+                  <div class="cpp-info">
+                    <span class="cpp-name">{{ g.nome }}</span>
+                    <div class="cpp-tags">
+                      @if (getRuoloShort(g.ruoloPreferito); as rShort) {
+                        <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                      }
+                      @if (g.selfRegistered) {
+                        <span class="cpp-status-micro confirmed">RSVP</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="cpp-status-icon selected" aria-hidden="true">
+                    <ion-icon name="checkmark"></ion-icon>
+                  </div>
+                </button>
               }
             </div>
-            <div class="spc-bottom-line">
-              @if (g.soprannome) {
-                <span class="spc-alias">"{{ g.soprannome }}"</span>
-              }
-              @if (g.ruoloPreferito) {
-                <span class="spc-meta">{{ g.ruoloPreferito }}</span>
-              }
-              @if (g.piedePreferito) {
-                <span class="spc-meta">· {{ g.piedePreferito }}</span>
-              }
+          }
+        </section>
+      }
+
+      <!-- SEZIONE 2: DISPONIBILI DA AGGIUNGERE (SOTTO, 2 COLONNE COMPATTE) -->
+      @if (filtroVista() !== 'convocati') {
+        <section class="players-section-block available-section" aria-label="Disponibili da aggiungere">
+          <div class="section-header-bar">
+            <div class="shb-left">
+              <span class="shb-dot available"></span>
+              <h3 class="shb-title">DISPONIBILI DA AGGIUNGERE ({{ disponibiliFiltrati().length }})</h3>
             </div>
+            @if (disponibiliFiltrati().length > 0) {
+              <span class="shb-hint">Tocca per aggiungere</span>
+            }
           </div>
 
-          <div class="spc-check-indicator" [class.checked]="g.selezionato">
-            <ion-icon [name]="g.selezionato ? 'checkmark-circle' : 'add-circle-outline'"></ion-icon>
-          </div>
-        </div>
+          @if (disponibiliFiltrati().length === 0) {
+            <div class="empty-section-box">
+              <span>Nessun altro giocatore disponibile con questo filtro.</span>
+            </div>
+          } @else {
+            <div class="compact-players-grid" role="group" aria-label="Griglia disponibili">
+              @for (g of disponibiliFiltrati(); track (g.id || g.nome) + '_' + $index) {
+                <button
+                  type="button"
+                  class="compact-player-pill"
+                  [class.is-maybe]="g.rsvpStatus === 'maybe'"
+                  [class.is-declined]="g.rsvpStatus === 'no'"
+                  [attr.aria-pressed]="false"
+                  [attr.aria-label]="'Convoca ' + g.nome"
+                  (click)="toggleSelezione(g)"
+                >
+                  <div class="cpp-avatar">
+                    <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                  </div>
+
+                  <div class="cpp-info">
+                    <span class="cpp-name">{{ g.nome }}</span>
+                    <div class="cpp-tags">
+                      @if (getRuoloShort(g.ruoloPreferito); as rShort) {
+                        <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                      }
+                      @if (g.rsvpStatus === 'maybe') {
+                        <span class="cpp-status-micro maybe">Forse</span>
+                      } @else if (g.rsvpStatus === 'no') {
+                        <span class="cpp-status-micro declined">No</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="cpp-status-icon available" aria-hidden="true">
+                    <ion-icon name="add-outline"></ion-icon>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </section>
       }
     </div>
   }
 
   <!-- =================================================================== -->
-  <!-- VISTA ATLETA: LISTA PULITA DEI SOLI CONVOCATI CONFERMATI (READ-ONLY)-->
+  <!-- VISTA ATLETA: GRIGLIA COMPATTA 2 COLONNE DEI CONVOCATI (READ-ONLY)   -->
   <!-- =================================================================== -->
   @if (!isAdmin) {
     <div class="athlete-convocati-list-wrapper">
       <div class="acl-header">
         <ion-icon name="people-outline"></ion-icon>
-        <span>Rosa Convocata ({{ state.convocati().length }})</span>
+        <span>CONVOCATI UFFICIALI ({{ state.convocati().length }})</span>
       </div>
 
       @if (state.convocati().length === 0) {
@@ -294,41 +356,27 @@
           <p>Nessun giocatore ancora convocato per questa gara.</p>
         </div>
       } @else {
-        <div class="sleek-players-grid read-only-grid">
-          @for (
-            g of state.convocati();
-            track (g.id || g.nome) + "_" + $index
-          ) {
-            <div class="sleek-player-card is-selected read-only">
-              <div class="spc-avatar-wrap">
-                <app-player-avatar
-                  [fotoUrl]="g.fotoUrl"
-                  [alt]="g.nome"
-                ></app-player-avatar>
-                @if (g.ruoloPreferito) {
-                  <span class="spc-role-tag">{{ g.ruoloPreferito.slice(0, 3) }}</span>
-                }
+        <div class="compact-players-grid read-only-grid">
+          @for (g of state.convocati(); track (g.id || g.nome) + '_' + $index) {
+            <div class="compact-player-pill is-selected read-only">
+              <div class="cpp-avatar">
+                <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
               </div>
 
-              <div class="spc-info">
-                <div class="spc-top-line">
-                  <span class="spc-name">{{ g.nome }}</span>
+              <div class="cpp-info">
+                <span class="cpp-name">{{ g.nome }}</span>
+                <div class="cpp-tags">
+                  @if (getRuoloShort(g.ruoloPreferito); as rShort) {
+                    <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                  }
                   @if (g.id === auth.linkedPlayerId()) {
-                    <span class="spc-rsvp-pill you">Tu</span>
-                  }
-                </div>
-                <div class="spc-bottom-line">
-                  @if (g.soprannome) {
-                    <span class="spc-alias">"{{ g.soprannome }}"</span>
-                  }
-                  @if (g.ruoloPreferito) {
-                    <span class="spc-meta">{{ g.ruoloPreferito }}</span>
+                    <span class="cpp-status-micro you">Tu</span>
                   }
                 </div>
               </div>
 
-              <div class="spc-check-indicator checked">
-                <ion-icon name="checkmark-circle"></ion-icon>
+              <div class="cpp-status-icon selected" aria-hidden="true">
+                <ion-icon name="checkmark"></ion-icon>
               </div>
             </div>
           }

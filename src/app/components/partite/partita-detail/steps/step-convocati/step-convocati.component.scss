@@ -1,586 +1,227 @@
 @use 'mixins' as *;
 
 .convocati-container {
-  padding-bottom: 90px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 96px;
 }
 
-.search-header {
-  background: var(--ion-background-color);
-  padding: 12px 14px 8px;
+// ==========================================
+// 1. HEADER STICKY (CONTATORE LIVE + FORMATO + INVITO + FILTRI)
+// ==========================================
+.convocati-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  background: rgba(var(--ion-background-color-rgb, 11, 15, 25), 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 10px 12px 10px;
+  border-bottom: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  .title-row {
-    @include flex-between;
-    margin-bottom: 10px;
-    gap: 8px;
+// BARRA DI STATO LIVE & FORMATO AUTOMATICO
+.live-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  box-shadow: var(--app-card-shadow);
 
-    h2 {
-      margin: 0;
+  .lsb-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    flex: 1;
+    flex-wrap: wrap;
+
+    .lsb-count {
+      font-size: 14.5px;
       font-weight: 800;
-      font-size: 1.25rem;
       color: var(--app-text-primary);
+      white-space: nowrap;
+      letter-spacing: -0.2px;
     }
 
-    .title-right-group {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    .lsb-dot {
+      color: var(--app-text-muted);
+      font-weight: 700;
+      font-size: 12px;
     }
+
+    .lsb-format-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(16, 185, 129, 0.42);
+      color: #34d399;
+      transition: all 0.2s ease;
+
+      ion-icon {
+        font-size: 0.88rem;
+        flex-shrink: 0;
+      }
+
+      &.is-odd {
+        background: rgba(245, 158, 11, 0.16);
+        border-color: rgba(245, 158, 11, 0.45);
+        color: #fbbf24;
+      }
+
+      &.is-empty {
+        background: var(--app-surface-subtle);
+        border-color: var(--app-card-border);
+        color: var(--app-text-muted);
+      }
+    }
+  }
+
+  .lsb-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 
     .dev-mini-pill {
       display: inline-flex;
       align-items: center;
-      gap: 4px;
-      padding: 4px 9px;
+      gap: 3px;
+      height: 30px;
+      padding: 0 8px;
       border-radius: 8px;
       background: rgba(255, 179, 0, 0.14);
       border: 1px dashed #ffb300;
       color: #ffb300;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
 
       ion-icon {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
       }
 
       &:active {
         transform: scale(0.95);
       }
     }
-  }
 
-  // PANNELLO INVITO & AUTO-RSVP ESCLUSIVO DELLO STEP CONVOCATI
-  .invite-rsvp-panel {
-    margin-bottom: 14px;
-    padding: 12px;
-    border-radius: 14px;
-    background: linear-gradient(
-      145deg,
-      rgba(16, 185, 129, 0.08) 0%,
-      rgba(15, 23, 42, 0.55) 100%
-    );
-    border: 1px solid rgba(16, 185, 129, 0.32);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-
-    .irp-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-
-      .irp-title-box {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-
-        .irp-pill {
-          font-size: 0.68rem;
-          font-weight: 900;
-          letter-spacing: 0.4px;
-          color: #10b981;
-        }
-
-        .irp-counters {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-
-          .irp-cnt {
-            font-size: 0.72rem;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--app-text-primary);
-
-            small {
-              font-weight: 600;
-              opacity: 0.85;
-              margin-left: 2px;
-            }
-
-            &.yes {
-              border: 1px solid rgba(16, 185, 129, 0.4);
-              color: #34d399;
-            }
-            &.maybe {
-              border: 1px solid rgba(245, 158, 11, 0.4);
-              color: #fbbf24;
-            }
-            &.no {
-              border: 1px solid rgba(239, 68, 68, 0.35);
-              color: #f87171;
-            }
-          }
-        }
-      }
-
-      .irp-share-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-
-        .btn-share-whatsapp {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          height: 34px;
-          padding: 0 12px;
-          border-radius: 10px;
-          border: none;
-          background: linear-gradient(135deg, #25d366, #128c7e);
-          color: #ffffff;
-          font-size: 0.76rem;
-          font-weight: 800;
-          cursor: pointer;
-          box-shadow: 0 3px 10px rgba(37, 211, 102, 0.3);
-          transition: transform 0.15s ease;
-
-          &:active {
-            transform: scale(0.96);
-          }
-
-          ion-icon {
-            font-size: 1.05rem;
-          }
-
-          ion-spinner {
-            width: 16px;
-            height: 16px;
-            --color: #ffffff;
-          }
-        }
-
-        .btn-copy-invite {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 34px;
-          height: 34px;
-          border-radius: 10px;
-          border: 1px solid var(--app-card-border);
-          background: var(--app-surface-subtle);
-          color: var(--app-text-primary);
-          cursor: pointer;
-          transition: all 0.15s ease;
-
-          &:active {
-            transform: scale(0.94);
-          }
-        }
-      }
-    }
-
-    .maybe-solicit-strip {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      border-radius: 10px;
-      padding: 7px 10px;
-      margin-top: 8px;
-
-      .mss-left {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 0;
-
-        .mss-icon {
-          font-size: 0.95rem;
-        }
-
-        .mss-text {
-          font-size: 0.73rem;
-          color: #fef08a;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-
-          strong {
-            color: #fbbf24;
-          }
-        }
-      }
-
-      .btn-solicita-wa {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 7px;
-        border: none;
-        background: #25d366;
-        color: #ffffff;
-        font-size: 0.72rem;
-        font-weight: 800;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: transform 0.15s ease;
-
-        &:active {
-          transform: scale(0.95);
-        }
-
-        ion-icon {
-          font-size: 0.85rem;
-        }
-      }
-    }
-
-    .irp-rsvp-box {
-      padding-top: 8px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-      .irp-rsvp-prompt {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        flex-wrap: wrap;
-        font-size: 0.73rem;
-        color: var(--app-text-secondary);
-        margin-bottom: 8px;
-
-        .my-current-status {
-          font-size: 0.7rem;
-          font-weight: 800;
-          padding: 2px 8px;
-          border-radius: 999px;
-
-          &[data-status='yes'] {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-          }
-          &[data-status='maybe'] {
-            background: rgba(245, 158, 11, 0.2);
-            color: #fbbf24;
-          }
-          &.not-confirmed {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--app-text-muted);
-          }
-        }
-      }
-
-      .rsvp-2-buttons {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-
-        .rsvp-choice-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 10px 8px;
-          border-radius: 10px;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          background: rgba(255, 255, 255, 0.04);
-          color: var(--app-text-primary);
-          cursor: pointer;
-          transition: all 0.18s ease;
-
-          span {
-            font-size: 0.78rem;
-            font-weight: 800;
-            white-space: nowrap;
-          }
-
-          &.yes.active {
-            background: rgba(16, 185, 129, 0.22);
-            border-color: #10b981;
-            color: #34d399;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
-          }
-
-          &.maybe.active {
-            background: rgba(245, 158, 11, 0.22);
-            border-color: #f59e0b;
-            color: #fbbf24;
-            box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
-          }
-
-          &:active:not(:disabled) {
-            transform: scale(0.97);
-          }
-
-          &:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-          }
-        }
-      }
-    }
-
-    .irp-login-cta {
-      width: 100%;
-      margin-top: 4px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px dashed rgba(16, 185, 129, 0.55);
-      background: rgba(16, 185, 129, 0.12);
-      color: #34d399;
-      font-size: 0.78rem;
-      font-weight: 800;
-      cursor: pointer;
-      text-align: center;
-    }
-
-    .maybe-players-strip {
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px dashed rgba(245, 158, 11, 0.3);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-
-      .maybe-strip-title {
-        font-size: 0.7rem;
-        font-weight: 800;
-        color: #fbbf24;
-      }
-
-      .maybe-chip {
-        font-size: 0.68rem;
-        font-weight: 700;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: rgba(245, 158, 11, 0.16);
-        border: 1px solid rgba(245, 158, 11, 0.4);
-        color: #fbbf24;
-      }
-    }
-  }
-
-  .dev-bulk-container {
-    margin-bottom: 10px;
-
-    .dev-bulk-btn {
+    .self-presence-quick-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      background: rgba(255, 179, 0, 0.12);
-      border: 1px dashed #ffb300;
-      color: #ffb300;
-      font-size: 0.85rem;
+      gap: 4px;
+      height: 30px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+      color: var(--app-text-secondary);
+      font-size: 12px;
       font-weight: 700;
-      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:active {
-        transform: scale(0.97);
-        background: rgba(255, 179, 0, 0.25);
-      }
+      white-space: nowrap;
+      transition: all 0.18s ease;
 
       ion-icon {
-        font-size: 1.1rem;
-      }
-    }
-  }
-}
-
-// 🏷️ CONTATORE VERDE
-.count-badge {
-  @include pill-badge(var(--ion-color-success), var(--app-black));
-  padding: 4px 12px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  box-shadow: 0 4px 12px var(--app-primary-border);
-}
-
-// 🔍 SEARCHBAR ADATTIVA
-.custom-searchbar {
-  --background: var(--app-surface-subtle);
-  --color: var(--app-text-primary);
-  --placeholder-color: var(--app-text-muted);
-  --icon-color: var(--ion-color-success);
-  --border-radius: 12px;
-  padding: 0;
-  margin-top: 5px;
-  border: 1px solid var(--app-card-border);
-
-  &::part(search-icon) {
-    transform: scale(1.1);
-  }
-}
-
-// ✅ CHECKBOX VERDE FORZATA
-.green-check {
-  --checkbox-background-checked: var(--ion-color-success);
-  --border-color-checked: var(--ion-color-success);
-  --checkmark-color: var(--app-black);
-}
-
-// Chips Orizzontali (Dock Convocati Compatto)
-.selected-players-scroll {
-  display: flex;
-  overflow-x: auto;
-  padding: 10px 14px;
-  gap: 12px;
-  background: var(--app-surface-subtle);
-  border-top: 1px solid var(--app-border-color);
-  border-bottom: 1px solid var(--app-border-color);
-  @include hide-scrollbar;
-
-  .selected-chip {
-    @include flex-col;
-    align-items: center;
-    min-width: 54px;
-    width: 54px;
-    flex-shrink: 0;
-
-    .avatar-wrapper {
-      position: relative;
-      width: 48px;
-      height: 48px;
-      @include flex-center;
-
-      app-player-avatar,
-      img {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        border: 2px solid var(--ion-color-success);
-        display: block;
-        overflow: hidden;
+        font-size: 0.95rem;
       }
 
-      .self-verified-dot {
-        position: absolute;
-        bottom: -2px;
-        left: -2px;
-        background: #04130b;
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        @include flex-center;
-        z-index: 2;
-
-        ion-icon {
-          font-size: 16px;
-          color: #10b981;
-        }
+      &.active {
+        background: var(--app-primary, #10b981);
+        border-color: var(--app-primary, #10b981);
+        color: #ffffff;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
       }
 
-      .remove-btn {
-        position: absolute;
-        top: -3px;
-        right: -3px;
-        width: 20px;
-        height: 20px;
-        min-height: 20px;
-        max-height: 20px;
-        background: #0f172a;
-        border-radius: 50%;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1.5px solid var(--app-bg);
-        z-index: 3;
-        cursor: pointer;
-        @include btn-press;
-
-        ion-icon {
-          font-size: 18px;
-          color: #ef4444;
-          display: block;
-        }
+      &:active:not(:disabled) {
+        transform: scale(0.96);
       }
-    }
-
-    .chip-name {
-      font-size: 12px;
-      color: var(--app-text-secondary);
-      margin-top: 4px;
-      font-weight: 600;
-      @include text-ellipsis;
-      max-width: 100%;
     }
   }
 }
 
 // ==========================================
-// BARRA ADMIN UNIFICATA (INVITO + AUTO-RSVP)
+// 2. STRISCIA COMPATTA INVITO & SOLLECITO
 // ==========================================
-.unified-admin-bar {
-  margin-bottom: 10px;
-  padding: 10px 12px;
-  border-radius: 14px;
+.compact-invite-strip {
+  padding: 7px 10px;
+  border-radius: 11px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
-  box-shadow: var(--app-card-shadow);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 
-  .uab-row {
+  .cis-main-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
 
-    &.self-rsvp-row {
-      padding-top: 8px;
-      border-top: 1px solid var(--app-card-border);
-    }
-
-    .uab-left {
+    .cis-left {
       display: flex;
       align-items: center;
       gap: 6px;
+      min-width: 0;
 
-      .uab-icon {
-        font-size: 1.1rem;
+      .cis-icon {
+        font-size: 1rem;
         color: var(--app-primary);
+        flex-shrink: 0;
       }
 
-      .uab-label {
-        font-size: 13.5px;
+      .cis-label {
+        font-size: 12.5px;
         font-weight: 700;
-        color: var(--app-text-primary);
+        color: var(--app-text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
 
-    .uab-sub-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--app-text-secondary);
-    }
-
-    .uab-actions {
+    .cis-actions {
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-shrink: 0;
 
       .btn-share-whatsapp {
-        height: 36px;
-        min-height: 36px;
-        padding: 0 12px;
-        border-radius: 9px;
+        height: 30px;
+        padding: 0 10px;
+        border-radius: 8px;
         background: #25d366;
         color: #ffffff;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 700;
         border: none;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 4px;
         cursor: pointer;
 
         ion-icon {
-          font-size: 1.05rem;
+          font-size: 0.95rem;
+        }
+
+        ion-spinner {
+          width: 14px;
+          height: 14px;
+          --color: #ffffff;
         }
 
         &:active {
@@ -589,10 +230,9 @@
       }
 
       .btn-copy-invite {
-        width: 36px;
-        height: 36px;
-        min-height: 36px;
-        border-radius: 9px;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
         background: var(--app-surface-subtle);
         border: 1px solid var(--app-card-border);
         color: var(--app-text-secondary);
@@ -602,7 +242,7 @@
         cursor: pointer;
 
         ion-icon {
-          font-size: 1.05rem;
+          font-size: 0.95rem;
         }
 
         &:active {
@@ -610,53 +250,10 @@
         }
       }
     }
-
-    .uab-rsvp-pills {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .mini-rsvp-pill {
-        height: 34px;
-        min-height: 34px;
-        padding: 0 11px;
-        border-radius: 9px;
-        border: 1px solid var(--app-card-border);
-        background: var(--app-surface-subtle);
-        color: var(--app-text-secondary);
-        font-size: 12.5px;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        transition: all 0.18s ease;
-
-        ion-icon {
-          font-size: 1rem;
-        }
-
-        &.yes.active {
-          background: var(--app-primary);
-          border-color: var(--app-primary);
-          color: #ffffff;
-        }
-
-        &.no.active {
-          background: var(--app-accent-danger, #ef4444);
-          border-color: var(--app-accent-danger, #ef4444);
-          color: #ffffff;
-        }
-
-        &:active:not(:disabled) {
-          transform: scale(0.96);
-        }
-      }
-    }
   }
 
   .maybe-solicit-strip {
-    padding-top: 8px;
+    padding-top: 6px;
     border-top: 1px solid var(--app-card-border);
     display: flex;
     align-items: center;
@@ -666,17 +263,17 @@
     .mss-left {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       min-width: 0;
 
       .mss-icon-vector {
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: var(--app-accent-gold);
         flex-shrink: 0;
       }
 
       .mss-text {
-        font-size: 12.5px;
+        font-size: 12px;
         color: var(--app-text-secondary);
         white-space: nowrap;
         overflow: hidden;
@@ -689,14 +286,13 @@
     }
 
     .btn-solicita-wa {
-      height: 32px;
-      min-height: 32px;
-      padding: 0 10px;
-      border-radius: 8px;
+      height: 28px;
+      padding: 0 9px;
+      border-radius: 7px;
       background: rgba(37, 211, 102, 0.15);
       border: 1px solid rgba(37, 211, 102, 0.4);
       color: #25d366;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       display: inline-flex;
       align-items: center;
@@ -708,187 +304,361 @@
 }
 
 // ==========================================
-// LISTA MODERNA A SCHEDE CONVOCABILI (SLEEK CARDS)
+// 3. SEARCH BAR + 3 PILL FILTRO VISTA (FISSE A TUTTA LARGHEZZA)
 // ==========================================
-.sleek-players-grid {
+.search-and-filter-block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px 14px 20px;
+  gap: 7px;
 
-  .sleek-player-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    min-height: 60px;
-    background: var(--app-card-bg);
+  .custom-searchbar {
+    --background: var(--app-surface-subtle);
+    --color: var(--app-text-primary);
+    --placeholder-color: var(--app-text-muted);
+    --icon-color: var(--ion-color-success);
+    --border-radius: 10px;
+    padding: 0;
+    margin: 0;
+    min-height: 38px;
     border: 1px solid var(--app-card-border);
-    border-radius: 14px;
-    cursor: pointer;
-    user-select: none;
-    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
 
-    &:active:not(.read-only) {
-      transform: scale(0.985);
+    &::part(container) {
+      height: 38px;
     }
+  }
 
-    &.is-selected {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.11) 0%, var(--app-card-bg) 100%);
-      border-color: rgba(16, 185, 129, 0.45);
-      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.1);
+  .view-filter-pills {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--app-surface-subtle);
+    border: 1px solid var(--app-card-border);
 
-      .spc-avatar-wrap {
-        app-player-avatar,
-        img {
-          border-color: var(--app-primary);
-        }
-      }
-    }
-
-    &.is-maybe:not(.is-selected) {
-      border-left: 3px solid #f59e0b;
-    }
-
-    &.is-declined:not(.is-selected) {
-      opacity: 0.6;
-    }
-
-    .spc-avatar-wrap {
-      position: relative;
-      width: 44px;
-      height: 44px;
-      flex-shrink: 0;
-
-      app-player-avatar,
-      img {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        border: 2px solid var(--app-card-border);
-        display: block;
-        overflow: hidden;
-        transition: border-color 0.2s ease;
-      }
-
-      .spc-role-tag {
-        position: absolute;
-        bottom: -3px;
-        right: -3px;
-        font-size: 9.5px;
-        font-weight: 800;
-        text-transform: uppercase;
-        padding: 1px 4px;
-        border-radius: 5px;
-        background: #1e293b;
-        color: #94a3b8;
-        border: 1px solid var(--app-card-border);
-        line-height: 1.1;
-      }
-    }
-
-    .spc-info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-
-      .spc-top-line {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-
-        .spc-name {
-          font-size: 15.5px;
-          font-weight: 700;
-          color: var(--app-text-primary);
-          line-height: 1.2;
-        }
-
-        .spc-rsvp-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 3px;
-          font-size: 11.5px;
-          font-weight: 700;
-          padding: 2px 7px;
-          border-radius: 999px;
-
-          &.confirmed {
-            background: rgba(16, 185, 129, 0.16);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.35);
-          }
-
-          &.maybe {
-            background: rgba(245, 158, 11, 0.16);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.35);
-          }
-
-          &.declined {
-            background: rgba(239, 68, 68, 0.14);
-            color: #f87171;
-          }
-
-          &.you {
-            background: var(--app-primary-subtle);
-            color: var(--app-primary);
-            border: 1px solid var(--app-primary-border);
-          }
-        }
-      }
-
-      .spc-bottom-line {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 12.5px;
-        color: var(--app-text-muted);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        .spc-alias {
-          color: var(--app-text-secondary);
-          font-style: italic;
-        }
-      }
-    }
-
-    .spc-check-indicator {
-      flex-shrink: 0;
+    .vf-pill {
+      height: 32px;
+      padding: 0 6px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--app-text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 30px;
-      height: 30px;
-      color: var(--app-text-muted);
-      opacity: 0.55;
-      transition: all 0.2s ease;
+      transition: all 0.18s ease;
 
-      ion-icon {
-        font-size: 26px;
+      &.active {
+        background: var(--app-card-bg);
+        color: var(--app-primary, #10b981);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(16, 185, 129, 0.35);
       }
 
-      &.checked {
-        color: var(--app-primary, #10b981);
-        opacity: 1;
-        filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.35));
+      &:active {
+        transform: scale(0.97);
       }
     }
   }
 }
 
 // ==========================================
-// CLEAN RSVP BOX (ATLETA & MISTER)
+// 4. SEZIONI RAGGRUPPATE & GRIGLIA COMPATTA A 2 COLONNE
+// ==========================================
+.grouped-sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 12px 16px;
+}
+
+.players-section-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .section-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 2px;
+
+    .shb-left {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 0;
+
+      .shb-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+
+        &.selected {
+          background: #10b981;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.65);
+        }
+
+        &.available {
+          background: #64748b;
+        }
+      }
+
+      .shb-title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--app-text-secondary);
+      }
+    }
+
+    .shb-hint {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--app-text-muted);
+      white-space: nowrap;
+    }
+  }
+
+  &.selected-section .shb-title {
+    color: #34d399;
+  }
+
+  .empty-section-box {
+    padding: 14px 12px;
+    border-radius: 12px;
+    background: var(--app-surface-subtle);
+    border: 1px dashed var(--app-card-border);
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--app-text-muted);
+  }
+}
+
+// GRIGLIA COMPATTA A 2 COLONNE (12-14 GIOCATORI IN UNA SOLA SCHERMATA)
+.compact-players-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+
+  &.read-only-grid {
+    padding: 6px 12px 16px;
+  }
+}
+
+.compact-player-pill {
+  width: 100%;
+  min-height: 50px;
+  height: 50px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: var(--app-card-bg);
+  border: 1px solid var(--app-card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:active:not(.read-only) {
+    transform: scale(0.97);
+  }
+
+  &.read-only {
+    cursor: default;
+  }
+
+  &.is-selected {
+    background: linear-gradient(
+      135deg,
+      rgba(16, 185, 129, 0.14) 0%,
+      var(--app-card-bg) 100%
+    );
+    border-color: rgba(16, 185, 129, 0.48);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+
+    .cpp-avatar {
+      app-player-avatar,
+      img {
+        border-color: #10b981;
+      }
+    }
+  }
+
+  &.is-maybe:not(.is-selected) {
+    border-left: 3px solid #f59e0b;
+  }
+
+  &.is-declined:not(.is-selected) {
+    opacity: 0.58;
+  }
+
+  .cpp-avatar {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+
+    app-player-avatar,
+    img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--app-card-border);
+      display: block;
+      overflow: hidden;
+      object-fit: cover;
+    }
+
+    .cpp-self-dot {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #10b981;
+      border: 1.5px solid var(--app-card-bg);
+    }
+  }
+
+  .cpp-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+
+    .cpp-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--app-text-primary);
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cpp-tags {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+
+      .cpp-role-tag {
+        font-size: 9.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: var(--app-surface-subtle);
+        border: 1px solid var(--app-card-border);
+        color: var(--app-text-muted);
+        line-height: 1.1;
+        letter-spacing: 0.2px;
+
+        &[data-role='POR'] {
+          color: #fbbf24;
+          border-color: rgba(245, 158, 11, 0.35);
+          background: rgba(245, 158, 11, 0.1);
+        }
+        &[data-role='DIF'] {
+          color: #38bdf8;
+          border-color: rgba(56, 189, 248, 0.35);
+          background: rgba(56, 189, 248, 0.1);
+        }
+        &[data-role='CEN'] {
+          color: #a78bfa;
+          border-color: rgba(167, 139, 250, 0.35);
+          background: rgba(167, 139, 250, 0.1);
+        }
+        &[data-role='ATT'] {
+          color: #f87171;
+          border-color: rgba(248, 113, 113, 0.35);
+          background: rgba(248, 113, 113, 0.1);
+        }
+      }
+
+      .cpp-status-micro {
+        font-size: 9.5px;
+        font-weight: 800;
+        padding: 1px 4px;
+        border-radius: 4px;
+        line-height: 1.1;
+
+        &.confirmed {
+          color: #34d399;
+          background: rgba(16, 185, 129, 0.14);
+        }
+        &.maybe {
+          color: #fbbf24;
+          background: rgba(245, 158, 11, 0.16);
+        }
+        &.declined {
+          color: #f87171;
+          background: rgba(239, 68, 68, 0.14);
+        }
+        &.you {
+          color: var(--app-primary);
+          background: var(--app-primary-subtle);
+        }
+      }
+    }
+  }
+
+  .cpp-status-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+
+    &.selected {
+      background: #10b981;
+      color: #04130b;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+
+      ion-icon {
+        font-size: 14px;
+        --ionicon-stroke-width: 64px;
+      }
+    }
+
+    &.available {
+      background: var(--app-surface-subtle);
+      border: 1px solid var(--app-card-border);
+      color: var(--app-text-muted);
+
+      ion-icon {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+// ==========================================
+// 5. CLEAN RSVP BOX & VISTA ATLETA
 // ==========================================
 .clean-rsvp-box {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  border-radius: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
   background: var(--app-card-bg);
   border: 1px solid var(--app-card-border);
   box-shadow: var(--app-card-shadow);
@@ -897,18 +667,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 
     .crb-prompt {
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--app-text-secondary);
     }
 
     .crb-status-pill {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 2px 9px;
       border-radius: 20px;
       background: var(--app-surface-subtle);
       color: var(--app-text-muted);
@@ -924,16 +694,16 @@
   .crb-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
 
     .crb-btn {
-      min-height: 48px;
-      border-radius: 12px;
+      min-height: 42px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      font-size: 14.5px;
+      gap: 6px;
+      font-size: 13.5px;
       font-weight: 700;
       border: 1px solid var(--app-card-border);
       background: var(--app-surface-subtle);
@@ -942,24 +712,20 @@
       transition: all 0.2s ease;
 
       ion-icon {
-        font-size: 1.25rem;
+        font-size: 1.15rem;
       }
 
-      &.yes {
-        &.active {
-          background: var(--app-primary);
-          color: #ffffff;
-          border-color: var(--app-primary);
-          box-shadow: 0 3px 12px rgba(var(--app-primary-rgb), 0.35);
-        }
+      &.yes.active {
+        background: var(--app-primary);
+        color: #ffffff;
+        border-color: var(--app-primary);
+        box-shadow: 0 3px 10px rgba(var(--app-primary-rgb), 0.35);
       }
 
-      &.no {
-        &.active {
-          background: var(--app-accent-danger, #ef4444);
-          color: #ffffff;
-          border-color: var(--app-accent-danger, #ef4444);
-        }
+      &.no.active {
+        background: var(--app-accent-danger, #ef4444);
+        color: #ffffff;
+        border-color: var(--app-accent-danger, #ef4444);
       }
 
       &:active:not(:disabled) {
@@ -969,174 +735,35 @@
   }
 }
 
-// ==========================================
-// INVITE PANEL ADMIN (MISTER)
-// ==========================================
-.invite-panel-admin {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: var(--app-card-bg);
-  border: 1px solid var(--app-card-border);
-  box-shadow: var(--app-card-shadow);
-
-  .ipa-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-
-    .ipa-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-
-      .ipa-badge {
-        font-size: 12px;
-        font-weight: 800;
-        color: var(--app-primary);
-        background: var(--app-primary-subtle);
-        padding: 3px 8px;
-        border-radius: 8px;
-      }
-
-      .ipa-counter {
-        font-size: 13.5px;
-        font-weight: 700;
-        color: var(--app-text-primary);
-      }
-    }
-
-    .ipa-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-
-      .btn-share-whatsapp {
-        min-height: 40px;
-        padding: 0 14px;
-        border-radius: 10px;
-        background: #25d366;
-        color: #ffffff;
-        font-size: 13.5px;
-        font-weight: 700;
-        border: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-
-        ion-icon {
-          font-size: 1.15rem;
-        }
-
-        &:active {
-          transform: scale(0.96);
-        }
-      }
-
-      .btn-copy-invite {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: var(--app-surface-subtle);
-        border: 1px solid var(--app-card-border);
-        color: var(--app-text-secondary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-
-        ion-icon {
-          font-size: 1.15rem;
-        }
-
-        &:active {
-          transform: scale(0.96);
-        }
-      }
-    }
-  }
-
-  .maybe-solicit-strip {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--app-card-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-
-    .mss-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      min-width: 0;
-
-      .mss-icon-vector {
-        font-size: 1.2rem;
-        color: var(--app-accent-gold);
-        flex-shrink: 0;
-      }
-
-      .mss-text {
-        font-size: 13px;
-        color: var(--app-text-secondary);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        strong {
-          color: var(--app-accent-gold);
-        }
-      }
-    }
-
-    .btn-solicita-wa {
-      min-height: 36px;
-      padding: 0 10px;
-      border-radius: 8px;
-      background: rgba(37, 211, 102, 0.15);
-      border: 1px solid rgba(37, 211, 102, 0.4);
-      color: #25d366;
-      font-size: 12.5px;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-      cursor: pointer;
-
-      ion-icon {
-        font-size: 1rem;
-      }
-
-      &:active {
-        transform: scale(0.96);
-      }
-    }
-  }
+.irp-login-cta {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(16, 185, 129, 0.55);
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
 }
 
-// ==========================================
-// VISTA ATLETA: LISTA CONVOCATI PULITA (READ-ONLY)
-// ==========================================
 .athlete-convocati-list-wrapper {
-  margin-top: 8px;
+  margin-top: 6px;
 
   .acl-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 16px;
-    font-size: 13.5px;
-    font-weight: 700;
+    padding: 8px 14px 4px;
+    font-size: 12.5px;
+    font-weight: 800;
     color: var(--app-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 
     ion-icon {
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       color: var(--app-primary);
     }
   }
@@ -1145,11 +772,6 @@
     padding: 24px 16px;
     text-align: center;
     color: var(--app-text-muted);
-    font-size: 14px;
-  }
-
-  .clean-confirmed-check {
-    font-size: 1.5rem;
-    color: var(--app-primary, #10b981);
+    font-size: 13.5px;
   }
 }

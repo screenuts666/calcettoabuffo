@@ -36,6 +36,7 @@ import {
   addOutline,
   chevronUpOutline,
   chevronDownOutline,
+  chevronForwardOutline,
   lockClosedOutline,
   timerOutline,
 } from 'ionicons/icons';
@@ -162,6 +163,7 @@ export class StepDettagliComponent {
       addOutline,
       chevronUpOutline,
       chevronDownOutline,
+      chevronForwardOutline,
       lockClosedOutline,
       timerOutline,
     });

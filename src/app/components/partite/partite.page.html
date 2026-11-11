@@ -6,7 +6,7 @@
     </ion-buttons>
   </ion-toolbar>
 
-  <!-- BARRA 1: SELETTORE STAGIONE + TOGGLE RIEPILOGO KPI (ZERO SCROLL ORIZZONTALE) -->
+  <!-- BARRA 1: SELETTORE STAGIONE + TOGGLE STATS KPI (ZERO SCROLL E ZERO SOVRAPPOSIZIONI) -->
   <div class="season-header-bar" role="region" aria-label="Filtro stagione e riepilogo">
     <div class="season-pills">
       @for (stg of stagioniList(); track (stg.id || '') + '_' + $index) {
@@ -18,9 +18,7 @@
           (click)="selezionaStagione(stg.id)"
           [title]="stg.label"
         >
-          <ion-icon [name]="stg.icon" aria-hidden="true"></ion-icon>
-          <span>{{ stg.shortLabel }}</span>
-          <span class="season-pill-count">{{ conteggioStagioni()[stg.id] || 0 }}</span>
+          <span>{{ stg.shortLabel }} ({{ conteggioStagioni()[stg.id] || 0 }})</span>
         </button>
       }
     </div>
@@ -34,7 +32,7 @@
       title="Mostra o nascondi statistiche stagionali"
     >
       <ion-icon name="stats-chart-outline" aria-hidden="true"></ion-icon>
-      <span>Riepilogo</span>
+      <span>Stats</span>
       <ion-icon [name]="isKpiDrawerOpen() ? 'chevron-up' : 'chevron-down'" class="toggle-chevron" aria-hidden="true"></ion-icon>
     </button>
   </div>
@@ -76,7 +74,7 @@
     </div>
   }
 
-  <!-- BARRA 2: SEARCH BAR + FILTRI AVANZATI + ORDINAMENTO INTEGRATO SULLA STESSA RIGA -->
+  <!-- BARRA 2: SEARCH BAR AMPIA + SINGOLO BOTTONE UNIFICATO FILTRA / ORDINA -->
   <div class="search-and-sort-row">
     <div class="search-box-wrap" role="search">
       <ion-icon name="search-outline" class="search-icon" aria-hidden="true"></ion-icon>
@@ -101,33 +99,21 @@
       }
     </div>
 
-    <!-- Pulsante Filtri Avanzati -->
+    <!-- Singolo Bottone Compatto Unificato: Filtra / Ordina -->
     <button
       type="button"
-      class="filter-trigger-btn"
-      [class.active]="isFiltriCampettoOpen() || isAnyFilterActive()"
+      class="unified-filter-sort-btn"
+      [class.active]="isFiltriCampettoOpen() || isAnyFilterActive() || criterioOrdinamento() !== 'data' || ordineCrescente()"
       [attr.aria-expanded]="isFiltriCampettoOpen()"
-      aria-label="Filtri avanzati (Campetto, Formato, Meteo)"
+      aria-label="Filtra e ordina partite"
       (click)="toggleFiltriCampetto()"
-      title="Filtri Avanzati (Campetto, Formato, Meteo)"
-    >
-      <ion-icon name="filter" aria-hidden="true"></ion-icon>
-      @if (isAnyFilterActive()) {
-        <span class="filter-dot" aria-hidden="true"></span>
-      }
-    </button>
-
-    <!-- Pulsante Ordinamento Integrato -->
-    <button
-      type="button"
-      class="sort-trigger-btn"
-      [class.active]="criterioOrdinamento() !== 'data' || ordineCrescente()"
-      (click)="apriMenuOrdinamento()"
-      title="Cambia ordinamento partite"
-      aria-label="Ordina partite"
+      title="Filtra e ordina partite"
     >
       <ion-icon name="swap-vertical-outline" aria-hidden="true"></ion-icon>
-      <span>{{ sortButtonLabel() }}</span>
+      <span>Filtra / Ordina</span>
+      @if (isAnyFilterActive() || criterioOrdinamento() !== 'data' || ordineCrescente()) {
+        <span class="filter-dot" aria-hidden="true"></span>
+      }
     </button>
   </div>
 
@@ -170,13 +156,44 @@
     </div>
   }
 
-  <!-- CASSETTO FILTRI AVANZATI (Campetto, Formato, Meteo) -->
+  <!-- CASSETTO UNIFICATO ORDINAMENTO & FILTRI AVANZATI (GRIGLIA WRAP ZERO-SCROLL) -->
   @if (isFiltriCampettoOpen()) {
     <div class="filter-drawer">
+      <!-- SEZIONE 0: ORDINAMENTO -->
+      <div class="filter-drawer-group">
+        <span class="group-label">⇅ Ordina:</span>
+        <div class="filter-wrap-grid">
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="criterioOrdinamento() === 'data' && !ordineCrescente()"
+            (click)="impostaOrdinamentoRapido('data', false)"
+          >
+            Più recenti
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="criterioOrdinamento() === 'data' && ordineCrescente()"
+            (click)="impostaOrdinamentoRapido('data', true)"
+          >
+            Meno recenti
+          </button>
+          <button
+            type="button"
+            class="filter-chip"
+            [class.active]="criterioOrdinamento() === 'gol'"
+            (click)="impostaOrdinamentoRapido('gol', false)"
+          >
+            ⚽ Più Gol
+          </button>
+        </div>
+      </div>
+
       <!-- SEZIONE 1: CAMPETTO -->
       <div class="filter-drawer-group">
-        <span class="group-label">📍 Campetto:</span>
-        <div class="filter-scroll">
+        <span class="group-label">📍 Campo:</span>
+        <div class="filter-wrap-grid">
           <button
             type="button"
             class="filter-chip"
@@ -202,14 +219,14 @@
       <!-- SEZIONE 2: FORMATO -->
       <div class="filter-drawer-group">
         <span class="group-label">⚽ Formato:</span>
-        <div class="filter-scroll">
+        <div class="filter-wrap-grid">
           <button
             type="button"
             class="filter-chip"
             [class.active]="filtroFormato() === 'all'"
             (click)="selezionaFiltroFormato('all')"
           >
-            Tutti i Formati
+            Tutti
           </button>
           <button
             type="button"
@@ -241,14 +258,14 @@
       <!-- SEZIONE 3: METEO -->
       <div class="filter-drawer-group">
         <span class="group-label">🌤️ Meteo:</span>
-        <div class="filter-scroll">
+        <div class="filter-wrap-grid">
           <button
             type="button"
             class="filter-chip"
             [class.active]="filtroMeteo() === 'all'"
             (click)="selezionaFiltroMeteo('all')"
           >
-            Tutti i Meteo
+            Tutti
           </button>
           <button
             type="button"
