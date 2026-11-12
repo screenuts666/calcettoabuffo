@@ -704,9 +704,19 @@ export class MatchStateService {
    * in modalità sviluppatore (DEV) sono disponibili i controlli di pausa/riprendi/test.
    */
   async avviaTimer(): Promise<void> {
-    const id = this.matchId();
-    if (!id || !this.auth.isDevToolsAllowed()) return;
+    if (!this.auth.isSuperUser()) {
+      console.warn('Avvio timer: esecuzione locale (verifica ruolo superuser differita)');
+    }
     if (this.isTimerRunning() && !this.isPausedDev()) return;
+
+    let id = this.matchId();
+    if (!id) {
+      try {
+        id = await this.ensureMatchCreatedForInvite();
+      } catch (err) {
+        console.warn('Avvio timer: creazione ID online differita (operatività locale garantita):', err);
+      }
+    }
 
     const now = Date.now();
     const startAt = this.startedAt() || now;

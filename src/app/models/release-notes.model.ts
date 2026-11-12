@@ -15,6 +15,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.83",
+    "date": "12/11/2026",
+    "title": "HOTFIX CRITICO: Ripristino Immediato e Infallibile Avvio Cronometro Partita",
+    "isMajor": true,
+    "target": "all",
+    "userChanges": [
+      "Cronometro Infallibile a Bordo Campo: risolto il blocco critico che impediva al cronometro di partire alla pressione di 'Fischio d'Inizio' in produzione. Ora il match parte all'istante al primo tocco.",
+      "Fischio d'Inizio Reattivo & Sblocco Immediato dei Gol: la pressione del tasto avvia subito il fischio arbitrale, sblocca la registrazione di gol/assist e fa avanzare il timer a schermo senza ritardi.",
+      "Funzionamento Garantito anche Senza Rete: il cronometro e i cambi portiere operano in piena autonomia locale salvando snapshot continui, garantendo la totale continuità anche in assenza di segnale."
+    ],
+    "superUserChanges": [
+      "Rimosso Blocco DevTools su avviaTimer(): eliminato il controllo errato su isDevToolsAllowed() che in produzione (environment.production) causava il return anticipato e impediva al timer di avviarsi.",
+      "Risoluzione Resiliente ID Match & Auto-Recovery: garantita l'operatività del timer locale anche se l'ID online del match è ancora in fase di creazione.",
+      "Getter di Sicurezza isAdmin su StepMatch: implementato fallback reattivo isAdmin || auth.isSuperUser() contro race-condition di caricamento ruolo."
+    ]
+  },
+  {
     "version": "2.0.82",
     "date": "11/11/2026",
     "title": "Blindatura Globale Anti-Autofill & Fix Contorno e Fuoriuscita Barra Convocati",

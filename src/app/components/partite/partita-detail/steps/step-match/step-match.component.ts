@@ -79,7 +79,14 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
 
-  @Input() isAdmin: boolean = false;
+  private _isAdmin: boolean = false;
+  @Input()
+  set isAdmin(val: boolean) {
+    this._isAdmin = val;
+  }
+  get isAdmin(): boolean {
+    return this._isAdmin || this.auth.isSuperUser();
+  }
 
   /**
    * Controllo Pausa / Stop / Fast-Forward visibile ESCLUSIVAMENTE in ambiente DEV (`!environment.production || isDevMode()`).
@@ -206,78 +213,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
     // ─── TIMER PRINCIPALE BASATO SU TIMESTAMP REALI (Date.now()) ───────
     this.timerRef = setInterval(() => {
-      if (this.state.isTimerRunning() && !this.state.isPausedDev()) {
-        const now = Date.now();
-        const base =
-          this.state.timerStartAt() || this.state.startedAt() || now;
-        const elapsedSinceResume = Math.max(
-          0,
-          Math.floor((now - base) / 1000),
-        );
-        const newCronometro =
-          this.state.timerStartAt() && this.state.accumulatedTime() > 0
-            ? this.state.accumulatedTime() + elapsedSinceResume
-            : elapsedSinceResume;
-        this.state.cronometro.set(newCronometro);
-
-        // Salvataggio periodico di sicurezza in locale ogni 5 secondi
-        if (newCronometro % 5 === 0) {
-          this.state.salvaSnapshotLocale();
-        }
-
-        // ─── MACCHINA A STATI CAMBIO PORTIERE ('running' -> 'alarm_ringing') ───
-        const hasRotatingTeam =
-          this.state.modalitaPortieriA() === 'rotazione' ||
-          this.state.modalitaPortieriB() === 'rotazione';
-
-        if (this.isAdmin && hasRotatingTeam) {
-          const turnSec = this.state.durataTurnoSecondi();
-          const turnIndex = this.state.turnoAttualeIndex();
-          const secRim = this.state.secondiRimanentiAlCambio();
-
-          if (!this.state.cambioAttivo()) {
-            // Preavviso toast prima del cambio (-30s standard, -10s per turni brevi)
-            const isPreAlertTime =
-              (turnSec >= 60 && secRim === 30) ||
-              (turnSec < 60 && secRim === 10);
-            if (isPreAlertTime && this.ultimoPreAlertTurno !== turnIndex) {
-              this.ultimoPreAlertTurno = turnIndex;
-              this.mostraToastFeedback(
-                `Tra ${secRim} secondi cambio portiere!`,
-                'warning',
-              );
-            }
-
-            // Quando il countdown del turno arriva a 00:00 -> stato 'alarm_ringing'
-            // I portieri precedenti RIMANGONO in porta finché non si clicca su "FERMA SUONO E CAMBIA PORTIERI"
-            if (
-              newCronometro > 0 &&
-              secRim === 0 &&
-              this.ultimoCambioTurno !== turnIndex
-            ) {
-              this.ultimoCambioTurno = turnIndex;
-              this.state.setCambioPortiereAttivo(true);
-              this.inviaNotificaWebCambioPortiere();
-            }
-          }
-        }
-      } else {
-        this.state.cronometro.set(this.state.accumulatedTime());
-      }
-
-      // ─── GESTIONE AUDIO IN LOOP CONTINUO FINO ALLO STOP MANUALE ──────
-      if (this.isAdmin) {
-        const shouldPlayAlarm =
-          this.state.cambioAttivo() && !this.state.isPausedDev();
-        if (shouldPlayAlarm && !this.soundSettings.isMatchAlarmPlaying()) {
-          this.avviaAudio();
-        } else if (
-          !shouldPlayAlarm &&
-          this.soundSettings.isMatchAlarmPlaying()
-        ) {
-          this.fermaAudio();
-        }
-      }
+      this.eseguiTickTimer();
     }, 1000);
   }
 
@@ -525,8 +461,97 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       this.ultimoPreAlertTurno = -1;
       this.soundSettings.stopMatchCambioAlarm();
       await this.state.setCambioPortiereAttivo(false);
+      try {
+        this.soundSettings.playMatchWhistle('kickoff');
+      } catch (err) {
+        console.warn('Audio kickoff non riprodotto:', err);
+      }
     }
     await this.state.avviaTimer();
+    if (!this.timerRef) {
+      this.timerRef = setInterval(() => {
+        this.eseguiTickTimer();
+      }, 1000);
+    }
+    this.eseguiTickTimer();
+  }
+
+  /**
+   * Calcolo del secondo del cronometro in tempo reale e gestione degli eventi periodici di cambio portiere
+   */
+  private eseguiTickTimer() {
+    if (this.state.isTimerRunning() && !this.state.isPausedDev()) {
+      const now = Date.now();
+      const base =
+        this.state.timerStartAt() || this.state.startedAt() || now;
+      const elapsedSinceResume = Math.max(
+        0,
+        Math.floor((now - base) / 1000),
+      );
+      const newCronometro =
+        this.state.timerStartAt() && this.state.accumulatedTime() > 0
+          ? this.state.accumulatedTime() + elapsedSinceResume
+          : elapsedSinceResume;
+      this.state.cronometro.set(newCronometro);
+
+      // Salvataggio periodico di sicurezza in locale ogni 5 secondi
+      if (newCronometro % 5 === 0) {
+        this.state.salvaSnapshotLocale();
+      }
+
+      // ─── MACCHINA A STATI CAMBIO PORTIERE ('running' -> 'alarm_ringing') ───
+      const hasRotatingTeam =
+        this.state.modalitaPortieriA() === 'rotazione' ||
+        this.state.modalitaPortieriB() === 'rotazione';
+
+      if (this.isAdmin && hasRotatingTeam) {
+        const turnSec = this.state.durataTurnoSecondi();
+        const turnIndex = this.state.turnoAttualeIndex();
+        const secRim = this.state.secondiRimanentiAlCambio();
+
+        if (!this.state.cambioAttivo()) {
+          // Preavviso toast prima del cambio (-30s standard, -10s per turni brevi)
+          const isPreAlertTime =
+            (turnSec >= 60 && secRim === 30) ||
+            (turnSec < 60 && secRim === 10);
+          if (isPreAlertTime && this.ultimoPreAlertTurno !== turnIndex) {
+            this.ultimoPreAlertTurno = turnIndex;
+            this.mostraToastFeedback(
+              `Tra ${secRim} secondi cambio portiere!`,
+              'warning',
+            );
+          }
+
+          // Quando il countdown del turno arriva a 00:00 -> stato 'alarm_ringing'
+          // I portieri precedenti RIMANGONO in porta finché non si clicca su "FERMA SUONO E CAMBIA PORTIERI"
+          if (
+            newCronometro > 0 &&
+            secRim === 0 &&
+            this.ultimoCambioTurno !== turnIndex
+          ) {
+            this.ultimoCambioTurno = turnIndex;
+            this.state.setCambioPortiereAttivo(true);
+            this.inviaNotificaWebCambioPortiere();
+          }
+        }
+      }
+    } else {
+      this.state.cronometro.set(this.state.accumulatedTime());
+    }
+
+    // ─── GESTIONE AUDIO IN LOOP CONTINUO FINO ALLO STOP MANUALE ──────
+    if (this.isAdmin) {
+      const shouldPlayAlarm =
+        this.state.cambioAttivo() && !this.state.isPausedDev();
+      if (shouldPlayAlarm && !this.soundSettings.isMatchAlarmPlaying()) {
+        this.avviaAudio();
+      } else if (
+        !shouldPlayAlarm &&
+        this.soundSettings.isMatchAlarmPlaying()
+      ) {
+        this.fermaAudio();
+      }
+    }
   }
 
   /**
