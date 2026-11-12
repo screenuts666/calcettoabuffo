@@ -103,6 +103,7 @@ export function updateReleaseNotesAndBump(targetDir: string, plan: HotfixPlan): 
 
 export function ensureDependencies(targetDir: string): void {
   const nodeModulesPath = path.join(targetDir, 'node_modules');
+  const nxBin = path.join(nodeModulesPath, '.bin', 'nx');
   const lockFilePath = path.join(targetDir, 'package-lock.json');
   const hashFilePath = path.join(targetDir, '.node_modules_lock_hash');
 
@@ -111,24 +112,26 @@ export function ensureDependencies(targetDir: string): void {
   const previousLockHash = fs.existsSync(hashFilePath) ? fs.readFileSync(hashFilePath, 'utf-8').trim() : '';
 
   const hasNodeModules = fs.existsSync(nodeModulesPath);
-  const isLockUnchanged = hasNodeModules && previousLockHash === currentLockHash;
+  const hasNx = fs.existsSync(nxBin);
+  const isLockUnchanged = hasNodeModules && hasNx && previousLockHash === currentLockHash;
 
   if (isLockUnchanged) {
-    console.log('[Builder] node_modules intatto e package-lock.json invariato. Skip npm ci!');
+    console.log('[Builder] node_modules e nx intatti, package-lock.json invariato. Skip npm ci!');
     return;
   }
 
-  console.log('[Builder] Installazione dipendenze ultra-veloce (npm ci con cache /tmp/.npm-cache)...');
+  console.log('[Builder] Installazione dipendenze complete con devDependencies (npm ci --include=dev)...');
   const npmCacheDir = '/tmp/.npm-cache';
   fs.mkdirSync(npmCacheDir, { recursive: true });
 
   execSync(
-    `npm ci --prefer-offline --no-audit --no-fund --progress=false --cache=${npmCacheDir}`,
+    `npm ci --include=dev --prefer-offline --no-audit --no-fund --progress=false --cache=${npmCacheDir}`,
     {
       cwd: targetDir,
       stdio: 'pipe',
       env: {
         ...process.env,
+        NODE_ENV: 'development',
         npm_config_cache: npmCacheDir,
       },
     }
@@ -140,12 +143,19 @@ export function ensureDependencies(targetDir: string): void {
 
 export function runBuild(targetDir: string): { success: boolean; output: string } {
   try {
+    const nodeBinDir = path.join(targetDir, 'node_modules', '.bin');
+    const pathDelimiter = path.delimiter;
+    const currentPath = process.env.PATH || '';
+    const augmentedPath = `${nodeBinDir}${pathDelimiter}${currentPath}`;
+
     const output = execSync('npm run build', {
       cwd: targetDir,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
       env: {
         ...process.env,
+        PATH: augmentedPath,
+        NODE_ENV: 'development',
         NG_PERSISTENT_BUILD_CACHE: '1',
         NG_CLI_ANALYTICS: 'false',
         NODE_OPTIONS: '--max-old-space-size=3584',
@@ -161,9 +171,21 @@ export function runBuild(targetDir: string): { success: boolean; output: string 
 
 export function deployHosting(targetDir: string, project: string): string {
   console.log(`[Deploy] Deploying Hosting su ${project}...`);
+  const nodeBinDir = path.join(targetDir, 'node_modules', '.bin');
+  const pathDelimiter = path.delimiter;
+  const currentPath = process.env.PATH || '';
+  const augmentedPath = `${nodeBinDir}${pathDelimiter}${currentPath}`;
+
   return execSync(
     `npx firebase deploy --only hosting --project ${project}`,
-    { cwd: targetDir, encoding: 'utf-8' }
+    {
+      cwd: targetDir,
+      encoding: 'utf-8',
+      env: {
+        ...process.env,
+        PATH: augmentedPath,
+      },
+    }
   );
 }
 
