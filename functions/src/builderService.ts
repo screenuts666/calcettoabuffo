@@ -32,14 +32,62 @@ export function scanSrcFiles(targetDir: string): string[] {
   return results;
 }
 
-export function findRelevantFiles(targetDir: string, keywords: string[]): string[] {
+const ITALIAN_STOP_WORDS = new Set([
+  'il', 'lo', 'la', 'i', 'gli', 'le', 'un', 'uno', 'una', 'di', 'a', 'da', 'in', 'con', 'su', 'per', 'tra', 'fra',
+  'della', 'dello', 'delle', 'degli', 'dei', 'del', 'nella', 'nello', 'nelle', 'negli', 'nei', 'nel',
+  'sulla', 'sullo', 'sulle', 'sugli', 'sui', 'sul', 'alla', 'allo', 'alle', 'agli', 'ai', 'al',
+  'dalla', 'dallo', 'dalle', 'dagli', 'dai', 'dal', 'e', 'o', 'ma', 'se', 'che', 'chi', 'cui', 'non',
+  'piu', 'più', 'come', 'dove', 'quando', 'perche', 'perché', 'anche', 'ancora', 'questo', 'questa',
+  'questi', 'queste', 'quello', 'quella', 'quelli', 'quelle', 'mio', 'tuo', 'suo', 'nostro', 'vostro', 'loro',
+  'ogni', 'tutti', 'tutto', 'tutta', 'tutte', 'fine', 'inizio', 'bene', 'male', 'cosi', 'così',
+  'vorrei', 'voglio', 'fare', 'vedere', 'vedo', 'mostra', 'metti', 'sposta', 'riga', 'righe'
+]);
+
+export function findRelevantFiles(targetDir: string, keywordsOrText: string[] | string): string[] {
   const allFiles = scanSrcFiles(targetDir);
-  if (!keywords || keywords.length === 0) return allFiles;
-  const lowerKeywords = keywords.map((k) => k.toLowerCase());
-  return allFiles.filter((file) => {
-    const lower = file.toLowerCase();
-    return lowerKeywords.some((k) => lower.includes(k));
+  const text = Array.isArray(keywordsOrText) ? keywordsOrText.join(' ') : (keywordsOrText || '');
+  const words = text
+    .toLowerCase()
+    .split(/[\s,.;:!?()]+/)
+    .map((w) => w.replace(/[^a-z0-9]/g, ''))
+    .filter((w) => w.length >= 3 && !ITALIAN_STOP_WORDS.has(w));
+
+  if (words.length === 0) return allFiles.slice(0, 20);
+
+  const scored = allFiles.map((filePath) => {
+    let score = 0;
+    const lowerPath = filePath.toLowerCase().replace(/\\/g, '/');
+    const baseName = path.basename(lowerPath);
+    for (const kw of words) {
+      if (baseName.includes(kw)) {
+        score += 10;
+      } else if (lowerPath.includes(kw)) {
+        score += 3;
+      }
+    }
+    return { filePath, score };
   });
+
+  const matchingFiles = scored
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((s) => s.filePath);
+
+  // Per ogni file matched, assicurati di includere i suoi file gemelli (.html, .ts, .scss) se esistono
+  const expandedSet = new Set<string>();
+  for (const f of matchingFiles) {
+    expandedSet.add(f);
+    const parsed = path.parse(f);
+    const baseWithoutExt = path.join(parsed.dir, parsed.name.replace(/\.(page|component)$/, '')).replace(/\\/g, '/');
+    for (const cand of allFiles) {
+      if (cand.replace(/\\/g, '/').startsWith(baseWithoutExt)) {
+        expandedSet.add(cand);
+      }
+    }
+    if (expandedSet.size >= 25) break;
+  }
+
+  return Array.from(expandedSet);
 }
 
 export function applyPatches(targetDir: string, patches: PatchItem[]): string[] {
@@ -228,19 +276,13 @@ export async function executeInCloudHotfix({
     // 1/4 Analisi e generazione patch con Gemini 3.8 Flash High
     await updateProgress('1/4 🧠 <b>Analisi e generazione patch con Gemini 3.8 Flash High...</b>');
     const allFiles = scanSrcFiles(targetDir);
-    const words = (userText || '')
-      .toLowerCase()
-      .split(/\s+/)
-      .map((w) => w.replace(/[^a-z0-9]/g, ''))
-      .filter((w) => w.length >= 3);
-
-    const relevantFiles = findRelevantFiles(targetDir, words).slice(0, 15);
+    const relevantFiles = findRelevantFiles(targetDir, userText).slice(0, 20);
     const filesContext: Record<string, string> = {};
     for (const relPath of relevantFiles) {
       const full = path.join(targetDir, relPath);
       if (fs.existsSync(full)) {
         const text = fs.readFileSync(full, 'utf-8');
-        if (text.length < 40000) filesContext[relPath] = text;
+        if (text.length < 120000) filesContext[relPath] = text;
       }
     }
 
