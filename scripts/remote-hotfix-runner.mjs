@@ -93,8 +93,8 @@ function escapeHtml(str) {
 
 // ─── GEMINI CLIENT (DIRECT REST API WITH AUTOMATIC MULTI-MODEL FALLBACK) ────
 const CANDIDATE_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
+  "gemini-3.8-flash",
+  "gemini-3.8-pro",
   "gemini-2.5-flash",
   "gemini-2.5-pro",
 ];
@@ -145,8 +145,8 @@ async function callGemini({
 
       if (!res.ok) {
         const errorText = await res.text();
-        // Se è quota superata (429) o sovraccarico (503), prova il modello successivo nella catena
-        if (res.status === 429 || res.status === 503) {
+        // Se è modello non trovato (404), quota superata (429) o sovraccarico (503), prova il successivo
+        if (res.status === 404 || res.status === 429 || res.status === 503) {
           console.warn(
             `[Gemini] Modello ${currentModel} ha restituito ${res.status}. Tento fallback su modello alternativo...`,
           );
@@ -178,7 +178,12 @@ async function callGemini({
       return textPart.trim();
     } catch (err) {
       lastError = err;
-      if (err.message && (err.message.includes("429") || err.message.includes("503"))) {
+      if (
+        err.message &&
+        (err.message.includes("404") ||
+          err.message.includes("429") ||
+          err.message.includes("503"))
+      ) {
         continue;
       }
       throw err;
