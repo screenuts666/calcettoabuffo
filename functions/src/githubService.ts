@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { CONFIG } from './config';
 
 const GITHUB_API = 'https://api.github.com';
@@ -13,13 +14,32 @@ function getHeaders() {
 }
 
 export async function cloneRepo(targetDir: string): Promise<void> {
-  if (fs.existsSync(targetDir)) {
-    fs.rmSync(targetDir, { recursive: true, force: true });
-  }
-  fs.mkdirSync(targetDir, { recursive: true });
+  await prepareWorkspace(targetDir);
+}
 
+export async function prepareWorkspace(targetDir: string): Promise<{ isWarm: boolean }> {
+  const gitDir = path.join(targetDir, '.git');
   const cloneUrl = `https://x-access-token:${CONFIG.githubPat}@github.com/${CONFIG.githubRepo}.git`;
-  console.log(`[GitHub] Clone repo ${CONFIG.githubRepo} in ${targetDir}...`);
+
+  if (fs.existsSync(gitDir)) {
+    console.log('[Workspace] Trovato workspace esistente in /tmp/workspace. Reset veloce...');
+    try {
+      execSync(`git remote set-url origin ${cloneUrl}`, { cwd: targetDir, stdio: 'pipe' });
+      execSync('git fetch --all', { cwd: targetDir, stdio: 'pipe' });
+      execSync('git checkout -f main', { cwd: targetDir, stdio: 'pipe' });
+      execSync('git reset --hard origin/main', { cwd: targetDir, stdio: 'pipe' });
+      execSync('git clean -fd', { cwd: targetDir, stdio: 'pipe' });
+      console.log('[Workspace] Ripristino warm instance completato (node_modules intatto).');
+      return { isWarm: true };
+    } catch (err: any) {
+      console.warn('[Workspace] Reset fallito, eseguo clone pulito:', err.message);
+      fs.rmSync(targetDir, { recursive: true, force: true });
+    }
+  }
+
+  // Cold Start: clone iniziale
+  fs.mkdirSync(targetDir, { recursive: true });
+  console.log(`[GitHub] Clone iniziale repo ${CONFIG.githubRepo} in ${targetDir}...`);
   execSync(`git clone --depth 1 ${cloneUrl} ${targetDir}`, {
     stdio: 'pipe',
   });
@@ -27,14 +47,15 @@ export async function cloneRepo(targetDir: string): Promise<void> {
   execSync('git config user.name "Calcetto Hotfix Bot"', { cwd: targetDir, stdio: 'pipe' });
   execSync('git config user.email "bot@calcettoabbuffo.app"', { cwd: targetDir, stdio: 'pipe' });
   console.log(`[GitHub] Clone completato con successo.`);
+  return { isWarm: false };
 }
 
 export function commitAndPush(targetDir: string, branchName: string, commitMsg: string): void {
-  execSync(`git checkout -b ${branchName}`, { cwd: targetDir, stdio: 'pipe' });
+  execSync(`git checkout -B ${branchName}`, { cwd: targetDir, stdio: 'pipe' });
   execSync('git add -A', { cwd: targetDir, stdio: 'pipe' });
   execSync(`git commit -m "${commitMsg.replace(/"/g, '\\"')}"`, { cwd: targetDir, stdio: 'pipe' });
   const pushUrl = `https://x-access-token:${CONFIG.githubPat}@github.com/${CONFIG.githubRepo}.git`;
-  execSync(`git push -u ${pushUrl} ${branchName}`, { cwd: targetDir, stdio: 'pipe' });
+  execSync(`git push -u --force ${pushUrl} ${branchName}`, { cwd: targetDir, stdio: 'pipe' });
   console.log(`[GitHub] Branch ${branchName} pushato con successo.`);
 }
 

@@ -1,10 +1,11 @@
 import { execSync } from 'node:child_process';
+import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { CONFIG } from './config';
-import { cloneRepo, commitAndPush, createPullRequest } from './githubService';
+import { prepareWorkspace, commitAndPush, createPullRequest } from './githubService';
 import { planAndGeneratePatch, selfHealBuildErrors, HotfixPlan, PatchItem } from './geminiEngine';
-import { sendMessage, sendChatAction, escapeHtml } from './telegramService';
+import { sendMessage, editMessageText, sendChatAction, escapeHtml } from './telegramService';
 
 export function scanSrcFiles(targetDir: string): string[] {
   const srcRoot = path.join(targetDir, 'src');
@@ -102,35 +103,39 @@ export function updateReleaseNotesAndBump(targetDir: string, plan: HotfixPlan): 
 
 export function ensureDependencies(targetDir: string): void {
   const nodeModulesPath = path.join(targetDir, 'node_modules');
-  const cacheModulesPath = path.join(CONFIG.tmpCache, 'node_modules');
+  const lockFilePath = path.join(targetDir, 'package-lock.json');
+  const hashFilePath = path.join(targetDir, '.node_modules_lock_hash');
 
-  if (fs.existsSync(nodeModulesPath)) {
+  const currentLockContent = fs.existsSync(lockFilePath) ? fs.readFileSync(lockFilePath) : Buffer.from('');
+  const currentLockHash = crypto.createHash('md5').update(currentLockContent).digest('hex');
+  const previousLockHash = fs.existsSync(hashFilePath) ? fs.readFileSync(hashFilePath, 'utf-8').trim() : '';
+
+  const hasNodeModules = fs.existsSync(nodeModulesPath);
+  const isLockUnchanged = hasNodeModules && previousLockHash === currentLockHash;
+
+  if (isLockUnchanged) {
+    console.log('[Builder] node_modules intatto e package-lock.json invariato. Skip npm ci!');
     return;
   }
 
-  if (fs.existsSync(cacheModulesPath)) {
-    console.log('[Builder] Uso cache node_modules da /tmp/cache...');
-    try {
-      fs.symlinkSync(cacheModulesPath, nodeModulesPath, 'junction');
-      return;
-    } catch {
-      // Se symlink fallisce, prosegui con npm install
-    }
-  }
+  console.log('[Builder] Installazione dipendenze ultra-veloce (npm ci con cache /tmp/.npm-cache)...');
+  const npmCacheDir = '/tmp/.npm-cache';
+  fs.mkdirSync(npmCacheDir, { recursive: true });
 
-  console.log('[Builder] Installazione dipendenze in /tmp/workspace (npm install --prefer-offline)...');
-  execSync('npm install --no-audit --prefer-offline --no-fund', {
-    cwd: targetDir,
-    stdio: 'pipe',
-  });
-
-  // Salva in cache per le invocazioni successive nello stesso container
-  try {
-    if (!fs.existsSync(cacheModulesPath)) {
-      fs.mkdirSync(CONFIG.tmpCache, { recursive: true });
-      execSync(`cp -r ${nodeModulesPath} ${cacheModulesPath}`, { stdio: 'pipe' });
+  execSync(
+    `npm ci --prefer-offline --no-audit --no-fund --progress=false --cache=${npmCacheDir}`,
+    {
+      cwd: targetDir,
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        npm_config_cache: npmCacheDir,
+      },
     }
-  } catch {}
+  );
+
+  fs.writeFileSync(hashFilePath, currentLockHash, 'utf-8');
+  console.log('[Builder] Dipendenze installate con successo.');
 }
 
 export function runBuild(targetDir: string): { success: boolean; output: string } {
@@ -139,6 +144,12 @@ export function runBuild(targetDir: string): { success: boolean; output: string 
       cwd: targetDir,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        NG_PERSISTENT_BUILD_CACHE: '1',
+        NG_CLI_ANALYTICS: 'false',
+        NODE_OPTIONS: '--max-old-space-size=3584',
+      },
     });
     return { success: true, output };
   } catch (error: any) {
@@ -161,27 +172,37 @@ export async function executeInCloudHotfix({
   imageBuffer = null,
   audioBuffer = null,
   chatId,
+  progressMessageId,
 }: {
   userText?: string;
   imageBuffer?: Buffer | null;
   audioBuffer?: Buffer | null;
   chatId: string | number;
+  progressMessageId?: number;
 }): Promise<void> {
   const targetDir = CONFIG.tmpWorkspace;
 
   async function updateProgress(msg: string) {
     console.log(`[CloudHotfix] ${msg}`);
     await sendChatAction(chatId, 'typing');
+    if (progressMessageId) {
+      try {
+        await editMessageText(chatId, progressMessageId, msg);
+        return;
+      } catch (err: any) {
+        console.warn('[CloudHotfix] editMessageText fallito:', err.message);
+      }
+    }
     await sendMessage(chatId, msg);
   }
 
   try {
-    // 1. Clona repo in /tmp/workspace
-    await updateProgress('📥 <b>1/5 Download codice sorgente in Cloud (/tmp/workspace)...</b>');
-    await cloneRepo(targetDir);
+    // 0. Preparazione o ripristino veloce workspace (Warm Instance: reset 1s)
+    const { isWarm } = await prepareWorkspace(targetDir);
+    console.log(`[CloudHotfix] Workspace pronto (isWarm: ${isWarm})`);
 
-    // 2. Scansione file e chiamata Gemini 3.8 Flash High Thinking
-    await updateProgress('🧠 <b>2/5 Analisi multimodale con Gemini 3.8 Flash (High Thinking)...</b>');
+    // 1/4 Analisi e generazione patch con Gemini 3.8 Flash High
+    await updateProgress('1/4 🧠 <b>Analisi e generazione patch con Gemini 3.8 Flash High...</b>');
     const allFiles = scanSrcFiles(targetDir);
     const words = (userText || '')
       .toLowerCase()
@@ -214,12 +235,11 @@ export async function executeInCloudHotfix({
     // Applica patch
     const touchedFiles = applyPatches(targetDir, plan.patches);
 
-    // 3. Release notes & bump versione
-    await updateProgress('🚀 <b>3/5 Incremento versione & allineamento Release Notes...</b>');
+    // Release notes & bump versione
     const newVersion = updateReleaseNotesAndBump(targetDir, plan);
 
-    // 4. Installazione dipendenze e Build con Self-Healing
-    await updateProgress('⚙️ <b>4/5 Compilazione Angular in Cloud con Self-Healing...</b>');
+    // 2/4 Build Angular in corso (con cache /tmp)
+    await updateProgress('2/4 🔨 <b>Build Angular in corso (con cache /tmp)...</b>');
     ensureDependencies(targetDir);
 
     let buildResult = runBuild(targetDir);
@@ -228,7 +248,7 @@ export async function executeInCloudHotfix({
 
     while (!buildResult.success && attempt <= maxAttempts) {
       await updateProgress(
-        `🩹 <b>Auto-correzione codice con Gemini (Tentativo ${attempt}/${maxAttempts})...</b>`
+        `2/4 🩹 <b>Auto-correzione codice con Gemini (Tentativo ${attempt}/${maxAttempts})...</b>`
       );
       try {
         const fixedPatches = await selfHealBuildErrors({
@@ -254,8 +274,8 @@ export async function executeInCloudHotfix({
       throw new Error(`Build Angular fallita dopo tentativi di auto-correzione:\n${buildResult.output.slice(-500)}`);
     }
 
-    // 5. Git commit, push branch, PR & Deploy Firebase Hosting
-    await updateProgress('🌐 <b>5/5 Git Push, Creazione PR e Deploy Firebase Hosting...</b>');
+    // 3/4 Deploy su DEV e branch PROD
+    await updateProgress('3/4 🚀 <b>Deploy su DEV e branch PROD...</b>');
     const safeSlug = (plan.slug || 'fix')
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
@@ -283,6 +303,9 @@ export async function executeInCloudHotfix({
     } catch (err: any) {
       console.warn('[Deploy PROD] Warning:', err.message);
     }
+
+    // 4/4 Completato! Ecco i link
+    await updateProgress('4/4 ✅ <b>Completato! Invio link e resoconto...</b>');
 
     // Notifica Telegram finale
     const userNotesList = (plan.userChanges || [])

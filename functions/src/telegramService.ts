@@ -43,6 +43,39 @@ export async function sendMessage(chatId: string | number, text: string, options
   }
 }
 
+export async function editMessageText(
+  chatId: string | number,
+  messageId: number,
+  text: string,
+  options: Record<string, any> = {}
+): Promise<any> {
+  try {
+    return await callApi('editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: options.parse_mode ?? 'HTML',
+      disable_web_page_preview: options.disable_web_page_preview ?? true,
+      reply_markup: options.reply_markup,
+    });
+  } catch (err: any) {
+    if (err.message && err.message.includes('message is not modified')) {
+      return null;
+    }
+    console.warn('[Telegram] editMessageText HTML fallito, provo testo semplice:', err.message);
+    try {
+      return await callApi('editMessageText', {
+        chat_id: chatId,
+        message_id: messageId,
+        text: stripHtml(text),
+        disable_web_page_preview: true,
+      });
+    } catch {
+      return null;
+    }
+  }
+}
+
 export async function sendChatAction(chatId: string | number, action = 'typing'): Promise<void> {
   try {
     await callApi('sendChatAction', { chat_id: chatId, action });

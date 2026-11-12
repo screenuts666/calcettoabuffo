@@ -6,13 +6,15 @@ import { mergeHotfixPr, discardHotfix, listOpenHotfixPrs } from './githubService
 
 // Set per deduplicare update webhook in caso di retry Telegram
 const processedUpdates = new Set<number>();
+let isHotfixRunning = false;
 
 export const telegramHotfix = onRequest(
   {
     region: 'europe-west1',
-    memory: '2GiB',
+    memory: '4GiB',
     cpu: 2,
     timeoutSeconds: 540,
+    concurrency: 1,
     cors: false,
   },
   async (req, res) => {
@@ -225,24 +227,46 @@ export const telegramHotfix = onRequest(
         return;
       }
 
-      // Risposta immediata all'utente come da specifica
-      await sendMessage(
+      // ─── BLOCCO ANTI-CONCORRENZA: UN SOLO HOTFIX ALLA VOLTA ─────────────────
+      if (isHotfixRunning) {
+        await sendMessage(
+          chatId,
+          '⏳ <b>Hotfix già in corso!</b>\nC\'è già una compilazione e deploy attivo in Cloud. Attendi il completamento prima di inviare una nuova richiesta.'
+        );
+        res.status(200).send({ ok: true, busy: true });
+        return;
+      }
+
+      isHotfixRunning = true;
+
+      // Risposta iniziale live su Telegram (il message_id verrà aggiornato con editMessageText ad ogni step)
+      const initMsg = await sendMessage(
         chatId,
-        '🔥 <b>Ricevuto su Firebase!</b> Scarico il codice, applico il fix con <b>Gemini 3.8 Flash High</b> e avvio build e deploy...'
+        '⚡ <b>Ricevuto! Inizializzo workspace...</b>'
       );
 
-      // Esecuzione in-cloud del builder dentro /tmp/workspace
-      await executeInCloudHotfix({
+      // Risposta HTTP 200 IMMEDIATA a Telegram (evita qualsiasi timeout o loop di chiamate retry)
+      res.status(200).send({ ok: true, status: 'processing' });
+
+      // Esecuzione in background con CPU dedicata (--no-cpu-throttling & 4GiB / 2 vCPU)
+      executeInCloudHotfix({
         userText: promptText,
         imageBuffer,
         audioBuffer,
         chatId,
-      });
-
-      res.status(200).send({ ok: true });
+        progressMessageId: initMsg?.message_id,
+      })
+        .catch((err) => {
+          console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
+        })
+        .finally(() => {
+          isHotfixRunning = false;
+        });
     } catch (err: any) {
       console.error('[telegramHotfix] Errore unhandled:', err);
-      res.status(200).send({ ok: false, error: err.message });
+      if (!res.headersSent) {
+        res.status(200).send({ ok: false, error: err.message });
+      }
     }
   }
 );
