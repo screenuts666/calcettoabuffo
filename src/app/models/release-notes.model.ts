@@ -15,6 +15,24 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.86",
+    "date": "12/11/2026",
+    "title": "Remote Hotfixing Bot In-Cloud su Firebase v2 & Gemini 3.8 Flash High",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Stabilità e Performance: sincronizzazione e ottimizzazione generale degli ambienti di sviluppo e produzione.",
+      "Supporto Immediato dal Campo: attivazione del sistema remoto per applicare correzioni e miglioramenti live direttamente durante le partite."
+    ],
+    "superUserChanges": [
+      "Sistema All-In-One Cloud Functions v2 (@CalcettoHotfixBot): remote hotfix attivo al 100% su Firebase senza dipendenze dal PC locale né da GitHub Actions.",
+      "Integrazione Gemini 3.8 Flash High Thinking: supporto multimodale per screenshot, audio/vocali e prompt con auto-correzione codice (self-healing build loop).",
+      "Ottimizzazione Warm Instance & Cache: ripristino istantaneo del workspace (/tmp/workspace), cache per node_modules e persistent build cache per Angular CLI.",
+      "Webhook Telegram Reattivo: risposta HTTP 200 istantanea anti-timeout con background processing (--no-cpu-throttling) e aggiornamento live dei progressi via editMessageText.",
+      "Promemoria Mattutino (Ore 08:30): Cloud Function schedulata ogni mattina per il controllo e merge dei branch di hotfix."
+    ]
+  },
+  {
     "version": "2.0.85",
     "date": "12/11/2026",
     "title": "Rimozione Pulsante 'Top 14/16' in Produzione (Esclusivo DEV)",
