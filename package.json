@@ -17,7 +17,9 @@
     "deploy:all": "npm run deploy:dev && npm run deploy:prod",
     "watch": "node scripts/bump-version.mjs --no-bump && nx build --watch --configuration development",
     "test": "nx test",
-    "lint": "nx lint"
+    "lint": "nx lint",
+    "bot": "node tools/telegram-hotfix-agent/index.mjs",
+    "bot:morning": "node tools/telegram-hotfix-agent/morning-check.mjs"
   },
   "private": true,
   "dependencies": {
@@ -38,6 +40,7 @@
     "@capacitor/haptics": "8.0.1",
     "@capacitor/keyboard": "8.0.1",
     "@capacitor/status-bar": "8.0.1",
+    "@google/genai": "^3.2.0",
     "@ionic/angular": "^8.0.0",
     "firebase": "^11.10.0",
     "ionicons": "^7.0.0",
