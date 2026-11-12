@@ -267,6 +267,16 @@ export const telegramHotfix = onRequest(
           const isOnlyDev = cbData === 'target:dev';
           const deployTarget: 'dev' | 'both' = isOnlyDev ? 'dev' : 'both';
 
+          // 1. Rispondi subito a Telegram e aggiorna il messaggio rimuovendo i pulsanti (zero freeze!)
+          await answerCallbackQuery(cbId, `⚡ Avvio Hotfix (${isOnlyDev ? 'Solo DEV' : 'DEV + PROD'})...`);
+          await editMessageText(
+            cbChatId,
+            cbMsgId,
+            `⚡ <b>Preso in carico! Avvio hotfix per ${isOnlyDev ? 'Solo DEV' : 'DEV e PROD'}...</b>\n\n` +
+            `⏳ <i>Elaborazione richiesta e attivazione Runner Cloud in corso...</i>`,
+            { reply_markup: { inline_keyboard: [] } }
+          );
+
           try {
             await dispatchToCloudRunner({
               promptText: pending.promptText,
