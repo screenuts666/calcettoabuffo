@@ -1,31 +1,40 @@
 import { GoogleGenAI, ThinkingLevel } from '@google/genai';
-import { CONFIG } from './config.mjs';
+import { CONFIG } from './config';
 
-/**
- * Inizializza l'istanza ufficiale dell'SDK Google GenAI
- */
-function getAiClient() {
+function getAiClient(): GoogleGenAI {
   const apiKey = CONFIG.geminiApiKey || process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error(
-      'GEMINI_API_KEY non configurata! Configurala nel file tools/telegram-hotfix-agent/.env (ottienila su https://aistudio.google.com).',
-    );
+    throw new Error('GEMINI_API_KEY non configurata nelle Cloud Functions!');
   }
   return new GoogleGenAI({ apiKey });
 }
 
-/**
- * Chiama l'API di Gemini con supporto nativo multimodale e Reasoning ThinkingLevel.HIGH
- */
+export interface PatchItem {
+  path: string;
+  content: string;
+}
+
+export interface HotfixPlan {
+  title: string;
+  slug: string;
+  userChanges: string[];
+  superUserChanges: string[];
+  patches: PatchItem[];
+}
+
 export async function callGemini({
   parts = [],
   systemInstruction = '',
   responseSchema = null,
-}) {
+}: {
+  parts: any[];
+  systemInstruction?: string;
+  responseSchema?: any;
+}): Promise<string> {
   const ai = getAiClient();
   const model = CONFIG.geminiModel || process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
-  const config = {
+  const config: Record<string, any> = {
     thinkingConfig: {
       thinkingLevel: ThinkingLevel.HIGH, // Forza modalità High Thinking
     },
@@ -54,20 +63,21 @@ export async function callGemini({
   return textOutput;
 }
 
-/**
- * Analizza la richiesta multimodale (testo, screenshot e/o messaggio vocale)
- * con Gemini 3.8 Flash (High Thinking) e genera la patch con Release Notes e codice
- */
 export async function planAndGeneratePatch({
   userText = '',
   imageBuffer = null,
   audioBuffer = null,
   filesContext = {},
   availableFilePaths = [],
-}) {
-  const parts = [];
+}: {
+  userText?: string;
+  imageBuffer?: Buffer | null;
+  audioBuffer?: Buffer | null;
+  filesContext?: Record<string, string>;
+  availableFilePaths?: string[];
+}): Promise<HotfixPlan> {
+  const parts: any[] = [];
 
-  // Se c'è un audio vocale (.ogg), aggiungi parte inline
   if (audioBuffer) {
     parts.push({
       inlineData: {
@@ -77,7 +87,6 @@ export async function planAndGeneratePatch({
     });
   }
 
-  // Se c'è un'immagine (screenshot), aggiungi parte inline
   if (imageBuffer) {
     parts.push({
       inlineData: {
@@ -87,7 +96,6 @@ export async function planAndGeneratePatch({
     });
   }
 
-  // Costruisci il prompt di istruzioni
   let promptText = `L'utente ha inviato una richiesta di Hotfix per l'applicazione Ionic / Angular 20 "Calcetto Abbuffo".\n`;
   if (userText) {
     promptText += `\nIstruzioni testuali / trascrizione: "${userText}"\n`;
@@ -108,7 +116,7 @@ export async function planAndGeneratePatch({
     }
   }
 
-  promptText += `\nGenera la risposta in formato JSON rispettando rigorosamente lo schema seguente:
+  promptText += `\nGenera la risposta in formato JSON rispettando rigorosamente lo schema:
 - title: titolo sintetico dell'aggiornamento (in italiano)
 - slug: breve slug descrittivo in formato kebab-case (es. fix-timer-tap, fix-pulsante-presenza)
 - userChanges: array di stringhe descrittive delle novità/correzioni utili per i Giocatori (in italiano)
@@ -117,7 +125,7 @@ export async function planAndGeneratePatch({
 
   parts.push({ text: promptText });
 
-  const systemInstruction = `Sei l'AI Senior Software Engineer per l'app mobile Ionic + Angular 20 "Calcetto Abbuffo".
+  const systemInstruction = `Sei l'AI Senior Software Engineer per l'app mobile Ionic + Angular 20 "Calcetto Abbuffo" in esecuzione su Firebase Cloud Functions v2.
 Stai operando con Gemini 3.8 Flash in modalità High Thinking per analizzare con il massimo livello di ragionamento la richiesta multimodale.
 La tua missione è capire istantaneamente il problema dal testo, dallo screenshot o dal messaggio vocale, identificare i file sorgente corretti in src/ e restituire il codice completo corretto pronto per passare "npm run build" senza nessun errore TypeScript.
 Devi sempre restituire ESCLUSIVAMENTE JSON valido.`;
@@ -154,21 +162,22 @@ Devi sempre restituire ESCLUSIVAMENTE JSON valido.`;
   return JSON.parse(rawJson);
 }
 
-/**
- * Loop di Auto-Correzione (Self-Healing) in caso di errore durante npm run build
- */
 export async function selfHealBuildErrors({
   errorOutput,
   appliedPatches = [],
   attempt = 1,
-}) {
+}: {
+  errorOutput: string;
+  appliedPatches: PatchItem[];
+  attempt: number;
+}): Promise<PatchItem[]> {
   const parts = [
     {
       text: `La compilazione Angular (npm run build) è FALLITA al tentativo #${attempt} con i seguenti errori del compilatore TypeScript:\n\n${errorOutput}\n\nEcco le patch che erano state applicate:\n${JSON.stringify(appliedPatches, null, 2)}\n\nCorreggi immediatamente gli errori TypeScript/Angular e restituisci il codice completo corretto per i file che generano errore.`,
     },
   ];
 
-  const systemInstruction = `Sei un esperto risolutore di errori TypeScript e compilatore Angular 20 in modalità High Thinking.
+  const systemInstruction = `Sei un esperto risolutore di errori TypeScript e compilatore Angular 20 in modalità High Thinking su Firebase Cloud Functions.
 Analizza il log di errore, identifica esattamente le righe o i tipi che falliscono la compilazione e correggi i file.
 Restituisci ESCLUSIVAMENTE un array JSON di oggetti { path: string, content: string } contenenti il file completo corretto.`;
 
@@ -187,3 +196,4 @@ Restituisci ESCLUSIVAMENTE un array JSON di oggetti { path: string, content: str
   const rawJson = await callGemini({ parts, systemInstruction, responseSchema });
   return JSON.parse(rawJson);
 }
+

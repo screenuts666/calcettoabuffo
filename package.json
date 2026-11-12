@@ -18,8 +18,8 @@
     "watch": "node scripts/bump-version.mjs --no-bump && nx build --watch --configuration development",
     "test": "nx test",
     "lint": "nx lint",
-    "bot": "node tools/telegram-hotfix-agent/index.mjs",
-    "bot:morning": "node tools/telegram-hotfix-agent/morning-check.mjs"
+    "deploy:hotfix-bot": "npm --prefix functions run build && firebase deploy --only functions --force --project prod && node functions/scripts/set-webhook.mjs",
+    "deploy:hotfix-bot:dev": "npm --prefix functions run build && firebase deploy --only functions --force --project default && node functions/scripts/set-webhook.mjs https://europe-west1-calcettoabuffone.cloudfunctions.net/telegramHotfix"
   },
   "private": true,
   "dependencies": {
