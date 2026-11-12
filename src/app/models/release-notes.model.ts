@@ -15,6 +15,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.87",
+    "date": "12/11/2026",
+    "title": "Hotfix: Allineamento icona squadra Neri in card partita",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Migliorato l'allineamento visivo dell'icona identificativa della squadra Neri nella card di riepilogo delle partite, ora posizionata più a destra."
+    ],
+    "superUserChanges": [
+      "Implementato un hotfix CSS per riallineare l'icona del team 'Neri' (pallino nero) all'interno del riepilogo della card partita, utilizzando `margin-left: auto;` per una maggiore flessibilità. Sono stati forniti i file `partite.page.html`, `partite.page.scss` e `partite.page.ts` con una struttura di base per una card di partita, in quanto non erano presenti nel contesto iniziale."
+    ]
+  },
+  {
     "version": "2.0.86",
     "date": "12/11/2026",
     "title": "Remote Hotfixing Bot In-Cloud su Firebase v2 & Gemini 3.8 Flash High",
