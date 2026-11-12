@@ -91,13 +91,14 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-// ─── GEMINI CLIENT (DIRECT REST API WITH AUTOMATIC MULTI-MODEL FALLBACK) ────
+// ─── GEMINI CLIENT (DIRECT REST API WITH EXPONENTIAL RETRY & MULTI-MODEL FALLBACK) ────
 const CANDIDATE_MODELS = [
   "gemini-3.8-flash",
-  "gemini-3.8-pro",
+  "gemini-3.1-pro-preview",
   "gemini-2.5-flash",
-  "gemini-2.5-pro",
 ];
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function callGemini({
   parts,
@@ -115,78 +116,101 @@ async function callGemini({
   let lastError = null;
 
   for (const currentModel of modelsToTry) {
-    try {
-      console.log(`[Gemini] Invio richiesta al modello: ${currentModel}...`);
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${GEMINI_API_KEY}`;
+    console.log(`[Gemini] Selezionato modello: ${currentModel}`);
 
-      const body = {
-        contents: [{ parts }],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 8192,
-        },
-      };
+    // Tentativi di retry per picchi temporanei 503 / 429
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`[Gemini] Richiesta a ${currentModel} (tentativo ${attempt}/3)...`);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${GEMINI_API_KEY}`;
 
-      if (systemInstruction) {
-        body.systemInstruction = {
-          parts: [{ text: systemInstruction }],
+        const body = {
+          contents: [{ parts }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 8192,
+          },
         };
-      }
 
-      if (jsonMode) {
-        body.generationConfig.responseMimeType = "application/json";
-      }
+        if (systemInstruction) {
+          body.systemInstruction = {
+            parts: [{ text: systemInstruction }],
+          };
+        }
 
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+        if (jsonMode) {
+          body.generationConfig.responseMimeType = "application/json";
+        }
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        // Se è modello non trovato (404), quota superata (429) o sovraccarico (503), prova il successivo
-        if (res.status === 404 || res.status === 429 || res.status === 503) {
-          console.warn(
-            `[Gemini] Modello ${currentModel} ha restituito ${res.status}. Tento fallback su modello alternativo...`,
-          );
-          lastError = new Error(
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+
+          // Se il modello non esiste (404), passa subito al modello successivo
+          if (res.status === 404) {
+            console.warn(`[Gemini] Modello ${currentModel} non trovato (404), passo al successivo...`);
+            lastError = new Error(`Modello ${currentModel} non trovato (404)`);
+            break; // Esci dal ciclo tentativi e prova il prossimo modello
+          }
+
+          // Se è sovraccarico (503) o rate-limit (429), attendi e riprova lo stesso modello
+          if (res.status === 503 || res.status === 429) {
+            console.warn(
+              `[Gemini] ${currentModel} ha risposto con ${res.status} (sovraccarico/quota). Attesa ${attempt * 2}s prima del riprova...`,
+            );
+            lastError = new Error(
+              `Gemini API Error (${res.status}) su ${currentModel}: ${errorText}`,
+            );
+            if (attempt < 3) {
+              await sleep(attempt * 2000);
+              continue;
+            } else {
+              console.warn(`[Gemini] ${currentModel} esaurito dopo 3 tentativi, passo al modello di fallback...`);
+              break;
+            }
+          }
+
+          throw new Error(
             `Gemini API Error (${res.status}) su ${currentModel}: ${errorText}`,
           );
-          continue;
         }
-        throw new Error(
-          `Gemini API Error (${res.status}) su ${currentModel}: ${errorText}`,
-        );
-      }
 
-      const data = await res.json();
-      const candidate = data.candidates?.[0];
-      if (!candidate) {
-        throw new Error(`Nessuna risposta generata da Gemini (${currentModel})`);
-      }
+        const data = await res.json();
+        const candidate = data.candidates?.[0];
+        if (!candidate) {
+          throw new Error(`Nessuna risposta generata da Gemini (${currentModel})`);
+        }
 
-      const finishReason = candidate.finishReason;
-      if (finishReason && finishReason !== "STOP") {
-        console.warn(
-          `[Gemini] Attenzione: finishReason è ${finishReason} su modello ${currentModel}`,
-        );
-      }
+        const finishReason = candidate.finishReason;
+        if (finishReason && finishReason !== "STOP") {
+          console.warn(
+            `[Gemini] Attenzione: finishReason è ${finishReason} su modello ${currentModel}`,
+          );
+        }
 
-      const textPart = candidate.content?.parts?.[0]?.text || "";
-      console.log(`[Gemini] Risposta ottenuta con successo da ${currentModel}!`);
-      return textPart.trim();
-    } catch (err) {
-      lastError = err;
-      if (
-        err.message &&
-        (err.message.includes("404") ||
-          err.message.includes("429") ||
-          err.message.includes("503"))
-      ) {
-        continue;
+        const textPart = candidate.content?.parts?.[0]?.text || "";
+        console.log(`[Gemini] Risposta ottenuta con successo da ${currentModel}!`);
+        return textPart.trim();
+      } catch (err) {
+        lastError = err;
+        if (
+          err.message &&
+          (err.message.includes("503") ||
+            err.message.includes("429") ||
+            err.message.includes("fetch failed"))
+        ) {
+          if (attempt < 3) {
+            await sleep(attempt * 2000);
+            continue;
+          }
+        }
+        break; // Passa al modello successivo
       }
-      throw err;
     }
   }
 
