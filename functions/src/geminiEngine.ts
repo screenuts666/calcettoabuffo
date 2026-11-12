@@ -32,20 +32,22 @@ export async function callGemini({
   responseSchema?: any;
 }): Promise<string> {
   const ai = getAiClient();
-  const model = CONFIG.geminiModel || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const primaryModel = CONFIG.geminiModel || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+
+  // Fallback chain: prova il primario, poi gemini-2.0-flash, poi gemini-1.5-flash se ci sono sovraccarichi 503
+  const candidateModels = Array.from(
+    new Set([primaryModel, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'])
+  );
 
   const baseConfig: Record<string, any> = {};
-
   if (systemInstruction) {
     baseConfig.systemInstruction = systemInstruction;
   }
-
   if (responseSchema) {
     baseConfig.responseMimeType = 'application/json';
     baseConfig.responseSchema = responseSchema;
   }
 
-  // Tentativo con thinkingBudget: -1 (modalità dinamica/automatica per modelli con reasoning)
   const configWithThinking = {
     ...baseConfig,
     thinkingConfig: {
@@ -53,33 +55,70 @@ export async function callGemini({
     },
   };
 
-  try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: parts,
-      config: configWithThinking,
-    });
+  let lastError: any = null;
 
-    const textOutput = response.text;
-    if (textOutput) return textOutput;
-  } catch (err: any) {
-    const errStr = String(err.message || err);
-    // Se il modello non supporta thinkingConfig o il parametro thinking, riprova senza thinkingConfig
-    if (errStr.includes('Thinking') || errStr.includes('thinking')) {
-      console.warn('[Gemini] thinkingConfig non supportato per questo modello, riprovo senza thinking...');
-      const response = await ai.models.generateContent({
-        model,
-        contents: parts,
-        config: baseConfig,
-      });
+  for (const model of candidateModels) {
+    console.log(`[Gemini] Tento generazione con modello ${model}...`);
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: parts,
+          config: configWithThinking,
+        });
 
-      const textOutput = response.text;
-      if (textOutput) return textOutput;
+        const textOutput = response.text;
+        if (textOutput) return textOutput;
+      } catch (err: any) {
+        lastError = err;
+        const errStr = String(err.message || err);
+
+        // Se il modello non supporta thinkingConfig o il parametro thinking, riprova senza thinkingConfig sullo stesso modello
+        if (errStr.includes('Thinking') || errStr.includes('thinking')) {
+          console.warn(`[Gemini] thinkingConfig non supportato su ${model}, riprovo senza thinking...`);
+          try {
+            const response = await ai.models.generateContent({
+              model,
+              contents: parts,
+              config: baseConfig,
+            });
+
+            const textOutput = response.text;
+            if (textOutput) return textOutput;
+          } catch (innerErr: any) {
+            lastError = innerErr;
+            const innerStr = String(innerErr.message || innerErr);
+            if (
+              innerStr.includes('503') ||
+              innerStr.includes('demand') ||
+              innerStr.includes('UNAVAILABLE') ||
+              innerStr.includes('429')
+            ) {
+              console.warn(`[Gemini] Modello ${model} temporaneamente sovraccarico (503), passo al fallback...`);
+              await new Promise((r) => setTimeout(r, 1000));
+              break; // Passa al prossimo modello candidato
+            }
+          }
+        } else if (
+          errStr.includes('503') ||
+          errStr.includes('demand') ||
+          errStr.includes('UNAVAILABLE') ||
+          errStr.includes('429')
+        ) {
+          console.warn(`[Gemini] Modello ${model} sovraccarico (503/429, tentativo ${attempt}/2)...`);
+          await new Promise((r) => setTimeout(r, 1500));
+          if (attempt === 2) {
+            console.warn(`[Gemini] ${model} ancora occupato, passo al modello alternativo...`);
+          }
+        } else {
+          // Errore fatale non legato a carico/thinking
+          break;
+        }
+      }
     }
-    throw err;
   }
 
-  throw new Error('Risposta vuota o priva di testo generato da Gemini API');
+  throw lastError || new Error('Nessun modello Gemini ha risposto con successo.');
 }
 
 export async function planAndGeneratePatch({
