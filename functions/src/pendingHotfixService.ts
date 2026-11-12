@@ -49,3 +49,4 @@ export async function deletePendingHotfix(chatId: number): Promise<void> {
     console.warn('[pendingHotfixService] Errore cancellazione doc pending:', err.message);
   }
 }
+

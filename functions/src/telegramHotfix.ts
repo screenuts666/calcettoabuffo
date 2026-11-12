@@ -111,8 +111,6 @@ export const telegramHotfix = onRequest(
               : '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su DEV e PROD...</b>'
           );
 
-          res.status(200).send({ ok: true, status: 'processing' });
-
           // Scarica eventuali file allegati
           let imgBuf: Buffer | null = null;
           let audBuf: Buffer | null = null;
@@ -135,21 +133,24 @@ export const telegramHotfix = onRequest(
             }
           }
 
-          executeInCloudHotfix({
-            userText: pending.promptText,
-            imageBuffer: imgBuf,
-            audioBuffer: audBuf,
-            chatId: cbChatId,
-            progressMessageId: cbMsgId,
-            deployTarget,
-          })
-            .catch((err) => {
-              console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
-            })
-            .finally(() => {
-              isHotfixRunning = false;
+          try {
+            await executeInCloudHotfix({
+              userText: pending.promptText,
+              imageBuffer: imgBuf,
+              audioBuffer: audBuf,
+              chatId: cbChatId,
+              progressMessageId: cbMsgId,
+              deployTarget,
             });
+          } catch (err: any) {
+            console.error('[telegramHotfix] Errore esecuzione hotfix:', err);
+          } finally {
+            isHotfixRunning = false;
+          }
 
+          if (!res.headersSent) {
+            res.status(200).send({ ok: true, status: 'completed' });
+          }
           return;
         }
 
@@ -349,8 +350,6 @@ export const telegramHotfix = onRequest(
             : '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su DEV e PROD...</b>'
         );
 
-        res.status(200).send({ ok: true, status: 'processing' });
-
         let imageBuffer: Buffer | null = null;
         let audioBuffer: Buffer | null = null;
 
@@ -372,20 +371,24 @@ export const telegramHotfix = onRequest(
           }
         }
 
-        executeInCloudHotfix({
-          userText: promptText,
-          imageBuffer,
-          audioBuffer,
-          chatId,
-          progressMessageId: initMsg?.message_id,
-          deployTarget: explicitTarget,
-        })
-          .catch((err) => {
-            console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
-          })
-          .finally(() => {
-            isHotfixRunning = false;
+        try {
+          await executeInCloudHotfix({
+            userText: promptText,
+            imageBuffer,
+            audioBuffer,
+            chatId,
+            progressMessageId: initMsg?.message_id,
+            deployTarget: explicitTarget,
           });
+        } catch (err) {
+          console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
+        } finally {
+          isHotfixRunning = false;
+        }
+
+        if (!res.headersSent) {
+          res.status(200).send({ ok: true, status: 'completed' });
+        }
         return;
       }
 
