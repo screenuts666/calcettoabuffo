@@ -91,12 +91,19 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;");
 }
 
-// ─── GEMINI CLIENT (DIRECT REST API - ZERO DEPENDENCIES) ─────────────────────
+// ─── GEMINI CLIENT (DIRECT REST API WITH AUTOMATIC MULTI-MODEL FALLBACK) ────
+const CANDIDATE_MODELS = [
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-2.5-flash",
+  "gemini-2.5-pro",
+];
+
 async function callGemini({
   parts,
   systemInstruction = "",
   jsonMode = false,
-  model = "gemini-2.5-flash",
+  model = null,
 }) {
   if (!GEMINI_API_KEY) {
     throw new Error(
@@ -104,52 +111,81 @@ async function callGemini({
     );
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+  const modelsToTry = model ? [model] : CANDIDATE_MODELS;
+  let lastError = null;
 
-  const body = {
-    contents: [{ parts }],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 8192,
-    },
-  };
+  for (const currentModel of modelsToTry) {
+    try {
+      console.log(`[Gemini] Invio richiesta al modello: ${currentModel}...`);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${GEMINI_API_KEY}`;
 
-  if (systemInstruction) {
-    body.systemInstruction = {
-      parts: [{ text: systemInstruction }],
-    };
+      const body = {
+        contents: [{ parts }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 8192,
+        },
+      };
+
+      if (systemInstruction) {
+        body.systemInstruction = {
+          parts: [{ text: systemInstruction }],
+        };
+      }
+
+      if (jsonMode) {
+        body.generationConfig.responseMimeType = "application/json";
+      }
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        // Se è quota superata (429) o sovraccarico (503), prova il modello successivo nella catena
+        if (res.status === 429 || res.status === 503) {
+          console.warn(
+            `[Gemini] Modello ${currentModel} ha restituito ${res.status}. Tento fallback su modello alternativo...`,
+          );
+          lastError = new Error(
+            `Gemini API Error (${res.status}) su ${currentModel}: ${errorText}`,
+          );
+          continue;
+        }
+        throw new Error(
+          `Gemini API Error (${res.status}) su ${currentModel}: ${errorText}`,
+        );
+      }
+
+      const data = await res.json();
+      const candidate = data.candidates?.[0];
+      if (!candidate) {
+        throw new Error(`Nessuna risposta generata da Gemini (${currentModel})`);
+      }
+
+      const finishReason = candidate.finishReason;
+      if (finishReason && finishReason !== "STOP") {
+        console.warn(
+          `[Gemini] Attenzione: finishReason è ${finishReason} su modello ${currentModel}`,
+        );
+      }
+
+      const textPart = candidate.content?.parts?.[0]?.text || "";
+      console.log(`[Gemini] Risposta ottenuta con successo da ${currentModel}!`);
+      return textPart.trim();
+    } catch (err) {
+      lastError = err;
+      if (err.message && (err.message.includes("429") || err.message.includes("503"))) {
+        continue;
+      }
+      throw err;
+    }
   }
 
-  if (jsonMode) {
-    body.generationConfig.responseMimeType = "application/json";
-  }
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Gemini API Error (${res.status}): ${errorText}`);
-  }
-
-  const data = await res.json();
-  const candidate = data.candidates?.[0];
-  if (!candidate) {
-    throw new Error("Nessuna risposta generata da Gemini");
-  }
-
-  const finishReason = candidate.finishReason;
-  if (finishReason && finishReason !== "STOP") {
-    console.warn(
-      `[Gemini] Attenzione: finishReason è ${finishReason} (possibile troncamento se MAX_TOKENS)`,
-    );
-  }
-
-  const textPart = candidate.content?.parts?.[0]?.text || "";
-  return textPart.trim();
+  throw lastError;
 }
 
 // ─── FILE SCANNER ───────────────────────────────────────────────────────────
