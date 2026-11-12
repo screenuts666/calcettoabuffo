@@ -1,4 +1,4 @@
-import { GoogleGenAI, ThinkingLevel } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import { CONFIG } from './config';
 
 function getAiClient(): GoogleGenAI {
@@ -32,35 +32,54 @@ export async function callGemini({
   responseSchema?: any;
 }): Promise<string> {
   const ai = getAiClient();
-  const model = CONFIG.geminiModel || process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  const model = CONFIG.geminiModel || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
-  const config: Record<string, any> = {
-    thinkingConfig: {
-      thinkingLevel: ThinkingLevel.HIGH, // Forza modalità High Thinking
-    },
-  };
+  const baseConfig: Record<string, any> = {};
 
   if (systemInstruction) {
-    config.systemInstruction = systemInstruction;
+    baseConfig.systemInstruction = systemInstruction;
   }
 
   if (responseSchema) {
-    config.responseMimeType = 'application/json';
-    config.responseSchema = responseSchema;
+    baseConfig.responseMimeType = 'application/json';
+    baseConfig.responseSchema = responseSchema;
   }
 
-  const response = await ai.models.generateContent({
-    model,
-    contents: parts,
-    config,
-  });
+  // Tentativo con thinkingBudget: -1 (modalità dinamica/automatica per modelli con reasoning)
+  const configWithThinking = {
+    ...baseConfig,
+    thinkingConfig: {
+      thinkingBudget: -1,
+    },
+  };
 
-  const textOutput = response.text;
-  if (!textOutput) {
-    throw new Error('Risposta vuota o priva di testo generato da Gemini API');
+  try {
+    const response = await ai.models.generateContent({
+      model,
+      contents: parts,
+      config: configWithThinking,
+    });
+
+    const textOutput = response.text;
+    if (textOutput) return textOutput;
+  } catch (err: any) {
+    const errStr = String(err.message || err);
+    // Se il modello non supporta thinkingConfig o il parametro thinking, riprova senza thinkingConfig
+    if (errStr.includes('Thinking') || errStr.includes('thinking')) {
+      console.warn('[Gemini] thinkingConfig non supportato per questo modello, riprovo senza thinking...');
+      const response = await ai.models.generateContent({
+        model,
+        contents: parts,
+        config: baseConfig,
+      });
+
+      const textOutput = response.text;
+      if (textOutput) return textOutput;
+    }
+    throw err;
   }
 
-  return textOutput;
+  throw new Error('Risposta vuota o priva di testo generato da Gemini API');
 }
 
 export async function planAndGeneratePatch({
