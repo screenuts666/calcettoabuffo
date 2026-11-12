@@ -44,3 +44,4 @@ Prima di finalizzare il task:
 - **La build deve terminare con codice di uscita 0.**
 - Se la build fallisce con errori di compilazione TypeScript o Angular, leggi l'output dell'errore e correggi il codice fino a ottenere la build verde.
 - Non committare mai codice che non compila al 100%.
+

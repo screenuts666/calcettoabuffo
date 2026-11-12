@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.87",
+    "date": "12/11/2026",
+    "title": "Migrazione Agente Remoto ad Azione Ufficiale Google Gemini CLI",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Stabilità e Affidabilità: sincronizzazione e ottimizzazione generale delle versioni DEV e PROD.",
+      "Supporto Rapido da Remoto: pipeline di correzione autonoma pronta per applicare tempestivamente le richieste direttamente dal campo di gioco."
+    ],
+    "superUserChanges": [
+      "Agente Ufficiale Google Gemini CLI: migrazione della pipeline remota GitHub Actions all'azione ufficiale google-github-actions/run-gemini-cli con contesto guidato da GEMINI.md.",
+      "Telegram Bot Zero Freeze: risposta immediata al callback query dei pulsanti di selezione ambiente (DEV / PROD) e rimozione istantanea dell'inline keyboard per azzerare i tempi di attesa dell'interfaccia.",
+      "Dispatch Asincrono GitHub Actions: trigger asincrono di remote_hotfix tramite Octokit REST API con isolamento dei branch (hotfix/*) e Pull Request automatica."
+    ]
+  },
+  {
     "version": "2.0.86",
     "date": "12/11/2026",
     "title": "Remote Hotfixing Bot In-Cloud su Firebase v2 & Gemini 3.8 Flash High",
