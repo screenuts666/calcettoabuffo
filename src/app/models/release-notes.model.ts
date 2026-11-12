@@ -17,6 +17,17 @@ export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
     "version": "2.0.86",
     "date": "12/11/2026",
+    "title": "Allineamento icona gol squadra Neri",
+    "userChanges": [
+      "Le icone dei gol per la squadra dei Neri ora appaiono correttamente alla fine del nome del giocatore, migliorando la leggibilità."
+    ],
+    "superUserChanges": [
+      "Modificata la posizione dell'elemento `ion-icon` all'interno del template `@for` per i marcatori della squadra Neri (`scorers-col.team-b`) in `partite.page.html`. L'icona del pallone è stata spostata dopo il nome del giocatore per un allineamento visivo coerente con la direzione del testo."
+    ]
+  },
+  {
+    "version": "2.0.86",
+    "date": "12/11/2026",
     "title": "Remote Hotfixing Bot In-Cloud su Firebase v2 & Gemini 3.8 Flash High",
     "isMajor": false,
     "target": "all",
