@@ -177,3 +177,30 @@ export async function discardHotfix(prNumberOrBranch?: string): Promise<boolean>
   return true;
 }
 
+export async function dispatchHotfixWorkflow(payload: {
+  taskId: string;
+  prompt: string;
+  chatId: number | string;
+  progressMessageId?: number;
+  deployTarget: 'dev' | 'both';
+  imageUrl?: string | null;
+}): Promise<boolean> {
+  const url = `${GITHUB_API}/repos/${CONFIG.githubRepo}/dispatches`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      event_type: 'remote_hotfix',
+      client_payload: payload,
+    }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Errore dispatch GitHub Action (${res.status}): ${errorText}`);
+  }
+
+  return true;
+}
+
+
