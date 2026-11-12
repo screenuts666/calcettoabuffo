@@ -77,3 +77,4 @@ MORNING_CHECK_TIME=08:30
 - `/discard`: chiude la PR e cestina il branch di hotfix
 - `/myid`: verifica il tuo Chat ID
 - `/help`: guida rapida ai comandi
+

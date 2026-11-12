@@ -57,3 +57,4 @@ if (process.argv[1] && process.argv[1].endsWith('morning-check.mjs')) {
     process.exit(1);
   });
 }
+
