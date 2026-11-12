@@ -12,6 +12,10 @@ $RECYCLE.BIN/
 *.log
 log.txt
 
+# Gemini CLI & Antigravity
+.gemini/
+gha-creds-*.json
+
 # Environment & Secrets
 .env
 .env.*
