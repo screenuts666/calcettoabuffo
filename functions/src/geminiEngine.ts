@@ -6,7 +6,7 @@ function getAiClient(): GoogleGenAI {
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY non configurata nelle Cloud Functions!');
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 }
 
 export interface PatchItem {
