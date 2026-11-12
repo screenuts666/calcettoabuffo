@@ -1084,9 +1084,6 @@
 }
 
 .scorer-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
   font-size: 0.72rem;
   color: var(--app-text-secondary);
   font-weight: 600;
@@ -1094,15 +1091,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
-
-  ion-icon {
-    font-size: 0.8rem;
-    flex-shrink: 0;
-  }
-
-  &.black {
-    justify-content: flex-end;
-  }
 
   .goal-qty {
     color: var(--ion-color-success);
