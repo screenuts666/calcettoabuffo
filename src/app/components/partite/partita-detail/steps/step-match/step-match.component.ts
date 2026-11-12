@@ -1,6 +1,8 @@
 import {
   Component,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  NgZone,
   inject,
   OnInit,
   OnDestroy,
@@ -74,6 +76,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   public state = inject(MatchStateService);
   public soundSettings = inject(SoundSettingsService);
   public auth = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
   private actionSheetCtrl = inject(ActionSheetController);
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
@@ -200,11 +204,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       this.state.inizializzaRotazionePortieri(false);
     }
 
-    // ─── WAKE LOCK SEMPRE ATTIVO ───────────────────────────────────────
+    // ─── WAKE LOCK & VISIBILITY CHANGE (RIPRESA ISTANTANEA DA LOCKSCREEN) ───
     this.attivaWakeLock();
-    if ('wakeLock' in navigator) {
-      document.addEventListener('visibilitychange', this.riattivaWakeLock);
-    }
+    document.addEventListener('visibilitychange', this.gestisciVisibilityChange);
 
     // ─── AUDIO SBLOCCO USER GESTURE (solo su effettivo tocco dell'utente) ───
     document.addEventListener('click', this.sbloccaAudioUserGesture, {
@@ -213,12 +215,15 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
     // ─── TIMER PRINCIPALE BASATO SU TIMESTAMP REALI (Date.now()) ───────
     this.timerRef = setInterval(() => {
-      this.eseguiTickTimer();
+      this.ngZone.run(() => {
+        this.eseguiTickTimer();
+      });
     }, 1000);
   }
 
   ngOnDestroy() {
     if (this.timerRef) clearInterval(this.timerRef);
+    document.removeEventListener('visibilitychange', this.gestisciVisibilityChange);
     document.removeEventListener('click', this.sbloccaAudioUserGesture);
     this.rilasciaWakeLock();
     this.fermaAudio();
@@ -325,16 +330,16 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     }
   }
 
-  private riattivaWakeLock = async () => {
+  private gestisciVisibilityChange = async () => {
     if (document.visibilityState === 'visible') {
       await this.attivaWakeLock();
+      this.eseguiTickTimer();
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     }
   };
 
   private rilasciaWakeLock() {
-    if ('wakeLock' in navigator) {
-      document.removeEventListener('visibilitychange', this.riattivaWakeLock);
-    }
     if (this.wakeLock) {
       this.wakeLock.release().catch(() => {});
       this.wakeLock = null;
@@ -444,6 +449,39 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.triggerHaptic(40);
     if (this.state.isTimerRunning() && !this.state.isPausedDev()) return;
 
+    // 1. Suono fischio immediato (sincrono su user gesture per non perdere audio context mobile)
+    try {
+      this.soundSettings.playMatchWhistle('kickoff');
+    } catch (err) {
+      console.warn('Audio kickoff non riprodotto:', err);
+    }
+
+    // 2. Se avviamo il cronometro dall'inizio (00:00), azzeriamo allarmi residui (senza attendere la rete)
+    if (this.state.cronometro() === 0) {
+      this.ultimoCambioTurno = -1;
+      this.ultimoPreAlertTurno = -1;
+      this.soundSettings.stopMatchCambioAlarm();
+      this.state.setCambioPortiereAttivo(false);
+    }
+
+    // 3. Avvio immediato e sincrono del timer (imposta subito signals e snapshot locale)
+    this.state.avviaTimer();
+
+    // 4. Assicura che l'intervallo sia attivo ed esegue subito il tick
+    if (!this.timerRef) {
+      this.timerRef = setInterval(() => {
+        this.ngZone.run(() => {
+          this.eseguiTickTimer();
+        });
+      }, 1000);
+    }
+    this.eseguiTickTimer();
+
+    // 5. Forza l'aggiornamento visivo immediato della UI OnPush
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+
+    // 6. Notifiche web in background (non bloccanti)
     try {
       if (
         typeof Notification !== 'undefined' &&
@@ -454,26 +492,6 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     } catch {
       // ignore
     }
-
-    // Se avviamo il cronometro dall'inizio (00:00), azzeriamo e silenziamo categoricamente qualsiasi allarme residuo
-    if (this.state.cronometro() === 0) {
-      this.ultimoCambioTurno = -1;
-      this.ultimoPreAlertTurno = -1;
-      this.soundSettings.stopMatchCambioAlarm();
-      await this.state.setCambioPortiereAttivo(false);
-      try {
-        this.soundSettings.playMatchWhistle('kickoff');
-      } catch (err) {
-        console.warn('Audio kickoff non riprodotto:', err);
-      }
-    }
-    await this.state.avviaTimer();
-    if (!this.timerRef) {
-      this.timerRef = setInterval(() => {
-        this.eseguiTickTimer();
-      }, 1000);
-    }
-    this.eseguiTickTimer();
   }
 
   /**
@@ -538,6 +556,8 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     } else {
       this.state.cronometro.set(this.state.accumulatedTime());
     }
+
+    this.cdr.markForCheck();
 
     // ─── GESTIONE AUDIO IN LOOP CONTINUO FINO ALLO STOP MANUALE ──────
     if (this.isAdmin) {

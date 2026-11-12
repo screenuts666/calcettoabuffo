@@ -649,13 +649,11 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
     const id = this.matchId();
     if (!id || !this.auth.isSuperUser()) return;
-    try {
-      await updateDoc(doc(this.firestore, `partite/${id}`), {
-        cambioAttivo: attivo,
-      });
-    } catch (err) {
+    updateDoc(doc(this.firestore, `partite/${id}`), {
+      cambioAttivo: attivo,
+    }).catch((err) => {
       console.warn('Errore aggiornamento stato cambio portiere:', err);
-    }
+    });
   }
 
   /**
@@ -688,35 +686,25 @@ export class MatchStateService {
 
     const id = this.matchId();
     if (!id || !this.auth.isSuperUser()) return;
-    try {
-      await updateDoc(doc(this.firestore, `partite/${id}`), {
-        cambioAttivo: false,
-        rotazionePortieri: sanitizeForFirestore(updatedRot),
-      });
-    } catch (err) {
+    updateDoc(doc(this.firestore, `partite/${id}`), {
+      cambioAttivo: false,
+      rotazionePortieri: sanitizeForFirestore(updatedRot),
+    }).catch((err) => {
       console.warn('Errore conferma cambio portiere:', err);
-    }
+    });
   }
 
   /**
    * Avvia il timer della partita (Fischio d'Inizio).
-   * In produzione il match scorre ininterrotto fino al fischio finale definitivo;
-   * in modalità sviluppatore (DEV) sono disponibili i controlli di pausa/riprendi/test.
+   * Aggiorna IMMEDIATAMENTE tutti i signals reattivi e lo snapshot locale,
+   * garantendo avvio istantaneo della UI a bordo campo anche offline o in caso di latenza di rete,
+   * eseguendo la sincronizzazione Firestore in background non bloccante.
    */
   async avviaTimer(): Promise<void> {
     if (!this.auth.isSuperUser()) {
       console.warn('Avvio timer: esecuzione locale (verifica ruolo superuser differita)');
     }
     if (this.isTimerRunning() && !this.isPausedDev()) return;
-
-    let id = this.matchId();
-    if (!id) {
-      try {
-        id = await this.ensureMatchCreatedForInvite();
-      } catch (err) {
-        console.warn('Avvio timer: creazione ID online differita (operatività locale garantita):', err);
-      }
-    }
 
     const now = Date.now();
     const startAt = this.startedAt() || now;
@@ -746,6 +734,39 @@ export class MatchStateService {
       });
     }
 
+    // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
+    if (this.cronometro() < this.durataTurnoSecondi()) {
+      this.cambioAttivo.set(false);
+    }
+    const currentStatus = this.status();
+    if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
+      this.status.set('in_corso');
+    }
+
+    this.salvaSnapshotLocale();
+
+    // Sincronizzazione asincrona su Firestore in background senza bloccare la reattività della UI
+    this.syncAvvioTimerOnline(startAt, now, orarioInizioStr);
+  }
+
+  private async syncAvvioTimerOnline(
+    startAt: number,
+    now: number,
+    orarioInizioStr: string,
+  ): Promise<void> {
+    let id = this.matchId();
+    if (!id) {
+      try {
+        id = await this.ensureMatchCreatedForInvite();
+      } catch (err) {
+        console.warn(
+          'Avvio timer: creazione ID online differita (operatività locale garantita):',
+          err,
+        );
+      }
+    }
+    if (!id) return;
+
     const payload: Record<string, unknown> = {
       isTimerRunning: true,
       isPausedDev: false,
@@ -755,20 +776,12 @@ export class MatchStateService {
       inizioPartita: Timestamp.fromMillis(startAt),
       orarioInizioReale: orarioInizioStr,
       rotazionePortieri: sanitizeForFirestore(this.rotazionePortieri()),
+      status: 'in_corso',
     };
 
-    // Se il match è all'inizio (inferiore al primo turno), azzera categoricamente il cambio
     if (this.cronometro() < this.durataTurnoSecondi()) {
-      this.cambioAttivo.set(false);
       payload['cambioAttivo'] = false;
     }
-    const currentStatus = this.status();
-    if (currentStatus !== 'in_corso' && currentStatus !== 'conclusa') {
-      payload['status'] = 'in_corso';
-      this.status.set('in_corso');
-    }
-
-    this.salvaSnapshotLocale();
 
     try {
       this.syncStatus.notifySyncPending();

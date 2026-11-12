@@ -15,6 +15,23 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.84",
+    "date": "12/11/2026",
+    "title": "Fix Cronometro Partita Reattivo & Ripresa Istantanea da Blocco Schermo Mobile",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Fischio d'Inizio Istantaneo: risolto il problema di blocco al fischio d'inizio; il cronometro e il fischio arbitrale partono all'istante al primo tocco sul display senza alcun ritardo.",
+      "Sblocco Immediato dei Gol: la registrazione dei gol e il tabellone punteggio sono sbloccati subito all'avvio della partita.",
+      "Ripresa Immediata dallo Standby: quando il display del telefono si sblocca o si torna all'app, il timer si riallinea istantaneamente al tempo reale trascorso senza freeze."
+    ],
+    "superUserChanges": [
+      "Rimosse Chiamate Firestore Bloccanti da avviaTimer: la transizione di stato e l'avvio del cronometro avvengono in modo sincrono e immediato, mentre updateDoc e sincronizzazione online proseguono in background.",
+      "Iniezione ChangeDetectorRef e NgZone su StepMatchComponent: forzato l'aggiornamento reattivo OnPush della vista su user gesture e tick di setInterval.",
+      "Gestione Evento Visibilitychange: riattivazione immediata del WakeLock e ricalcolo delta Date.now() al rientro da blocco schermo."
+    ]
+  },
+  {
     "version": "2.0.83",
     "date": "12/11/2026",
     "title": "HOTFIX CRITICO: Ripristino Immediato e Infallibile Avvio Cronometro Partita",
