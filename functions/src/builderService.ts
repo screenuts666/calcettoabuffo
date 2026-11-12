@@ -173,12 +173,14 @@ export async function executeInCloudHotfix({
   audioBuffer = null,
   chatId,
   progressMessageId,
+  deployTarget = 'both',
 }: {
   userText?: string;
   imageBuffer?: Buffer | null;
   audioBuffer?: Buffer | null;
   chatId: string | number;
   progressMessageId?: number;
+  deployTarget?: 'dev' | 'both';
 }): Promise<void> {
   const targetDir = CONFIG.tmpWorkspace;
 
@@ -274,8 +276,13 @@ export async function executeInCloudHotfix({
       throw new Error(`Build Angular fallita dopo tentativi di auto-correzione:\n${buildResult.output.slice(-500)}`);
     }
 
-    // 3/4 Deploy su DEV e branch PROD
-    await updateProgress('3/4 🚀 <b>Deploy su DEV e branch PROD...</b>');
+    // 3/4 Deploy su hosting e branch Git
+    const isOnlyDev = deployTarget === 'dev';
+    await updateProgress(
+      isOnlyDev
+        ? '3/4 🚀 <b>Deploy su DEV (PROD escluso da tua scelta)...</b>'
+        : '3/4 🚀 <b>Deploy su DEV e PROD...</b>'
+    );
     const safeSlug = (plan.slug || 'fix')
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '-')
@@ -288,20 +295,23 @@ export async function executeInCloudHotfix({
     const prResult = await createPullRequest(
       branchName,
       `Hotfix v${newVersion}: ${plan.title}`,
-      `Automated In-Cloud Hotfix generato da Firebase Cloud Functions v2 (@CalcettoHotfixBot).\n\n- **Versione:** v${newVersion}\n- **Verifica build:** PASS (100% verde)`
+      `Automated In-Cloud Hotfix generato da Firebase Cloud Functions v2 (@CalcettoHotfixBot).\n\n- **Versione:** v${newVersion}\n- **Deploy:** ${isOnlyDev ? 'Solo DEV' : 'DEV + PROD'}\n- **Verifica build:** PASS (100% verde)`
     );
 
-    // Deploy Hosting su DEV e PROD
+    // Deploy Hosting su DEV
     try {
       deployHosting(targetDir, CONFIG.firebaseDev);
     } catch (err: any) {
       console.warn('[Deploy DEV] Warning:', err.message);
     }
 
-    try {
-      deployHosting(targetDir, CONFIG.firebaseProd);
-    } catch (err: any) {
-      console.warn('[Deploy PROD] Warning:', err.message);
+    // Deploy Hosting su PROD solo se richiesto
+    if (!isOnlyDev) {
+      try {
+        deployHosting(targetDir, CONFIG.firebaseProd);
+      } catch (err: any) {
+        console.warn('[Deploy PROD] Warning:', err.message);
+      }
     }
 
     // 4/4 Completato! Ecco i link
@@ -326,9 +336,13 @@ export async function executeInCloudHotfix({
     if (superUserNotesList) finalMsg += `🛠 <b>Dettagli Tecnici SuperUser:</b>\n${superUserNotesList}\n\n`;
 
     finalMsg += `📂 <b>File Modificati:</b>\n${filesList}\n\n`;
-    finalMsg += `🌍 <b>Ambienti Live Aggiornati:</b>\n`;
-    finalMsg += `• <b>PROD:</b> <a href="${CONFIG.urlProd}">${CONFIG.urlProd}</a>\n`;
-    finalMsg += `• <b>DEV:</b> <a href="${CONFIG.urlDev}">${CONFIG.urlDev}</a>\n\n`;
+    finalMsg += `🌍 <b>Ambienti Live:</b>\n`;
+    finalMsg += `• 🧪 <b>DEV (Aggiornato):</b> <a href="${CONFIG.urlDev}">${CONFIG.urlDev}</a>\n`;
+    if (!isOnlyDev) {
+      finalMsg += `• 🌐 <b>PROD (Aggiornato):</b> <a href="${CONFIG.urlProd}">${CONFIG.urlProd}</a>\n\n`;
+    } else {
+      finalMsg += `• 🌐 <b>PROD:</b> Invariato (testa su DEV, poi usa /merge su main quando vuoi)\n\n`;
+    }
 
     finalMsg += `🌿 <b>Branch Git:</b> <code>${branchName}</code>\n`;
     if (prResult.prUrl) {
@@ -336,21 +350,27 @@ export async function executeInCloudHotfix({
     }
 
     finalMsg += `<b>Comandi Rapidi:</b>\n`;
-    finalMsg += `• <code>/merge</code> per mergiare subito su main di PROD\n`;
+    finalMsg += `• <code>/merge</code> per unire su main e aggiornare PROD\n`;
     finalMsg += `• <code>/discard</code> per annullare e cancellare il branch\n`;
+
+    const inlineKeyboard: any[][] = [
+      [
+        { text: isOnlyDev ? '✅ Merge su Main (PROD)' : '✅ Merge su Main', callback_data: `merge:${branchName}` },
+        { text: '🗑 Scarta Hotfix', callback_data: `discard:${branchName}` },
+      ],
+      [
+        { text: '🧪 Apri App DEV', url: CONFIG.urlDev },
+        ...(!isOnlyDev ? [{ text: '🌐 Apri App PROD', url: CONFIG.urlProd }] : []),
+      ],
+    ];
+
+    if (prResult.prUrl) {
+      inlineKeyboard.push([{ text: '🔗 Visualizza PR', url: prResult.prUrl }]);
+    }
 
     await sendMessage(chatId, finalMsg, {
       reply_markup: {
-        inline_keyboard: [
-          [
-            { text: '✅ Merge su Main', callback_data: `merge:${branchName}` },
-            { text: '🗑 Scarta Hotfix', callback_data: `discard:${branchName}` },
-          ],
-          [
-            { text: '🌐 Apri App PROD', url: CONFIG.urlProd },
-            ...(prResult.prUrl ? [{ text: '🔗 Visualizza PR', url: prResult.prUrl }] : []),
-          ],
-        ],
+        inline_keyboard: inlineKeyboard,
       },
     });
   } catch (err: any) {

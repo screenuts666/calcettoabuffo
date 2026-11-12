@@ -105,6 +105,18 @@ export async function downloadFile(fileId: string): Promise<{ buffer: Buffer; fi
   };
 }
 
+export async function answerCallbackQuery(callbackQueryId: string, text?: string): Promise<any> {
+  try {
+    return await callApi('answerCallbackQuery', {
+      callback_query_id: callbackQueryId,
+      text: text ?? '',
+    });
+  } catch (err: any) {
+    console.warn('[Telegram] answerCallbackQuery fallito:', err.message);
+    return null;
+  }
+}
+
 export async function setWebhook(webhookUrl: string): Promise<any> {
   return await callApi('setWebhook', {
     url: webhookUrl,

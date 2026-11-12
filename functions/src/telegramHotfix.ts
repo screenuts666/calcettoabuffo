@@ -1,8 +1,9 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { CONFIG } from './config';
-import { sendMessage, sendChatAction, downloadFile, escapeHtml } from './telegramService';
+import { sendMessage, editMessageText, answerCallbackQuery, sendChatAction, downloadFile, escapeHtml } from './telegramService';
 import { executeInCloudHotfix } from './builderService';
 import { mergeHotfixPr, discardHotfix, listOpenHotfixPrs } from './githubService';
+import { savePendingHotfix, getPendingHotfix, deletePendingHotfix } from './pendingHotfixService';
 
 // Set per deduplicare update webhook in caso di retry Telegram
 const processedUpdates = new Set<number>();
@@ -51,10 +52,104 @@ export const telegramHotfix = onRequest(
       // ─── GESTIONE CALLBACK QUERY (Pulsanti Inline) ──────────────────────────
       if (callbackQuery) {
         const cbChatId = callbackQuery.message?.chat?.id;
+        const cbMsgId = callbackQuery.message?.message_id;
+        const cbId = callbackQuery.id;
         const cbData = callbackQuery.data || '';
 
         if (String(cbChatId) !== String(CONFIG.allowedChatId)) {
+          await answerCallbackQuery(cbId, '⛔ Accesso Negato');
           res.status(200).send({ ok: true });
+          return;
+        }
+
+        await answerCallbackQuery(cbId);
+
+        // ─── Scelta Ambiente Deploy (Solo DEV vs DEV + PROD) ───────────
+        if (cbData.startsWith('target:')) {
+          if (cbData === 'target:cancel') {
+            await deletePendingHotfix(cbChatId);
+            await editMessageText(
+              cbChatId,
+              cbMsgId,
+              '❌ <b>Richiesta hotfix annullata.</b> Nessuna operazione eseguita.'
+            );
+            res.status(200).send({ ok: true });
+            return;
+          }
+
+          if (isHotfixRunning) {
+            await sendMessage(
+              cbChatId,
+              '⏳ <b>Hotfix già in corso!</b>\nC\'è già una compilazione e deploy attivo in Cloud. Attendi il completamento prima di inviare una nuova richiesta.'
+            );
+            res.status(200).send({ ok: true, busy: true });
+            return;
+          }
+
+          const pending = await getPendingHotfix(cbChatId);
+          if (!pending) {
+            await editMessageText(
+              cbChatId,
+              cbMsgId,
+              '⚠️ <b>Richiesta scaduta o non trovata.</b> Invia nuovamente la richiesta dal campo da gioco.'
+            );
+            res.status(200).send({ ok: true });
+            return;
+          }
+
+          await deletePendingHotfix(cbChatId);
+          isHotfixRunning = true;
+
+          const isOnlyDev = cbData === 'target:dev';
+          const deployTarget: 'dev' | 'both' = isOnlyDev ? 'dev' : 'both';
+
+          await editMessageText(
+            cbChatId,
+            cbMsgId,
+            isOnlyDev
+              ? '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su SOLO DEV...</b>'
+              : '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su DEV e PROD...</b>'
+          );
+
+          res.status(200).send({ ok: true, status: 'processing' });
+
+          // Scarica eventuali file allegati
+          let imgBuf: Buffer | null = null;
+          let audBuf: Buffer | null = null;
+
+          if (pending.photoFileId) {
+            try {
+              const fileData = await downloadFile(pending.photoFileId);
+              imgBuf = fileData.buffer;
+            } catch (err: any) {
+              console.warn('[telegramHotfix] Errore download foto pending:', err.message);
+            }
+          }
+
+          if (pending.voiceFileId) {
+            try {
+              const fileData = await downloadFile(pending.voiceFileId);
+              audBuf = fileData.buffer;
+            } catch (err: any) {
+              console.warn('[telegramHotfix] Errore download audio pending:', err.message);
+            }
+          }
+
+          executeInCloudHotfix({
+            userText: pending.promptText,
+            imageBuffer: imgBuf,
+            audioBuffer: audBuf,
+            chatId: cbChatId,
+            progressMessageId: cbMsgId,
+            deployTarget,
+          })
+            .catch((err) => {
+              console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
+            })
+            .finally(() => {
+              isHotfixRunning = false;
+            });
+
           return;
         }
 
@@ -118,7 +213,8 @@ export const telegramHotfix = onRequest(
           `<b>Come interagire dal campo:</b>\n` +
           `• 📝 Scrivi qualsiasi problema o usa <code>/fix &lt;testo&gt;</code>\n` +
           `• 📸 Invia uno screenshot con o senza testo\n` +
-          `• 🎙 Registra un messaggio vocale in italiano\n\n` +
+          `• 🎙 Registra un messaggio vocale in italiano\n` +
+          `• 🎯 <b>Deploy a scelta:</b> il bot ti chiederà se deployare su <b>Solo DEV</b> oppure su <b>DEV e PROD</b> (o puoi usare direttamente <code>/fix dev ...</code> / <code>/fix prod ...</code>)\n\n` +
           `<b>Comandi gestione:</b>\n` +
           `• <code>/status</code> - Mostra hotfix e PR aperte su GitHub\n` +
           `• <code>/merge</code> - Mergia l'ultimo hotfix su main di PROD\n` +
@@ -134,11 +230,12 @@ export const telegramHotfix = onRequest(
           chatId,
           `📖 <b>Guida In-Cloud Hotfixing:</b>\n\n` +
             `Ogni volta che invii un problema, uno screenshot o un vocale, la Cloud Function esegue:\n` +
-            `1. Download del codice sorgente da GitHub in <code>/tmp/workspace</code>\n` +
-            `2. Patch con Gemini 3.8 Flash in modalità High Thinking\n` +
-            `3. Aggiornamento Release Notes e versione\n` +
-            `4. Build Angular con Self-Healing fino a 3 tentativi\n` +
-            `5. Push branch hotfix su GitHub, PR e Deploy su Firebase Hosting (DEV e PROD)!`
+            `1. Ti chiede dove deployare: <b>Solo DEV</b> (per verificare prima) o <b>DEV e PROD</b>\n` +
+            `2. Download del codice sorgente da GitHub in <code>/tmp/workspace</code>\n` +
+            `3. Generazione patch con Gemini 3.8 Flash in modalità High Thinking\n` +
+            `4. Aggiornamento Release Notes e versione\n` +
+            `5. Build Angular con Self-Healing fino a 3 tentativi\n` +
+            `6. Push branch hotfix su GitHub, PR e Deploy sull'ambiente scelto!`
         );
         res.status(200).send({ ok: true });
         return;
@@ -198,27 +295,32 @@ export const telegramHotfix = onRequest(
       }
 
       // ─── GESTIONE HOTFIX MULTIMODALE (TESTO, FOTO, VOCALE) ───────────────────
-      let imageBuffer: Buffer | null = null;
-      let audioBuffer: Buffer | null = null;
       let promptText = text;
+      let photoFileId: string | null = null;
+      let voiceFileId: string | null = null;
 
       if (Array.isArray(message.photo) && message.photo.length > 0) {
         const bestPhoto = message.photo[message.photo.length - 1];
-        const fileData = await downloadFile(bestPhoto.file_id);
-        imageBuffer = fileData.buffer;
+        photoFileId = bestPhoto.file_id;
       }
 
       if (message.voice) {
-        const fileData = await downloadFile(message.voice.file_id);
-        audioBuffer = fileData.buffer;
+        voiceFileId = message.voice.file_id;
         if (!promptText) promptText = 'Messaggio vocale dal campo da gioco';
       }
 
-      if (promptText.startsWith('/fix')) {
+      // Riconoscimento opzione deploy esplicita nel testo (shortcut: "/fix dev ...", "/fix prod ...", "/fix all ...")
+      let explicitTarget: 'dev' | 'both' | null = null;
+      const targetMatch = promptText.match(/^(\/fix\s+)?(dev|prod|all|both)\b\s*/i);
+      if (targetMatch) {
+        const flag = targetMatch[2].toLowerCase();
+        explicitTarget = flag === 'prod' || flag === 'all' || flag === 'both' ? 'both' : 'dev';
+        promptText = promptText.slice(targetMatch[0].length).trim();
+      } else if (promptText.startsWith('/fix')) {
         promptText = promptText.replace(/^\/fix\s*/, '').trim();
       }
 
-      if (!promptText && !imageBuffer && !audioBuffer) {
+      if (!promptText && !photoFileId && !voiceFileId) {
         await sendMessage(
           chatId,
           '❓ Non ho capito la richiesta. Scrivi una descrizione, invia uno screenshot o manda un messaggio vocale!'
@@ -237,31 +339,95 @@ export const telegramHotfix = onRequest(
         return;
       }
 
-      isHotfixRunning = true;
+      // Se l'utente ha specificato esplicitamente il target nel comando (shortcut rapido)
+      if (explicitTarget !== null) {
+        isHotfixRunning = true;
+        const initMsg = await sendMessage(
+          chatId,
+          explicitTarget === 'dev'
+            ? '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su SOLO DEV...</b>'
+            : '⚡ <b>Ricevuto! Avvio hotfix in Cloud con deploy su DEV e PROD...</b>'
+        );
 
-      // Risposta iniziale live su Telegram (il message_id verrà aggiornato con editMessageText ad ogni step)
-      const initMsg = await sendMessage(
-        chatId,
-        '⚡ <b>Ricevuto! Inizializzo workspace...</b>'
-      );
+        res.status(200).send({ ok: true, status: 'processing' });
 
-      // Risposta HTTP 200 IMMEDIATA a Telegram (evita qualsiasi timeout o loop di chiamate retry)
-      res.status(200).send({ ok: true, status: 'processing' });
+        let imageBuffer: Buffer | null = null;
+        let audioBuffer: Buffer | null = null;
 
-      // Esecuzione in background con CPU dedicata (--no-cpu-throttling & 4GiB / 2 vCPU)
-      executeInCloudHotfix({
-        userText: promptText,
-        imageBuffer,
-        audioBuffer,
-        chatId,
-        progressMessageId: initMsg?.message_id,
-      })
-        .catch((err) => {
-          console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
+        if (photoFileId) {
+          try {
+            const fileData = await downloadFile(photoFileId);
+            imageBuffer = fileData.buffer;
+          } catch (err: any) {
+            console.warn('[telegramHotfix] Errore download foto:', err.message);
+          }
+        }
+
+        if (voiceFileId) {
+          try {
+            const fileData = await downloadFile(voiceFileId);
+            audioBuffer = fileData.buffer;
+          } catch (err: any) {
+            console.warn('[telegramHotfix] Errore download audio:', err.message);
+          }
+        }
+
+        executeInCloudHotfix({
+          userText: promptText,
+          imageBuffer,
+          audioBuffer,
+          chatId,
+          progressMessageId: initMsg?.message_id,
+          deployTarget: explicitTarget,
         })
-        .finally(() => {
-          isHotfixRunning = false;
-        });
+          .catch((err) => {
+            console.error('[telegramHotfix] Errore esecuzione background hotfix:', err);
+          })
+          .finally(() => {
+            isHotfixRunning = false;
+          });
+        return;
+      }
+
+      // ─── RICHIESTA SCELTA TARGET DEPLOY (SOLO DEV vs DEV E PROD) ───────────
+      await savePendingHotfix(chatId, {
+        promptText,
+        photoFileId,
+        voiceFileId,
+      });
+
+      const summary = promptText
+        ? `📝 <i>"${escapeHtml(promptText.length > 140 ? promptText.slice(0, 137) + '...' : promptText)}"</i>\n`
+        : '';
+      const attachmentInfo = photoFileId
+        ? '📸 <i>Screenshot allegato</i>\n'
+        : voiceFileId
+        ? '🎙 <i>Messaggio vocale allegato</i>\n'
+        : '';
+
+      const askMsg =
+        `🎯 <b>Richiesta Hotfix Ricevuta!</b>\n\n` +
+        summary +
+        attachmentInfo +
+        `\n<b>Dove desideri effettuare il deploy una volta verificata la build?</b>\n` +
+        `• <b>Solo DEV:</b> per verificare subito l'anteprima senza toccare la produzione\n` +
+        `• <b>DEV + PROD:</b> per aggiornare entrambi gli ambienti in contemporanea`;
+
+      await sendMessage(chatId, askMsg, {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🧪 Solo DEV', callback_data: 'target:dev' },
+              { text: '🚀 DEV + PROD', callback_data: 'target:all' },
+            ],
+            [
+              { text: '❌ Annulla', callback_data: 'target:cancel' },
+            ],
+          ],
+        },
+      });
+
+      res.status(200).send({ ok: true, status: 'awaiting_target' });
     } catch (err: any) {
       console.error('[telegramHotfix] Errore unhandled:', err);
       if (!res.headersSent) {
