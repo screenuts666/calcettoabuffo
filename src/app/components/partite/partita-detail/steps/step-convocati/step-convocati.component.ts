@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, isDevMode } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -78,7 +78,7 @@ export class StepConvocatiComponent {
   private shareService = inject(ShareService);
   private availabilityService = inject(AvailabilityService, { optional: true });
 
-  readonly isDev = !environment.production;
+  readonly isDev = !environment.production || isDevMode();
   isSavingRsvp = signal<boolean>(false);
   isPreparingInvite = signal<boolean>(false);
   filtroVista = signal<'tutti' | 'convocati' | 'non_convocati'>('tutti');
@@ -636,7 +636,7 @@ export class StepConvocatiComponent {
    * in base al CAP massimo impostato.
    */
   async selezionaPrimiClassifica() {
-    if (!this.isAdmin) return;
+    if (!this.isAdmin || !this.isDev) return;
     const targetCap = this.maxCap();
     const currentSeason = this.state.stagione() || CURRENT_SEASON;
     const seasonLeaderboard =

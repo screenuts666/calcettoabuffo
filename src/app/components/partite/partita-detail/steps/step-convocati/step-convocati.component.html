@@ -41,16 +41,18 @@
             <span>{{ maxCap() === 16 ? 'Max 16' : 'Max 14' }}</span>
           </button>
 
-          <button
-            type="button"
-            class="dev-mini-pill"
-            (click)="selezionaPrimiClassifica()"
-            [title]="'Auto-seleziona Top ' + maxCap()"
-            [attr.aria-label]="'Auto-seleziona primi ' + maxCap() + ' giocatori'"
-          >
-            <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
-            <span>Top {{ maxCap() }}</span>
-          </button>
+          @if (isDev) {
+            <button
+              type="button"
+              class="dev-mini-pill"
+              (click)="selezionaPrimiClassifica()"
+              [title]="'Auto-seleziona Top ' + maxCap() + ' (Solo DEV)'"
+              [attr.aria-label]="'Auto-seleziona primi ' + maxCap() + ' giocatori'"
+            >
+              <ion-icon name="flash-outline" aria-hidden="true"></ion-icon>
+              <span>Top {{ maxCap() }}</span>
+            </button>
+          }
         }
 
         @if (isAdmin && (auth.hasLinkedPlayer() || myPlayer())) {

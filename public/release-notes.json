@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.0.85",
+    "date": "12/11/2026",
+    "title": "Rimozione Pulsante 'Top 14/16' in Produzione (Esclusivo DEV)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Barra Convocati Pulita in Produzione: rimosso categoricamente il pulsante 'Top 14' / 'Top 16' dalla barra di stato della partita in produzione, mantenendola minimale con solo il selettore del limite (Max 14/16) e la presenza rapida.",
+      "Migliore Spazio su Mobile: eliminato ogni affollamento di bottoni nella gestione convocati per una grafica ordinata e pulita."
+    ],
+    "superUserChanges": [
+      "Guardia d'Ambiente su dev-mini-pill: il pulsante 'Top 14/16' (selezionaPrimiClassifica) è ora renderizzato solo ed esclusivamente in ambiente DEV (!environment.production || isDevMode()).",
+      "Protezione Logica in StepConvocatiComponent: introdotta la guardia 'if (!this.isAdmin || !this.isDev) return;' a livello di metodo."
+    ]
+  },
+  {
     "version": "2.0.84",
     "date": "12/11/2026",
     "title": "Fix Cronometro Partita Reattivo & Ripresa Istantanea da Blocco Schermo Mobile",
