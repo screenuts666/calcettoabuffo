@@ -217,7 +217,7 @@ async function callGemini({
   throw lastError;
 }
 
-// ─── FILE SCANNER ───────────────────────────────────────────────────────────
+// ─── FILE SCANNER & SMART HEURISTIC INDEXER (ZERO API CALLS WASTED) ─────────
 function scanFiles(dir) {
   const fileList = [];
   function walk(current) {
@@ -241,6 +241,73 @@ function scanFiles(dir) {
   }
   walk(dir);
   return fileList;
+}
+
+function findSmartCandidateFiles(allFiles, promptText) {
+  const text = (promptText || "").toLowerCase();
+
+  const domainRules = [
+    {
+      keywords: ["pallon", "gol", "marcat", "icon", "neri", "bianchi", "risultat", "partit", "tabellin"],
+      files: [
+        "src/app/components/partite/partite.page.html",
+        "src/app/components/partite/partite.page.scss",
+        "src/app/components/partite/partite.page.ts",
+      ],
+    },
+    {
+      keywords: ["cronometro", "timer", "tempo", "minut", "second", "start", "stop", "fischio"],
+      files: [
+        "src/app/components/partite/partite.page.html",
+        "src/app/components/partite/partite.page.ts",
+        "src/app/services/timer.service.ts",
+      ],
+    },
+    {
+      keywords: ["classifica", "scheda", "giocator", "avatar", "statistich", "presenz"],
+      files: [
+        "src/app/components/classifica/classifica.page.html",
+        "src/app/components/classifica/classifica.page.ts",
+        "src/app/components/classifica/classifica.page.scss",
+      ],
+    },
+    {
+      keywords: ["impostazion", "config", "season", "stagion", "ruol"],
+      files: [
+        "src/app/components/impostazioni/impostazioni.page.html",
+        "src/app/components/impostazioni/impostazioni.page.ts",
+      ],
+    },
+  ];
+
+  const matched = new Set();
+  for (const rule of domainRules) {
+    if (rule.keywords.some((k) => text.includes(k))) {
+      for (const f of rule.files) {
+        if (allFiles.includes(f)) matched.add(f);
+      }
+    }
+  }
+
+  if (matched.size === 0) {
+    const tokens = text.split(/\W+/).filter((t) => t.length > 3);
+    const scored = allFiles.map((file) => {
+      let score = 0;
+      for (const t of tokens) {
+        if (file.toLowerCase().includes(t)) score += 2;
+      }
+      return { file, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    scored.filter((s) => s.score > 0).slice(0, 5).forEach((s) => matched.add(s.file));
+  }
+
+  // Fallback se nessun match
+  if (matched.size === 0) {
+    allFiles.filter((f) => /partit/i.test(f)).slice(0, 3).forEach((f) => matched.add(f));
+  }
+
+  return Array.from(matched).slice(0, 5);
 }
 
 // ─── SNIPPET REPLACEMENT (ZERO TRUNCATION) ──────────────────────────────────
@@ -380,28 +447,9 @@ async function main() {
     }
   }
 
-  // 1. CHIEDI A GEMINI DI SELEZIONARE I FILE CANDIDATI
-  const candidatePrompt =
-    `Dato questo elenco di file del progetto Angular/Ionic "Calcetto Abbuffo":\n` +
-    allFiles.slice(0, 150).join("\n") +
-    `\n\nIdentifica i file (massimo 5) più rilevanti per risolvere questa richiesta:\n"${userPrompt}"\n\n` +
-    `Rispondi con un array JSON di stringhe con i path relativi dei file, ad es: ["src/app/services/timer.service.ts"]`;
-
-  let candidateFiles = [];
-  try {
-    const rawFiles = await callGemini({
-      parts: [{ text: candidatePrompt }],
-      jsonMode: true,
-    });
-    candidateFiles = JSON.parse(rawFiles);
-  } catch (err) {
-    console.warn("[Runner] Fallita selezione intelligente file, uso fallback euristico.");
-    candidateFiles = allFiles.filter((f) =>
-      /partit|timer|cronometro|giocator/i.test(f),
-    ).slice(0, 5);
-  }
-
-  console.log("[Runner] File candidati identificati:", candidateFiles);
+  // 1. SELEZIONE INTELLIGENTE DEI FILE TARGET (ZERO SPRECO DI CHIAMATE API)
+  const candidateFiles = findSmartCandidateFiles(allFiles, userPrompt);
+  console.log("[Runner] File candidati identificati via smart indexer:", candidateFiles);
 
   // 2. CARICA CONTENUTO DEI FILE CANDIDATI
   const filesContext = candidateFiles
