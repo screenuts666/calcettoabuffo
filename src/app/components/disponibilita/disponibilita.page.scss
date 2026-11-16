@@ -913,19 +913,20 @@
         z-index: 2;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         background: rgba(0, 0, 0, 0.26);
-        padding: 8px 12px 9px 12px;
+        padding: 6px 10px 7px 10px;
         display: flex;
         flex-direction: column;
-        gap: 7px;
-        max-height: 290px;
+        gap: 6px;
+        max-height: none;
+        overflow: visible;
         animation: drawerSlideFade 180ms ease-out;
 
         .drawer-meta-line {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 8px;
-          font-size: 0.72rem;
+          gap: 6px;
+          font-size: 0.70rem;
           line-height: 1.2;
 
           .drawer-quorum-info {
@@ -963,9 +964,9 @@
         .drawer-chips-wrap {
           display: flex;
           flex-wrap: wrap;
-          gap: 5px;
-          max-height: 86px;
-          overflow-y: auto;
+          gap: 4px;
+          max-height: none;
+          overflow: visible;
 
           .presence-chip {
             display: inline-flex;
@@ -973,15 +974,18 @@
             gap: 4px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 999px;
             padding: 2px 7px 2px 5px;
-            font-size: 0.71rem;
+            height: 23px;
+            box-sizing: border-box;
+            font-size: 0.70rem;
             color: #e2e8f0;
             white-space: nowrap;
 
             &.is-me {
-              background: rgba(16, 185, 129, 0.15);
-              border-color: rgba(16, 185, 129, 0.45);
+              background: rgba(16, 185, 129, 0.16);
+              border-color: rgba(16, 185, 129, 0.5);
+              color: #a7f3d0;
             }
 
             &.is-extra-8v8 {
@@ -995,8 +999,8 @@
             }
 
             .chip-priority-num {
-              font-size: 0.63rem;
-              font-weight: 900;
+              font-size: 0.62rem;
+              font-weight: 800;
               color: #38bdf8;
               letter-spacing: -0.02em;
             }
@@ -1006,8 +1010,8 @@
             }
 
             .chip-avatar {
-              width: 17px;
-              height: 17px;
+              width: 16px;
+              height: 16px;
               border-radius: 50%;
               overflow: hidden;
               flex-shrink: 0;
@@ -1021,14 +1025,15 @@
 
             .chip-name {
               font-weight: 600;
-              max-width: 90px;
+              max-width: 95px;
               overflow: hidden;
               text-overflow: ellipsis;
+              white-space: nowrap;
             }
           }
 
           .empty-presence-msg {
-            font-size: 0.72rem;
+            font-size: 0.70rem;
             color: #64748b;
             font-style: italic;
             padding: 2px 0;
@@ -1039,9 +1044,9 @@
         .drawer-admin-bar {
           display: flex;
           align-items: center;
-          justify-content: space-between;
+          justify-content: flex-start;
           flex-wrap: wrap;
-          gap: 6px;
+          gap: 5px;
           padding-top: 5px;
           border-top: 1px solid rgba(255, 255, 255, 0.07);
 
@@ -1049,23 +1054,24 @@
             display: inline-flex;
             align-items: center;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 5px;
+            width: 100%;
 
             .admin-pill-btn {
               display: inline-flex;
               align-items: center;
               gap: 4px;
-              height: 26px;
-              padding: 0 9px;
+              height: 24px;
+              padding: 0 8px;
               border-radius: 999px;
-              font-size: 0.68rem;
+              font-size: 0.66rem;
               font-weight: 700;
               cursor: pointer;
               white-space: nowrap;
               transition: all 0.15s ease;
 
               ion-icon {
-                font-size: 0.82rem;
+                font-size: 0.80rem;
                 flex-shrink: 0;
               }
 
@@ -1109,33 +1115,20 @@
                   height: 15px;
                 }
               }
-            }
-          }
 
-          .btn-force-create-match {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: transparent;
-            border: 1px dashed rgba(16, 185, 129, 0.45);
-            color: #34d399;
-            font-size: 0.68rem;
-            font-weight: 700;
-            height: 26px;
-            padding: 0 8px;
-            border-radius: 999px;
-            cursor: pointer;
-            transition:
-              background 0.15s ease,
-              border-color 0.15s ease;
+              &.btn-force-create-match {
+                background: rgba(16, 185, 129, 0.12);
+                border: 1px dashed rgba(16, 185, 129, 0.55);
+                color: #6ee7b7;
 
-            &:active {
-              background: rgba(16, 185, 129, 0.15);
-              border-color: rgba(16, 185, 129, 0.75);
-            }
+                &:hover {
+                  background: rgba(16, 185, 129, 0.22);
+                }
 
-            ion-icon {
-              font-size: 0.78rem;
+                &:active {
+                  background: rgba(16, 185, 129, 0.3);
+                }
+              }
             }
           }
         }

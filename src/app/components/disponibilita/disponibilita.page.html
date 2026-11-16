@@ -398,22 +398,22 @@
                           </span>
                         } @else if (day.allowEightVsEight && day.count >= 10) {
                           <span class="status-8v8">
-                            ✅ Quorum 8vs8 ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} posti liberi)
+                            ✅ Quorum 8vs8 ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} liberi)
                           </span>
                         } @else if (day.count >= 10) {
                           <span class="status-quorum">
-                            ✅ Quorum raggiunto ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} posti al CAP 7vs7)
+                            ✅ Quorum raggiunto ({{ day.count }}/{{ day.maxCap }} • {{ day.remainingSlots }} al CAP)
                           </span>
                         } @else {
                           <span class="status-missing">
-                            Mancano <strong>{{ 10 - day.count }}</strong> al quorum (10) • Cap {{ day.maxCap }}
+                            {{ 10 - day.count === 1 ? 'Manca 1' : 'Mancano ' + (10 - day.count) }} al quorum (10)
                           </span>
                         }
                       </span>
 
                       @if (mostraMeteo() && day.weather) {
                         <span class="drawer-weather-info">
-                          {{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }} {{ day.weather.conditionDescription }} • {{ day.weather.tempMax }}°/{{ day.weather.tempMin }}° • 💧 {{ day.weather.rainProbability }}%
+                          {{ (day.weather.iconEmoji && !day.weather.iconEmoji.includes('🌫')) ? day.weather.iconEmoji : '🌁' }} {{ day.weather.conditionDescription }} • 💧 {{ day.weather.rainProbability }}%
                         </span>
                       }
                     </div>
@@ -433,8 +433,7 @@
                             <div class="chip-avatar">
                               <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                             </div>
-                            <span class="chip-name">{{ p.soprannome || p.nome }}</span>
-                            <span class="chip-name">{{ p.nome || p.soprannome }}</span>
+                            <span class="chip-name">{{ p.nome }}</span>
                           </div>
                         }
                       } @else {
@@ -458,7 +457,7 @@
                               [name]="day.allowEightVsEight ? 'lock-closed-outline' : 'lock-open-outline'"
                               aria-hidden="true"
                             ></ion-icon>
-                            <span>{{ day.allowEightVsEight ? '🔒 Limita a 14 (7vs7)' : '🔓 Sblocca 16 posti (8vs8)' }}</span>
+                            <span>{{ day.allowEightVsEight ? 'Limita 14 (7vs7)' : '16 posti (8vs8)' }}</span>
                           </button>
 
                           <!-- Pill 2: Bottone Storico Voti (Classifica 1° Voto + Audit Log) -->
@@ -469,24 +468,24 @@
                             title="Apri Classifica Priorità (1° Voto) e Cronologia Eventi completa del giorno"
                           >
                             <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
-                            <span>Storico Voti</span>
+                            <span>Storico</span>
                             @if (day.historyCount > 0) {
                               <span class="history-pill-count">{{ day.historyCount }}</span>
                             }
                           </button>
-                        </div>
 
-                        @if (!day.isPast && !day.isQuorumReached && day.matches.length === 0) {
-                          <button
-                            type="button"
-                            class="btn-force-create-match"
-                            (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
-                            title="Forza apertura partita anche senza quorum"
-                          >
-                            <ion-icon name="football-outline"></ion-icon>
-                            <span>⚽ Crea partita</span>
-                          </button>
-                        }
+                          @if (!day.isPast && !day.isQuorumReached && day.matches.length === 0) {
+                            <button
+                              type="button"
+                              class="admin-pill-btn btn-force-create-match"
+                              (click)="fissaPartitaSlot(day.dateStr); $event.stopPropagation()"
+                              title="Forza apertura partita anche senza quorum"
+                            >
+                              <ion-icon name="football-outline"></ion-icon>
+                              <span>Crea partita</span>
+                            </button>
+                          }
+                        </div>
                       </div>
                     }
                   </div>
@@ -753,8 +752,7 @@
 
                     <div class="pr-info">
                       <div class="pr-name-line">
-                        <span class="pr-name">{{ p.soprannome || p.nome }}</span>
-                        <span class="pr-name">{{ p.nome || p.soprannome }}</span>
+                        <span class="pr-name">{{ p.nome }}</span>
                         @if (p.priorityRank > 14 && p.priorityRank <= 16 && hDay.allowEightVsEight) {
                           <span class="pr-slot-tag tag-8v8">Slot 8vs8</span>
                         } @else if (p.priorityRank > hDay.maxCap) {

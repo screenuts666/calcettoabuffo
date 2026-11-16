@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.89",
+    "date": "16/11/2026",
+    "title": "Ottimizzazione Accordion Disponibilità e Nomi Reali",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Lista Completa Presenti: aprendo l'accordion di una giornata è ora visibile l'elenco integrale di tutti i giocatori che hanno votato, senza limitazioni o tagli.",
+      "Solo Nomi Reali: rimossi definitivamente i soprannomi dalle pillole dei votanti, garantendo la visualizzazione esclusiva del nome anagrafico.",
+      "Layout Compatto ed Elegante: riorganizzate le informazioni e le pillole per ottimizzare lo spazio verticale su smartphone."
+    ],
+    "superUserChanges": [
+      "Allineamento Drawer Accordion: unificata la barra dei pulsanti di controllo (Sblocco 16 posti, Storico Voti, Crea Partita) su una riga compatta ed eliminato max-height dal contenitore delle chips.",
+      "Risoluzione Nome Atleta Rigorosa: rimossa ogni precedenza o fallback del soprannome su availability.service.ts sia per i voti in ingresso che per i voti storici e simulati."
+    ]
+  },
+  {
     "version": "2.0.88",
     "date": "16/11/2026",
     "title": "Visualizzazione Nomi Reali Atleti al posto dei Soprannomi",
