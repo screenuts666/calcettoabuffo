@@ -309,7 +309,11 @@
 
     // Modalità "settimana corrente attiva con 2ª partita"
     &.current-week-alert {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(6, 95, 70, 0.1));
+      background: linear-gradient(
+        135deg,
+        rgba(16, 185, 129, 0.15),
+        rgba(6, 95, 70, 0.1)
+      );
       border: 1px solid rgba(16, 185, 129, 0.35);
       color: #ecfdf5;
 
@@ -325,13 +329,21 @@
 
       &:hover {
         border-color: rgba(16, 185, 129, 0.55);
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(6, 95, 70, 0.16));
+        background: linear-gradient(
+          135deg,
+          rgba(16, 185, 129, 0.22),
+          rgba(6, 95, 70, 0.16)
+        );
       }
     }
 
     // Modalità "nuovo sondaggio aperto per la prossima settimana"
     &.next-week-alert {
-      background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(30, 58, 138, 0.08));
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.14),
+        rgba(30, 58, 138, 0.08)
+      );
       border: 1px solid rgba(56, 189, 248, 0.32);
       color: #f0f9ff;
 
@@ -347,7 +359,11 @@
 
       &:hover {
         border-color: rgba(56, 189, 248, 0.5);
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(30, 58, 138, 0.14));
+        background: linear-gradient(
+          135deg,
+          rgba(56, 189, 248, 0.2),
+          rgba(30, 58, 138, 0.14)
+        );
       }
     }
   }
@@ -926,7 +942,7 @@
           align-items: center;
           justify-content: space-between;
           gap: 6px;
-          font-size: 0.70rem;
+          font-size: 0.7rem;
           line-height: 1.2;
 
           .drawer-quorum-info {
@@ -978,7 +994,7 @@
             padding: 2px 7px 2px 5px;
             height: 23px;
             box-sizing: border-box;
-            font-size: 0.70rem;
+            font-size: 0.7rem;
             color: #e2e8f0;
             white-space: nowrap;
 
@@ -1033,7 +1049,7 @@
           }
 
           .empty-presence-msg {
-            font-size: 0.70rem;
+            font-size: 0.7rem;
             color: #64748b;
             font-style: italic;
             padding: 2px 0;
@@ -1071,7 +1087,7 @@
               transition: all 0.15s ease;
 
               ion-icon {
-                font-size: 0.80rem;
+                font-size: 0.8rem;
                 flex-shrink: 0;
               }
 

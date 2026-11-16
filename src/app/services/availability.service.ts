@@ -146,9 +146,7 @@ export class AvailabilityService {
               (p.linkedUid && p.linkedUid === entry.userId),
           );
           const resolvedName =
-            matchedPlayer?.nome ||
-            entry.userName ||
-            'Atleta';
+            matchedPlayer?.nome || entry.userName || 'Atleta';
 
           if (entry.action === 'in') {
             const prevCount = inCountByUser.get(entry.userId) || 0;
@@ -206,8 +204,7 @@ export class AvailabilityService {
             ? meta.lastActionAt
             : lastActionByUser.get(v.uid) || firstVotedAt;
 
-        const totalIns =
-          meta?.inCount ?? inCountByUser.get(v.uid) ?? 1;
+        const totalIns = meta?.inCount ?? inCountByUser.get(v.uid) ?? 1;
 
         const isReconfirmed =
           totalIns > 1 ||
@@ -257,10 +254,7 @@ export class AvailabilityService {
               (v.playerId && p.id === v.playerId) ||
               (p.linkedUid && p.linkedUid === v.uid),
           );
-          const resolvedName =
-            matchedPlayer?.nome ||
-            v.displayName ||
-            'Atleta';
+          const resolvedName = matchedPlayer?.nome || v.displayName || 'Atleta';
           const effectiveTs =
             v.firstVotedAt < Number.MAX_SAFE_INTEGER
               ? v.firstVotedAt
@@ -547,14 +541,10 @@ export class AvailabilityService {
     const pid = this.auth.linkedPlayerId();
     const allPlayers = this.statsEngine.giocatoriRaw() || [];
     const linkedPlayer = allPlayers.find(
-      (p) =>
-        (pid && p.id === pid) ||
-        (user?.uid && p.linkedUid === user.uid),
+      (p) => (pid && p.id === pid) || (user?.uid && p.linkedUid === user.uid),
     );
     if (linkedPlayer?.nome?.trim()) return linkedPlayer.nome.trim();
-    return (
-      this.auth.displayName() || user?.email?.split('@')[0] || 'Atleta'
-    );
+    return this.auth.displayName() || user?.email?.split('@')[0] || 'Atleta';
   }
 
   /**
@@ -840,13 +830,9 @@ export class AvailabilityService {
       // Cerca eventuale primo voto precedente nello storico o nel documento legacy
       const earliestHistIn = [...existingUserDayHist, ...existingDocDayHist]
         .filter((h) => h.userId === user.uid && h.action === 'in')
-        .reduce<number | null>(
-          (min, h) =>
-            min === null || h.timestamp < min
-              ? h.firstVotedAt || h.timestamp
-              : min,
-          null,
-        );
+        .reduce<
+          number | null
+        >((min, h) => (min === null || h.timestamp < min ? h.firstVotedAt || h.timestamp : min), null);
 
       const legacyInitialTs =
         action === 'out' && existingVote?.updatedAt
