@@ -15,6 +15,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.88",
+    "date": "16/11/2026",
+    "title": "Visualizzazione Nomi Reali Atleti al posto dei Soprannomi",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Nomi Anagrafici nei Voti: nelle pillole dei presenti (chips) e nella lista delle disponibilità compaiono ora chiaramente i nomi anagrafici dei giocatori anziché i soprannomi.",
+      "Migliore Riconoscibilità: resa immediata l'identificazione degli atleti confermati per ogni giornata di gioco."
+    ],
+    "superUserChanges": [
+      "Priorità Nome su Soprannome in Disponibilità: aggiornati template disponibilita.page.html e logica availability.service.ts per dare precedenza al campo 'nome' rispetto a 'soprannome'.",
+      "Allineamento Solleciti e Modalità Priorità: uniformata la generazione dei nomi nello Storico Voti e nei messaggi di sollecito WhatsApp."
+    ]
+  },
+  {
     "version": "2.0.87",
     "date": "12/11/2026",
     "title": "Migrazione Agente Remoto ad Azione Ufficiale Google Gemini CLI",

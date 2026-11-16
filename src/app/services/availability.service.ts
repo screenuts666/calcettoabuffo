@@ -146,6 +146,7 @@ export class AvailabilityService {
               (p.linkedUid && p.linkedUid === entry.userId),
           );
           const resolvedName =
+            matchedPlayer?.nome ||
             matchedPlayer?.soprannome ||
             matchedPlayer?.nome ||
             entry.userName ||
@@ -259,6 +260,7 @@ export class AvailabilityService {
               (p.linkedUid && p.linkedUid === v.uid),
           );
           const resolvedName =
+            matchedPlayer?.nome ||
             matchedPlayer?.soprannome ||
             matchedPlayer?.nome ||
             v.displayName ||
@@ -553,6 +555,7 @@ export class AvailabilityService {
         (pid && p.id === pid) ||
         (user?.uid && p.linkedUid === user.uid),
     );
+    if (linkedPlayer?.nome?.trim()) return linkedPlayer.nome.trim();
     if (linkedPlayer?.soprannome?.trim()) return linkedPlayer.soprannome.trim();
     if (linkedPlayer?.nome?.trim()) return linkedPlayer.nome.trim();
     return (
@@ -1045,7 +1048,7 @@ export class AvailabilityService {
 
     playerPool.forEach((player, pIdx) => {
       const mockUid = player.linkedUid || `mock_dev_${player.id}`;
-      const pName = player.soprannome || player.nome || `Atleta ${pIdx + 1}`;
+      const pName = player.nome || player.soprannome || `Atleta ${pIdx + 1}`;
       const availableDates: string[] = [];
       const dayVotes: Record<string, PlayerDayVoteState> = {};
       const voteHistoryByDate: Record<string, VoteHistoryEntry[]> = {};

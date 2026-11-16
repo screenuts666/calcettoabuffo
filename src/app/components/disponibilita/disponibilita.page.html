@@ -434,6 +434,7 @@
                               <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                             </div>
                             <span class="chip-name">{{ p.soprannome || p.nome }}</span>
+                            <span class="chip-name">{{ p.nome || p.soprannome }}</span>
                           </div>
                         }
                       } @else {
@@ -753,6 +754,7 @@
                     <div class="pr-info">
                       <div class="pr-name-line">
                         <span class="pr-name">{{ p.soprannome || p.nome }}</span>
+                        <span class="pr-name">{{ p.nome || p.soprannome }}</span>
                         @if (p.priorityRank > 14 && p.priorityRank <= 16 && hDay.allowEightVsEight) {
                           <span class="pr-slot-tag tag-8v8">Slot 8vs8</span>
                         } @else if (p.priorityRank > hDay.maxCap) {
