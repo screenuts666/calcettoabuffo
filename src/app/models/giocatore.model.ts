@@ -7,6 +7,26 @@ import {
   PastSeasonBanner,
 } from './mmr.model';
 
+export interface CurrentInjury {
+  id: string;
+  startDate: string; // Formato 'YYYY-MM-DD'
+  expectedReturnDate?: string | null; // Opzionale 'YYYY-MM-DD'
+  note?: string; // Es. "Stiramento polpaccio", "Distorsione caviglia"
+  recordedBy: string; // UID di Mister o Presidente
+  recordedAt?: string; // Timestamp ISO di registrazione
+}
+
+export interface InjuryHistoryEntry {
+  id?: string;
+  startDate: string; // 'YYYY-MM-DD'
+  endDate: string; // 'YYYY-MM-DD'
+  note?: string;
+  missedMatchesCount: number; // Conteggio consolidato partite ufficiali saltate
+  recordedBy?: string;
+  closedBy?: string;
+  closedAt?: string;
+}
+
 export interface Giocatore {
   id: string;
   nome: string;
@@ -46,6 +66,11 @@ export interface Giocatore {
 
   // Dato privato (letto/scritto esclusivamente in `giocatori/{playerId}/private/contact`)
   phoneNumber?: string | null;
+
+  // Gestione Infortuni & Infermeria
+  isInjured?: boolean;
+  currentInjury?: CurrentInjury | null;
+  injuryHistory?: InjuryHistoryEntry[];
 }
 
 export interface PlayerPrivateContact {

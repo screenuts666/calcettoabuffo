@@ -482,6 +482,17 @@
         color: #fff;
         border-color: rgba(0, 0, 0, 0.3);
       }
+
+      &.injured {
+        background: #ef4444;
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+
+        ion-icon {
+          font-size: 10px;
+        }
+      }
     }
   }
 

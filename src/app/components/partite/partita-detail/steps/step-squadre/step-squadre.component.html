@@ -132,7 +132,14 @@
               [alt]="g.nome"
               class="avatar-img"
             ></app-player-avatar>
-            @if (isPortiereFisso("A", g.id)) {
+            @if (isInjured(g)) {
+              <span
+                class="role-mini-badge injured"
+                [title]="getInjuryTooltip(g)"
+              >
+                <ion-icon name="medkit"></ion-icon>
+              </span>
+            } @else if (isPortiereFisso("A", g.id)) {
               <span
                 class="role-mini-badge fixed-gk"
                 title="Portiere Fisso Designato"
@@ -264,7 +271,14 @@
               [alt]="g.nome"
               class="avatar-img"
             ></app-player-avatar>
-            @if (isPortiereFisso("B", g.id)) {
+            @if (isInjured(g)) {
+              <span
+                class="role-mini-badge injured"
+                [title]="getInjuryTooltip(g)"
+              >
+                <ion-icon name="medkit"></ion-icon>
+              </span>
+            } @else if (isPortiereFisso("B", g.id)) {
               <span
                 class="role-mini-badge fixed-gk"
                 title="Portiere Fisso Designato"

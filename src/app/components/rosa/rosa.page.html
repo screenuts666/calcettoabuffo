@@ -122,11 +122,18 @@
             [attr.data-tier]="fut.tierId"
             [style.--tier-color]="fut.color"
             [class.is-me]="isMyPlayer(g.id)"
+            [class.is-player-injured]="g.isInjured"
             (click)="apriDettagliGiocatore(g)"
           >
             <!-- HEADER CARTA: RUOLO ABBREVIATO + TIER/MMR COMPATTO -->
             <div class="fut-card-top">
               <span class="fut-role-tag">{{ fut.roleShort }}</span>
+              @if (g.isInjured) {
+                <span class="fut-injured-pill" [title]="getInjuryBadgeText(g)">
+                  <ion-icon name="medkit"></ion-icon>
+                  <span>KO</span>
+                </span>
+              }
               <span class="fut-tier-pill" [title]="fut.tierLabel">
                 @if (fut.mmrDisplay !== '—') {
                   <strong>{{ fut.mmrDisplay }}</strong>
@@ -156,11 +163,16 @@
             <!-- FASCIA NOME + SOPRANNOME AD ALTEZZA FISSA -->
             <div class="fut-identity-band">
               <h3 class="fut-player-name">{{ g.nome }}</h3>
-              <div class="fut-player-nick">
-                @if (g.soprannome) {
+              @if (g.isInjured) {
+                <div class="fut-player-injured-sub" [title]="getInjuryBadgeText(g)">
+                  <ion-icon name="medkit-outline"></ion-icon>
+                  <span>{{ getInjuryBadgeText(g) }}</span>
+                </div>
+              } @else if (g.soprannome) {
+                <div class="fut-player-nick">
                   "{{ g.soprannome }}"
-                }
-              </div>
+                </div>
+              }
             </div>
 
             <!-- FOOTER MINI-STATS (1 RIGA ULTRA-COMPATTA) -->

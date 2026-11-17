@@ -1930,3 +1930,393 @@
     }
   }
 }
+
+// ==========================================
+// STATUS PILL INJURY (HEADER COMPACT)
+// ==========================================
+.status-pill-injury {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #f87171;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  animation: pulse-injury 2s infinite ease-in-out;
+
+  .injury-badge-icon {
+    font-size: 0.85rem;
+  }
+}
+
+@keyframes pulse-injury {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(239, 68, 68, 0);
+  }
+}
+
+// ==========================================
+// INFERMERIA SECTION CARD
+// ==========================================
+.infermeria-section-card {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--app-card-bg, #161b26);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &.is-injured {
+    border-color: rgba(239, 68, 68, 0.5);
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(22, 27, 38, 0.95) 40%);
+    box-shadow: 0 4px 24px rgba(239, 68, 68, 0.15);
+  }
+
+  .isc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+    .isc-title-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .isc-icon {
+        font-size: 1.5rem;
+      }
+
+      .isc-title-texts {
+        display: flex;
+        flex-direction: column;
+
+        .isc-title {
+          margin: 0;
+          font-size: 0.95rem;
+          font-weight: 800;
+          color: var(--app-text-primary, #fff);
+          letter-spacing: -0.2px;
+        }
+
+        .isc-subtitle {
+          font-size: 0.72rem;
+          color: var(--app-text-secondary, #94a3b8);
+          font-weight: 500;
+        }
+      }
+    }
+
+    .isc-badge-box {
+      .isc-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        &.infortunato {
+          background: rgba(239, 68, 68, 0.18);
+          border: 1px solid #ef4444;
+          color: #fca5a5;
+          ion-icon {
+            color: #ef4444;
+            font-size: 0.85rem;
+          }
+        }
+
+        &.disponibile {
+          background: rgba(34, 197, 94, 0.15);
+          border: 1px solid rgba(34, 197, 94, 0.4);
+          color: #86efac;
+          ion-icon {
+            color: #22c55e;
+            font-size: 0.85rem;
+          }
+        }
+      }
+    }
+  }
+
+  // INJURY LIVE BANNER
+  .injury-live-banner {
+    margin-top: 14px;
+
+    .ilb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+
+      .ilb-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .ilb-label {
+          font-size: 0.68rem;
+          font-weight: 700;
+          color: var(--app-text-secondary, #94a3b8);
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+
+        .ilb-val {
+          font-size: 1.05rem;
+          font-weight: 800;
+          color: var(--app-text-primary, #fff);
+
+          &.text-danger {
+            color: #ef4444;
+          }
+          &.text-warning {
+            color: #f59e0b;
+          }
+        }
+
+        .ilb-sub {
+          font-size: 0.68rem;
+          color: var(--app-text-secondary, #64748b);
+        }
+      }
+    }
+
+    .injury-diagnosis-box {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 3px solid #ef4444;
+      border-radius: 8px;
+      color: var(--app-text-primary, #f1f5f9);
+      font-size: 0.8rem;
+
+      ion-icon {
+        color: #f87171;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+      }
+    }
+
+    .injury-admin-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+
+      .btn-recover {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        color: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 800;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+
+        &:active {
+          opacity: 0.85;
+          transform: translateY(1px);
+        }
+
+        ion-icon {
+          font-size: 1rem;
+        }
+      }
+
+      .btn-edit-injury {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--app-text-primary, #fff);
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+
+        &:active {
+          background: rgba(255, 255, 255, 0.15);
+        }
+      }
+    }
+  }
+
+  // INJURY FREE STATE
+  .injury-free-state {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    .ifs-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--app-text-secondary, #94a3b8);
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .btn-mark-injured {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.15s ease;
+
+      &:active {
+        background: rgba(239, 68, 68, 0.28);
+      }
+
+      ion-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  // SUMMARY STRIP
+  .injury-history-summary-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+    .ihs-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+
+      .ihs-val {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: var(--app-text-primary, #fff);
+
+        &.text-danger {
+          color: #ef4444;
+        }
+      }
+
+      .ihs-lbl {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--app-text-secondary, #94a3b8);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+    }
+
+    .ihs-sep {
+      color: rgba(255, 255, 255, 0.2);
+      font-size: 1.2rem;
+    }
+  }
+
+  // INJURY HISTORY LIST
+  .injury-history-list {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+
+    .ihl-title {
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--app-text-secondary, #94a3b8);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-bottom: 8px;
+    }
+
+    .ihl-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.78rem;
+
+      .ihl-entry-dates {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--app-text-primary, #e2e8f0);
+        font-weight: 600;
+
+        ion-icon {
+          color: var(--app-text-secondary, #94a3b8);
+          font-size: 0.85rem;
+        }
+      }
+
+      .ihl-entry-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .ihl-note {
+          font-size: 0.72rem;
+          color: var(--app-text-secondary, #94a3b8);
+          max-width: 140px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .ihl-missed-pill {
+          padding: 2px 7px;
+          border-radius: 6px;
+          background: rgba(239, 68, 68, 0.15);
+          color: #fca5a5;
+          font-size: 0.7rem;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+      }
+    }
+  }
+}
+

@@ -37,8 +37,11 @@ import {
   refreshOutline,
   lockClosedOutline,
   lockOpenOutline,
+  medkit,
+  medkitOutline,
 } from 'ionicons/icons';
 import { MatchStateService, ConvocatoState } from '../../match-state.service';
+import { InjuriesService } from 'src/app/services/injuries.service';
 import {
   getAvatarUrl,
   handleAvatarError,
@@ -70,6 +73,7 @@ import { AuthModalComponent } from '../../../../auth-modal/auth-modal.component'
 export class StepConvocatiComponent {
   public state = inject(MatchStateService);
   public auth = inject(AuthService);
+  public injuriesService = inject(InjuriesService);
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
@@ -82,6 +86,10 @@ export class StepConvocatiComponent {
   isSavingRsvp = signal<boolean>(false);
   isPreparingInvite = signal<boolean>(false);
   filtroVista = signal<'tutti' | 'convocati' | 'non_convocati'>('tutti');
+
+  getInjuryTooltip(g: ConvocatoState): string {
+    return this.injuriesService.getInjuryBadgeText(g);
+  }
 
   /** CAP massimo corrente (14 default per 7vs7, oppure 16 se sbloccato 8vs8) */
   readonly maxCap = computed<14 | 16>(() =>
@@ -365,6 +373,55 @@ export class StepConvocatiComponent {
       return;
     }
 
+    // Se si sta aggiungendo un giocatore che risulta attualmente infortunato:
+    // mostra un avviso/dialog a Mister e Presidente proponendo di chiudere automaticamente l'infortunio
+    if (!giocatore.selezionato && giocatore.isInjured) {
+      const matchDate = this.state.dataPartita() || this.injuriesService.getTodayString();
+      const matchDateFmt = this.injuriesService.formatDateDisplay(matchDate);
+      const alert = await this.alertCtrl.create({
+        header: 'Giocatore Infortunato',
+        subHeader: `${giocatore.nome} è in infermeria`,
+        message: `Stai per inserire ${giocatore.nome} tra i convocati. Vuoi dichiararlo guarito e chiudere automaticamente l'infortunio alla data della gara (${matchDateFmt})?`,
+        mode: 'ios',
+        buttons: [
+          {
+            text: 'Mantieni infortunato',
+            role: 'cancel',
+            handler: () => {
+              this.eseguiSelezioneConvocato(giocatore);
+            },
+          },
+          {
+            text: 'Sì, segna recuperato',
+            handler: async () => {
+              try {
+                await this.injuriesService.segnaRecuperato(giocatore, matchDate);
+                giocatore.isInjured = false;
+                giocatore.currentInjury = null;
+                const toast = await this.toastCtrl.create({
+                  message: `Infortunio di ${giocatore.nome} chiuso con successo alla data del match.`,
+                  duration: 2800,
+                  color: 'success',
+                  position: 'top',
+                  mode: 'ios',
+                });
+                await toast.present();
+              } catch (err: any) {
+                console.warn('Errore chiusura automatica infortunio:', err);
+              }
+              this.eseguiSelezioneConvocato(giocatore);
+            },
+          },
+        ],
+      });
+      await alert.present();
+      return;
+    }
+
+    this.eseguiSelezioneConvocato(giocatore);
+  }
+
+  private eseguiSelezioneConvocato(giocatore: ConvocatoState) {
     const nextSelected = !giocatore.selezionato;
     this.state.tutti.update((lista) =>
       lista.map((g) =>

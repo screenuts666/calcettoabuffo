@@ -707,7 +707,12 @@ export class MatchStateService {
     if (this.isTimerRunning() && !this.isPausedDev()) return;
 
     const now = Date.now();
-    const startAt = this.startedAt() || now;
+    const isFirstStart =
+      !this.startedAt() &&
+      (this.cronometro() || 0) === 0 &&
+      (this.accumulatedTime() || 0) === 0;
+
+    const startAt = isFirstStart ? now : (this.startedAt() || now);
     this.startedAt.set(startAt);
     this.timerStartAt.set(now);
     this.isTimerRunning.set(true);
@@ -719,6 +724,9 @@ export class MatchStateService {
       minute: '2-digit',
     }).format(new Date(startAt));
     this.orarioInizioReale.set(orarioInizioStr);
+    if (isFirstStart) {
+      this.orario.set(orarioInizioStr);
+    }
 
     // Assicura l'inizializzazione di turnoConfermatoIndex e turnoStartCronometroSec
     const curRot = this.rotazionePortieri();
@@ -746,13 +754,14 @@ export class MatchStateService {
     this.salvaSnapshotLocale();
 
     // Sincronizzazione asincrona su Firestore in background senza bloccare la reattività della UI
-    this.syncAvvioTimerOnline(startAt, now, orarioInizioStr);
+    this.syncAvvioTimerOnline(startAt, now, orarioInizioStr, isFirstStart);
   }
 
   private async syncAvvioTimerOnline(
     startAt: number,
     now: number,
     orarioInizioStr: string,
+    isFirstStart: boolean,
   ): Promise<void> {
     let id = this.matchId();
     if (!id) {
@@ -778,6 +787,10 @@ export class MatchStateService {
       rotazionePortieri: sanitizeForFirestore(this.rotazionePortieri()),
       status: 'in_corso',
     };
+
+    if (isFirstStart) {
+      payload['orario'] = orarioInizioStr;
+    }
 
     if (this.cronometro() < this.durataTurnoSecondi()) {
       payload['cambioAttivo'] = false;
@@ -1197,6 +1210,9 @@ export class MatchStateService {
                 minute: '2-digit',
               }).format(new Date(endMs)),
             );
+          }
+          if (data.orario) {
+            this.orario.set(data.orario);
           }
           this.status.set(data.status || 'da_definire');
           this.rotazionePortieri.set(data.rotazionePortieri || null);

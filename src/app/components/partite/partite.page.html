@@ -693,11 +693,11 @@
                   <div class="scorers-col team-b">
                     @for (gol of marcatoriB; track gol.nome + '_' + $index) {
                       <span class="scorer-pill black" [title]="gol.nome">
-                        <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
                         {{ gol.nome }}
                         @if (gol.gol > 1) {
                           <b class="goal-qty">({{ gol.gol }})</b>
                         }
+                        <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
                       </span>
                     }
                   </div>

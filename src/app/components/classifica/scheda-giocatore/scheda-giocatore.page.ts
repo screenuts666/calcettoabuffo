@@ -75,9 +75,10 @@ import {
   personCircleOutline,
   homeOutline,
 } from 'ionicons/icons';
-import { GiocatoreConPunti } from 'src/app/models/giocatore.model';
+import { GiocatoreConPunti, CurrentInjury, InjuryHistoryEntry } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
+import { InjuriesService } from 'src/app/services/injuries.service';
 import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
@@ -126,6 +127,45 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
   private statsEngine = inject(StatsEngineService);
   private toastCtrl = inject(ToastController);
   private ttsService = inject(TtsService);
+  public injuriesService = inject(InjuriesService);
+
+  readonly isInjured = computed<boolean>(() =>
+    Boolean(this.profileData()?.isInjured && this.profileData()?.currentInjury),
+  );
+  readonly currentInjury = computed<CurrentInjury | null>(
+    () => this.profileData()?.currentInjury || null,
+  );
+  readonly injuryHistory = computed<InjuryHistoryEntry[]>(
+    () => this.profileData()?.injuryHistory || [],
+  );
+  readonly missedMatchesNow = computed<number>(() => {
+    const p = this.profileData();
+    if (!p?.isInjured || !p.currentInjury?.startDate) return 0;
+    return this.injuriesService.countMissedMatches(p.id, p.currentInjury.startDate);
+  });
+  readonly totalMissedMatches = computed<number>(() => {
+    const p = this.profileData();
+    if (!p) return 0;
+    return this.injuriesService.getTotalMissedMatches(p);
+  });
+  readonly injuryDaysElapsed = computed<number>(() => {
+    const p = this.profileData();
+    if (!p?.currentInjury?.startDate) return 0;
+    return this.injuriesService.calculateDaysElapsed(p.currentInjury.startDate);
+  });
+  readonly totalInjuriesCount = computed<number>(() => {
+    const hist = this.injuryHistory().length;
+    return this.isInjured() ? hist + 1 : hist;
+  });
+  readonly injuryBadgeText = computed<string>(() => {
+    const p = this.profileData();
+    if (!p) return '';
+    return this.injuriesService.getInjuryBadgeText(p);
+  });
+
+  formatDate(dateStr?: string | null): string {
+    return this.injuriesService.formatDateDisplay(dateStr);
+  }
 
   private routeSub?: Subscription;
   private routeId = signal<string | null>(null);
@@ -469,6 +509,170 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
       queryParams.playerB = opponentId;
     }
     this.router.navigate(['/confronto'], { queryParams });
+  }
+
+  private async mostraToast(message: string, color: 'success' | 'warning' | 'danger') {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3200,
+      color,
+      position: 'top',
+      mode: 'ios',
+    });
+    await toast.present();
+  }
+
+  async apriModalInfortunio() {
+    const p = this.prof;
+    if (!this.isAdmin || !p?.id) return;
+
+    const alert = await this.alertCtrl.create({
+      header: '🚑 Segna Infortunio',
+      subHeader: `Registra infortunio per ${p.nome}`,
+      message: 'Imposta la data di inizio (anche retroattiva) per calcolare le partite perse.',
+      mode: 'ios',
+      inputs: [
+        {
+          name: 'startDate',
+          type: 'date',
+          label: 'Data Inizio',
+          value: this.injuriesService.getTodayString(),
+        },
+        {
+          name: 'expectedReturnDate',
+          type: 'date',
+          label: 'Rientro Previsto (opzionale)',
+        },
+        {
+          name: 'note',
+          type: 'text',
+          placeholder: 'Diagnosi / Note (es. Distorsione caviglia)',
+        },
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Registra Infortunio',
+          handler: async (data) => {
+            if (!data.startDate) {
+              this.mostraToast('Seleziona una data di inizio valida.', 'warning');
+              return false;
+            }
+            try {
+              await this.injuriesService.segnaInfortunato(
+                p,
+                data.startDate,
+                data.expectedReturnDate,
+                data.note,
+              );
+              this.mostraToast(`${p.nome} è stato segnato come infortunato.`, 'success');
+              return true;
+            } catch (err: any) {
+              this.mostraToast(err?.message || 'Errore durante la registrazione dell\'infortunio.', 'danger');
+              return false;
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async apriModalModificaInfortunio() {
+    const p = this.prof;
+    const cur = p?.currentInjury;
+    if (!this.isAdmin || !p?.id || !cur) return;
+
+    const alert = await this.alertCtrl.create({
+      header: '✏️ Modifica Infortunio',
+      subHeader: `Aggiorna parametri per ${p.nome}`,
+      mode: 'ios',
+      inputs: [
+        {
+          name: 'startDate',
+          type: 'date',
+          label: 'Data Inizio',
+          value: cur.startDate || this.injuriesService.getTodayString(),
+        },
+        {
+          name: 'expectedReturnDate',
+          type: 'date',
+          label: 'Rientro Previsto (opzionale)',
+          value: cur.expectedReturnDate || '',
+        },
+        {
+          name: 'note',
+          type: 'text',
+          placeholder: 'Diagnosi / Note',
+          value: cur.note || '',
+        },
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Salva Modifiche',
+          handler: async (data) => {
+            if (!data.startDate) {
+              this.mostraToast('Seleziona una data di inizio valida.', 'warning');
+              return false;
+            }
+            try {
+              await this.injuriesService.modificaInfortunio(
+                p,
+                data.startDate,
+                data.expectedReturnDate,
+                data.note,
+              );
+              this.mostraToast('Dati infortunio aggiornati con successo.', 'success');
+              return true;
+            } catch (err: any) {
+              this.mostraToast(err?.message || 'Errore durante l\'aggiornamento.', 'danger');
+              return false;
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  async apriModalRientro() {
+    const p = this.prof;
+    const cur = p?.currentInjury;
+    if (!this.isAdmin || !p?.id || !cur) return;
+
+    const alert = await this.alertCtrl.create({
+      header: '🟢 Segna come Recuperato',
+      subHeader: `Dichiara ${p.nome} guarito e disponibile`,
+      message: `L'infortunio iniziato il ${this.injuriesService.formatDateDisplay(cur.startDate)} verrà archiviato nello storico.`,
+      mode: 'ios',
+      inputs: [
+        {
+          name: 'endDate',
+          type: 'date',
+          label: 'Data Rientro Effettiva',
+          value: this.injuriesService.getTodayString(),
+        },
+      ],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Conferma Rientro',
+          handler: async (data) => {
+            const endDate = data.endDate || this.injuriesService.getTodayString();
+            try {
+              const missed = await this.injuriesService.segnaRecuperato(p, endDate);
+              this.mostraToast(`Bentornato ${p.nome}! Infortunio chiuso (${missed} partite saltate consolidate).`, 'success');
+              return true;
+            } catch (err: any) {
+              this.mostraToast(err?.message || 'Errore durante la chiusura dell\'infortunio.', 'danger');
+              return false;
+            }
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 }
 

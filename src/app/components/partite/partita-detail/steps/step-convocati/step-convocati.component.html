@@ -354,6 +354,11 @@
                 >
                   <div class="cpp-avatar">
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                    @if (g.isInjured) {
+                      <span class="cpp-injured-badge" [title]="getInjuryTooltip(g)">
+                        <ion-icon name="medkit"></ion-icon>
+                      </span>
+                    }
                     @if (g.selfRegistered) {
                       <span class="cpp-self-dot" title="Confermato via link"></span>
                     }
@@ -364,6 +369,9 @@
                     <div class="cpp-tags">
                       @if (getRuoloShort(g.ruoloPreferito); as rShort) {
                         <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                      }
+                      @if (g.isInjured) {
+                        <span class="cpp-status-micro injured" [title]="getInjuryTooltip(g)">Infortunato</span>
                       }
                       @if (g.selfRegistered || g.rsvpStatus === 'yes') {
                         <span class="cpp-status-micro confirmed">Presente</span>
@@ -417,6 +425,11 @@
                 >
                   <div class="cpp-avatar">
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                    @if (g.isInjured) {
+                      <span class="cpp-injured-badge" [title]="getInjuryTooltip(g)">
+                        <ion-icon name="medkit"></ion-icon>
+                      </span>
+                    }
                   </div>
 
                   <div class="cpp-info">
@@ -424,6 +437,9 @@
                     <div class="cpp-tags">
                       @if (getRuoloShort(g.ruoloPreferito); as rShort) {
                         <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                      }
+                      @if (g.isInjured) {
+                        <span class="cpp-status-micro injured" [title]="getInjuryTooltip(g)">Infortunato</span>
                       }
                       @if (g.rsvpStatus === 'yes') {
                         <span class="cpp-status-micro confirmed">Disponibile</span>
@@ -467,6 +483,11 @@
             <div class="compact-player-pill is-selected read-only">
               <div class="cpp-avatar">
                 <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
+                @if (g.isInjured) {
+                  <span class="cpp-injured-badge" [title]="getInjuryTooltip(g)">
+                    <ion-icon name="medkit"></ion-icon>
+                  </span>
+                }
               </div>
 
               <div class="cpp-info">
@@ -474,6 +495,9 @@
                 <div class="cpp-tags">
                   @if (getRuoloShort(g.ruoloPreferito); as rShort) {
                     <span class="cpp-role-tag" [attr.data-role]="rShort">{{ rShort }}</span>
+                  }
+                  @if (g.isInjured) {
+                    <span class="cpp-status-micro injured" [title]="getInjuryTooltip(g)">Infortunato</span>
                   }
                   @if (g.id === auth.linkedPlayerId()) {
                     <span class="cpp-status-micro you">Tu</span>

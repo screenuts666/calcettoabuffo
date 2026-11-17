@@ -24,9 +24,12 @@ import {
   cloudDoneOutline,
   shieldCheckmarkOutline,
   sparklesOutline,
+  medkit,
+  medkitOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { AuthService } from 'src/app/services/auth.service';
+import { InjuriesService } from 'src/app/services/injuries.service';
 import {
   MatchmakingService,
   MatchmakingProposal,
@@ -61,10 +64,19 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
 export class StepSquadreComponent implements OnInit {
   public state = inject(MatchStateService);
   public auth = inject(AuthService);
+  public injuriesService = inject(InjuriesService);
   private matchmakingService = inject(MatchmakingService);
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();
+  }
+
+  isInjured(player: any): boolean {
+    return Boolean(player?.isInjured && player?.currentInjury);
+  }
+
+  getInjuryTooltip(player: any): string {
+    return this.injuriesService.getInjuryBadgeText(player);
   }
   private statsEngine = inject(StatsEngineService);
   private ttsService = inject(TtsService);
@@ -273,6 +285,8 @@ export class StepSquadreComponent implements OnInit {
       flash,
       alertCircleOutline,
       cloudDoneOutline,
+      medkit,
+      medkitOutline,
     });
   }
 

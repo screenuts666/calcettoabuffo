@@ -275,6 +275,21 @@
       0 6px 16px rgba(16, 185, 129, 0.22);
   }
 
+  &.is-player-injured {
+    border-color: rgba(239, 68, 68, 0.6) !important;
+    background: linear-gradient(
+      160deg,
+      rgba(60, 15, 20, 0.95) 0%,
+      rgba(25, 10, 15, 0.98) 65%,
+      rgba(15, 5, 8, 1) 100%
+    );
+
+    &::before {
+      background: #ef4444 !important;
+      box-shadow: 0 0 10px #ef4444 !important;
+    }
+  }
+
   &:hover {
     transform: translateY(-2px);
     box-shadow:
@@ -305,6 +320,25 @@
       color: #e2e8f0;
       line-height: 1.1;
       text-transform: uppercase;
+    }
+
+    .fut-injured-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1.5px 5px;
+      border-radius: 4px;
+      background: rgba(239, 68, 68, 0.25);
+      border: 1px solid #ef4444;
+      color: #fca5a5;
+      font-size: 9.5px;
+      font-weight: 900;
+      line-height: 1.1;
+
+      ion-icon {
+        font-size: 11px;
+        color: #ef4444;
+      }
     }
 
     .fut-tier-pill {
@@ -426,6 +460,27 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .fut-player-injured-sub {
+      width: 100%;
+      height: 15px;
+      line-height: 15px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      font-size: 9.5px;
+      font-weight: 800;
+      color: #f87171;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      ion-icon {
+        font-size: 11px;
+        flex-shrink: 0;
+      }
     }
   }
 

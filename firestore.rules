@@ -226,6 +226,13 @@ service cloud.firestore {
         )
       );
 
+      // Sottocollezione Infortuni (predisposizione logging ed estensione modulare):
+      // Lettura pubblica, scrittura riservata ESCLUSIVAMENTE a Mister o Presidente (`isSuperUser()`).
+      match /injuries/{injuryId} {
+        allow read: if true;
+        allow write: if isSuperUser();
+      }
+
       // Sottocollezione Privata Contatti (`giocatori/{playerId}/private/contact`):
       // Isola il `phoneNumber` garantendo Zero Data Leak verso Tifosi (guest) e altri Atleti.
       // Lettura e scrittura consentite ESCLUSIVAMENTE al Mister (`superuser`) o al giocatore proprietario (`linkedUid == request.auth.uid`).

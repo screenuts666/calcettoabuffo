@@ -46,11 +46,14 @@ import {
   shieldOutline,
   lockClosedOutline,
   arrowUndoOutline,
+  medkit,
+  medkitOutline,
 } from 'ionicons/icons';
 import { Giocatore } from 'src/app/models/giocatore.model';
 import { AuthService } from 'src/app/services/auth.service';
 import { TrashService } from 'src/app/services/trash.service';
 import { StatsEngineService } from 'src/app/services/stats-engine.service';
+import { InjuriesService } from 'src/app/services/injuries.service';
 import {
   formatPhoneForTel,
   formatPhoneForWhatsAppUrl,
@@ -92,7 +95,12 @@ export class RosaPage {
   readonly auth = inject(AuthService);
   readonly trashService = inject(TrashService);
   readonly statsEngine = inject(StatsEngineService);
+  readonly injuriesService = inject(InjuriesService);
   private router = inject(Router);
+
+  getInjuryBadgeText(player: Giocatore): string {
+    return this.injuriesService.getInjuryBadgeText(player);
+  }
 
   readonly DEFAULT_AVATAR = DEFAULT_AVATAR;
 
@@ -163,6 +171,8 @@ export class RosaPage {
       shieldOutline,
       lockClosedOutline,
       arrowUndoOutline,
+      medkit,
+      medkitOutline,
     });
 
     effect(() => {

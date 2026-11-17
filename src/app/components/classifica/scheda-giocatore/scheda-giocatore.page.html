@@ -139,6 +139,13 @@
         </div>
       }
 
+      @if (isInjured()) {
+        <div class="status-pill-injury" [title]="injuryBadgeText()">
+          <span class="injury-badge-icon">🏥</span>
+          <span class="injury-badge-label">Infortunato ({{ missedMatchesNow() }} {{ missedMatchesNow() === 1 ? 'persa' : 'perse' }})</span>
+        </div>
+      }
+
       <button type="button" class="btn-fast-h2h" (click)="confronta()">
         <ion-icon name="swap-horizontal"></ion-icon>
         <span>⚔️ 1v1</span>
@@ -279,6 +286,145 @@
               <span>Genera Scouting AI</span>
             }
           </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 3.5 BOX INFERMERIA & CONDIZIONE FISICA         -->
+  <!-- ============================================== -->
+  <div class="infermeria-section-card" [class.is-injured]="isInjured()">
+    <div class="isc-header">
+      <div class="isc-title-box">
+        <span class="isc-icon">{{ isInjured() ? '🏥' : '🩺' }}</span>
+        <div class="isc-title-texts">
+          <h3 class="isc-title">Infermeria & Condizione Fisica</h3>
+          <span class="isc-subtitle">
+            {{ isInjured() ? 'Attualmente non disponibile per infortunio' : 'Giocatore abile e arruolabile' }}
+          </span>
+        </div>
+      </div>
+      <div class="isc-badge-box">
+        @if (isInjured()) {
+          <span class="isc-status-badge infortunato" [title]="injuryBadgeText()">
+            <ion-icon name="medkit"></ion-icon>
+            Infortunato
+          </span>
+        } @else {
+          <span class="isc-status-badge disponibile">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            Disponibile
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (isInjured() && currentInjury(); as inj) {
+      <div class="injury-live-banner">
+        <div class="ilb-grid">
+          <div class="ilb-item">
+            <span class="ilb-label">Infortunato dal:</span>
+            <strong class="ilb-val">{{ formatDate(inj.startDate) }}</strong>
+            <small class="ilb-sub">({{ injuryDaysElapsed() }} {{ injuryDaysElapsed() === 1 ? 'giorno fa' : 'giorni fa' }})</small>
+          </div>
+          <div class="ilb-item">
+            <span class="ilb-label">Partite saltate:</span>
+            <strong class="ilb-val text-danger">{{ missedMatchesNow() }}</strong>
+            <small class="ilb-sub">{{ missedMatchesNow() === 1 ? 'partita ufficiale' : 'partite ufficiali' }}</small>
+          </div>
+          @if (inj.expectedReturnDate) {
+            <div class="ilb-item">
+              <span class="ilb-label">Rientro previsto:</span>
+              <strong class="ilb-val text-warning">{{ formatDate(inj.expectedReturnDate) }}</strong>
+            </div>
+          }
+        </div>
+
+        @if (inj.note) {
+          <div class="injury-diagnosis-box">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <span><strong>Diagnosi:</strong> {{ inj.note }}</span>
+          </div>
+        }
+
+        <!-- AZIONI RISERVATE ESCLUSIVAMENTE A MISTER E PRESIDENTE -->
+        @if (isAdmin) {
+          <div class="injury-admin-actions">
+            <button
+              type="button"
+              class="btn-recover"
+              (click)="apriModalRientro()"
+              title="Dichiara il giocatore guarito e disponibile (Mister & Presidente)"
+            >
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Segna come Recuperato</span>
+            </button>
+            <button
+              type="button"
+              class="btn-edit-injury"
+              (click)="apriModalModificaInfortunio()"
+              title="Modifica date o diagnosi infortunio"
+            >
+              <ion-icon name="create-outline"></ion-icon>
+              <span>Modifica</span>
+            </button>
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- GIOCATORE NON INFORTUNATO -->
+      <div class="injury-free-state">
+        <div class="ifs-info">
+          <span class="ifs-check">🟢</span>
+          <span>Nessun infortunio in corso. Condizione fisica ottimale per le prossime partite.</span>
+        </div>
+        @if (isAdmin) {
+          <button
+            type="button"
+            class="btn-mark-injured"
+            (click)="apriModalInfortunio()"
+            title="Registra un infortunio per questo giocatore (Mister & Presidente)"
+          >
+            <ion-icon name="medkit-outline"></ion-icon>
+            <span>Segna come Infortunato</span>
+          </button>
+        }
+      </div>
+    }
+
+    <!-- STATISTICHE E RIEPILOGO STORICO INFORTUNI -->
+    <div class="injury-history-summary-strip">
+      <div class="ihs-col">
+        <span class="ihs-val">{{ totalInjuriesCount() }}</span>
+        <span class="ihs-lbl">Infortuni Totali</span>
+      </div>
+      <div class="ihs-sep">·</div>
+      <div class="ihs-col">
+        <span class="ihs-val text-danger">{{ totalMissedMatches() }}</span>
+        <span class="ihs-lbl">Partite Saltate Totali</span>
+      </div>
+    </div>
+
+    <!-- LISTA STORICO INFORTUNI PRECEDENTI -->
+    @if (injuryHistory().length > 0) {
+      <div class="injury-history-list">
+        <div class="ihl-title">Storico Infortuni Conclusi ({{ injuryHistory().length }})</div>
+        @for (item of injuryHistory(); track item.id || $index) {
+          <div class="ihl-entry">
+            <div class="ihl-entry-dates">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>{{ formatDate(item.startDate) }} ➔ {{ formatDate(item.endDate) }}</span>
+            </div>
+            <div class="ihl-entry-right">
+              @if (item.note) {
+                <span class="ihl-note" [title]="item.note">{{ item.note }}</span>
+              }
+              <span class="ihl-missed-pill">
+                {{ item.missedMatchesCount }} {{ item.missedMatchesCount === 1 ? 'partita persa' : 'partite perse' }}
+              </span>
+            </div>
+          </div>
         }
       </div>
     }

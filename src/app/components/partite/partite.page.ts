@@ -1085,10 +1085,18 @@ export class PartitePage {
       return { startStr: '', endStr: null, fullRangeStr: '', isReal: false };
     }
 
-    // Se la partita ha un orario ufficiale fissato (es. "19:00", "20:00", "21:00"),
+    // Se la partita ha un orario programmato (es. "19:00", "20:00", "21:00") e non è ancora iniziata,
     // mostriamo quello per coerenza ed eleganza visiva con tutte le altre partite
     const orarioUfficiale = (m.orario || m.ora || '').trim();
-    if (orarioUfficiale) {
+    const hasStarted =
+      !!m.orarioInizioReale ||
+      typeof m.startedAt === 'number' ||
+      !!m.inizioPartita ||
+      m.status === 'in_corso' ||
+      m.status === 'conclusa' ||
+      Boolean(m.matchConcluso);
+
+    if (orarioUfficiale && !hasStarted) {
       return {
         startStr: orarioUfficiale,
         endStr: null,
