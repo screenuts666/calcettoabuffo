@@ -26,6 +26,7 @@ import {
   IonSpinner,
   ToastController,
   AlertController,
+  NavController,
 } from '@ionic/angular/standalone';
 import { Subscription } from 'rxjs';
 import { addIcons } from 'ionicons';
@@ -120,6 +121,7 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private location = inject(Location);
+  private navCtrl = inject(NavController, { optional: true });
   public auth = inject(AuthService);
   private trashService = inject(TrashService);
   private alertCtrl = inject(AlertController);
@@ -370,11 +372,13 @@ export class SchedaGiocatorePage implements OnInit, OnDestroy {
   tornaIndietro() {
     const hasInAppHistory =
       typeof window !== 'undefined' &&
-      (window.history.state?.navigationId ?? 0) > 1;
-    if (hasInAppHistory) {
+      ((window.history.state?.navigationId ?? 0) > 1 || window.history.length > 1);
+    if (this.navCtrl && hasInAppHistory) {
+      this.navCtrl.back();
+    } else if (hasInAppHistory) {
       this.location.back();
     } else {
-      this.router.navigate(['/classifica']);
+      this.router.navigate(['/partite']);
     }
   }
 

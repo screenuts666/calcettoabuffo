@@ -4,8 +4,10 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -38,14 +40,22 @@ export class PrestazioniHeroComponent {
   @Input() scoreB: number = 0;
   @Input() pagelleInserite: boolean = false;
   @Input() isAdmin: boolean = false;
-  @Input() scorersA: { nome: string; gol: number }[] = [];
-  @Input() scorersB: { nome: string; gol: number }[] = [];
+  @Input() scorersA: { id?: string; nome: string; gol: number }[] = [];
+  @Input() scorersB: { id?: string; nome: string; gol: number }[] = [];
   @Input() isUpset: boolean = false;
   @Input() upsetDescription?: string;
   @Input() meteo?: { emoji: string; temp: string; label: string; rainProbability?: number } | null;
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editScoreClick = new EventEmitter<void>();
+
+  private router = inject(Router);
+
+  apriSchedaGiocatore(id?: string) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 
   constructor() {
     addIcons({

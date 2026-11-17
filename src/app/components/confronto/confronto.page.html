@@ -292,7 +292,12 @@
             </div>
 
             <div class="player-info">
-              <h3 class="player-name">{{ comp.playerA.nome }}</h3>
+              <h3
+                class="player-name clickable"
+                (click)="apriSchedaGiocatore(comp.playerA.id)"
+                style="cursor: pointer;"
+                title="Apri scheda di {{ comp.playerA.nome }}"
+              >{{ comp.playerA.nome }}</h3>
               @if (comp.playerA.soprannome) {
                 <span class="player-nick">"{{ comp.playerA.soprannome }}"</span>
               }
@@ -352,7 +357,12 @@
             </div>
 
             <div class="player-info">
-              <h3 class="player-name">{{ comp.playerB.nome }}</h3>
+              <h3
+                class="player-name clickable"
+                (click)="apriSchedaGiocatore(comp.playerB.id)"
+                style="cursor: pointer;"
+                title="Apri scheda di {{ comp.playerB.nome }}"
+              >{{ comp.playerB.nome }}</h3>
               @if (comp.playerB.soprannome) {
                 <span class="player-nick">"{{ comp.playerB.soprannome }}"</span>
               }

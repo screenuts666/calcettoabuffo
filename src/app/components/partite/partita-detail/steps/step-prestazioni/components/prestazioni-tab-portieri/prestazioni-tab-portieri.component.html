@@ -56,11 +56,26 @@
         @for (gk of portieriBianchi(); track (gk.player.id || gk.player.nome) + '_' + $index) {
           <div class="gk-player-card">
             <div class="gk-card-left">
-              <ion-avatar class="gk-avatar">
+              <ion-avatar
+                class="gk-avatar clickable"
+                (click)="apriSchedaGiocatore(gk.player.id)"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'Apri scheda di ' + gk.player.nome"
+                title="Apri scheda di {{ gk.player.nome }}"
+                style="cursor: pointer;"
+              >
                 <app-player-avatar [fotoUrl]="gk.player.fotoUrl" [alt]="gk.player.nome"></app-player-avatar>
               </ion-avatar>
               <div class="gk-player-info">
-                <span class="gk-player-name">{{ gk.player.nome }}</span>
+                <span
+                  class="gk-player-name clickable"
+                  (click)="apriSchedaGiocatore(gk.player.id)"
+                  role="button"
+                  tabindex="0"
+                  title="Apri scheda di {{ gk.player.nome }}"
+                  style="cursor: pointer;"
+                >{{ gk.player.nome }}</span>
                 @if (gk.player.soprannome) {
                   <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
                 }
@@ -144,11 +159,26 @@
         @for (gk of portieriNeri(); track (gk.player.id || gk.player.nome) + '_' + $index) {
           <div class="gk-player-card">
             <div class="gk-card-left">
-              <ion-avatar class="gk-avatar">
+              <ion-avatar
+                class="gk-avatar clickable"
+                (click)="apriSchedaGiocatore(gk.player.id)"
+                role="button"
+                tabindex="0"
+                [attr.aria-label]="'Apri scheda di ' + gk.player.nome"
+                title="Apri scheda di {{ gk.player.nome }}"
+                style="cursor: pointer;"
+              >
                 <app-player-avatar [fotoUrl]="gk.player.fotoUrl" [alt]="gk.player.nome"></app-player-avatar>
               </ion-avatar>
               <div class="gk-player-info">
-                <span class="gk-player-name">{{ gk.player.nome }}</span>
+                <span
+                  class="gk-player-name clickable"
+                  (click)="apriSchedaGiocatore(gk.player.id)"
+                  role="button"
+                  tabindex="0"
+                  title="Apri scheda di {{ gk.player.nome }}"
+                  style="cursor: pointer;"
+                >{{ gk.player.nome }}</span>
                 @if (gk.player.soprannome) {
                   <span class="gk-player-alias">"{{ gk.player.soprannome }}"</span>
                 }

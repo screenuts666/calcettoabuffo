@@ -265,7 +265,12 @@
                         @if (day.players.length > 0) {
                           <div class="avatar-overlap-stack" aria-hidden="true">
                             @for (p of day.avatarSlice; track p.id) {
-                              <div class="stacked-avatar-item" [title]="'#' + p.priorityRank + ' ' + p.nome">
+                              <div
+                                class="stacked-avatar-item clickable"
+                                (click)="$event.stopPropagation(); apriSchedaGiocatore(p.id)"
+                                [title]="'#' + p.priorityRank + ' ' + p.nome + ' (Tocca per aprire scheda)'"
+                                style="cursor: pointer;"
+                              >
                                 <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                               </div>
                             }
@@ -423,11 +428,13 @@
                       @if (day.players.length > 0) {
                         @for (p of day.players; track p.id) {
                           <div
-                            class="presence-chip"
+                            class="presence-chip clickable"
                             [class.is-me]="p.isMe"
                             [class.is-extra-8v8]="p.priorityRank > 14 && day.allowEightVsEight"
                             [class.is-over-cap]="p.priorityRank > day.maxCap"
-                            [title]="'#' + p.priorityRank + ' ' + p.nome + ' • 1° voto: ' + p.firstVoteLabel + (p.isReconfirmed ? ' (riconfermato ' + p.lastActionTimeLabel + ')' : '')"
+                            (click)="apriSchedaGiocatore(p.id)"
+                            style="cursor: pointer;"
+                            [title]="'#' + p.priorityRank + ' ' + p.nome + ' (Tocca per aprire scheda) • 1° voto: ' + p.firstVoteLabel + (p.isReconfirmed ? ' (riconfermato ' + p.lastActionTimeLabel + ')' : '')"
                           >
                             <span class="chip-priority-num">#{{ p.priorityRank }}</span>
                             <div class="chip-avatar">
@@ -746,13 +753,13 @@
                       #{{ p.priorityRank }}
                     </span>
 
-                    <div class="pr-avatar">
+                    <div class="pr-avatar clickable" (click)="apriSchedaGiocatore(p.id)" style="cursor: pointer;" title="Apri scheda di {{ p.nome }}">
                       <app-player-avatar [fotoUrl]="p.fotoUrl" [alt]="p.nome"></app-player-avatar>
                     </div>
 
                     <div class="pr-info">
                       <div class="pr-name-line">
-                        <span class="pr-name">{{ p.nome }}</span>
+                        <span class="pr-name clickable" (click)="apriSchedaGiocatore(p.id)" style="cursor: pointer;" title="Apri scheda di {{ p.nome }}">{{ p.nome }}</span>
                         @if (p.priorityRank > 14 && p.priorityRank <= 16 && hDay.allowEightVsEight) {
                           <span class="pr-slot-tag tag-8v8">Slot 8vs8</span>
                         } @else if (p.priorityRank > hDay.maxCap) {

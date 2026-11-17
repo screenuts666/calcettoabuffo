@@ -143,6 +143,9 @@ export class MatchStateService {
 
   cronometro = signal<number>(0);
   accumulatedTime = signal<number>(0);
+  activePrestazioniTab = signal<
+    'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'
+  >('sintesi');
   timerStartAt = signal<number | null>(null);
   startedAt = signal<number | null>(null);
   endedAt = signal<number | null>(null);
@@ -1986,6 +1989,7 @@ export class MatchStateService {
     this.isTimerRunning.set(false);
     this.isPausedDev.set(false);
     this.cambioAttivo.set(false);
+    this.activePrestazioniTab.set('sintesi');
     this.rimuoviSnapshotLocale();
   }
 }

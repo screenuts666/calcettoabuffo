@@ -623,7 +623,12 @@
                 @for (p of state.portieriInfoA().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
                   <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
                     <span class="seq-order-pill">{{ p.ordine }}°</span>
-                    <span class="seq-player-name">{{ p.nome }}</span>
+                    <span
+                      class="seq-player-name clickable"
+                      (click)="apriSchedaGiocatore(p.id)"
+                      style="cursor: pointer;"
+                      title="Apri scheda di {{ p.nome }}"
+                    >{{ p.nome }}</span>
                     @if (p.isAttuale) {
                       <span class="seq-tag tag-curr">In Porta</span>
                     } @else if (p.isProssimo) {
@@ -650,7 +655,12 @@
                 @for (p of state.portieriInfoB().lista; track (p.id || p.nome) + '_' + $index; let i = $index) {
                   <div class="seq-item" [class.is-current]="p.isAttuale" [class.is-next]="p.isProssimo">
                     <span class="seq-order-pill">{{ p.ordine }}°</span>
-                    <span class="seq-player-name">{{ p.nome }}</span>
+                    <span
+                      class="seq-player-name clickable"
+                      (click)="apriSchedaGiocatore(p.id)"
+                      style="cursor: pointer;"
+                      title="Apri scheda di {{ p.nome }}"
+                    >{{ p.nome }}</span>
                     @if (p.isAttuale) {
                       <span class="seq-tag tag-curr">In Porta</span>
                     } @else if (p.isProssimo) {

@@ -18,6 +18,18 @@
       border-radius: 50%;
       flex-shrink: 0;
 
+      &.clickable {
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.15s ease;
+        &:hover {
+          opacity: 0.85;
+          transform: scale(1.06);
+        }
+        &:active {
+          transform: scale(0.94);
+        }
+      }
+
       app-player-avatar,
       img {
         width: 100%;
@@ -45,6 +57,19 @@
           font-weight: 700;
           color: var(--app-text-primary);
           @include text-ellipsis;
+
+          &.clickable {
+            cursor: pointer;
+            transition: color 0.15s ease, opacity 0.15s ease;
+            &:hover {
+              color: var(--app-primary, #10b981);
+              text-decoration: underline;
+              text-underline-offset: 3px;
+            }
+            &:active {
+              opacity: 0.7;
+            }
+          }
         }
 
         .goal-pill {

@@ -512,6 +512,12 @@ export class ConfrontoPage implements OnInit {
     }
   }
 
+  apriSchedaGiocatore(id?: string | null) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
+
   // Inverte Giocatore A e Giocatore B
   scambiaGiocatori() {
     const a = this.playerAId();

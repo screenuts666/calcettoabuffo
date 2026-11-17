@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import {
   IonFab,
   IonFabButton,
@@ -66,6 +67,13 @@ export class StepSquadreComponent implements OnInit {
   public auth = inject(AuthService);
   public injuriesService = inject(InjuriesService);
   private matchmakingService = inject(MatchmakingService);
+  private router = inject(Router);
+
+  apriSchedaGiocatore(id?: string) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();

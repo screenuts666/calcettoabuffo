@@ -5,8 +5,10 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   signal,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonAvatar, IonIcon, IonTextarea } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -43,6 +45,13 @@ export class PrestazioniPlayerCardComponent {
   @Output() assistClick = new EventEmitter<any>();
 
   readonly isEditingNote = signal<boolean>(false);
+  private router = inject(Router);
+
+  apriSchedaGiocatore() {
+    if (this.player?.id) {
+      this.router.navigate(['/giocatori', this.player.id]);
+    }
+  }
 
   constructor() {
     addIcons({

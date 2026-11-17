@@ -80,6 +80,12 @@ export class StepConvocatiComponent {
   private alertCtrl = inject(AlertController);
   private router = inject(Router);
   private shareService = inject(ShareService);
+
+  apriSchedaGiocatore(id?: string) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
   private availabilityService = inject(AvailabilityService, { optional: true });
 
   readonly isDev = !environment.production || isDevMode();

@@ -4,8 +4,10 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { IonAvatar, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -54,6 +56,14 @@ export class PrestazioniTabSintesiComponent {
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editAssistClick = new EventEmitter<number>();
+
+  private router = inject(Router);
+
+  apriSchedaGiocatore(id?: string | null) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 
   constructor() {
     addIcons({

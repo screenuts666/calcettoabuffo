@@ -123,7 +123,10 @@
           [title]="isAdmin ? 'Tocca per spostare in Neri' : ''"
         >
           <div
-            class="player-avatar-box"
+            class="player-avatar-box clickable"
+            (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+            title="Apri scheda di {{ g.nome }}"
+            style="cursor: pointer;"
             [class.is-fixed-gk]="isPortiereFisso('A', g.id)"
             [class.is-pure-gk]="isDiRuolo(g)"
           >
@@ -159,7 +162,12 @@
 
           <div class="player-info">
             <div class="player-name-line">
-              <span class="player-name" [title]="g.nome">{{ g.nome }}</span>
+              <span
+                class="player-name clickable"
+                (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+                style="cursor: pointer;"
+                [title]="'Apri scheda di ' + g.nome"
+              >{{ g.nome }}</span>
             </div>
             <div class="player-meta-line">
               <span
@@ -262,7 +270,10 @@
           [title]="isAdmin ? 'Tocca per spostare in Bianchi' : ''"
         >
           <div
-            class="player-avatar-box"
+            class="player-avatar-box clickable"
+            (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+            title="Apri scheda di {{ g.nome }}"
+            style="cursor: pointer;"
             [class.is-fixed-gk]="isPortiereFisso('B', g.id)"
             [class.is-pure-gk]="isDiRuolo(g)"
           >
@@ -298,7 +309,12 @@
 
           <div class="player-info">
             <div class="player-name-line">
-              <span class="player-name" [title]="g.nome">{{ g.nome }}</span>
+              <span
+                class="player-name clickable"
+                (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+                style="cursor: pointer;"
+                [title]="'Apri scheda di ' + g.nome"
+              >{{ g.nome }}</span>
             </div>
             <div class="player-meta-line">
               <span

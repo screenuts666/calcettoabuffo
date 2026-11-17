@@ -9,8 +9,10 @@ import {
   signal,
   OnChanges,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, IonAvatar } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -66,6 +68,13 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
 
   noteInput = signal<string>('');
   isNoteSaved = signal<boolean>(false);
+  private router = inject(Router);
+
+  apriSchedaGiocatore(id?: string) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 
   constructor() {
     addIcons({

@@ -12,6 +12,7 @@ import {
   isDevMode,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 import {
   IonButton,
@@ -82,6 +83,13 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   private modalCtrl = inject(ModalController);
+  private router = inject(Router);
+
+  apriSchedaGiocatore(id?: string | null) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 
   private _isAdmin: boolean = false;
   @Input()

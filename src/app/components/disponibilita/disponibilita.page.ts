@@ -1433,6 +1433,12 @@ export class DisponibilitaPage implements OnInit {
       .join(', ');
   }
 
+  apriSchedaGiocatore(id?: string | null) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
+
   apriPartita(matchId?: string) {
     if (!matchId) return;
     this.router.navigate(['/partite', matchId], {

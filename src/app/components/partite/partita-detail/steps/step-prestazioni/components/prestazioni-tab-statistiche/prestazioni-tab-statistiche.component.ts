@@ -51,4 +51,10 @@ export class PrestazioniTabStatisticheComponent {
       this.router.navigate(['/1v1', p1, p2]);
     }
   }
+
+  apriSchedaGiocatore(id?: string | null): void {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
+    }
+  }
 }

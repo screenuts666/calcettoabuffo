@@ -352,7 +352,12 @@
                   [attr.aria-label]="'Rimuovi ' + g.nome + ' dai convocati'"
                   (click)="toggleSelezione(g)"
                 >
-                  <div class="cpp-avatar">
+                  <div
+                    class="cpp-avatar clickable"
+                    (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+                    title="Apri scheda di {{ g.nome }}"
+                    style="cursor: pointer;"
+                  >
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
                     @if (g.isInjured) {
                       <span class="cpp-injured-badge" [title]="getInjuryTooltip(g)">
@@ -423,7 +428,12 @@
                   [attr.aria-label]="isCapReached() ? g.nome + ' (limite raggiunto)' : 'Convoca ' + g.nome"
                   (click)="toggleSelezione(g)"
                 >
-                  <div class="cpp-avatar">
+                  <div
+                    class="cpp-avatar clickable"
+                    (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
+                    title="Apri scheda di {{ g.nome }}"
+                    style="cursor: pointer;"
+                  >
                     <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
                     @if (g.isInjured) {
                       <span class="cpp-injured-badge" [title]="getInjuryTooltip(g)">
@@ -480,7 +490,12 @@
       } @else {
         <div class="compact-players-grid read-only-grid">
           @for (g of state.convocati(); track (g.id || g.nome) + '_' + $index) {
-            <div class="compact-player-pill is-selected read-only">
+            <div
+              class="compact-player-pill is-selected read-only clickable"
+              (click)="apriSchedaGiocatore(g.id)"
+              style="cursor: pointer;"
+              title="Apri scheda di {{ g.nome }}"
+            >
               <div class="cpp-avatar">
                 <app-player-avatar [fotoUrl]="g.fotoUrl" [alt]="g.nome"></app-player-avatar>
                 @if (g.isInjured) {

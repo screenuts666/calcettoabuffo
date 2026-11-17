@@ -680,8 +680,12 @@
               @if (marcatoriA.length > 0 || marcatoriB.length > 0) {
                 <div class="scorers-split-row">
                   <div class="scorers-col team-a">
-                    @for (gol of marcatoriA; track gol.nome + '_' + $index) {
-                      <span class="scorer-pill white" [title]="gol.nome">
+                    @for (gol of marcatoriA; track (gol.id || gol.nome) + '_' + $index) {
+                      <span
+                        class="scorer-pill white clickable"
+                        (click)="$event.stopPropagation(); apriSchedaGiocatore(gol.id)"
+                        [title]="gol.id ? 'Apri scheda di ' + gol.nome : gol.nome"
+                      >
                         <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
                         {{ gol.nome }}
                         @if (gol.gol > 1) {
@@ -691,8 +695,12 @@
                     }
                   </div>
                   <div class="scorers-col team-b">
-                    @for (gol of marcatoriB; track gol.nome + '_' + $index) {
-                      <span class="scorer-pill black" [title]="gol.nome">
+                    @for (gol of marcatoriB; track (gol.id || gol.nome) + '_' + $index) {
+                      <span
+                        class="scorer-pill black clickable"
+                        (click)="$event.stopPropagation(); apriSchedaGiocatore(gol.id)"
+                        [title]="gol.id ? 'Apri scheda di ' + gol.nome : gol.nome"
+                      >
                         {{ gol.nome }}
                         @if (gol.gol > 1) {
                           <b class="goal-qty">({{ gol.gol }})</b>
@@ -771,7 +779,11 @@
                   </div>
                   <div class="convocati-chips-scroll">
                     @for (c of m.convocati; track (c.id || c.nome) + '_' + $index) {
-                      <span class="convocato-chip-pill">
+                      <span
+                        class="convocato-chip-pill clickable"
+                        (click)="$event.stopPropagation(); apriSchedaGiocatore(c.id)"
+                        [title]="c.id ? 'Apri scheda di ' + c.nome : c.nome"
+                      >
                         <app-player-avatar [fotoUrl]="c.fotoUrl" [alt]="c.nome"></app-player-avatar>
                         <span>{{ (c.nome || 'Giocatore').split(' ')[0] }}</span>
                       </span>

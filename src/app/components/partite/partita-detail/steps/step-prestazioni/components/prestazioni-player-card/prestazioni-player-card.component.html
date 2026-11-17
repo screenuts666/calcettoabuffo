@@ -1,12 +1,32 @@
 <div class="player-roster-card">
   <div class="card-top-row">
-    <ion-avatar class="player-avatar">
+    <ion-avatar
+      class="player-avatar clickable"
+      (click)="apriSchedaGiocatore()"
+      role="button"
+      tabindex="0"
+      (keydown.enter)="apriSchedaGiocatore()"
+      (keydown.space)="apriSchedaGiocatore(); $event.preventDefault()"
+      [attr.aria-label]="'Apri scheda di ' + player.nome"
+      title="Apri scheda di {{ player.nome }}"
+    >
       <app-player-avatar [fotoUrl]="player.fotoUrl" [alt]="player.nome"></app-player-avatar>
     </ion-avatar>
 
     <div class="player-identity">
       <div class="identity-name-row">
-        <h4 class="player-name">{{ player.nome }}</h4>
+        <h4
+          class="player-name clickable"
+          (click)="apriSchedaGiocatore()"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="apriSchedaGiocatore()"
+          (keydown.space)="apriSchedaGiocatore(); $event.preventDefault()"
+          [attr.aria-label]="'Apri scheda di ' + player.nome"
+          title="Apri scheda di {{ player.nome }}"
+        >
+          {{ player.nome }}
+        </h4>
         @if (player.gol > 0) {
           <span class="goal-pill">
             <ion-icon name="football"></ion-icon> {{ player.gol }}

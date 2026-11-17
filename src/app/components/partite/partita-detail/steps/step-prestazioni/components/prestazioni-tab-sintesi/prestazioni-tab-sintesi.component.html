@@ -21,7 +21,12 @@
 
       <div class="award-player-body">
         <div class="award-avatar-wrap">
-          <ion-avatar class="award-avatar mvp-avatar">
+          <ion-avatar
+            class="award-avatar mvp-avatar clickable"
+            (click)="apriSchedaGiocatore(mvp.id)"
+            title="Apri scheda di {{ mvp.nome }}"
+            style="cursor: pointer;"
+          >
             <app-player-avatar
               [fotoUrl]="mvp.fotoUrl"
               [alt]="mvp.nome"
@@ -31,7 +36,12 @@
         </div>
 
         <div class="award-details">
-          <div class="award-player-name">{{ mvp.nome }}</div>
+          <div
+            class="award-player-name clickable"
+            (click)="apriSchedaGiocatore(mvp.id)"
+            title="Apri scheda di {{ mvp.nome }}"
+            style="cursor: pointer;"
+          >{{ mvp.nome }}</div>
           <div
             class="award-team-tag"
             [class.white]="mvp.team === 'A'"
@@ -73,7 +83,12 @@
 
       <div class="award-player-body">
         <div class="award-avatar-wrap">
-          <ion-avatar class="award-avatar worst-avatar">
+          <ion-avatar
+            class="award-avatar worst-avatar clickable"
+            (click)="apriSchedaGiocatore(worst.id)"
+            title="Apri scheda di {{ worst.nome }}"
+            style="cursor: pointer;"
+          >
             <app-player-avatar
               [fotoUrl]="worst.fotoUrl"
               [alt]="worst.nome"
@@ -83,7 +98,12 @@
         </div>
 
         <div class="award-details">
-          <div class="award-player-name">{{ worst.nome }}</div>
+          <div
+            class="award-player-name clickable"
+            (click)="apriSchedaGiocatore(worst.id)"
+            title="Apri scheda di {{ worst.nome }}"
+            style="cursor: pointer;"
+          >{{ worst.nome }}</div>
           <div
             class="award-team-tag"
             [class.white]="worst.team === 'A'"
@@ -153,10 +173,10 @@
           <div class="timeline-goal-info">
             <span class="timeline-scorer">
               @if (gol.isAutogoal) {
-                ⚠️ <strong>{{ gol.nome }}</strong>
+                ⚠️ <strong class="clickable" (click)="apriSchedaGiocatore(gol.idAssegnato)" style="cursor: pointer;">{{ gol.nome }}</strong>
                 <em class="autogol-tag">(Autogol)</em>
               } @else {
-                ⚽ <strong>{{ gol.nome }}</strong>
+                ⚽ <strong class="clickable" (click)="apriSchedaGiocatore(gol.idAssegnato)" style="cursor: pointer;">{{ gol.nome }}</strong>
               }
             </span>
 
@@ -164,7 +184,7 @@
               <span class="timeline-assist">
                 @if (gol.assistNome) {
                   <span class="assist-tag"
-                    >👟 Assist: <strong>{{ gol.assistNome }}</strong></span
+                    >👟 Assist: <strong class="clickable" (click)="apriSchedaGiocatore(gol.assistId)" style="cursor: pointer;">{{ gol.assistNome }}</strong></span
                   >
                 } @else {
                   <span class="no-assist-tag">⚡ Azione personale</span>

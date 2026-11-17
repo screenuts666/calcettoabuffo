@@ -1109,6 +1109,30 @@
   &.black {
     justify-content: flex-end;
   }
+
+  &.clickable {
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    &:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+}
+
+.convocato-chip-pill.clickable {
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  &:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 // ==========================================

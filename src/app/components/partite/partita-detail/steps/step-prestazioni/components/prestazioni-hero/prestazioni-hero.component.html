@@ -74,8 +74,12 @@
   @if (scorersA.length > 0 || scorersB.length > 0) {
     <div class="hero-scorers-bar">
       <div class="scorers-col white-scorers">
-        @for (s of scorersA; track (s.nome || '') + '_' + $index) {
-          <span class="scorer-tag white-tag">
+        @for (s of scorersA; track (s.id || s.nome || '') + '_' + $index) {
+          <span
+            class="scorer-tag white-tag clickable"
+            (click)="apriSchedaGiocatore(s.id)"
+            [title]="s.id ? 'Apri scheda di ' + s.nome : s.nome"
+          >
             <ion-icon name="football-outline"></ion-icon> <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
           </span>
@@ -83,8 +87,12 @@
       </div>
       <div class="scorers-divider"></div>
       <div class="scorers-col black-scorers">
-        @for (s of scorersB; track (s.nome || '') + '_' + $index) {
-          <span class="scorer-tag black-tag">
+        @for (s of scorersB; track (s.id || s.nome || '') + '_' + $index) {
+          <span
+            class="scorer-tag black-tag clickable"
+            (click)="apriSchedaGiocatore(s.id)"
+            [title]="s.id ? 'Apri scheda di ' + s.nome : s.nome"
+          >
             <ion-icon name="football-outline"></ion-icon> <strong>{{ s.nome }}</strong>
             @if (s.gol > 1) { <span class="multi-goal">({{ s.gol }})</span> }
           </span>

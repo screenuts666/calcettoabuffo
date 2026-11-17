@@ -119,7 +119,7 @@ export class StepPrestazioniComponent {
   });
 
   // Navigazione a Schede (Sintesi, Pagelle, Spogliatoio & AI, Statistiche)
-  activeTab = signal<'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche'>('sintesi');
+  activeTab = this.state.activePrestazioniTab;
 
   isGeneratingPronostico = signal<boolean>(false);
   isGeneratingCronaca = signal<boolean>(false);
@@ -220,12 +220,16 @@ export class StepPrestazioniComponent {
 
   scorersA = computed(() => {
     const list = this.report()?.playersA || [];
-    return list.filter((p) => (p.gol || 0) > 0).map((p) => ({ nome: p.nome, gol: p.gol }));
+    return list
+      .filter((p) => (p.gol || 0) > 0)
+      .map((p) => ({ id: p.id, nome: p.nome, gol: p.gol }));
   });
 
   scorersB = computed(() => {
     const list = this.report()?.playersB || [];
-    return list.filter((p) => (p.gol || 0) > 0).map((p) => ({ nome: p.nome, gol: p.gol }));
+    return list
+      .filter((p) => (p.gol || 0) > 0)
+      .map((p) => ({ id: p.id, nome: p.nome, gol: p.gol }));
   });
 
   gkSummary = computed(() => {

@@ -1223,7 +1223,7 @@ export class PartitePage {
   getMarcatoriSquadra(
     m: any,
     team: 'A' | 'B',
-  ): { nome: string; gol: number; isAutogoal?: boolean }[] {
+  ): { id?: string; nome: string; gol: number; isAutogoal?: boolean }[] {
     if (Array.isArray(m.eventiGol) && m.eventiGol.length > 0) {
       const goalsOfTeam = m.eventiGol.filter(
         (e: any) => e.teamVantaggio === team,
@@ -1231,7 +1231,7 @@ export class PartitePage {
       if (goalsOfTeam.length > 0) {
         const counts: Record<
           string,
-          { nome: string; gol: number; isAutogoal?: boolean }
+          { id?: string; nome: string; gol: number; isAutogoal?: boolean }
         > = {};
         for (const e of goalsOfTeam) {
           const displayName = e.isAutogoal
@@ -1241,6 +1241,7 @@ export class PartitePage {
             : (e.nome || 'Marcatore').trim();
           if (!counts[displayName]) {
             counts[displayName] = {
+              id: e.idAssegnato,
               nome: displayName,
               gol: 0,
               isAutogoal: Boolean(e.isAutogoal),
@@ -1257,6 +1258,7 @@ export class PartitePage {
       return players
         .filter((p: any) => (p.gol || 0) > 0)
         .map((p: any) => ({
+          id: p.id,
           nome: (p.nome || 'Giocatore').trim(),
           gol: p.gol,
         }))
@@ -1435,6 +1437,12 @@ export class PartitePage {
       case 'pronta':
       default:
         return "Fischio d'inizio";
+    }
+  }
+
+  apriSchedaGiocatore(id?: string | null) {
+    if (id) {
+      this.router.navigate(['/giocatori', id]);
     }
   }
 
