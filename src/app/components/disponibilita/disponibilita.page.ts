@@ -266,10 +266,13 @@ export class DisponibilitaPage implements OnInit {
       todayOutline,
       pauseCircleOutline,
       footballOutline,
+      chevronBack,
       sparklesOutline,
+      chevronForward,
       flame,
       flash,
       trashOutline,
+      footballOutline,
       addCircleOutline,
       checkmarkCircle,
       lockClosedOutline,
@@ -1190,7 +1193,9 @@ export class DisponibilitaPage implements OnInit {
 
   async simulaVotiCompagniDev(): Promise<void> {
     if (!this.auth.isDevToolsAllowed()) {
-      console.warn('Azione non autorizzata: solo il Presidente in ambiente DEV può simulare i voti.');
+      console.warn(
+        'Azione non autorizzata: solo il Presidente in ambiente DEV può simulare i voti.',
+      );
       return;
     }
     try {
@@ -1232,7 +1237,9 @@ export class DisponibilitaPage implements OnInit {
 
   async cancellaTuttiIVotiDev(): Promise<void> {
     if (!this.auth.isDevToolsAllowed()) {
-      console.warn('Azione non autorizzata: solo il Presidente in ambiente DEV può cancellare tutti i voti.');
+      console.warn(
+        'Azione non autorizzata: solo il Presidente in ambiente DEV può cancellare tutti i voti.',
+      );
       return;
     }
     try {

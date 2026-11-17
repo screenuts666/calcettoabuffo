@@ -77,7 +77,8 @@ export class StepPrestazioniComponent {
     if (!d) return null;
     const w = this.weatherService.getWeatherForDate(d);
     if (!w) return null;
-    const emoji = (w.iconEmoji && !w.iconEmoji.includes('🌫')) ? w.iconEmoji : '🌁';
+    const emoji =
+      w.iconEmoji && !w.iconEmoji.includes('🌫') ? w.iconEmoji : '🌁';
     return {
       emoji,
       temp: `${w.tempMax}°`,
@@ -90,7 +91,10 @@ export class StepPrestazioniComponent {
     const started = this.state.startedAt();
     if (started && typeof started === 'number') {
       try {
-        return new Date(started).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        return new Date(started).toLocaleTimeString('it-IT', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
       } catch {
         // fallback
       }
@@ -103,12 +107,18 @@ export class StepPrestazioniComponent {
   });
 
   readonly orarioFine = computed<string | null>(() => {
-    const isConclusa = this.state.matchConcluso() || this.state.pagelleInserite() || this.state.status() === 'conclusa';
+    const isConclusa =
+      this.state.matchConcluso() ||
+      this.state.pagelleInserite() ||
+      this.state.status() === 'conclusa';
     if (!isConclusa) return null;
     const ended = this.state.endedAt();
     if (ended && typeof ended === 'number') {
       try {
-        return new Date(ended).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        return new Date(ended).toLocaleTimeString('it-IT', {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
       } catch {
         // fallback
       }
@@ -164,7 +174,6 @@ export class StepPrestazioniComponent {
     return this.statsEngine.getMatchReport(currentMatch);
   });
 
-
   match = computed<Partita>(() => ({
     id: this.state.matchId() || '',
     dataPartita: this.state.dataPartita(),
@@ -204,7 +213,7 @@ export class StepPrestazioniComponent {
     try {
       await this.state.salvaInDatabase(
         this.state.pagelleInserite(),
-        this.state.matchConcluso()
+        this.state.matchConcluso(),
       );
       const toast = await this.toastCtrl.create({
         message: '🧤 Note sui portieri salvate!',
@@ -257,9 +266,14 @@ export class StepPrestazioniComponent {
     const summary = this.gkSummary();
     if (!summary?.notesPrompt) return;
     const current = this.state.commentoPartita() || '';
-    const updated = current ? `${current}\n\n${summary.notesPrompt}` : summary.notesPrompt;
+    const updated = current
+      ? `${current}\n\n${summary.notesPrompt}`
+      : summary.notesPrompt;
     this.state.commentoPartita.set(updated);
-    await this.state.salvaInDatabase(this.state.pagelleInserite(), this.state.matchConcluso());
+    await this.state.salvaInDatabase(
+      this.state.pagelleInserite(),
+      this.state.matchConcluso(),
+    );
     const toast = await this.toastCtrl.create({
       message: '🧤 Note sui portieri inserite nei retroscena!',
       duration: 2500,
@@ -276,7 +290,8 @@ export class StepPrestazioniComponent {
   }
 
   async salvaCommentoPartita(silent = false) {
-    if (!this.isAdmin || !this.state.matchId() || this.isSavingCommento()) return;
+    if (!this.isAdmin || !this.state.matchId() || this.isSavingCommento())
+      return;
     this.isSavingCommento.set(true);
     try {
       this.state.hasUnconfirmedPrestazioni.set(false);
@@ -285,12 +300,18 @@ export class StepPrestazioniComponent {
         this.state.matchConcluso(),
       );
       if (!silent) {
-        await this.mostraToast('📝 Note a bordocampo salvate con successo!', 'success');
+        await this.mostraToast(
+          '📝 Note a bordocampo salvate con successo!',
+          'success',
+        );
       }
     } catch (err) {
       console.error('Errore salvataggio commento partita:', err);
       if (!silent) {
-        await this.mostraToast('Errore durante il salvataggio delle note.', 'danger');
+        await this.mostraToast(
+          'Errore durante il salvataggio delle note.',
+          'danger',
+        );
       }
     } finally {
       this.isSavingCommento.set(false);
@@ -396,13 +417,12 @@ export class StepPrestazioniComponent {
 
   getAutogolCount(giocatore: PlayerPerformance): number {
     const eventi =
-      this.state.eventiGol() ||
-      this.state.matchDataOriginale?.eventiGol ||
-      [];
+      this.state.eventiGol() || this.state.matchDataOriginale?.eventiGol || [];
     const fromEvents = eventi.filter(
       (eg: any) =>
         Boolean(eg.isAutogoal) &&
-        (eg.idAssegnato === giocatore.id || (eg.nome && eg.nome === giocatore.nome)),
+        (eg.idAssegnato === giocatore.id ||
+          (eg.nome && eg.nome === giocatore.nome)),
     ).length;
 
     if (fromEvents > 0) {
@@ -414,9 +434,7 @@ export class StepPrestazioniComponent {
 
   getAssistCount(giocatore: PlayerPerformance): number {
     const eventi =
-      this.state.eventiGol() ||
-      this.state.matchDataOriginale?.eventiGol ||
-      [];
+      this.state.eventiGol() || this.state.matchDataOriginale?.eventiGol || [];
     const fromEvents = eventi.filter(
       (eg: any) =>
         eg.assistId === giocatore.id ||
@@ -455,7 +473,10 @@ export class StepPrestazioniComponent {
             const val = parseInt(data.assist, 10);
             if (isNaN(val) || val < 0) return false;
             this.salvaAssistNelloStato(giocatore.id, val);
-            await this.state.salvaInDatabase(this.state.pagelleInserite(), true);
+            await this.state.salvaInDatabase(
+              this.state.pagelleInserite(),
+              true,
+            );
             await this.mostraToast(
               `👟 Assist di ${giocatore.nome} impostati a ${val}`,
               'success',
@@ -677,7 +698,10 @@ export class StepPrestazioniComponent {
     await alertInput.present();
   }
 
-  private async confermaNuovoRisultato(nuovoScoreA: number, nuovoScoreB: number) {
+  private async confermaNuovoRisultato(
+    nuovoScoreA: number,
+    nuovoScoreB: number,
+  ) {
     const alertConfirm = await this.alertCtrl.create({
       header: 'Conferma Nuovo Risultato',
       message: `Stai per registrare il seguente risultato:\n\n⚪ TEAM BIANCHI: ${nuovoScoreA}\n⚫ TEAM NERI: ${nuovoScoreB}\n\nConfermi l'aggiornamento immediato?`,
@@ -689,7 +713,10 @@ export class StepPrestazioniComponent {
           handler: async () => {
             this.state.scoreA.set(nuovoScoreA);
             this.state.scoreB.set(nuovoScoreB);
-            await this.state.salvaInDatabase(this.state.pagelleInserite(), true);
+            await this.state.salvaInDatabase(
+              this.state.pagelleInserite(),
+              true,
+            );
             await this.mostraToast(
               `Risultato aggiornato: Bianchi ${nuovoScoreA} - ${nuovoScoreB} Neri`,
               'success',

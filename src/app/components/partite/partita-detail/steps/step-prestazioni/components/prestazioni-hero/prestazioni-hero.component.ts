@@ -44,7 +44,12 @@ export class PrestazioniHeroComponent {
   @Input() scorersB: { id?: string; nome: string; gol: number }[] = [];
   @Input() isUpset: boolean = false;
   @Input() upsetDescription?: string;
-  @Input() meteo?: { emoji: string; temp: string; label: string; rainProbability?: number } | null;
+  @Input() meteo?: {
+    emoji: string;
+    temp: string;
+    label: string;
+    rainProbability?: number;
+  } | null;
 
   @Output() shareClick = new EventEmitter<void>();
   @Output() editScoreClick = new EventEmitter<void>();

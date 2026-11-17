@@ -282,34 +282,7 @@ export class StepConvocatiComponent {
   }
 
   constructor() {
-    addIcons({
-      closeCircle,
-      closeCircleOutline,
-      search,
-      flashOutline,
-      shareSocialOutline,
-      copyOutline,
-      logoWhatsapp,
-      checkmarkCircle,
-      checkmarkCircleOutline,
-      checkmarkDoneCircle,
-      helpCircle,
-      helpCircleOutline,
-      shieldCheckmarkOutline,
-      personAddOutline,
-      linkOutline,
-      paperPlaneOutline,
-      peopleOutline,
-      addCircleOutline,
-      addOutline,
-      checkmark,
-      warningOutline,
-      footballOutline,
-      trashOutline,
-      refreshOutline,
-      lockClosedOutline,
-      lockOpenOutline,
-    });
+    addIcons({warningOutline,footballOutline,flashOutline,linkOutline,logoWhatsapp,copyOutline,helpCircleOutline,closeCircleOutline,trashOutline,medkit,checkmark,addOutline,peopleOutline,closeCircle,search,shareSocialOutline,checkmarkCircle,checkmarkCircleOutline,checkmarkDoneCircle,helpCircle,shieldCheckmarkOutline,personAddOutline,paperPlaneOutline,addCircleOutline,refreshOutline,lockClosedOutline,lockOpenOutline,});
   }
 
   /**

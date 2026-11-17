@@ -126,7 +126,7 @@
             class="player-avatar-box clickable"
             (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
             title="Apri scheda di {{ g.nome }}"
-            style="cursor: pointer;"
+            style="cursor: pointer"
             [class.is-fixed-gk]="isPortiereFisso('A', g.id)"
             [class.is-pure-gk]="isDiRuolo(g)"
           >
@@ -165,9 +165,10 @@
               <span
                 class="player-name clickable"
                 (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
-                style="cursor: pointer;"
+                style="cursor: pointer"
                 [title]="'Apri scheda di ' + g.nome"
-              >{{ g.nome }}</span>
+                >{{ g.nome }}</span
+              >
             </div>
             <div class="player-meta-line">
               <span
@@ -273,7 +274,7 @@
             class="player-avatar-box clickable"
             (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
             title="Apri scheda di {{ g.nome }}"
-            style="cursor: pointer;"
+            style="cursor: pointer"
             [class.is-fixed-gk]="isPortiereFisso('B', g.id)"
             [class.is-pure-gk]="isDiRuolo(g)"
           >
@@ -312,9 +313,10 @@
               <span
                 class="player-name clickable"
                 (click)="$event.stopPropagation(); apriSchedaGiocatore(g.id)"
-                style="cursor: pointer;"
+                style="cursor: pointer"
                 [title]="'Apri scheda di ' + g.nome"
-              >{{ g.nome }}</span>
+                >{{ g.nome }}</span
+              >
             </div>
             <div class="player-meta-line">
               <span
