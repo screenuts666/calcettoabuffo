@@ -109,6 +109,8 @@ export class MatchStateService {
   private matchSub?: Subscription;
   public onMatchCreated?: (id: string) => void;
   private autoSaveTimer?: any;
+  private lastLocalTimerActionAt = 0;
+  orarioProgrammato = signal<string | null>(null);
 
   step = signal<'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'>(
     'dettagli',
@@ -710,6 +712,7 @@ export class MatchStateService {
     if (this.isTimerRunning() && !this.isPausedDev()) return;
 
     const now = Date.now();
+    this.lastLocalTimerActionAt = now;
     const isFirstStart =
       !this.startedAt() &&
       (this.cronometro() || 0) === 0 &&
@@ -728,6 +731,9 @@ export class MatchStateService {
     }).format(new Date(startAt));
     this.orarioInizioReale.set(orarioInizioStr);
     if (isFirstStart) {
+      if (!this.orarioProgrammato() && this.orario()) {
+        this.orarioProgrammato.set(this.orario());
+      }
       this.orario.set(orarioInizioStr);
     }
 
@@ -1167,57 +1173,70 @@ export class MatchStateService {
             }
           }
 
-          this.isTimerRunning.set(data.isTimerRunning || false);
-          this.isPausedDev.set(Boolean(data.isPausedDev));
-          this.accumulatedTime.set(data.accumulatedTime || 0);
-          this.timerStartAt.set(data.timerStartAt || null);
-          const startMs =
-            data.startedAt ??
-            (data.inizioPartita?.toMillis
-              ? data.inizioPartita.toMillis()
-              : data.inizioPartita?.seconds
-                ? data.inizioPartita.seconds * 1000
-                : null) ??
-            data.timerStartAt ??
-            null;
-          const endMs =
-            data.endedAt ??
-            (data.finePartita?.toMillis
-              ? data.finePartita.toMillis()
-              : data.finePartita?.seconds
-                ? data.finePartita.seconds * 1000
-                : null) ??
-            data.finishedAt ??
-            null;
+          const isRecentLocalTimerAction =
+            this.auth.isSuperUser() &&
+            (this.isSaving() || Date.now() - this.lastLocalTimerActionAt < 6000);
 
-          this.startedAt.set(startMs);
-          this.endedAt.set(endMs);
-          if (data.orarioInizioReale) {
-            this.orarioInizioReale.set(data.orarioInizioReale);
-          } else if (startMs) {
-            this.orarioInizioReale.set(
-              new Intl.DateTimeFormat('it-IT', {
-                timeZone: 'Europe/Rome',
-                hour: '2-digit',
-                minute: '2-digit',
-              }).format(new Date(startMs)),
-            );
+          if (!isRecentLocalTimerAction) {
+            this.isTimerRunning.set(data.isTimerRunning || false);
+            this.isPausedDev.set(Boolean(data.isPausedDev));
+            this.accumulatedTime.set(data.accumulatedTime || 0);
+            this.timerStartAt.set(data.timerStartAt || null);
+            if (!data.isTimerRunning && !data.isPausedDev) {
+              this.cronometro.set(data.cronometro || 0);
+            }
+            const startMs =
+              data.startedAt ??
+              (data.inizioPartita?.toMillis
+                ? data.inizioPartita.toMillis()
+                : data.inizioPartita?.seconds
+                  ? data.inizioPartita.seconds * 1000
+                  : null) ??
+              data.timerStartAt ??
+              null;
+            const endMs =
+              data.endedAt ??
+              (data.finePartita?.toMillis
+                ? data.finePartita.toMillis()
+                : data.finePartita?.seconds
+                  ? data.finePartita.seconds * 1000
+                  : null) ??
+              data.finishedAt ??
+              null;
+
+            this.startedAt.set(startMs);
+            this.endedAt.set(endMs);
+            if (data.orarioInizioReale) {
+              this.orarioInizioReale.set(data.orarioInizioReale);
+            } else if (startMs) {
+              this.orarioInizioReale.set(
+                new Intl.DateTimeFormat('it-IT', {
+                  timeZone: 'Europe/Rome',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }).format(new Date(startMs)),
+              );
+            } else {
+              this.orarioInizioReale.set(null);
+            }
+            if (data.orarioFineReale) {
+              this.orarioFineReale.set(data.orarioFineReale);
+            } else if (endMs) {
+              this.orarioFineReale.set(
+                new Intl.DateTimeFormat('it-IT', {
+                  timeZone: 'Europe/Rome',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }).format(new Date(endMs)),
+              );
+            } else {
+              this.orarioFineReale.set(null);
+            }
+            if (data.orario) {
+              this.orario.set(data.orario);
+            }
+            this.status.set(data.status || 'da_definire');
           }
-          if (data.orarioFineReale) {
-            this.orarioFineReale.set(data.orarioFineReale);
-          } else if (endMs) {
-            this.orarioFineReale.set(
-              new Intl.DateTimeFormat('it-IT', {
-                timeZone: 'Europe/Rome',
-                hour: '2-digit',
-                minute: '2-digit',
-              }).format(new Date(endMs)),
-            );
-          }
-          if (data.orario) {
-            this.orario.set(data.orario);
-          }
-          this.status.set(data.status || 'da_definire');
           this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.cambioAttivo.set(
             (data.isTimerRunning || data.isPausedDev)
@@ -2028,7 +2047,14 @@ export class MatchStateService {
   async riavviaPartitaSenzaCambiareParametri(): Promise<void> {
     if (!this.auth.isSuperUser()) return;
 
+    this.lastLocalTimerActionAt = Date.now();
     this.soundSettings?.stopMatchCambioAlarm();
+
+    const orarioRipristinato =
+      this.orarioProgrammato() ||
+      this.matchDataOriginale?.orario ||
+      this.orario() ||
+      '21:00';
 
     this.scoreA.set(0);
     this.scoreB.set(0);
@@ -2040,6 +2066,7 @@ export class MatchStateService {
     this.endedAt.set(null);
     this.orarioInizioReale.set(null);
     this.orarioFineReale.set(null);
+    this.orario.set(orarioRipristinato);
     this.isTimerRunning.set(false);
     this.isPausedDev.set(false);
     this.cambioAttivo.set(false);
@@ -2094,6 +2121,7 @@ export class MatchStateService {
         finePartita: null,
         orarioInizioReale: null,
         orarioFineReale: null,
+        orario: orarioRipristinato,
         isTimerRunning: false,
         isPausedDev: false,
         cambioAttivo: false,

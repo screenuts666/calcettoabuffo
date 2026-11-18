@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.94",
+    "date": "18/11/2026",
+    "title": "Reset Orario Inizio al Riavvio & Protezione Cronometro Anti-Blocco in Campo",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Orario d'Inizio Sempre Reale: in caso di riavvio della partita, l'orario di inizio viene azzerato e ricalcolato al nuovo Fischio d'Inizio effettivo."
+    ],
+    "superUserChanges": [
+      "Reset Orario d'Inizio su Riavvio e Nuovo Kickoff: riavviaPartitaSenzaCambiareParametri ripristina l'orario programmato e azzera orarioInizioReale/startedAt, così al successivo Fischio d'Inizio viene registrato il nuovo orario effettivo.",
+      "Protezione Cronometro Anti-Blocco in Campo (Mister & Presidente): sblocco istantaneo dei gol già al secondo 00:00 dell'avvio, pulsante 'RIPRENDI CRONOMETRO' sempre visibile se il timer non è in esecuzione e scudo anti-sovrascrittura da snapshot Firestore ritardati (lastLocalTimerActionAt)."
+    ]
+  },
+  {
     "version": "2.0.93",
     "date": "18/11/2026",
     "title": "Riavvio Sicuro Partita da 00:00 Mantenendo Tutti i Parametri",
