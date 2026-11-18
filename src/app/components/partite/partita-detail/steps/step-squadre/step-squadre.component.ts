@@ -240,6 +240,7 @@ export class StepSquadreComponent implements OnInit {
         orario: this.state.orario(),
         teamA: this.state.teamA(),
         teamB: this.state.teamB(),
+        rotazionePortieri: this.state.rotazionePortieri(),
         pronosticoAi: this.state.pronosticoAi(),
         commentoPartita: this.state.commentoPartita(),
       };

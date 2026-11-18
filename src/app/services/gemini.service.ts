@@ -20,6 +20,8 @@ import {
   buildPlayerScoutingPrompts,
 } from './ai/gemini-prompts';
 import { AuthService } from './auth.service';
+import { StatsEngineService } from './stats-engine.service';
+import { CURRENT_SEASON } from '../utils/season-utils';
 
 export interface AiConfig {
   geminiApiKey: string;
@@ -33,6 +35,7 @@ export interface AiConfig {
 export class GeminiService {
   private firestore = inject(Firestore);
   private auth = inject(AuthService, { optional: true });
+  private statsEngine = inject(StatsEngineService, { optional: true });
 
   // Cache in-memory della configurazione AI e della chiave API per evitare letture ripetute su Firestore
   private cachedApiKey: string | null = null;
@@ -150,13 +153,22 @@ export class GeminiService {
     // Tentativo sequenziale sui modelli con fallback automatico su 429 / 503
     for (const model of this.MODELS) {
       try {
+        const modelBody = {
+          ...body,
+          generationConfig: {
+            ...body.generationConfig,
+            ...(model.includes('2.5') || model.includes('flash-lite-latest')
+              ? { thinkingConfig: { thinkingBudget: 0 } }
+              : {}),
+          },
+        };
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(body),
+          body: JSON.stringify(modelBody),
         });
 
         if (response.ok) {
@@ -242,9 +254,9 @@ export class GeminiService {
   private isTextComplete(text: string): boolean {
     if (!text) return false;
     const trimmed = text.trim();
-    if (trimmed.length < 160) return false;
-    // Deve terminare con punteggiatura di fine frase, virgolette, parentesi o emoji
-    return /[.!?…"')\]⚽🔥🍻💪🏆⚡]$/.test(trimmed);
+    if (trimmed.length < 350) return false;
+    // Deve terminare con punteggiatura di fine frase, virgolette, parentesi, asterisco o emoji
+    return /[.!?…"'\*)\]⚽🔥🍻💪🏆⚡]$/.test(trimmed);
   }
 
   /**
@@ -272,51 +284,187 @@ export class GeminiService {
   }
 
   /**
-   * Formatta la bio sintetica del giocatore (soprannome, ruolo, età, peso, altezza)
-   * per fornire massimo contesto goliardico all'AI.
+   * Risolve il profilo completo e le statistiche live di un giocatore dal motore StatsEngine
+   */
+  private resolveLivePlayerInfo(p: any): {
+    raw: any;
+    mmr: number;
+    partite: number;
+    winRate: number | null;
+    gol: number;
+    assist: number;
+    mediaVoto: number | null;
+    ruolo: string;
+    piede: string;
+  } {
+    const rawList = this.statsEngine?.giocatoriRaw() || [];
+    const matchedRaw =
+      rawList.find(
+        (g) =>
+          (p?.id && g.id === p.id) ||
+          (p?.nome &&
+            g.nome?.toLowerCase().trim() === p.nome.toLowerCase().trim()),
+      ) || {};
+    const merged = { ...matchedRaw, ...p };
+
+    const statsRes = this.statsEngine?.statsResult();
+    const pid = merged.id;
+    const seasonStats =
+      pid && statsRes ? statsRes.bySeason.get(CURRENT_SEASON)?.get(pid) : null;
+    const allTimeStats =
+      pid && statsRes ? statsRes.allTime.get(pid) : null;
+    const activeStats =
+      seasonStats && seasonStats.partiteGiocate > 0
+        ? seasonStats
+        : allTimeStats;
+
+    const mmr =
+      p?.mmr ||
+      (activeStats
+        ? activeStats.partiteGiocate > 0
+          ? activeStats.currentMmr
+          : (activeStats.seasonStartMmr ?? 1000)
+        : 1000);
+    const partite = activeStats?.partiteGiocate ?? merged.partiteGiocate ?? 0;
+    const winRate =
+      activeStats && activeStats.partiteGiocate > 0
+        ? Math.round(activeStats.winRate)
+        : null;
+    const gol = merged.gol ?? 0;
+    const assist = merged.assist ?? 0;
+    const mediaVoto =
+      merged.mediaVoto && merged.mediaVoto > 0
+        ? Math.round(merged.mediaVoto * 100) / 100
+        : null;
+    const ruolo = (
+      merged.ruoloPreferito ||
+      merged.ruolo ||
+      'Jolly'
+    ).trim();
+    const piede = (merged.piedePreferito || 'Destro').trim();
+
+    return {
+      raw: merged,
+      mmr,
+      partite,
+      winRate,
+      gol,
+      assist,
+      mediaVoto,
+      ruolo,
+      piede,
+    };
+  }
+
+  /**
+   * Formatta la bio tecnica + anagrafica del giocatore (MMR, ruolo, piede, stats, bio)
+   * per fornire massimo contesto tattico e goliardico all'AI.
    */
   formatPlayerBio(p: any): string {
     if (!p) return 'Sconosciuto';
-    const nome = (p.nome || 'Giocatore').trim();
-    const ruolo = (p.ruoloPreferito || p.ruolo || 'Jolly').trim();
-    const eta = this.calcolaEta(p.annoNascita);
-    const peso = p.peso ? `${p.peso}kg` : '';
-    const altezza = p.altezza ? `${p.altezza}cm` : '';
+    const info = this.resolveLivePlayerInfo(p);
+    const merged = info.raw;
+    const nome = (merged.nome || 'Giocatore').trim();
+    const eta = this.calcolaEta(merged.annoNascita);
+    const peso = merged.peso ? `${merged.peso}kg` : '';
+    const altezza = merged.altezza ? `${merged.altezza}cm` : '';
 
     const tags: string[] = [];
-    if (p.soprannome) {
-      tags.push(`soprannome: "${p.soprannome}"`);
+    if (merged.soprannome) {
+      tags.push(`soprannome: "${merged.soprannome}"`);
     }
-    if (p.mmr) tags.push(`MMR: ${p.mmr}`);
-    tags.push(`Ruolo: ${ruolo}`);
-    if (eta !== null) tags.push(`Età: ${eta} anni (classe ${p.annoNascita})`);
+    tags.push(
+      `MMR: ${info.mmr}${info.partite < 3 ? ' (IN PIAZZAMENTO/INCOGNITA)' : ''}`,
+    );
+    tags.push(`Ruolo: ${info.ruolo}`);
+    tags.push(`Piede: ${info.piede}`);
+    if (info.partite > 0) {
+      const statsParts = [`${info.partite} gare`];
+      if (info.winRate !== null) statsParts.push(`WinRate ${info.winRate}%`);
+      statsParts.push(`${info.gol} gol`);
+      if (info.assist > 0) statsParts.push(`${info.assist} assist`);
+      if (info.mediaVoto !== null) statsParts.push(`MV ${info.mediaVoto}`);
+      tags.push(`Stats: ${statsParts.join(', ')}`);
+    } else {
+      tags.push(`Stats: Esordiente assoluto (0 gare)`);
+    }
+    if (eta !== null) tags.push(`Età: ${eta} anni (classe ${merged.annoNascita})`);
     if (peso) tags.push(`Peso: ${peso}`);
     if (altezza) tags.push(`Altezza: ${altezza}`);
-    if (p.professione?.trim()) tags.push(`Mestiere: ${p.professione.trim()}`);
-    if (p.origini?.trim()) tags.push(`Origini: ${p.origini.trim()}`);
-    if (p.statoCivile?.trim()) tags.push(`Stato civile: ${p.statoCivile.trim()}`);
-    if (p.vizi?.trim()) tags.push(`Vizi/Abitudini: ${p.vizi.trim()}`);
+    if (merged.professione?.trim()) tags.push(`Mestiere: ${merged.professione.trim()}`);
+    if (merged.origini?.trim()) tags.push(`Origini: ${merged.origini.trim()}`);
+    if (merged.statoCivile?.trim()) tags.push(`Stato civile: ${merged.statoCivile.trim()}`);
+    if (merged.vizi?.trim()) tags.push(`Vizi/Abitudini: ${merged.vizi.trim()}`);
 
     return `${nome} [${tags.join(' | ')}]`;
   }
 
   /**
-   * Calcola statistiche aggregate della squadra (età media, peso complessivo)
+   * Calcola statistiche aggregate tattiche e fisiche della squadra
    */
-  getTeamAggregates(players: any[]): { etaMedia: number | null; pesoTotale: number; pesoMedio: number | null } {
+  getTeamAggregates(players: any[]): {
+    etaMedia: number | null;
+    pesoTotale: number;
+    pesoMedio: number | null;
+    mmrMedio: number;
+    totaleGol: number;
+    totaleAssist: number;
+    mediaVotoSquadra: number | null;
+    esordientiCount: number;
+    ruoliBreakdown: string;
+    manciniCount: number;
+  } {
     let sumEta = 0;
     let countEta = 0;
     let sumPeso = 0;
     let countPeso = 0;
+    let sumMmr = 0;
+    let totaleGol = 0;
+    let totaleAssist = 0;
+    let sumMv = 0;
+    let countMv = 0;
+    let esordientiCount = 0;
+    let manciniCount = 0;
+    const ruoliCount: Record<string, number> = {
+      Portiere: 0,
+      Difensore: 0,
+      Fascia: 0,
+      Attaccante: 0,
+    };
 
     for (const p of players) {
-      const eta = this.calcolaEta(p.annoNascita);
+      const info = this.resolveLivePlayerInfo(p);
+      const merged = info.raw;
+      sumMmr += info.mmr;
+      totaleGol += info.gol;
+      totaleAssist += info.assist;
+      if (info.mediaVoto !== null) {
+        sumMv += info.mediaVoto;
+        countMv++;
+      }
+      if (info.partite < 3) {
+        esordientiCount++;
+      }
+      if (
+        info.piede.toLowerCase().includes('sinistr') ||
+        info.piede.toLowerCase().includes('ambidestr')
+      ) {
+        manciniCount++;
+      }
+      const rKey = Object.keys(ruoliCount).find((k) =>
+        info.ruolo.toLowerCase().startsWith(k.slice(0, 3).toLowerCase()),
+      );
+      if (rKey) {
+        ruoliCount[rKey]++;
+      }
+
+      const eta = this.calcolaEta(merged.annoNascita);
       if (eta !== null) {
         sumEta += eta;
         countEta++;
       }
-      if (p.peso) {
-        const w = parseFloat(p.peso.toString().replace(/[^0-9.]/g, ''));
+      if (merged.peso) {
+        const w = parseFloat(merged.peso.toString().replace(/[^0-9.]/g, ''));
         if (!isNaN(w) && w > 40 && w < 200) {
           sumPeso += w;
           countPeso++;
@@ -324,10 +472,20 @@ export class GeminiService {
       }
     }
 
+    const ruoliBreakdown = `${ruoliCount['Portiere']} POR, ${ruoliCount['Difensore']} DIF, ${ruoliCount['Fascia']} FAS, ${ruoliCount['Attaccante']} ATT`;
+
     return {
       etaMedia: countEta > 0 ? Math.round((sumEta / countEta) * 10) / 10 : null,
       pesoTotale: Math.round(sumPeso),
       pesoMedio: countPeso > 0 ? Math.round((sumPeso / countPeso) * 10) / 10 : null,
+      mmrMedio: players.length > 0 ? Math.round(sumMmr / players.length) : 1000,
+      totaleGol,
+      totaleAssist,
+      mediaVotoSquadra:
+        countMv > 0 ? Math.round((sumMv / countMv) * 100) / 100 : null,
+      esordientiCount,
+      ruoliBreakdown,
+      manciniCount,
     };
   }
 

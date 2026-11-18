@@ -15,6 +15,21 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.92",
+    "date": "18/11/2026",
+    "title": "Analisi Tattica & Bilanciamento Squadre a 4 Sezioni nel Pronostico AI",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Radiografia Completa del Bilanciamento Squadre: il Pronostico Tattico AI analizza ora in 4 sezioni dedicate l'equilibrio MMR reale (incluse le incognite in piazzamento), il confronto reparto per reparto (Porta, Difesa, Fasce, Attacco), i duelli chiave 1vs1 e la sentenza con risultato esatto.",
+      "Generazione Rapida e Senza Tagli: risposte più ricche, veloci e complete fino all'ultima riga."
+    ],
+    "superUserChanges": [
+      "Arricchimento Dati Live da StatsEngine in GeminiService: iniettate nel prompt le statistiche reali di ogni giocatore (MMR, gare giocate, Win Rate, gol, assist, media voto, ruolo, piede) e il breakdown per reparto di Bianchi e Neri.",
+      "Ottimizzazione Gemini 2.5 con thinkingBudget 0: disabilitato il consumo di token di thinking interno per garantire il 100% di maxOutputTokens sul testo generato e azzerare qualsiasi troncamento."
+    ]
+  },
+  {
     "version": "2.0.91",
     "date": "18/11/2026",
     "title": "Pronostici AI Completi e Più Ricchi & Prevenzione Testi Troncati",

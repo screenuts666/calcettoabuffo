@@ -13,7 +13,18 @@ export function buildPronosticoPrompts(
   partita: Partita,
   odds: any,
   formatPlayerBio: (p: any) => string,
-  getTeamAggregates: (players: any[]) => { etaMedia: number | null; pesoTotale: number; pesoMedio: number | null },
+  getTeamAggregates: (players: any[]) => {
+    etaMedia: number | null;
+    pesoTotale: number;
+    pesoMedio: number | null;
+    mmrMedio?: number;
+    totaleGol?: number;
+    totaleAssist?: number;
+    mediaVotoSquadra?: number | null;
+    esordientiCount?: number;
+    ruoliBreakdown?: string;
+    manciniCount?: number;
+  },
 ): PromptPair {
   const teamABios = (partita.teamA || [])
     .map((p) => `  • ${formatPlayerBio(p)}`)
@@ -25,17 +36,35 @@ export function buildPronosticoPrompts(
   const aggA = getTeamAggregates(partita.teamA || []);
   const aggB = getTeamAggregates(partita.teamB || []);
 
-  const metaFisica: string[] = [];
+  const mmrA = odds?.mmrA ?? aggA.mmrMedio ?? 1000;
+  const mmrB = odds?.mmrB ?? aggB.mmrMedio ?? 1000;
+  const deltaMmr = Math.abs(mmrA - mmrB);
+
+  const metaBilanciamento: string[] = [
+    `- Bilanciamento MMR: Bianchi ${mmrA} MMR vs Neri ${mmrB} MMR (Scarto Δ ${deltaMmr} punti — ${deltaMmr <= 10 ? 'EQUILIBRIO CHIRURGICO AL MILLIMETRO' : deltaMmr <= 25 ? 'LEGGERO VANTAGGIO SULLA CARTA' : 'SQUADRE SBILANCIATE SULLA CARTA'})`,
+    `- Composizione Reparti per Ruolo: Bianchi [${aggA.ruoliBreakdown || 'N.D.'}] vs Neri [${aggB.ruoliBreakdown || 'N.D.'}]`,
+    `- Potenza Offensiva & Rendimento Storico: Bianchi (${aggA.totaleGol ?? 0} gol tot, ${aggA.totaleAssist ?? 0} assist, Media Voto ${aggA.mediaVotoSquadra ?? 'N.D.'}) vs Neri (${aggB.totaleGol ?? 0} gol tot, ${aggB.totaleAssist ?? 0} assist, Media Voto ${aggB.mediaVotoSquadra ?? 'N.D.'})`,
+    `- Incognite & Esordienti (<3 gare / Seed 1000): Bianchi ${aggA.esordientiCount ?? 0} incognite vs Neri ${aggB.esordientiCount ?? 0} incognite`,
+    `- Mancini/Ambidestri in rosa: Bianchi ${aggA.manciniCount ?? 0} vs Neri ${aggB.manciniCount ?? 0}`,
+  ];
+
   if (aggA.etaMedia !== null && aggB.etaMedia !== null) {
     const diffEta = Math.round(Math.abs(aggA.etaMedia - aggB.etaMedia) * 10) / 10;
-    metaFisica.push(
-      `- Divario Età: Bianchi media ${aggA.etaMedia} anni vs Neri media ${aggB.etaMedia} anni (Differenza: ${diffEta} anni — ${aggA.etaMedia > aggB.etaMedia ? 'Bianchi più anziani/bolliti' : 'Neri più anziani/bolliti'})`,
+    metaBilanciamento.push(
+      `- Divario Età: Bianchi media ${aggA.etaMedia} anni vs Neri media ${aggB.etaMedia} anni (Δ ${diffEta} anni — ${aggA.etaMedia > aggB.etaMedia ? 'Bianchi più anziani/bolliti' : 'Neri più anziani/bolliti'})`,
     );
   }
   if (aggA.pesoTotale > 0 && aggB.pesoTotale > 0) {
-    metaFisica.push(
+    metaBilanciamento.push(
       `- Confronto Stazza: Bianchi ${aggA.pesoTotale}kg (media ${aggA.pesoMedio}kg) vs Neri ${aggB.pesoTotale}kg (media ${aggB.pesoMedio}kg)`,
     );
+  }
+
+  const rot = partita.rotazionePortieri;
+  if (rot) {
+    const modA = rot.modalitaA === 'fisso' ? 'Portiere Fisso' : `Portiere a rotazione (${rot.durataTurnoMinuti || 5}')`;
+    const modB = rot.modalitaB === 'fisso' ? 'Portiere Fisso' : `Portiere a rotazione (${rot.durataTurnoMinuti || 5}')`;
+    metaBilanciamento.push(`- Gestione Porta: Bianchi [${modA}] vs Neri [${modB}]`);
   }
 
   const probA = odds?.probAPercent ?? 50;
@@ -52,30 +81,40 @@ export function buildPronosticoPrompts(
     ? `- Indiscrezioni e note dell'organizzatore: "${notePrePartita}"\n`
     : '';
 
-  const systemPrompt = `Sei l'unico telecronista che commenta il pre-partita di questa partita di calcetto tra amici a Roma (Lega "Calcetto Abbuffo"). Il tuo stile unisce il commento tecnico dei vecchi videogiochi calcistici anni '90 (stile Caputi/Bulgarelli), la satira romana da spogliatoio verace e il cinismo tagliente di Grok.
+  const systemPrompt = `Sei l'analista tattico e telecronista ufficiale della Lega "Calcetto Abbuffo" a Roma. Il tuo compito è fornire una DISAMINA TATTICA PROFONDA E DEL BILANCIAMENTO DELLE DUE SQUADRE prima del fischio d'inizio, unendo competenza calcistica reale (reparti, copertura difensiva, spinta sulle fasce, peso offensivo, MMR, gestione portieri e incognite in piazzamento) con il cinismo tagliente della satira romana da spogliatoio.
 
 REGOLE FONDAMENTALI:
-- PARLA SOLO TU: Sei una singola voce narrante in prima persona. Parla direttamente all'ascoltatore. Niente dialoghi a due voci, niente copioni teatrali.
-- NESSUN EFFETTO O DIDASCALIA: Non scrivere effetti sonori, rumori, didascalie o parentesi registiche (vietato scrivere "Effetto...", "Grafica...", ecc.). Scrivi solo ed esclusivamente le parole che pronunci al microfono.
-- INIZIA SUBITO: Parti direttamente con la prima parola, senza titoli ("Pronostico:") né formule introduttive.
-- TONO E GERGO: Romanesco di borgata asciutto, cinico e tagliente. Usa età, peso e quote come dati tecnici impietosi per prendere in giro le due squadre ("pippa ar sugo", "paracarro", "a cazzo de cane", "s'è fatto mette sotto"). Volgare e pungente al punto giusto, zero battute da bambini, zero cringe.
-- DETTAGLI PERSONALI A SPOT: usa a sorpresa e con intelligenza comica i mestieri, i quartieri di provenienza, lo stato civile o i vizi dei singoli giocatori indicati nelle bio (es. "l'elettricista sposato che scappa di casa per farsi saltare come un birillo", "fumatore accanito con i polmoni a fisarmonica", "single disperato di Tor Bella Monaca"). Non elencarli tutti, piazzane 1-2 a spot con perfetto tempismo comico!
-- INDISCREZIONI: se presenti note o indiscrezioni dell'organizzatore, tienine conto con la tua consueta ironia romana tagliente.
+- FOCUS SUL BILANCIAMENTO TATTICO: I giocatori leggono questa analisi per capire QUANTO e COME sono bilanciate le due squadre! Analizza con precisione la distribuzione dei ruoli (chi ha troppi difensori e nessun bomber, chi è scoperto dietro, chi ha più spinta sulle fasce, quanto pesano gli esordienti a 1000 MMR che possono falsare l'equilibrio dell'algoritmo).
+- FORMATTAZIONE PULITA E LEGGIBILE: Usa i 4 sottotitoli Markdown indicati qui sotto (con ###) e metti in **grassetto** i nomi dei giocatori e i concetti tattici chiave.
+- PARLA SOLO TU: Nessun dialogo a due voci, nessuna didascalia registica ("Effetto...", "Sigla...").
+- TONO E GERGO: Tattico, pungente, romanesco verace di borgata ma super lucido nell'analisi tecnica calcistica. Infila a spot 2-3 frecciate esilaranti usando mestieri, quartieri, età, peso o vizi presenti nelle bio dei giocatori, legandole sempre al loro rendimento tattico in campo.
+- COMPLETEZZA ASSOLUTA: Scrivi un'analisi ricca e completa di circa 280-360 parole totali. Concludi SEMPRE tutte le frasi fino al punto finale!
 
-STRUTTURA E LUNGHEZZA (3 paragrafi ricchi e completi, circa 180-250 parole totali — NON interrompere MAI le frasi a metà):
-1. Apertura dal campo e radiografia impietosa delle due formazioni (Bianchi vs Neri), confrontando quote MMR, stazza complessiva, età media ed eventuali indiscrezioni della vigilia.
-2. Analisi tattica e duelli chiave tra i singoli protagonisti in campo, bersagliando con ironia chi parte già senza fiato o con i piedi fucilati.
-3. Il tuo verdetto finale spietato su come finirà la partita, il risultato previsto e chi farà la figura peggiore della serata.`;
+STRUTTURA OBBLIGATORIA IN 4 SEZIONI:
+### ⚖️ Termometro Bilanciamento & Quote
+Analizza se il match è davvero equilibrato o se lo scarto MMR (${mmrA} vs ${mmrB}, Δ ${deltaMmr}) nasconde un inganno (es. esordienti a 1000 MMR, differenza di esperienza, media voto e gol storici).
 
-  const userPrompt = `Fai il pronostico pre-partita completo e articolato (3 paragrafi, 180-250 parole) a voce sola per questo match:
-- Formazione BIANCHI:
+### 🧩 Radiografia dei Reparti (Bianchi vs Neri)
+Confronta le due squadre reparto per reparto (Porta/Rotazioni, Difesa, Fasce, Attacco): spiega chi è più coperto dietro, chi ha più gamba e corsa sulle corsie laterali e chi ha più centimetri o gol nei piedi là davanti.
+
+### ⚔️ Duelli Chiave & Anelli Deboli
+Individua 2-3 scontri diretti uomo contro uomo o punti critici che decideranno la partita, combinando dati tecnici (ruolo, MMR, gol, piede) e satira sui dettagli personali delle bio.
+
+### 🔮 Sentenza Tattica & Risultato Esatto
+Spiega come evolverà tatticamente la gara tra primo e secondo tempo (chi scoppierà fisicamente, quale reparto spaccherà la partita), nomina il possibile MVP e il possibile flop, e chiudi con il **risultato esatto** pronosticato.`;
+
+  const userPrompt = `Elabora l'Analisi Tattica e di Bilanciamento completa (4 sezioni, ~280-360 parole) per questa partita:
+- Rosa BIANCHI (${(partita.teamA || []).length} giocatori):
 ${teamABios || '  • Nessun giocatore registrato'}
-- Formazione NERI:
+- Rosa NERI (${(partita.teamB || []).length} giocatori):
 ${teamBBios || '  • Nessun giocatore registrato'}
-${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Quote algoritmo MMR: ${fav}
+
+DATI TECNICI E DI BILANCIAMENTO:
+${metaBilanciamento.join('\n')}
+- Quote algoritmo MMR: ${fav}
 - Campo: ${partita.luogo || 'Campo'} alle ${partita.orario || '21:00'}
 ${notePrePartitaPrompt}
-Dacci la disamina pre-partita completa al microfono con cinismo romano vintage e la sentenza finale su chi vince!`;
+Sviluppa tutte e 4 le sezioni fino alla sentenza finale con il risultato esatto!`;
 
   return { systemPrompt, userPrompt };
 }
