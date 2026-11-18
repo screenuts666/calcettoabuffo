@@ -1,4 +1,4 @@
-@use 'mixins' as *;
+@use "mixins" as *;
 
 .convocati-container {
   max-width: 720px;
@@ -806,22 +806,22 @@
         line-height: 1.1;
         letter-spacing: 0.2px;
 
-        &[data-role='POR'] {
+        &[data-role="POR"] {
           color: #fbbf24;
           border-color: rgba(245, 158, 11, 0.35);
           background: rgba(245, 158, 11, 0.1);
         }
-        &[data-role='DIF'] {
+        &[data-role="DIF"] {
           color: #38bdf8;
           border-color: rgba(56, 189, 248, 0.35);
           background: rgba(56, 189, 248, 0.1);
         }
-        &[data-role='CEN'] {
+        &[data-role="CEN"] {
           color: #a78bfa;
           border-color: rgba(167, 139, 250, 0.35);
           background: rgba(167, 139, 250, 0.1);
         }
-        &[data-role='ATT'] {
+        &[data-role="ATT"] {
           color: #f87171;
           border-color: rgba(248, 113, 113, 0.35);
           background: rgba(248, 113, 113, 0.1);

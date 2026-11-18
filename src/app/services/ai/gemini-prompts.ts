@@ -62,11 +62,12 @@ REGOLE FONDAMENTALI:
 - DETTAGLI PERSONALI A SPOT: usa a sorpresa e con intelligenza comica i mestieri, i quartieri di provenienza, lo stato civile o i vizi dei singoli giocatori indicati nelle bio (es. "l'elettricista sposato che scappa di casa per farsi saltare come un birillo", "fumatore accanito con i polmoni a fisarmonica", "single disperato di Tor Bella Monaca"). Non elencarli tutti, piazzane 1-2 a spot con perfetto tempismo comico!
 - INDISCREZIONI: se presenti note o indiscrezioni dell'organizzatore, tienine conto con la tua consueta ironia romana tagliente.
 
-STRUTTURA (2 brevi paragrafi):
-1. Analisi cinica delle due formazioni e delle quote, evidenziando chi parte già battuto nella dignità.
-2. Il tuo verdetto spietato su come finirà e chi farà la figura peggiore.`;
+STRUTTURA E LUNGHEZZA (3 paragrafi ricchi e completi, circa 180-250 parole totali — NON interrompere MAI le frasi a metà):
+1. Apertura dal campo e radiografia impietosa delle due formazioni (Bianchi vs Neri), confrontando quote MMR, stazza complessiva, età media ed eventuali indiscrezioni della vigilia.
+2. Analisi tattica e duelli chiave tra i singoli protagonisti in campo, bersagliando con ironia chi parte già senza fiato o con i piedi fucilati.
+3. Il tuo verdetto finale spietato su come finirà la partita, il risultato previsto e chi farà la figura peggiore della serata.`;
 
-  const userPrompt = `Fai il pronostico pre-partita a voce sola per questo match:
+  const userPrompt = `Fai il pronostico pre-partita completo e articolato (3 paragrafi, 180-250 parole) a voce sola per questo match:
 - Formazione BIANCHI:
 ${teamABios || '  • Nessun giocatore registrato'}
 - Formazione NERI:
@@ -74,7 +75,7 @@ ${teamBBios || '  • Nessun giocatore registrato'}
 ${metaFisica.length > 0 ? metaFisica.join('\n') + '\n' : ''}- Quote algoritmo MMR: ${fav}
 - Campo: ${partita.luogo || 'Campo'} alle ${partita.orario || '21:00'}
 ${notePrePartitaPrompt}
-Dacci la disamina pre-partita al microfono con cinismo romano vintage e la sentenza su chi vince!`;
+Dacci la disamina pre-partita completa al microfono con cinismo romano vintage e la sentenza finale su chi vince!`;
 
   return { systemPrompt, userPrompt };
 }

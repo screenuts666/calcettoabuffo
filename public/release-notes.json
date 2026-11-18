@@ -1,5 +1,20 @@
 [
   {
+    "version": "2.0.91",
+    "date": "18/11/2026",
+    "title": "Pronostici AI Completi e Più Ricchi & Prevenzione Testi Troncati",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Pronostici del Mister Più Ricchi e Completi: disamine pre-partita estese a 3 paragrafi articolati (analisi formazioni e quote, duelli individuali in campo e verdetto finale) senza più frasi tagliate a metà.",
+      "Migliore Leggibilità Box Pronostico: aumentato lo spazio di scorrimento inferiore nello step Squadre per evitare che il pulsante di conferma copra il testo."
+    ],
+    "superUserChanges": [
+      "Priorità Modello gemini-2.5-flash & Validazione Completezza: impostato gemini-2.5-flash come modello primario, concatenazione integrale delle parti testo (escludendo i blocchi thought) e controllo anti-troncamento isTextComplete con auto-rigenerazione dei pronostici incompleti.",
+      "Prompt Pronostico Esteso: aggiornato buildPronosticoPrompts su 3 paragrafi strutturati (~180-250 parole) e affinata la regex di cleanAiOutput."
+    ]
+  },
+  {
     "version": "2.0.90",
     "date": "18/11/2026",
     "title": "Creazione Giocatore Diretta dai Convocati, Sync Rosa Live & Auto-Reset Ricerca",

@@ -39,11 +39,11 @@ export class GeminiService {
   private cachedConfig: AiConfig | null = null;
 
   // Modelli supportati con fallback automatico a cascata
-  // Se un modello raggiunge il rate-limit (429 Quota Exceeded), viene tentato il successivo
+  // Priorità a gemini-2.5-flash per massima qualità, completezza e ricchezza narrativa
   private readonly MODELS = [
-    'gemini-flash-lite-latest',
-    'gemini-2.5-flash-lite',
     'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-flash-lite-latest',
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
   ];
@@ -62,7 +62,7 @@ export class GeminiService {
       const snap = await getDoc(configRef);
       if (snap.exists()) {
         const data = snap.data();
-        const geminiApiKey = data?.['geminiApiKey'] || data?.['apiKey'] || '';
+        const geminiApiKey = (data?.['geminiApiKey'] || data?.['apiKey'] || '').trim();
         const rawElevenKey = (data?.['elevenLabsApiKey'] || '').trim();
         const elevenLabsVoiceId = (data?.['elevenLabsVoiceId'] || 'pNInz6obpgDQGcFmaJgB').trim();
 
@@ -172,18 +172,39 @@ export class GeminiService {
           }
           const json = JSON.parse(rawText);
           const candidate = json.candidates?.[0];
-          const text = candidate?.content?.parts?.[0]?.text;
+          const parts = Array.isArray(candidate?.content?.parts)
+            ? candidate.content.parts
+            : [];
+          const text = parts
+            .filter((p: any) => !p?.thought && typeof p?.text === 'string')
+            .map((p: any) => p.text)
+            .join('');
           const finishReason = candidate?.finishReason;
 
-          // Se il modello ha interrotto la risposta per limite token, tenta il fallback
-          if (finishReason === 'MAX_TOKENS') {
-            console.warn(`Modello ${model} ha troncato la risposta per MAX_TOKENS. Tento modello successivo...`);
-            lastError = new Error(`Risposta troncata per MAX_TOKENS da ${model}`);
+          // Se il modello ha interrotto la risposta (MAX_TOKENS, SAFETY, ecc.), tenta il fallback
+          if (finishReason && finishReason !== 'STOP') {
+            console.warn(
+              `Modello ${model} ha interrotto la risposta (${finishReason}). Tento modello successivo...`,
+            );
+            lastError = new Error(
+              `Risposta interrotta (${finishReason}) da ${model}`,
+            );
             continue;
           }
 
           if (text && text.trim().length > 0) {
-            return this.cleanAiOutput(text.trim());
+            const cleaned = this.cleanAiOutput(text.trim());
+            // Verifica che il testo non sia stato troncato a metà frase/parola
+            if (!this.isTextComplete(cleaned)) {
+              console.warn(
+                `Modello ${model} ha restituito un testo troncato o troppo breve (${cleaned.length} char). Tento modello successivo...`,
+              );
+              lastError = new Error(
+                `Risposta incompleta/troncata da ${model}`,
+              );
+              continue;
+            }
+            return cleaned;
           }
         } else {
           const errTxt = await response.text();
@@ -194,6 +215,11 @@ export class GeminiService {
             lowerErr.includes('category: gen ai')
           ) {
             throw new Error('ZSCALER_CORPORATE_PROXY_BLOCK');
+          }
+          // Se la chiave API non è valida, invalida la cache in memoria
+          if (lowerErr.includes('api_key_invalid')) {
+            this.cachedApiKey = null;
+            this.cachedConfig = null;
           }
           console.info(`Modello ${model} non disponibile (${response.status}), passaggio al fallback...`);
           lastError = new Error(`Errore API Gemini (${response.status}): ${errTxt}`);
@@ -211,12 +237,26 @@ export class GeminiService {
   }
 
   /**
-   * Pulisce l'output AI da eventuali titoli o preamboli introduttivi isolati
+   * Verifica che il testo generato non sia troncato a metà parola o frase
+   */
+  private isTextComplete(text: string): boolean {
+    if (!text) return false;
+    const trimmed = text.trim();
+    if (trimmed.length < 160) return false;
+    // Deve terminare con punteggiatura di fine frase, virgolette, parentesi o emoji
+    return /[.!?…"')\]⚽🔥🍻💪🏆⚡]$/.test(trimmed);
+  }
+
+  /**
+   * Pulisce l'output AI da eventuali titoli o preamboli introduttivi isolati sulla prima riga
    */
   cleanAiOutput(rawText: string): string {
     if (!rawText) return '';
     return rawText
-      .replace(/^(?:\*\*|#{1,4}\s*)?(?:ecco\s+[^:\n]+|telecronaca[^:\n]+|pronostico[^:\n]+|cronaca[^:\n]+|disamina[^:\n]+|verdetto[^:\n]+)[:\n]+/im, '')
+      .replace(
+        /^[\s\*#]*(?:ecco\s+[^:\n]+|telecronaca[^:\n]*|pronostico[^:\n]*|cronaca[^:\n]*|disamina[^:\n]*|verdetto[^:\n]*)[:\s]*\n+/i,
+        '',
+      )
       .trim();
   }
 
@@ -326,7 +366,11 @@ export class GeminiService {
     odds: any,
     forceRegenerate = false,
   ): Promise<string> {
-    if (!forceRegenerate && partita.pronosticoAi) {
+    if (
+      !forceRegenerate &&
+      partita.pronosticoAi &&
+      this.isTextComplete(partita.pronosticoAi)
+    ) {
       return partita.pronosticoAi;
     }
     if (this.auth && !this.auth.isSuperUser()) {
