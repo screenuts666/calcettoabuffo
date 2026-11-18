@@ -2020,4 +2020,95 @@ export class MatchStateService {
     this.activePrestazioniTab.set('sintesi');
     this.rimuoviSnapshotLocale();
   }
+
+  /**
+   * Riavvia la partita da 00:00 e 0-0 mantenendo INVARIATI tutti i parametri
+   * (coordinate, convocati, squadre Bianchi/Neri, modalità/ordine/durata rotazione portieri, pronostico AI).
+   */
+  async riavviaPartitaSenzaCambiareParametri(): Promise<void> {
+    if (!this.auth.isSuperUser()) return;
+
+    this.soundSettings?.stopMatchCambioAlarm();
+
+    this.scoreA.set(0);
+    this.scoreB.set(0);
+    this.eventiGol.set([]);
+    this.cronometro.set(0);
+    this.accumulatedTime.set(0);
+    this.timerStartAt.set(null);
+    this.startedAt.set(null);
+    this.endedAt.set(null);
+    this.orarioInizioReale.set(null);
+    this.orarioFineReale.set(null);
+    this.isTimerRunning.set(false);
+    this.isPausedDev.set(false);
+    this.cambioAttivo.set(false);
+    this.matchConcluso.set(false);
+    this.pagelleInserite.set(false);
+    this.status.set('pronta');
+    this.step.set('match');
+
+    this.teamA.update((list) =>
+      list.map((p) => ({
+        ...p,
+        gol: 0,
+        autogol: 0,
+        assist: 0,
+      })),
+    );
+    this.teamB.update((list) =>
+      list.map((p) => ({
+        ...p,
+        gol: 0,
+        autogol: 0,
+        assist: 0,
+      })),
+    );
+
+    const curRot = this.rotazionePortieri();
+    if (curRot) {
+      this.rotazionePortieri.set({
+        ...curRot,
+        turnoConfermatoIndex: 0,
+        turnoStartCronometroSec: 0,
+      });
+    }
+
+    this.salvaSnapshotLocale();
+
+    const id = this.matchId();
+    if (!id) return;
+
+    try {
+      this.syncStatus.notifySyncPending();
+      await updateDoc(doc(this.firestore, `partite/${id}`), {
+        scoreA: 0,
+        scoreB: 0,
+        eventiGol: [],
+        cronometro: 0,
+        accumulatedTime: 0,
+        timerStartAt: null,
+        startedAt: null,
+        endedAt: null,
+        inizioPartita: null,
+        finePartita: null,
+        orarioInizioReale: null,
+        orarioFineReale: null,
+        isTimerRunning: false,
+        isPausedDev: false,
+        cambioAttivo: false,
+        matchConcluso: false,
+        pagelleInserite: false,
+        status: 'pronta',
+        step: 'match',
+        teamA: sanitizeForFirestore(this.teamA()),
+        teamB: sanitizeForFirestore(this.teamB()),
+        rotazionePortieri: sanitizeForFirestore(this.rotazionePortieri()),
+      });
+      this.syncStatus.notifySyncSuccess();
+    } catch (err) {
+      console.warn('Errore sync riavvio partita online:', err);
+      this.syncStatus.notifySyncError();
+    }
+  }
 }

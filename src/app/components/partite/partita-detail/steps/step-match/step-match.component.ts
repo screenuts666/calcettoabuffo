@@ -57,6 +57,9 @@ import {
   handLeftOutline,
   footballOutline,
   footstepsOutline,
+  refreshOutline,
+  lockClosedOutline,
+  lockOpenOutline,
 } from 'ionicons/icons';
 import { MatchStateService } from '../../match-state.service';
 import { PlayerPerformance } from '../../../../../models/player-performance.model';
@@ -113,6 +116,7 @@ export class StepMatchComponent implements OnInit, OnDestroy {
   private ultimoPreAlertTurno: number = -1;
 
   isSequenzaAperta = signal<boolean>(false);
+  isRestartUnlocked = signal<boolean>(false);
 
   /**
    * Etichetta con i nomi dei NUOVI portieri pronti a subentrare quando si clicca
@@ -194,6 +198,9 @@ export class StepMatchComponent implements OnInit, OnDestroy {
       warningOutline,
       handLeftOutline,
       footstepsOutline,
+      refreshOutline,
+      lockClosedOutline,
+      lockOpenOutline,
     });
   }
 
@@ -785,6 +792,52 @@ export class StepMatchComponent implements OnInit, OnDestroy {
             this.state.status.set('conclusa');
             await this.state.salvaInDatabase(false, true);
             this.state.step.set('prestazioni');
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  toggleSbloccoRiavvio() {
+    if (!this.isAdmin) return;
+    this.triggerHaptic(25);
+    this.isRestartUnlocked.update((v) => !v);
+  }
+
+  async confermaRiavvioPartita() {
+    if (!this.isAdmin) return;
+    this.triggerHaptic(40);
+    const alert = await this.alertCtrl.create({
+      header: 'Riavviare la Partita da 00:00?',
+      subHeader: 'Squadre e parametri resteranno invariati',
+      message:
+        'Il cronometro tornerà a 00:00, il risultato a 0-0 e la rotazione portieri ripartirà dal 1° turno. Formazioni, convocati, durata turni e pronostico NON verranno modificati.',
+      mode: 'ios',
+      buttons: [
+        {
+          text: 'Annulla',
+          role: 'cancel',
+          handler: () => {
+            this.isRestartUnlocked.set(false);
+            this.cdr.markForCheck();
+          },
+        },
+        {
+          text: 'Sì, Riavvia da 00:00',
+          role: 'destructive',
+          handler: async () => {
+            this.fermaAudio();
+            this.ultimoCambioTurno = -1;
+            this.ultimoPreAlertTurno = -1;
+            this.isRestartUnlocked.set(false);
+            await this.state.riavviaPartitaSenzaCambiareParametri();
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
+            await this.mostraToastFeedback(
+              '🔄 Partita riavviata da 00:00! Squadre e parametri invariati.',
+              'warning',
+            );
           },
         },
       ],

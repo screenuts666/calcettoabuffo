@@ -1,5 +1,19 @@
 [
   {
+    "version": "2.0.93",
+    "date": "18/11/2026",
+    "title": "Riavvio Sicuro Partita da 00:00 Mantenendo Tutti i Parametri",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Tabellone Live Sempre Allineato: in caso di avvio anticipato o test del cronometro, il Mister può riportare la partita a 00:00 e 0-0 senza perdere le formazioni."
+    ],
+    "superUserChanges": [
+      "Riavvio Partita da 00:00 Senza Modificare Parametri (Solo Mister & Presidente): aggiunto metodo riavviaPartitaSenzaCambiareParametri in MatchStateService che riporta cronometro a 00:00, punteggio a 0-0 e turno portiere al 1°, mantenendo invariati convocati, squadre Bianchi/Neri, ordine/durata rotazione portieri e pronostico AI.",
+      "Protezione Anti-Tocco Accidentale a 2 Livelli + Modale di Conferma: collocato in fondo alla schermata Match un blocco di sicurezza con sblocco esplicito ('Sblocca Riavvio Partita da 00:00') e modale di conferma prima dell'esecuzione."
+    ]
+  },
+  {
     "version": "2.0.92",
     "date": "18/11/2026",
     "title": "Analisi Tattica & Bilanciamento Squadre a 4 Sezioni nel Pronostico AI",

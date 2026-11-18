@@ -692,6 +692,45 @@
     >
       <ion-icon name="stop" slot="start"></ion-icon> FISCHIO FINALE
     </ion-button>
+
+    <!-- ZONA PROTETTA CONTRO TOCCHI ACCIDENTALI: RIAVVIO PARTITA DA 00:00 MANTENENDO TUTTI I PARAMETRI -->
+    @if (state.isTimerRunning() || state.isPausedDev() || state.cronometro() > 0 || state.eventiGol().length > 0) {
+      <div class="restart-safety-zone">
+        @if (!isRestartUnlocked()) {
+          <button
+            type="button"
+            class="btn-unlock-restart-guard"
+            (click)="toggleSbloccoRiavvio()"
+            title="Sblocca il comando di riavvio partita"
+          >
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <span>Sblocca Riavvio Partita da 00:00</span>
+          </button>
+        } @else {
+          <div class="restart-unlocked-panel">
+            <span class="rup-hint">Mantiene squadre, convocati e rotazione portieri</span>
+            <div class="rup-actions">
+              <button
+                type="button"
+                class="btn-cancel-restart-guard"
+                (click)="toggleSbloccoRiavvio()"
+              >
+                <ion-icon name="lock-closed-outline"></ion-icon>
+                <span>Blocca</span>
+              </button>
+              <button
+                type="button"
+                class="btn-confirm-restart-trigger"
+                (click)="confermaRiavvioPartita()"
+              >
+                <ion-icon name="refresh-outline"></ion-icon>
+                <span>Riavvia Partita da 00:00</span>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
 }
 
