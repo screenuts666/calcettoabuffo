@@ -1,4 +1,12 @@
-import { Component, inject, signal, computed, isDevMode } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  effect,
+  isDevMode,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -71,6 +79,8 @@ import { AuthModalComponent } from '../../../../auth-modal/auth-modal.component'
   ],
 })
 export class StepConvocatiComponent {
+  @ViewChild('searchbarEl') searchbarEl?: IonSearchbar;
+
   public state = inject(MatchStateService);
   public auth = inject(AuthService);
   public injuriesService = inject(InjuriesService);
@@ -92,6 +102,51 @@ export class StepConvocatiComponent {
   isSavingRsvp = signal<boolean>(false);
   isPreparingInvite = signal<boolean>(false);
   filtroVista = signal<'tutti' | 'convocati' | 'non_convocati'>('tutti');
+
+  /** Indica se il testo cercato non corrisponde esattamente a nessun giocatore già in rosa (Solo Mister/Presidente) */
+  readonly canQuickCreateFromSearch = computed<boolean>(() => {
+    if (!this.auth.isSuperUser()) return false;
+    const q = this.state.filtro().trim();
+    if (!q) return false;
+    const lower = q.toLowerCase();
+    return !this.state.tutti().some((g) => (g.nome || '').trim().toLowerCase() === lower);
+  });
+
+  svuotaRicerca(): void {
+    if (this.state.filtro()) {
+      this.state.filtro.set('');
+    }
+    if (this.searchbarEl) {
+      this.searchbarEl.value = '';
+    }
+  }
+
+  /**
+   * Porta direttamente alla pagina ufficiale di creazione nuovo giocatore (/giocatori/nuovo),
+   * salvando lo stato della partita e passando returnUrl + eventuale nome cercato,
+   * così al salvataggio si ritorna sulla partita con il nuovo giocatore già aggiunto e convocato.
+   */
+  async apriNuovoGiocatoreModal(prefillName?: string): Promise<void> {
+    if (!this.isAdmin) return;
+    const candidate = (prefillName !== undefined ? prefillName : this.state.filtro()).trim();
+    const formatted = candidate
+      ? candidate
+          .split(/\s+/)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(' ')
+      : '';
+
+    const mId = (await this.state.ensureMatchCreatedForInvite()) || this.state.matchId();
+    this.svuotaRicerca();
+
+    const returnUrl = mId ? `/partite/${mId}?step=convocati` : '/partite/nuova';
+    const queryParams: Record<string, string> = { returnUrl };
+    if (formatted) {
+      queryParams['prefillName'] = formatted;
+    }
+
+    await this.router.navigate(['/giocatori', 'nuovo'], { queryParams });
+  }
 
   getInjuryTooltip(g: ConvocatoState): string {
     return this.injuriesService.getInjuryBadgeText(g);
@@ -283,6 +338,35 @@ export class StepConvocatiComponent {
 
   constructor() {
     addIcons({warningOutline,footballOutline,flashOutline,linkOutline,logoWhatsapp,copyOutline,helpCircleOutline,closeCircleOutline,trashOutline,medkit,checkmark,addOutline,peopleOutline,closeCircle,search,shareSocialOutline,checkmarkCircle,checkmarkCircleOutline,checkmarkDoneCircle,helpCircle,shieldCheckmarkOutline,personAddOutline,paperPlaneOutline,addCircleOutline,refreshOutline,lockClosedOutline,lockOpenOutline,});
+
+    // Sincronizza in tempo reale i giocatori aggiunti/modificati in Rosa su Firestore
+    // anche se la partita era già stata aperta o salvata in snapshot locale
+    effect(() => {
+      const liveGiocatori = this.statsEngine.giocatoriRaw() || [];
+      if (liveGiocatori.length === 0) return;
+
+      const currentTutti = this.state.tutti();
+      if (currentTutti.length === 0) return;
+
+      const currentIds = new Set(currentTutti.map((g) => g.id));
+      const missingPlayers = liveGiocatori.filter((lg) => lg.id && !currentIds.has(lg.id));
+
+      if (missingPlayers.length > 0) {
+        this.state.tutti.update((lista) => {
+          const ids = new Set(lista.map((g) => g.id));
+          const toAdd: ConvocatoState[] = missingPlayers
+            .filter((mp) => !ids.has(mp.id))
+            .map((mp) => ({
+              ...mp,
+              selezionato: false,
+            }));
+          if (toAdd.length === 0) return lista;
+          return [...lista, ...toAdd].sort((a, b) =>
+            (a.nome || '').localeCompare(b.nome || '')
+          );
+        });
+      }
+    });
   }
 
   /**
@@ -437,6 +521,11 @@ export class StepConvocatiComponent {
       }
     }
     this.state.rsvp.set(currentRsvp);
+
+    // Se l'utente aveva filtrato un giocatore nella barra di ricerca e lo ha selezionato, svuota subito il filtro
+    if (this.state.filtro().trim() !== '') {
+      this.svuotaRicerca();
+    }
 
     this.state.triggerAutoSave(true);
   }

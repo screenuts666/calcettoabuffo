@@ -112,6 +112,8 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
   isInviteLink = signal<boolean>(false);
   private routeSub?: Subscription;
   private querySub?: Subscription;
+  private pendingNewPlayerId: string | null = null;
+  private pendingForceStep: 'convocati' | null = null;
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();
@@ -180,6 +182,21 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.isInviteLink.set(isInv);
       if (isInv && !this.state.matchConcluso() && this.state.status() !== 'in_corso') {
         this.state.step.set('convocati');
+      }
+
+      const stepParam = qp.get('step');
+      if (stepParam === 'convocati' && !this.state.matchConcluso()) {
+        this.pendingForceStep = 'convocati';
+        this.state.step.set('convocati');
+      }
+
+      const newPid = qp.get('newPlayerId');
+      if (newPid && newPid.trim()) {
+        this.pendingNewPlayerId = newPid.trim();
+        this.pendingForceStep = 'convocati';
+        if (!this.isLoading() && this.state.tutti().length > 0) {
+          void this.applicaNuovoGiocatoreCreato();
+        }
       }
     });
 
@@ -535,6 +552,99 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
 
     if (this.isAdmin) {
       this.state.ripristinaSnapshotLocaleSeRecente(matchData.id || null);
+    }
+
+    if (this.pendingForceStep === 'convocati' && !this.state.matchConcluso()) {
+      this.state.step.set('convocati');
+      this.pendingForceStep = null;
+    }
+
+    if (this.pendingNewPlayerId) {
+      void this.applicaNuovoGiocatoreCreato();
+    }
+  }
+
+  /**
+   * Quando Mister o Presidente ritorna da /giocatori/nuovo con ?newPlayerId=...,
+   * inserisce il nuovo giocatore nella lista e lo convoca automaticamente.
+   */
+  private async applicaNuovoGiocatoreCreato(): Promise<void> {
+    const newPid = this.pendingNewPlayerId;
+    if (!newPid || !this.isAdmin) return;
+    this.pendingNewPlayerId = null;
+
+    try {
+      let existing = this.state.tutti().find((g) => g.id === newPid);
+      if (!existing) {
+        const snap = await getDoc(doc(this.firestore, `giocatori/${newPid}`));
+        if (snap.exists()) {
+          const data = snap.data() as any;
+          existing = {
+            id: snap.id,
+            ...data,
+            selezionato: false,
+          };
+          this.state.tutti.update((lista) => {
+            if (lista.some((g) => g.id === snap.id)) return lista;
+            return [...lista, existing!].sort((a, b) =>
+              (a.nome || '').localeCompare(b.nome || '')
+            );
+          });
+        }
+      }
+
+      if (existing) {
+        const maxCap = this.state.maxPlayers() === 16 ? 16 : 14;
+        const canSelect = this.state.totaleConvocati() < maxCap;
+        if (canSelect && !existing.selezionato) {
+          this.state.tutti.update((lista) =>
+            lista.map((g) =>
+              g.id === newPid
+                ? {
+                    ...g,
+                    selezionato: true,
+                    source: 'mister',
+                    rsvpStatus: 'yes',
+                  }
+                : g
+            )
+          );
+
+          const currentRsvp = { ...(this.state.rsvp() || {}) };
+          const rsvpKey = existing.linkedUid || 'player_' + newPid;
+          currentRsvp[rsvpKey] = {
+            uid: existing.linkedUid || rsvpKey,
+            playerId: newPid,
+            playerName: existing.nome,
+            status: 'confirmed',
+            source: 'mister',
+            updatedAt: new Date().toISOString(),
+          };
+          this.state.rsvp.set(currentRsvp);
+        }
+
+        this.state.step.set('convocati');
+        this.state.filtro.set('');
+        this.state.triggerAutoSave(true);
+
+        const mId = this.state.matchId();
+        if (mId) {
+          this.location.replaceState('/partite/' + mId);
+        }
+
+        const toast = await this.toastCtrl.create({
+          message: canSelect
+            ? `✅ ${existing.nome} creato in Rosa e aggiunto ai convocati!`
+            : `✅ ${existing.nome} creato in Rosa (limite convocati raggiunto).`,
+          duration: 2600,
+          color: 'success',
+          position: 'top',
+          mode: 'ios',
+        });
+        await toast.present();
+      }
+    } catch (err) {
+      console.warn('Errore auto-convocazione nuovo giocatore:', err);
     }
   }
 

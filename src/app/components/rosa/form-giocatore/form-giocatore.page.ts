@@ -241,6 +241,10 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
         }
       } else {
         this.giocatore = null;
+        const prefillName = this.route.snapshot.queryParamMap.get('prefillName');
+        if (prefillName && prefillName.trim()) {
+          this.nome.set(prefillName.trim());
+        }
         // Se non è Mister (o se ha aperto con ?selfClaim=1), precompila con i dati dell'account e attiva auto-link
         if (!this.auth.isSuperUser() || selfClaimQuery) {
           this.linkToMyAccount.set(true);
@@ -298,6 +302,11 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
   private navigaUscita(forceHome: boolean = false) {
     if (forceHome) {
       this.router.navigate(['/partite']);
+      return;
+    }
+    const queryReturn = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (queryReturn && queryReturn.startsWith('/')) {
+      this.router.navigateByUrl(queryReturn);
       return;
     }
     const hasInAppHistory =
@@ -528,8 +537,12 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
         }
         this.hasSelectedFile.set(false);
         this.initialSnapshot.set(this.computeCurrentSnapshot());
-        if (customExitUrl) {
-          await this.router.navigateByUrl(customExitUrl);
+        const queryReturn = this.route.snapshot.queryParamMap.get('returnUrl');
+        const pendingReturn = this.auth.consumeReturnUrl();
+        const targetReturn = customExitUrl || queryReturn || pendingReturn;
+        if (targetReturn && targetReturn.startsWith('/')) {
+          const sep = targetReturn.includes('?') ? '&' : '?';
+          await this.router.navigateByUrl(`${targetReturn}${sep}newPlayerId=${newDocRef.id}`);
         } else {
           await this.router.navigate(['/rosa']);
         }

@@ -168,27 +168,42 @@
         }
       </div>
 
-      <!-- 3. SEARCH BAR + SELETTORE VISTA FISSO A 3 PILL (ZERO SCROLL ORIZZONTALE) -->
+      <!-- 3. SEARCH BAR + BOTTONE NUOVO GIOCATORE + SELETTORE VISTA FISSO A 3 PILL -->
       <div class="search-and-filter-block">
-        <ion-searchbar
-          type="search"
-          name="convocati_search_no_autofill"
-          id="convocati-search-input"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-          spellcheck="false"
-          data-form-type="other"
-          data-lpignore="true"
-          data-1p-ignore="true"
-          data-bwignore="true"
-          placeholder="Cerca giocatore o ruolo..."
-          aria-label="Cerca giocatore per nome, piede o ruolo"
-          [value]="state.filtro()"
-          (ionInput)="state.filtro.set($event.detail.value || '')"
-          mode="ios"
-          class="custom-searchbar"
-        ></ion-searchbar>
+        <div class="search-row-with-action">
+          <ion-searchbar
+            #searchbarEl
+            type="search"
+            name="convocati_search_no_autofill"
+            id="convocati-search-input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-bwignore="true"
+            placeholder="Cerca giocatore o ruolo..."
+            aria-label="Cerca giocatore per nome, piede o ruolo"
+            [value]="state.filtro()"
+            (ionInput)="state.filtro.set($event.detail.value || '')"
+            (ionClear)="svuotaRicerca()"
+            mode="ios"
+            class="custom-searchbar"
+          ></ion-searchbar>
+
+          <button
+            type="button"
+            class="btn-quick-new-player"
+            (click)="apriNuovoGiocatoreModal()"
+            title="Aggiungi un nuovo giocatore in Rosa e convocalo"
+            aria-label="Aggiungi nuovo giocatore"
+          >
+            <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+            <span>Nuovo</span>
+          </button>
+        </div>
 
         <div class="view-filter-pills" role="tablist" aria-label="Filtra vista giocatori">
           <button
@@ -414,8 +429,28 @@
           @if (disponibiliFiltrati().length === 0) {
             <div class="empty-section-box">
               <span>Nessun altro giocatore disponibile con questo filtro.</span>
+              @if (canQuickCreateFromSearch()) {
+                <button
+                  type="button"
+                  class="btn-empty-create-player"
+                  (click)="apriNuovoGiocatoreModal(state.filtro())"
+                >
+                  <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+                  <span>Aggiungi "{{ state.filtro().trim() }}" come nuovo giocatore</span>
+                </button>
+              }
             </div>
           } @else {
+            @if (canQuickCreateFromSearch()) {
+              <button
+                type="button"
+                class="btn-inline-create-player"
+                (click)="apriNuovoGiocatoreModal(state.filtro())"
+              >
+                <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
+                <span>Non è in lista? Aggiungi <strong>"{{ state.filtro().trim() }}"</strong> come nuovo giocatore</span>
+              </button>
+            }
             <div class="compact-players-grid" role="group" aria-label="Griglia disponibili">
               @for (g of disponibiliFiltrati(); track (g.id || g.nome) + '_' + $index) {
                 <button

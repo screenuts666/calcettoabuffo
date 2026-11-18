@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.0.90",
+    "date": "18/11/2026",
+    "title": "Creazione Giocatore Diretta dai Convocati, Sync Rosa Live & Auto-Reset Ricerca",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Lista Convocati Sempre Sincronizzata: i nuovi giocatori aggiunti in Rosa compaiono ora istantaneamente anche nelle partite già aperte.",
+      "Ricerca Più Fluida: migliorata l'usabilità nella selezione dei convocati."
+    ],
+    "superUserChanges": [
+      "Navigazione Diretta a /giocatori/nuovo (Solo Mister & Presidente): il pulsante '+ Nuovo' nei Convocati apre la pagina ufficiale di creazione giocatore precompilando il nome cercato e ritorna direttamente alla partita aggiungendo e convocando automaticamente il nuovo atleta.",
+      "Fix Sincronizzazione Rosa post-creazione Match: risolto il bug in ripristinaSnapshotLocaleSeRecente che sovrascriveva la lista giocatori con lo snapshot di localStorage nascondendo gli atleti creati successivamente (es. Alessandro R), più sync reattivo live con statsEngine.giocatoriRaw.",
+      "Auto-Reset Searchbar Convocati: svuotamento automatico del filtro di ricerca non appena un giocatore filtrato viene selezionato."
+    ]
+  },
+  {
     "version": "2.0.89",
     "date": "16/11/2026",
     "title": "Ottimizzazione Accordion Disponibilità e Nomi Reali",

@@ -1553,8 +1553,36 @@ export class MatchStateService {
         }
         if (snap.orario) this.orario.set(snap.orario);
         if (snap.dataPartita) this.dataPartita.set(snap.dataPartita);
-        if (Array.isArray(snap.tutti) && snap.tutti.length > 0)
-          this.tutti.set(snap.tutti);
+        if (Array.isArray(snap.tutti) && snap.tutti.length > 0) {
+          const freshList = this.tutti();
+          if (freshList.length > 0) {
+            const snapMap = new Map<string, any>();
+            for (const sg of snap.tutti) {
+              if (sg?.id) snapMap.set(sg.id, sg);
+            }
+            const merged: ConvocatoState[] = freshList.map((fg) => {
+              const sg = snapMap.get(fg.id);
+              if (!sg) return fg;
+              return {
+                ...fg,
+                selezionato: fg.selezionato || !!sg.selezionato,
+                selfRegistered: fg.selfRegistered ?? sg.selfRegistered,
+                source: fg.source || sg.source,
+                rsvpStatus: fg.rsvpStatus ?? sg.rsvpStatus,
+              };
+            });
+            // Aggiungi eventuali giocatori presenti solo nello snapshot locale
+            for (const sg of snap.tutti) {
+              if (sg?.id && !merged.some((m) => m.id === sg.id)) {
+                merged.push(sg);
+              }
+            }
+            merged.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+            this.tutti.set(merged);
+          } else {
+            this.tutti.set(snap.tutti);
+          }
+        }
         if (snap.teamA && snap.teamA.length > 0) this.teamA.set(snap.teamA);
         if (snap.teamB && snap.teamB.length > 0) this.teamB.set(snap.teamB);
         if (typeof snap.scoreA === 'number') this.scoreA.set(snap.scoreA);
