@@ -15,6 +15,19 @@ export interface ReleaseNoteEntry {
 
 export const RELEASE_NOTES_HISTORY: ReleaseNoteEntry[] = [
   {
+    "version": "2.0.95",
+    "date": "19/11/2026",
+    "title": "Ripristino Selezione Assist Rapida al Tocco del Giocatore (Gol Lampo)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Assist Sempre Tracciati in Diretta: toccando un marcatore nella griglia Gol Lampo durante la partita si apre ora subito la scelta dell'assist (oppure Azione Personale in 1 tap)."
+    ],
+    "superUserChanges": [
+      "Ripristino Picker Assist in toccaGiocatorePerGolRapido (step-match.component.ts): il tap su una card giocatore apre direttamente lo step 'assist' del Goal Picker con il marcatore già pre-selezionato e aggiornamento immediato OnPush."
+    ]
+  },
+  {
     "version": "2.0.94",
     "date": "18/11/2026",
     "title": "Reset Orario Inizio al Riavvio & Protezione Cronometro Anti-Blocco in Campo",

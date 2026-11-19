@@ -629,7 +629,11 @@ export class StepMatchComponent implements OnInit, OnDestroy {
 
   async chiediChiHaSegnato(teamVantaggio: 'A' | 'B') {
     if (!this.isAdmin) return;
-    if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
+    if (
+      this.state.cronometro() <= 0 &&
+      !this.state.isTimerRunning() &&
+      !this.state.isPausedDev()
+    ) {
       await this.mostraToastFeedback(
         "Fischia prima l'inizio con FISCHIO D'INIZIO per sbloccare i gol!",
         'warning',
@@ -642,26 +646,36 @@ export class StepMatchComponent implements OnInit, OnDestroy {
     this.goalPickerStep.set('scorer');
     this.showAutogolList.set(false);
     this.goalPickerOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   /**
-   * PITCH-MODE ULTRA RAPIDO: Toccare la card del giocatore assegna SUBITO +1 Gol!
-   * Progettato specificamente per l'uso al volo su smartphone a bordo campo.
+   * GOL LAMPO + ASSIST: Toccare la card del giocatore seleziona subito il marcatore
+   * e apre direttamente la schermata di scelta Assist (o Azione Personale con 1 tap).
    */
   async toccaGiocatorePerGolRapido(
     player: PlayerPerformance,
     teamVantaggio: 'A' | 'B',
   ) {
     if (!this.isAdmin) return;
-    if (this.state.cronometro() <= 0 && !this.state.isTimerRunning()) {
+    if (
+      this.state.cronometro() <= 0 &&
+      !this.state.isTimerRunning() &&
+      !this.state.isPausedDev()
+    ) {
       await this.mostraToastFeedback(
         "Avvia prima la partita con FISCHIO D'INIZIO!",
         'warning',
       );
       return;
     }
-    this.triggerHaptic(50);
-    await this.registraGol(player, teamVantaggio, false, null);
+    this.triggerHaptic(40);
+    this.goalPickerTeam.set(teamVantaggio);
+    this.selectedScorer.set(player);
+    this.goalPickerStep.set('assist');
+    this.showAutogolList.set(false);
+    this.goalPickerOpen.set(true);
+    this.cdr.markForCheck();
   }
 
   /**
