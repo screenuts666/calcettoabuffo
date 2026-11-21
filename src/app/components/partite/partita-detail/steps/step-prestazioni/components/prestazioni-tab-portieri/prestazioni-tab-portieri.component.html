@@ -1,7 +1,7 @@
 <div class="prestazioni-tab-portieri-container animate-fade-in">
 
   <!-- NOTE PORTIERI (COMPATTE ALL'INIZIO DELLA TAB) -->
-  @if (isAdmin || noteInput()) {
+  @if (isAdmin || noteDisplayValue().trim()) {
     <div class="gk-notes-section compact-notes">
       <div class="notes-header">
         <div class="notes-title-wrap">
@@ -30,14 +30,15 @@
             class="notes-textarea compact-textarea"
             rows="2"
             placeholder="Note rapide sui portieri (uscite, rigori, parate decisive)..."
-            [ngModel]="noteInput()"
-            (ngModelChange)="onNoteChange($event)"
-            (blur)="onSalvaNote()"
+            [value]="noteDisplayValue()"
+            (focus)="onNoteFocus()"
+            (input)="onNoteInput($event)"
+            (blur)="onNoteBlur()"
           ></textarea>
         </div>
-      } @else if (noteInput()) {
+      } @else if (noteDisplayValue().trim()) {
         <div class="notes-view-box compact-view">
-          <p class="notes-view-text">{{ noteInput() }}</p>
+          <p class="notes-view-text">{{ noteDisplayValue() }}</p>
         </div>
       }
     </div>
@@ -53,7 +54,7 @@
 
     @if (portieriBianchi().length > 0) {
       <div class="gk-cards-grid">
-        @for (gk of portieriBianchi(); track (gk.player.id || gk.player.nome) + '_' + $index) {
+        @for (gk of portieriBianchi(); track gk.player.id || gk.player.nome) {
           <div class="gk-player-card">
             <div class="gk-card-left">
               <ion-avatar
@@ -156,7 +157,7 @@
 
     @if (portieriNeri().length > 0) {
       <div class="gk-cards-grid">
-        @for (gk of portieriNeri(); track (gk.player.id || gk.player.nome) + '_' + $index) {
+        @for (gk of portieriNeri(); track gk.player.id || gk.player.nome) {
           <div class="gk-player-card">
             <div class="gk-card-left">
               <ion-avatar

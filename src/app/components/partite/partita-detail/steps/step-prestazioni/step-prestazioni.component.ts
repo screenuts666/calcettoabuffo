@@ -1,5 +1,5 @@
 import { TtsService } from '../../../../../services/tts.service';
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, OnDestroy, inject, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -53,7 +53,7 @@ import { PrestazioniTabPortieriComponent } from './components/prestazioni-tab-po
     PrestazioniTabPortieriComponent,
   ],
 })
-export class StepPrestazioniComponent {
+export class StepPrestazioniComponent implements OnDestroy {
   public state = inject(MatchStateService);
   public statsEngine = inject(StatsEngineService);
   public geminiService = inject(GeminiService);
@@ -148,6 +148,22 @@ export class StepPrestazioniComponent {
     });
   }
 
+  ngOnDestroy(): void {
+    if (this.isAdmin) {
+      void this.state.flushAutoSave();
+    }
+  }
+
+  switchTab(
+    tab: 'sintesi' | 'pagelle' | 'portieri' | 'spogliatoio' | 'statistiche',
+  ): void {
+    if (this.activeTab() === tab) return;
+    if (this.isAdmin) {
+      void this.state.flushAutoSave();
+    }
+    this.activeTab.set(tab);
+  }
+
   /**
    * Report iperdettagliato calcolato in maniera reattiva dai dati di stato della partita
    */
@@ -208,20 +224,18 @@ export class StepPrestazioniComponent {
     this.state.aggiornaParataIncredibile(event.playerId, event.delta);
   }
 
-  async onSalvaNotePortieri(note: string) {
-    this.state.salvaNotePortieri(note);
+  async onSalvaNotePortieri(evt: { note: string; silent?: boolean }) {
     try {
-      await this.state.salvaInDatabase(
-        this.state.pagelleInserite(),
-        this.state.matchConcluso(),
-      );
-      const toast = await this.toastCtrl.create({
-        message: '🧤 Note sui portieri salvate!',
-        duration: 2000,
-        color: 'success',
-        position: 'top',
-      });
-      await toast.present();
+      await this.state.salvaNotePortieri(evt.note);
+      if (!evt.silent) {
+        const toast = await this.toastCtrl.create({
+          message: '🧤 Note sui portieri salvate!',
+          duration: 2000,
+          color: 'success',
+          position: 'top',
+        });
+        await toast.present();
+      }
     } catch (err) {
       console.error('Errore salvataggio note portieri:', err);
     }
@@ -283,15 +297,20 @@ export class StepPrestazioniComponent {
     await toast.present();
   }
 
-  onCommentoPartitaChange(event: Event) {
-    const val = (event.target as HTMLTextAreaElement)?.value ?? '';
-    this.state.commentoPartita.set(val);
-    this.state.markPrestazioniModified();
+  onCommentoPartitaChange(evt: { value: string; triggerSave?: boolean }) {
+    this.state.touchFieldEdit('commentoPartita');
+    this.state.commentoPartita.set(evt.value);
+    if (evt.triggerSave !== false) {
+      this.state.markPrestazioniModified(100);
+    } else {
+      this.state.salvaSnapshotLocale();
+    }
   }
 
   async salvaCommentoPartita(silent = false) {
     if (!this.isAdmin || !this.state.matchId() || this.isSavingCommento())
       return;
+    this.state.flushRegisteredDrafts();
     this.isSavingCommento.set(true);
     try {
       this.state.hasUnconfirmedPrestazioni.set(false);
@@ -599,35 +618,42 @@ export class StepPrestazioniComponent {
     await this.shareService.shareMatch(currentMatch);
   }
 
-  aggiornaVoto(giocatore: any, event: Event) {
-    const input = event.target as HTMLInputElement | null;
-    if (!input || input.value.trim() === '') {
-      this.salvaVotoNelloStato(giocatore.id, 0);
-      return;
-    }
-    const raw = input.value.trim().replace(',', '.');
-    const v = Number(raw);
-    if (!isNaN(v)) {
-      this.salvaVotoNelloStato(giocatore.id, v);
-    }
+  aggiornaVoto(giocatore: any, voto: number, triggerSave: boolean = true) {
+    if (!giocatore?.id || isNaN(voto)) return;
+    this.salvaVotoNelloStato(giocatore.id, voto, triggerSave);
   }
 
-  private salvaVotoNelloStato(id: string, voto: number) {
+  private salvaVotoNelloStato(
+    id: string,
+    voto: number,
+    triggerSave: boolean = true,
+  ) {
+    this.state.touchFieldEdit(`player_voto:${id}`);
     const updateFn = (list: PlayerPerformance[]) =>
       list.map((g) => (g.id === id ? { ...g, voto } : g));
     this.state.teamA().some((g: PlayerPerformance) => g.id === id)
       ? this.state.teamA.update(updateFn)
       : this.state.teamB.update(updateFn);
-    this.state.markPrestazioniModified();
+    if (triggerSave) {
+      this.state.markPrestazioniModified(100);
+    } else {
+      this.state.salvaSnapshotLocale();
+    }
   }
 
-  aggiornaNote(giocatore: any, testo: string) {
+  aggiornaNote(giocatore: any, testo: string, triggerSave: boolean = true) {
+    if (!giocatore?.id) return;
+    this.state.touchFieldEdit(`player_note:${giocatore.id}`);
     const updateFn = (list: PlayerPerformance[]) =>
       list.map((g) => (g.id === giocatore.id ? { ...g, note: testo } : g));
     this.state.teamA().some((g: PlayerPerformance) => g.id === giocatore.id)
       ? this.state.teamA.update(updateFn)
       : this.state.teamB.update(updateFn);
-    this.state.markPrestazioniModified();
+    if (triggerSave) {
+      this.state.markPrestazioniModified(100);
+    } else {
+      this.state.salvaSnapshotLocale();
+    }
   }
 
   async apriModificaRisultato() {
@@ -729,6 +755,7 @@ export class StepPrestazioniComponent {
   }
 
   async salvaModifiche() {
+    this.state.flushRegisteredDrafts();
     const wasArchived = this.state.pagelleInserite();
     this.state.hasUnconfirmedPrestazioni.set(false);
     await this.state.salvaInDatabase(true, true);

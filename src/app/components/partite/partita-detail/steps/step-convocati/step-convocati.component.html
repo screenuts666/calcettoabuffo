@@ -186,6 +186,8 @@
             data-bwignore="true"
             placeholder="Cerca giocatore o ruolo..."
             aria-label="Cerca giocatore per nome, piede o ruolo"
+            enterkeyhint="search"
+            [debounce]="0"
             [value]="state.filtro()"
             (ionInput)="state.filtro.set($event.detail.value || '')"
             (ionClear)="svuotaRicerca()"

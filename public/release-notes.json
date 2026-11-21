@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.0.96",
+    "date": "21/11/2026",
+    "title": "Fix Definitivo Digitazione Pagelle, Note e Input Cross-Platform (Mobile & Desktop)",
+    "isMajor": false,
+    "target": "all",
+    "userChanges": [
+      "Digitazione Sempre Fluida Senza Perdita di Caratteri: risolto definitivamente il problema che cancellava o sovrascriveva le lettere durante la scrittura in Pagelle, Note a Bordocampo, Note Portieri, Dettagli Match e campi di ricerca.",
+      "Esperienza Migliorata su Mobile e Desktop: tasto Invio / Fine ('done') sugli input rapidi, navigazione fluida con Tab tra le pagelle senza perdere il focus e salvataggio sicuro anche cambiando scheda o mettendo l'app in background."
+    ],
+    "superUserChanges": [
+      "Scudo Anti-Sovrascrittura Real-Time in MatchStateService: avviaAscoltoReale non sovrascrive più note, voti pagelle, note a bordocampo, note portieri o dettagli mentre un campo è in focus/dirty/salvataggio o nella finestra di cooldown post-edit (4s), evitando anche re-render inutili tramite confronto semantico di teamA/teamB.",
+      "Disaccoppiamento Completo Stato Locale vs Remoto + Dirty Check Rigoroso: applicato a PrestazioniPlayerCard (voti e commenti pagelle), PrestazioniTabPagelle (Note a Bordocampo + track stabile per ID senza $index), PrestazioniTabPortieri (rimossa anche la doppia scrittura su Firestore), StepDettagli (Data, Orario, Campo, Note), FormGiocatore (race condition telefono asincrono) e AreaSegreta (input numerici).",
+      "Salvataggio Cross-Platform Garantito (Mobile + Desktop): debounce pulito a 700ms + flush su blur/change con dirty check contro l'ultimo valore committato, Enter + enterkeyhint='done' sugli input a riga singola, e flush automatico su switchTab, cambiaStep, ionViewWillLeave, ngOnDestroy, visibilitychange e pagehide.",
+      "Stabilizzazione IonSearchbar (Convocati, Rosa, Confronto): impostato [debounce]='0' e enterkeyhint='search' per impedire il rollback dei caratteri digitati durante il debounce predefinito di Ionic."
+    ]
+  },
+  {
     "version": "2.0.95",
     "date": "19/11/2026",
     "title": "Ripristino Selezione Assist Rapida al Tocco del Giocatore (Gol Lampo)",

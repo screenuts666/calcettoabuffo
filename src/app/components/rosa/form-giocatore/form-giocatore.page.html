@@ -135,9 +135,11 @@
       <ion-input
         label="Nome *"
         labelPlacement="stacked"
+        enterkeyhint="done"
         placeholder="Es. Francesco Totti"
         [value]="nome()"
         (ionInput)="nome.set($event.detail.value || '')"
+        (keydown.enter)="onSingleLineEnter($event)"
         [readonly]="!canEdit"
       ></ion-input>
     </ion-item>
@@ -147,9 +149,11 @@
         <ion-input
           label="Soprannome (Ufficiale)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. Er Pupone"
           [value]="soprannome()"
           (ionInput)="soprannome.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -159,9 +163,11 @@
           type="number"
           label="Numero Maglia #"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. 10"
           [value]="numeroMaglia()"
           (ionInput)="numeroMaglia.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -173,9 +179,11 @@
           type="text"
           label="Data di Nascita (facoltativa)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="es. 24/03/1996"
           [value]="dataNascita()"
           (ionInput)="dataNascita.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -232,9 +240,11 @@
           type="number"
           label="Altezza (cm)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="180"
           [value]="altezza()"
           (ionInput)="altezza.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -243,9 +253,11 @@
           type="number"
           label="Peso (kg)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="75"
           [value]="peso()"
           (ionInput)="peso.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -261,9 +273,11 @@
           type="tel"
           label="📞 Numero di Telefono (🔒 Privato: visibile solo a te e al Mister)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. +39 333 1234567"
           [value]="phoneNumber()"
-          (ionInput)="phoneNumber.set($event.detail.value || '')"
+          (ionInput)="onPhoneInput($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -286,9 +300,11 @@
         <ion-input
           label="Mestiere / Professione"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. Geometra, Elettricista"
           [value]="professione()"
           (ionInput)="professione.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -296,9 +312,11 @@
         <ion-input
           label="Origini / Quartiere"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. Centocelle, Ciociaria"
           [value]="origini()"
           (ionInput)="origini.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>
@@ -329,9 +347,11 @@
         <ion-input
           label="Vizi (beve, fuma, droga)"
           labelPlacement="stacked"
+          enterkeyhint="done"
           placeholder="Es. Beve come una spugna, fuma"
           [value]="vizi()"
           (ionInput)="vizi.set($event.detail.value || '')"
+          (keydown.enter)="onSingleLineEnter($event)"
           [readonly]="!canEdit"
         ></ion-input>
       </ion-item>

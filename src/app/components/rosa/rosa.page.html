@@ -26,6 +26,8 @@
         data-1p-ignore="true"
         data-bwignore="true"
         placeholder="Cerca per nome, soprannome, ruolo, piede..."
+        enterkeyhint="search"
+        [debounce]="0"
         [value]="filtro()"
         (ionInput)="filtro.set($event.detail.value || '')"
         mode="ios"

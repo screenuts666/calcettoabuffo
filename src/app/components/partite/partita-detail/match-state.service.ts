@@ -2,6 +2,7 @@ import { environment } from 'src/environments/environment';
 import {
   EnvironmentInjector,
   Injectable,
+  OnDestroy,
   inject,
   runInInjectionContext,
   signal,
@@ -93,7 +94,7 @@ export interface PortiereTeamInfo {
 }
 
 @Injectable()
-export class MatchStateService {
+export class MatchStateService implements OnDestroy {
   public firestore = inject(Firestore);
   public syncStatus = inject(SyncStatusService);
   public soundSettings = inject(SoundSettingsService, { optional: true });
@@ -110,7 +111,51 @@ export class MatchStateService {
   public onMatchCreated?: (id: string) => void;
   private autoSaveTimer?: any;
   private lastLocalTimerActionAt = 0;
+  private activeEditFields = new Set<string>();
+  private dirtyDraftKeys = new Set<string>();
+  private fieldEditCooldown = new Map<string, number>();
+  private draftFlushers = new Set<() => boolean>();
+  private readonly LOCAL_EDIT_PROTECT_MS = 4000;
+  readonly hasActiveDirtyDrafts = signal<boolean>(false);
   orarioProgrammato = signal<string | null>(null);
+
+  private readonly onVisibilityChange = () => {
+    if (
+      typeof document !== 'undefined' &&
+      document.visibilityState === 'hidden' &&
+      this.auth.isSuperUser()
+    ) {
+      void this.flushAutoSave();
+    }
+  };
+
+  private readonly onPageHide = () => {
+    if (this.auth.isSuperUser()) {
+      void this.flushAutoSave();
+    }
+  };
+
+  constructor() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pagehide', this.onPageHide);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pagehide', this.onPageHide);
+    }
+    if (this.auth.isSuperUser()) {
+      void this.flushAutoSave();
+    }
+    this.fermaAscolto();
+  }
 
   step = signal<'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni'>(
     'dettagli',
@@ -170,9 +215,110 @@ export class MatchStateService {
   readonly isDirty = computed<boolean>(
     () =>
       this.isAutoSavePending() ||
+      this.hasActiveDirtyDrafts() ||
       this.hasUnconfirmedSquadre() ||
       this.hasUnconfirmedPrestazioni(),
   );
+
+  // =========================================================================
+  // PROTEZIONE CAMPI IN EDITING LOCALE (ANTI-SOVRASCRITTURA REAL-TIME FIRESTORE)
+  // =========================================================================
+
+  beginFieldEdit(fieldKey: string): void {
+    this.activeEditFields.add(fieldKey);
+    this.fieldEditCooldown.set(fieldKey, Date.now());
+  }
+
+  touchFieldEdit(fieldKey: string): void {
+    this.fieldEditCooldown.set(fieldKey, Date.now());
+  }
+
+  endFieldEdit(fieldKey: string): void {
+    this.activeEditFields.delete(fieldKey);
+    if (this.fieldEditCooldown.has(fieldKey)) {
+      this.fieldEditCooldown.set(fieldKey, Date.now());
+    }
+  }
+
+  markFieldDraftDirty(fieldKey: string, dirty: boolean): void {
+    if (dirty) {
+      this.dirtyDraftKeys.add(fieldKey);
+      this.fieldEditCooldown.set(fieldKey, Date.now());
+    } else {
+      this.dirtyDraftKeys.delete(fieldKey);
+    }
+    this.hasActiveDirtyDrafts.set(this.dirtyDraftKeys.size > 0);
+  }
+
+  isFieldLocallyProtected(fieldKey: string): boolean {
+    if (this.activeEditFields.has(fieldKey)) return true;
+    if (this.dirtyDraftKeys.has(fieldKey)) return true;
+    const lastAt = this.fieldEditCooldown.get(fieldKey) ?? 0;
+    if (lastAt > 0) {
+      if (this.isAutoSavePending() || this.isSavingInFlight()) return true;
+      if (Date.now() - lastAt < this.LOCAL_EDIT_PROTECT_MS) return true;
+    }
+    return false;
+  }
+
+  registerDraftFlusher(flusher: () => boolean): () => void {
+    this.draftFlushers.add(flusher);
+    return () => {
+      this.draftFlushers.delete(flusher);
+    };
+  }
+
+  flushRegisteredDrafts(): boolean {
+    let flushedAny = false;
+    for (const flusher of Array.from(this.draftFlushers)) {
+      try {
+        if (flusher()) {
+          flushedAny = true;
+        }
+      } catch (err) {
+        console.warn('Errore flush bozza locale:', err);
+      }
+    }
+    return flushedAny;
+  }
+
+  private mergeTeamPreservingLocalEdits(
+    remoteTeam: PlayerPerformance[],
+    localTeam: PlayerPerformance[],
+  ): PlayerPerformance[] {
+    if (!localTeam || localTeam.length === 0) return remoteTeam;
+    const localById = new Map<string, PlayerPerformance>();
+    for (const lp of localTeam) {
+      if (lp?.id) localById.set(lp.id, lp);
+    }
+
+    return remoteTeam.map((rp) => {
+      const lp = rp?.id ? localById.get(rp.id) : undefined;
+      if (!lp) return rp;
+
+      const protectNote = this.isFieldLocallyProtected(`player_note:${rp.id}`);
+      const protectVoto = this.isFieldLocallyProtected(`player_voto:${rp.id}`);
+      if (!protectNote && !protectVoto) return rp;
+
+      return {
+        ...rp,
+        ...(protectNote ? { note: lp.note } : {}),
+        ...(protectVoto ? { voto: lp.voto } : {}),
+      };
+    });
+  }
+
+  private areTeamsSemanticallyEqual(
+    a: PlayerPerformance[],
+    b: PlayerPerformance[],
+  ): boolean {
+    if (a.length !== b.length) return false;
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch {
+      return false;
+    }
+  }
 
   readonly needsExitConfirmation = computed<boolean>(
     () =>
@@ -1161,7 +1307,13 @@ export class MatchStateService {
               data.teamA.length > 0 ||
               (Array.isArray(data.convocati) && data.convocati.length === 0)
             ) {
-              this.teamA.set(data.teamA);
+              const mergedA = this.mergeTeamPreservingLocalEdits(
+                data.teamA,
+                this.teamA(),
+              );
+              if (!this.areTeamsSemanticallyEqual(mergedA, this.teamA())) {
+                this.teamA.set(mergedA);
+              }
             }
           }
           if (Array.isArray(data.teamB)) {
@@ -1169,7 +1321,13 @@ export class MatchStateService {
               data.teamB.length > 0 ||
               (Array.isArray(data.convocati) && data.convocati.length === 0)
             ) {
-              this.teamB.set(data.teamB);
+              const mergedB = this.mergeTeamPreservingLocalEdits(
+                data.teamB,
+                this.teamB(),
+              );
+              if (!this.areTeamsSemanticallyEqual(mergedB, this.teamB())) {
+                this.teamB.set(mergedB);
+              }
             }
           }
 
@@ -1232,10 +1390,26 @@ export class MatchStateService {
             } else {
               this.orarioFineReale.set(null);
             }
-            if (data.orario) {
-              this.orario.set(data.orario);
+            if (data.orario && !this.isFieldLocallyProtected('orario')) {
+              if (this.orario() !== data.orario) {
+                this.orario.set(data.orario);
+              }
             }
             this.status.set(data.status || 'da_definire');
+          }
+          if (
+            typeof data.luogo === 'string' &&
+            !this.isFieldLocallyProtected('luogo') &&
+            this.luogo() !== data.luogo
+          ) {
+            this.luogo.set(data.luogo);
+          }
+          if (
+            typeof data.dataPartita === 'string' &&
+            !this.isFieldLocallyProtected('dataPartita') &&
+            this.dataPartita() !== data.dataPartita
+          ) {
+            this.dataPartita.set(data.dataPartita);
           }
           this.rotazionePortieri.set(data.rotazionePortieri || null);
           this.cambioAttivo.set(
@@ -1247,7 +1421,21 @@ export class MatchStateService {
           this.fotoPath.set(data.fotoPath || null);
           this.pronosticoAi.set(data.pronosticoAi || null);
           this.cronacaAi.set(data.cronacaAi || null);
-          this.commentoPartita.set(data.commentoPartita || data.commento || '');
+          if (!this.isFieldLocallyProtected('commentoPartita')) {
+            const remoteCommento = data.commentoPartita || data.commento || '';
+            if (this.commentoPartita() !== remoteCommento) {
+              this.commentoPartita.set(remoteCommento);
+            }
+          }
+          if (
+            data.notePortieri !== undefined &&
+            !this.isFieldLocallyProtected('notePortieri')
+          ) {
+            const remoteNotePortieri = data.notePortieri || null;
+            if (this.notePortieri() !== remoteNotePortieri) {
+              this.notePortieri.set(remoteNotePortieri);
+            }
+          }
           if (data.campoGoogleMapsUrl) {
             this.campoGoogleMapsUrl.set(data.campoGoogleMapsUrl);
           }
@@ -1475,7 +1663,10 @@ export class MatchStateService {
   }
 
   fermaAscolto() {
-    if (this.matchSub) this.matchSub.unsubscribe();
+    if (this.matchSub) {
+      this.matchSub.unsubscribe();
+      this.matchSub = undefined;
+    }
   }
 
   salvaSetupPredefinito() {
@@ -1668,6 +1859,9 @@ export class MatchStateService {
   cambiaStep(
     nuovoStep: 'dettagli' | 'convocati' | 'squadre' | 'match' | 'prestazioni',
   ) {
+    if (this.auth.isSuperUser()) {
+      void this.flushAutoSave();
+    }
     if (nuovoStep === 'squadre') {
       this.sincronizzaConvocatiInSquadre();
     }
@@ -1733,14 +1927,15 @@ export class MatchStateService {
     this.triggerAutoSave(true);
   }
 
-  markPrestazioniModified(): void {
+  markPrestazioniModified(delayMs: number = 700): void {
     if (!this.auth.isSuperUser()) return;
     this.hasUnconfirmedPrestazioni.set(true);
-    this.triggerAutoSave(false);
+    this.triggerAutoSave(false, delayMs);
   }
 
   async salvaTuttoEdEsci(): Promise<void> {
     if (!this.auth.isSuperUser()) return;
+    this.flushRegisteredDrafts();
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
       this.autoSaveTimer = undefined;
@@ -1766,11 +1961,13 @@ export class MatchStateService {
       this.autoSaveTimer = undefined;
     }
     this.isAutoSavePending.set(false);
+    this.dirtyDraftKeys.clear();
+    this.hasActiveDirtyDrafts.set(false);
     this.hasUnconfirmedSquadre.set(false);
     this.hasUnconfirmedPrestazioni.set(false);
   }
 
-  triggerAutoSave(immediate: boolean = false): void {
+  triggerAutoSave(immediate: boolean = false, delayMs: number = 700): void {
     if (!this.auth.isSuperUser()) return;
     this.salvaSnapshotLocale();
 
@@ -1805,15 +2002,20 @@ export class MatchStateService {
         ).catch((err) =>
           console.warn('Errore auto-salvataggio debounced:', err),
         );
-      }, 450);
+      }, delayMs);
     }
   }
 
   flushAutoSave(): Promise<void> {
+    const flushedDrafts = this.flushRegisteredDrafts();
+    const hadTimer = Boolean(this.autoSaveTimer);
     if (this.autoSaveTimer) {
       clearTimeout(this.autoSaveTimer);
       this.autoSaveTimer = undefined;
-      this.isAutoSavePending.set(false);
+    }
+    this.isAutoSavePending.set(false);
+
+    if (hadTimer || flushedDrafts) {
       return this.salvaInDatabase(
         this.pagelleInserite(),
         this.matchConcluso(),
@@ -1827,6 +2029,14 @@ export class MatchStateService {
     matchConclusoFlag: boolean = false,
   ) {
     if (!this.auth.isSuperUser()) return;
+    // Sincronizza eventuali bozze locali ancora in debounce nei componenti figli prima di costruire il payload
+    this.flushRegisteredDrafts();
+    // Cancella eventuali timer pendenti per evitare doppie scritture ravvicinate
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+      this.isAutoSavePending.set(false);
+    }
     if (
       !this.matchId() &&
       this.dataPartita() &&
@@ -1951,8 +2161,12 @@ export class MatchStateService {
       stagione: getStagionePartita({ dataPartita: this.dataPartita() }),
       pronosticoAi: this.pronosticoAi() || null,
       cronacaAi: this.cronacaAi() || null,
-      commentoPartita: this.commentoPartita()?.trim() || null,
-      notePortieri: this.notePortieri()?.trim() || null,
+      commentoPartita: this.activeEditFields.has('commentoPartita')
+        ? this.commentoPartita() || null
+        : this.commentoPartita()?.trim() || null,
+      notePortieri: this.activeEditFields.has('notePortieri')
+        ? this.notePortieri() || null
+        : this.notePortieri()?.trim() || null,
       parateIncredibili: this.parateIncredibili() || {},
       rsvp: this.rsvp() || {},
     };
@@ -2014,12 +2228,29 @@ export class MatchStateService {
     );
   }
 
-  salvaNotePortieri(note: string) {
-    this.notePortieri.set(note.trim() || null);
+  aggiornaNotePortieri(note: string, triggerSave: boolean = true) {
+    this.touchFieldEdit('notePortieri');
+    this.notePortieri.set(note || null);
+    if (triggerSave) {
+      this.markPrestazioniModified(150);
+    } else {
+      this.salvaSnapshotLocale();
+    }
+  }
+
+  async salvaNotePortieri(note: string): Promise<void> {
+    this.touchFieldEdit('notePortieri');
+    const clean = this.activeEditFields.has('notePortieri')
+      ? note || null
+      : note.trim() || null;
+    this.notePortieri.set(clean);
+    if (this.autoSaveTimer) {
+      clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = undefined;
+      this.isAutoSavePending.set(false);
+    }
     this.salvaSnapshotLocale();
-    this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso()).catch(
-      (err) => console.warn(err),
-    );
+    await this.salvaInDatabase(this.pagelleInserite(), this.matchConcluso());
   }
 
   resetMatchState() {

@@ -476,14 +476,17 @@ export class AreaSegretaPage implements OnDestroy {
     await toast.present();
   }
 
-  updateSandboxField(key: keyof SeasonEngineConfig, value: number) {
+  updateSandboxField(key: keyof SeasonEngineConfig, value: any) {
     if (!this.canEditSelectedSeason()) return;
+    if (value === '' || value === null || value === undefined) return;
+    const num = Number(value);
+    if (!Number.isFinite(num)) return;
     const sId = this.regoleStagione();
     this.draftBySeason.update((prev) => ({
       ...prev,
       [sId]: {
         ...(prev[sId] || {}),
-        [key]: Number(value),
+        [key]: num,
       },
     }));
   }
@@ -650,13 +653,25 @@ export class AreaSegretaPage implements OnDestroy {
   }
 
   updateSimField(key: string, value: any) {
-    this.simInput.update((prev) => ({
-      ...prev,
-      [key]:
-        typeof prev[key as keyof typeof prev] === 'boolean'
-          ? Boolean(value)
-          : Number(value),
-    }));
+    this.simInput.update((prev) => {
+      if (typeof prev[key as keyof typeof prev] === 'boolean') {
+        return {
+          ...prev,
+          [key]: Boolean(value),
+        };
+      }
+      if (value === '' || value === null || value === undefined) {
+        return prev;
+      }
+      const num = Number(value);
+      if (!Number.isFinite(num)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [key]: num,
+      };
+    });
   }
 
   getEffectiveSeasonConfig(seasonId: string): SeasonEngineConfig {

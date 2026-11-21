@@ -49,9 +49,14 @@
               type="date"
               label="Data"
               labelPlacement="stacked"
+              enterkeyhint="done"
               [min]="!state.matchId() ? MIN_CURRENT_SEASON_DATE : null"
-              [value]="state.dataPartita()"
+              [value]="dataDisplayValue()"
+              (ionFocus)="onDataFocus()"
               (ionInput)="aggiornaData($event.detail.value || '')"
+              (ionChange)="aggiornaData($event.detail.value || '')"
+              (keydown.enter)="onSingleLineEnter($event)"
+              (ionBlur)="onDataBlur()"
             ></ion-input>
           </ion-item>
 
@@ -61,8 +66,13 @@
               type="time"
               label="Orario"
               labelPlacement="stacked"
-              [value]="state.orario()"
+              enterkeyhint="done"
+              [value]="orarioDisplayValue()"
+              (ionFocus)="onOrarioFocus()"
               (ionInput)="aggiornaOrario($event.detail.value || '')"
+              (ionChange)="aggiornaOrario($event.detail.value || '')"
+              (keydown.enter)="onSingleLineEnter($event)"
+              (ionBlur)="onOrarioBlur()"
             ></ion-input>
           </ion-item>
         </div>
@@ -92,11 +102,16 @@
           <ion-item lines="none" class="elegant-input-item compact-item">
             <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
             <ion-input
+              #luogoInput
               label="Campo di Gioco"
               labelPlacement="stacked"
+              enterkeyhint="done"
               placeholder="Cerca campo o indirizzo..."
-              [value]="state.luogo()"
+              [value]="luogoDisplayValue()"
+              (ionFocus)="onLuogoFocus()"
               (ionInput)="onLuogoInput($event.detail.value || '')"
+              (keydown.enter)="onSingleLineEnter($event)"
+              (ionBlur)="onLuogoBlur()"
             ></ion-input>
             @if (isSearchingCampi()) {
               <ion-spinner name="dots" slot="end" class="campo-spinner"></ion-spinner>
@@ -293,8 +308,10 @@
                 class="clean-notes-textarea"
                 aria-label="Note bordocampo"
                 placeholder="Campo bagnato, maglie da portare, clima derby..."
-                [value]="state.commentoPartita()"
+                [value]="noteDisplayValue()"
+                (ionFocus)="onNoteFocus()"
                 (ionInput)="aggiornaNote($event.detail.value || '')"
+                (ionBlur)="onNoteBlur()"
               ></ion-textarea>
             </div>
           }

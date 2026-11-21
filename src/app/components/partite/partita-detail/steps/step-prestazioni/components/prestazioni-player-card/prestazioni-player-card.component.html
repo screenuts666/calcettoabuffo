@@ -87,10 +87,14 @@
           max="10"
           step="0.5"
           inputmode="decimal"
-          [value]="player.voto && player.voto > 0 ? player.voto : ''"
+          enterkeyhint="done"
+          [value]="votoDisplayValue()"
           placeholder="-"
-          (change)="voteChange.emit({ player: player, event: $event })"
-          [class]="getRatingClass(player.voto)"
+          (focus)="onVotoFocus()"
+          (input)="onVotoInput($event)"
+          (keydown.enter)="onVotoEnter($event)"
+          (blur)="onVotoBlur()"
+          [class]="getRatingClass(liveVoto())"
           class="rating-input"
         />
       } @else {
@@ -104,18 +108,20 @@
 
   <!-- Commento Pagella: Compatto ed Espandibile su Mobile -->
   @if (isAdmin) {
-    @if (player.note || isEditingNote()) {
+    @if (showNoteEditor()) {
       <div class="card-comment-row">
         <ion-textarea
           placeholder="Scrivi il commento tecnico della pagella..."
-          [value]="player.note || ''"
+          [value]="noteDisplayValue()"
           [autoGrow]="true"
           rows="1"
-          (ionInput)="noteChange.emit({ player: player, note: $event.detail.value || '' })"
+          (ionFocus)="onNoteFocus()"
+          (ionInput)="onNoteInput($event.detail.value)"
+          (ionBlur)="onNoteBlur()"
           class="comment-textarea"
         ></ion-textarea>
-        @if (!player.note) {
-          <button type="button" class="close-note-btn" (click)="toggleNoteEdit()" title="Annulla commento">
+        @if (!hasNoteText()) {
+          <button type="button" class="close-note-btn" (click)="closeNoteEditor()" title="Annulla commento">
             <ion-icon name="close-circle-outline"></ion-icon>
           </button>
         }

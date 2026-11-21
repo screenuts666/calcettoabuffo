@@ -27,7 +27,7 @@
         type="button"
         class="segment-tab-btn"
         [class.active]="activeTab() === 'sintesi'"
-        (click)="activeTab.set('sintesi')"
+        (click)="switchTab('sintesi')"
       >
         <ion-icon name="flash"></ion-icon>
         <span class="tab-label-text">Resoconto</span>
@@ -37,7 +37,7 @@
         type="button"
         class="segment-tab-btn"
         [class.active]="activeTab() === 'pagelle'"
-        (click)="activeTab.set('pagelle')"
+        (click)="switchTab('pagelle')"
       >
         <ion-icon name="clipboard-outline"></ion-icon>
         <span class="tab-label-text">Pagelle</span>
@@ -50,7 +50,7 @@
         type="button"
         class="segment-tab-btn"
         [class.active]="activeTab() === 'portieri'"
-        (click)="activeTab.set('portieri')"
+        (click)="switchTab('portieri')"
       >
         <ion-icon name="shield-outline"></ion-icon>
         <span class="tab-label-text">Portieri</span>
@@ -60,7 +60,7 @@
         type="button"
         class="segment-tab-btn"
         [class.active]="activeTab() === 'spogliatoio'"
-        (click)="activeTab.set('spogliatoio')"
+        (click)="switchTab('spogliatoio')"
       >
         <ion-icon name="chatbubbles-outline"></ion-icon>
         <span class="tab-label-text">Terzo Tempo</span>
@@ -70,7 +70,7 @@
         type="button"
         class="segment-tab-btn"
         [class.active]="activeTab() === 'statistiche'"
-        (click)="activeTab.set('statistiche')"
+        (click)="switchTab('statistiche')"
       >
         <ion-icon name="trending-up-outline"></ion-icon>
         <span class="tab-label-text">Stats & MMR</span>
@@ -110,8 +110,8 @@
         [isSavingCommento]="isSavingCommento()"
         (commentoChange)="onCommentoPartitaChange($event)"
         (saveCommentoClick)="salvaCommentoPartita($event)"
-        (voteChange)="aggiornaVoto($event.player, $event.event)"
-        (noteChange)="aggiornaNote($event.player, $event.note)"
+        (voteChange)="aggiornaVoto($event.player, $event.voto, $event.triggerSave ?? true)"
+        (noteChange)="aggiornaNote($event.player, $event.note, $event.triggerSave ?? true)"
         (editAssist)="modificaAssist($event)"
       ></app-prestazioni-tab-pagelle>
     }

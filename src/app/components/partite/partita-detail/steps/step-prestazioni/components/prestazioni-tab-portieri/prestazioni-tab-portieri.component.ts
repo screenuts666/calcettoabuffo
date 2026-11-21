@@ -8,12 +8,12 @@ import {
   computed,
   signal,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { IonIcon, IonAvatar } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -33,6 +33,7 @@ import { Partita } from '../../../../../../../models/partita.model';
 import { PlayerPerformance } from '../../../../../../../models/player-performance.model';
 import { StatsEngineService } from '../../../../../../../services/stats-engine.service';
 import { PlayerAvatarComponent } from '../../../../../../../shared/components';
+import { MatchStateService } from '../../../../match-state.service';
 
 export interface GoalkeeperMatchRow {
   player: PlayerPerformance;
@@ -53,9 +54,9 @@ export interface GoalkeeperMatchRow {
   styleUrls: ['./prestazioni-tab-portieri.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, IonIcon, IonAvatar, PlayerAvatarComponent],
+  imports: [CommonModule, IonIcon, IonAvatar, PlayerAvatarComponent],
 })
-export class PrestazioniTabPortieriComponent implements OnChanges {
+export class PrestazioniTabPortieriComponent implements OnChanges, OnDestroy {
   @Input() match!: Partita;
   @Input() isAdmin = false;
   @Input() gkSummary?: { summaryA: string; summaryB: string; notesPrompt: string } | null = null;
@@ -64,11 +65,24 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
   @Input() bonusParataMmr = 1.0;
 
   @Output() parataChange = new EventEmitter<{ playerId: string; delta: number }>();
-  @Output() salvaNote = new EventEmitter<string>();
+  @Output() salvaNote = new EventEmitter<{ note: string; silent?: boolean }>();
 
-  noteInput = signal<string>('');
+  // Stato locale disaccoppiato per Note Portieri
+  noteDisplayValue = signal<string>('');
   isNoteSaved = signal<boolean>(false);
+  isNoteFocused = signal<boolean>(false);
+
+  private draftNote = '';
+  private lastCommittedNote = '';
+  private isNoteDirty = false;
+  private noteDebounceTimer?: ReturnType<typeof setTimeout>;
+  private savedBadgeTimer?: ReturnType<typeof setTimeout>;
+  private unregisterFlusher?: () => void;
+  private readonly DEBOUNCE_MS = 700;
+  private readonly FIELD_KEY = 'notePortieri';
+
   private router = inject(Router);
+  private state = inject(MatchStateService, { optional: true });
 
   apriSchedaGiocatore(id?: string) {
     if (id) {
@@ -90,11 +104,37 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
       shieldCheckmarkOutline,
       sparklesOutline,
     });
+
+    this.unregisterFlusher = this.state?.registerDraftFlusher(() =>
+      this.flushNoteToStateOnly(),
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['notePortieri']) {
-      this.noteInput.set(this.notePortieri || '');
+      if (!this.isNoteFocused() && !this.isNoteDirty) {
+        const remote = this.notePortieri || '';
+        this.draftNote = remote;
+        this.lastCommittedNote = remote;
+        this.noteDisplayValue.set(remote);
+      }
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    if (this.savedBadgeTimer) {
+      clearTimeout(this.savedBadgeTimer);
+      this.savedBadgeTimer = undefined;
+    }
+    this.unregisterFlusher?.();
+    const hadDirty = this.flushNoteToStateOnly();
+    this.state?.endFieldEdit(this.FIELD_KEY);
+    if (hadDirty) {
+      this.state?.triggerAutoSave(true);
     }
   }
 
@@ -149,23 +189,95 @@ export class PrestazioniTabPortieriComponent implements OnChanges {
     this.parataChange.emit({ playerId, delta });
   }
 
-  onNoteChange(val: string) {
-    this.noteInput.set(val);
+  onNoteFocus(): void {
+    this.isNoteFocused.set(true);
+    this.state?.beginFieldEdit(this.FIELD_KEY);
+  }
+
+  onNoteInput(event: Event): void {
+    const val = (event.target as HTMLTextAreaElement | null)?.value ?? '';
+    this.draftNote = val;
+    const changed = val !== this.lastCommittedNote;
+    this.isNoteDirty = changed;
     this.isNoteSaved.set(false);
+    this.state?.markFieldDraftDirty(this.FIELD_KEY, changed);
+    this.state?.touchFieldEdit(this.FIELD_KEY);
+
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    if (changed) {
+      this.noteDebounceTimer = setTimeout(() => {
+        this.noteDebounceTimer = undefined;
+        if (this.draftNote !== this.lastCommittedNote) {
+          this.isNoteDirty = false;
+          this.lastCommittedNote = this.draftNote;
+          this.state?.markFieldDraftDirty(this.FIELD_KEY, false);
+          this.state?.aggiornaNotePortieri(this.draftNote, true);
+        }
+      }, this.DEBOUNCE_MS);
+    }
+  }
+
+  onNoteBlur(): void {
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    const changed = this.draftNote !== this.lastCommittedNote;
+    this.isNoteDirty = false;
+    this.state?.markFieldDraftDirty(this.FIELD_KEY, false);
+    this.noteDisplayValue.set(this.draftNote);
+    this.isNoteFocused.set(false);
+    this.state?.endFieldEdit(this.FIELD_KEY);
+    if (changed) {
+      this.lastCommittedNote = this.draftNote;
+      this.state?.aggiornaNotePortieri(this.draftNote, true);
+    }
   }
 
   importaResocontoAutomatico() {
     if (!this.gkSummary?.notesPrompt) return;
-    const current = this.noteInput().trim();
+    const current = this.draftNote.trim();
     const prompt = this.gkSummary.notesPrompt;
     const next = current ? `${current}\n\n${prompt}` : prompt;
-    this.noteInput.set(next);
+    this.draftNote = next;
+    this.lastCommittedNote = next;
+    this.noteDisplayValue.set(next);
+    this.isNoteDirty = false;
     this.isNoteSaved.set(false);
+    this.state?.markFieldDraftDirty(this.FIELD_KEY, false);
+    this.state?.aggiornaNotePortieri(next, true);
   }
 
   onSalvaNote() {
-    this.salvaNote.emit(this.noteInput());
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    this.isNoteDirty = false;
+    this.lastCommittedNote = this.draftNote;
+    this.state?.markFieldDraftDirty(this.FIELD_KEY, false);
+    this.noteDisplayValue.set(this.draftNote);
+    this.state?.endFieldEdit(this.FIELD_KEY);
+    this.salvaNote.emit({ note: this.draftNote, silent: false });
     this.isNoteSaved.set(true);
-    setTimeout(() => this.isNoteSaved.set(false), 3000);
+    if (this.savedBadgeTimer) clearTimeout(this.savedBadgeTimer);
+    this.savedBadgeTimer = setTimeout(() => this.isNoteSaved.set(false), 3000);
+  }
+
+  private flushNoteToStateOnly(): boolean {
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    const changed = this.draftNote !== this.lastCommittedNote;
+    this.isNoteDirty = false;
+    this.state?.markFieldDraftDirty(this.FIELD_KEY, false);
+    if (!changed) return false;
+    this.lastCommittedNote = this.draftNote;
+    this.state?.aggiornaNotePortieri(this.draftNote, false);
+    return true;
   }
 }

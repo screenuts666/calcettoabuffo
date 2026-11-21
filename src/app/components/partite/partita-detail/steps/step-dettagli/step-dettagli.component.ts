@@ -1,4 +1,12 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  ViewChild,
+  effect,
+  inject,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   IonItem,
@@ -72,12 +80,14 @@ import { PlayerAvatarComponent } from '../../../../player-avatar/player-avatar.c
     PlayerAvatarComponent,
   ],
 })
-export class StepDettagliComponent {
+export class StepDettagliComponent implements OnDestroy {
   public state = inject(MatchStateService);
   public campiService = inject(CampiService);
   public weatherService = inject(WeatherService);
   public auth = inject(AuthService);
   private toastCtrl = inject(ToastController);
+
+  @ViewChild('luogoInput') luogoInputRef?: IonInput;
 
   get isAdmin(): boolean {
     return this.auth.isSuperUser();
@@ -85,7 +95,47 @@ export class StepDettagliComponent {
 
   isSavingRsvp = signal<boolean>(false);
   showNotes = signal<boolean>(false);
-  readonly isNotesOpen = computed(() => this.showNotes() || !!this.state.commentoPartita()?.trim());
+
+  // Stato locale disaccoppiato per tutti i campi editabili (anti-overwrite real-time + focus stabile)
+  readonly dataDisplayValue = signal<string>('');
+  readonly orarioDisplayValue = signal<string>('');
+  readonly luogoDisplayValue = signal<string>('');
+  readonly noteDisplayValue = signal<string>('');
+
+  readonly isDataFocused = signal<boolean>(false);
+  readonly isOrarioFocused = signal<boolean>(false);
+  readonly isLuogoFocused = signal<boolean>(false);
+  readonly isNoteFocused = signal<boolean>(false);
+
+  private draftData = '';
+  private lastCommittedData = '';
+  private isDataDirty = false;
+  private dataDebounceTimer?: ReturnType<typeof setTimeout>;
+
+  private draftOrario = '';
+  private lastCommittedOrario = '';
+  private isOrarioDirty = false;
+  private orarioDebounceTimer?: ReturnType<typeof setTimeout>;
+
+  private draftLuogo = '';
+  private lastCommittedLuogo = '';
+  private isLuogoDirty = false;
+  private luogoDebounceTimer?: ReturnType<typeof setTimeout>;
+
+  private draftNote = '';
+  private lastCommittedNote = '';
+  private isNoteDirty = false;
+  private noteDebounceTimer?: ReturnType<typeof setTimeout>;
+
+  private unregisterFlusher?: () => void;
+  private readonly DEBOUNCE_MS = 700;
+
+  readonly isNotesOpen = computed(
+    () =>
+      this.showNotes() ||
+      this.isNoteFocused() ||
+      !!this.state.commentoPartita()?.trim(),
+  );
 
   toggleNotes() {
     this.showNotes.update((v) => !v);
@@ -167,6 +217,81 @@ export class StepDettagliComponent {
       lockClosedOutline,
       timerOutline,
     });
+
+    // Sincronizza ciascun campo locale dallo stato remoto SOLO quando non è in focus/dirty
+    effect(() => {
+      const v = this.state.dataPartita() || '';
+      if (!this.isDataFocused() && !this.isDataDirty) {
+        this.draftData = v;
+        this.lastCommittedData = v;
+        this.dataDisplayValue.set(v);
+      }
+    });
+
+    effect(() => {
+      const v = this.state.orario() || '';
+      if (!this.isOrarioFocused() && !this.isOrarioDirty) {
+        this.draftOrario = v;
+        this.lastCommittedOrario = v;
+        this.orarioDisplayValue.set(v);
+      }
+    });
+
+    effect(() => {
+      const v = this.state.luogo() || '';
+      if (!this.isLuogoFocused() && !this.isLuogoDirty) {
+        this.draftLuogo = v;
+        this.lastCommittedLuogo = v;
+        this.luogoDisplayValue.set(v);
+      }
+    });
+
+    effect(() => {
+      const v = this.state.commentoPartita() || '';
+      if (!this.isNoteFocused() && !this.isNoteDirty) {
+        this.draftNote = v;
+        this.lastCommittedNote = v;
+        this.noteDisplayValue.set(v);
+      }
+    });
+
+    this.unregisterFlusher = this.state.registerDraftFlusher(() =>
+      this.flushAllDraftsToStateOnly(),
+    );
+  }
+
+  ngOnDestroy(): void {
+    clearTimeout(this.searchTimer);
+    if (this.dataDebounceTimer) {
+      clearTimeout(this.dataDebounceTimer);
+      this.dataDebounceTimer = undefined;
+    }
+    if (this.orarioDebounceTimer) {
+      clearTimeout(this.orarioDebounceTimer);
+      this.orarioDebounceTimer = undefined;
+    }
+    if (this.luogoDebounceTimer) {
+      clearTimeout(this.luogoDebounceTimer);
+      this.luogoDebounceTimer = undefined;
+    }
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    this.unregisterFlusher?.();
+    const hadDirty = this.flushAllDraftsToStateOnly();
+    this.state.endFieldEdit('dataPartita');
+    this.state.endFieldEdit('orario');
+    this.state.endFieldEdit('luogo');
+    this.state.endFieldEdit('commentoPartita');
+    if (this.isAdmin && (hadDirty || this.state.isAutoSavePending())) {
+      void this.state.flushAutoSave();
+    }
+  }
+
+  onSingleLineEnter(event: Event): void {
+    event.preventDefault();
+    (event.target as HTMLElement | null)?.blur();
   }
 
   get isTurnDurationLocked(): boolean {
@@ -330,16 +455,42 @@ export class StepDettagliComponent {
 
   aggiornaLuogo(val: string, mapsUrl?: string | null) {
     if (!this.isAdmin) return;
+    this.state.touchFieldEdit('luogo');
     this.state.luogo.set(val);
     const resolvedUrl = mapsUrl || this.campiService.getGoogleMapsUrl(val);
     this.state.campoGoogleMapsUrl.set(resolvedUrl);
     this.state.salvaSetupPredefinito();
-    this.state.triggerAutoSave();
+  }
+
+  onLuogoFocus() {
+    this.isLuogoFocused.set(true);
+    this.state.beginFieldEdit('luogo');
   }
 
   onLuogoInput(val: string) {
     if (!this.isAdmin) return;
+    this.draftLuogo = val;
+    const changed = val !== this.lastCommittedLuogo;
+    this.isLuogoDirty = changed;
+    this.state.markFieldDraftDirty('luogo', changed);
     this.aggiornaLuogo(val);
+
+    if (this.luogoDebounceTimer) {
+      clearTimeout(this.luogoDebounceTimer);
+      this.luogoDebounceTimer = undefined;
+    }
+    if (changed) {
+      this.luogoDebounceTimer = setTimeout(() => {
+        this.luogoDebounceTimer = undefined;
+        if (this.draftLuogo !== this.lastCommittedLuogo) {
+          this.isLuogoDirty = false;
+          this.lastCommittedLuogo = this.draftLuogo;
+          this.state.markFieldDraftDirty('luogo', false);
+          this.state.triggerAutoSave(false, 100);
+        }
+      }, this.DEBOUNCE_MS);
+    }
+
     clearTimeout(this.searchTimer);
     if (!val || val.trim().length < 2) {
       this.suggerimentiCampi.set([]);
@@ -360,10 +511,43 @@ export class StepDettagliComponent {
     }, 250);
   }
 
+  onLuogoBlur() {
+    if (this.luogoDebounceTimer) {
+      clearTimeout(this.luogoDebounceTimer);
+      this.luogoDebounceTimer = undefined;
+    }
+    const changed = this.draftLuogo !== this.lastCommittedLuogo;
+    this.isLuogoDirty = false;
+    this.state.markFieldDraftDirty('luogo', false);
+    this.luogoDisplayValue.set(this.draftLuogo);
+    this.isLuogoFocused.set(false);
+    this.state.endFieldEdit('luogo');
+    if (changed) {
+      this.lastCommittedLuogo = this.draftLuogo;
+      this.state.triggerAutoSave(false, 150);
+    }
+  }
+
   selezionaCampo(campo: CampoDaGioco) {
     if (!this.isAdmin) return;
+    if (this.luogoDebounceTimer) {
+      clearTimeout(this.luogoDebounceTimer);
+      this.luogoDebounceTimer = undefined;
+    }
+    const changed = campo.nome !== this.lastCommittedLuogo;
+    this.draftLuogo = campo.nome;
+    this.lastCommittedLuogo = campo.nome;
+    this.isLuogoDirty = false;
+    this.state.markFieldDraftDirty('luogo', false);
+    this.luogoDisplayValue.set(campo.nome);
+    if (this.luogoInputRef) {
+      this.luogoInputRef.value = campo.nome;
+    }
     this.aggiornaLuogo(campo.nome, campo.googleMapsUrl);
     this.suggerimentiCampi.set([]);
+    if (changed) {
+      this.state.triggerAutoSave(false, 150);
+    }
   }
 
   getGoogleMapsUrl(): string {
@@ -399,20 +583,203 @@ export class StepDettagliComponent {
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  onDataFocus() {
+    this.isDataFocused.set(true);
+    this.state.beginFieldEdit('dataPartita');
+  }
+
   aggiornaData(val: string) {
+    this.draftData = val;
+    const changed = val !== this.lastCommittedData;
+    this.isDataDirty = changed;
+    this.state.markFieldDraftDirty('dataPartita', changed);
+    this.state.touchFieldEdit('dataPartita');
     this.state.dataPartita.set(val);
-    this.state.triggerAutoSave();
+
+    if (this.dataDebounceTimer) {
+      clearTimeout(this.dataDebounceTimer);
+      this.dataDebounceTimer = undefined;
+    }
+    if (changed) {
+      this.dataDebounceTimer = setTimeout(() => {
+        this.dataDebounceTimer = undefined;
+        if (this.draftData !== this.lastCommittedData) {
+          this.isDataDirty = false;
+          this.lastCommittedData = this.draftData;
+          this.state.markFieldDraftDirty('dataPartita', false);
+          this.state.triggerAutoSave(false, 100);
+        }
+      }, this.DEBOUNCE_MS);
+    }
+  }
+
+  onDataBlur() {
+    if (this.dataDebounceTimer) {
+      clearTimeout(this.dataDebounceTimer);
+      this.dataDebounceTimer = undefined;
+    }
+    const changed = this.draftData !== this.lastCommittedData;
+    this.isDataDirty = false;
+    this.state.markFieldDraftDirty('dataPartita', false);
+    this.dataDisplayValue.set(this.draftData);
+    this.isDataFocused.set(false);
+    this.state.endFieldEdit('dataPartita');
+    if (changed) {
+      this.lastCommittedData = this.draftData;
+      this.state.triggerAutoSave(false, 150);
+    }
+  }
+
+  onOrarioFocus() {
+    this.isOrarioFocused.set(true);
+    this.state.beginFieldEdit('orario');
   }
 
   aggiornaOrario(val: string) {
+    this.draftOrario = val;
+    const changed = val !== this.lastCommittedOrario;
+    this.isOrarioDirty = changed;
+    this.state.markFieldDraftDirty('orario', changed);
+    this.state.touchFieldEdit('orario');
     this.state.orario.set(val);
     this.state.salvaSetupPredefinito();
-    this.state.triggerAutoSave();
+
+    if (this.orarioDebounceTimer) {
+      clearTimeout(this.orarioDebounceTimer);
+      this.orarioDebounceTimer = undefined;
+    }
+    if (changed) {
+      this.orarioDebounceTimer = setTimeout(() => {
+        this.orarioDebounceTimer = undefined;
+        if (this.draftOrario !== this.lastCommittedOrario) {
+          this.isOrarioDirty = false;
+          this.lastCommittedOrario = this.draftOrario;
+          this.state.markFieldDraftDirty('orario', false);
+          this.state.triggerAutoSave(false, 100);
+        }
+      }, this.DEBOUNCE_MS);
+    }
+  }
+
+  onOrarioBlur() {
+    if (this.orarioDebounceTimer) {
+      clearTimeout(this.orarioDebounceTimer);
+      this.orarioDebounceTimer = undefined;
+    }
+    const changed = this.draftOrario !== this.lastCommittedOrario;
+    this.isOrarioDirty = false;
+    this.state.markFieldDraftDirty('orario', false);
+    this.orarioDisplayValue.set(this.draftOrario);
+    this.isOrarioFocused.set(false);
+    this.state.endFieldEdit('orario');
+    if (changed) {
+      this.lastCommittedOrario = this.draftOrario;
+      this.state.triggerAutoSave(false, 150);
+    }
+  }
+
+  onNoteFocus() {
+    this.isNoteFocused.set(true);
+    this.showNotes.set(true);
+    this.state.beginFieldEdit('commentoPartita');
   }
 
   aggiornaNote(val: string) {
-    this.state.commentoPartita.set(val);
-    this.state.triggerAutoSave();
+    this.draftNote = val;
+    const changed = val !== this.lastCommittedNote;
+    this.isNoteDirty = changed;
+    this.state.markFieldDraftDirty('commentoPartita', changed);
+    this.state.touchFieldEdit('commentoPartita');
+
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    if (changed) {
+      this.noteDebounceTimer = setTimeout(() => {
+        this.noteDebounceTimer = undefined;
+        if (this.draftNote !== this.lastCommittedNote) {
+          this.isNoteDirty = false;
+          this.lastCommittedNote = this.draftNote;
+          this.state.markFieldDraftDirty('commentoPartita', false);
+          this.state.commentoPartita.set(this.draftNote);
+          this.state.triggerAutoSave(false, 100);
+        }
+      }, this.DEBOUNCE_MS);
+    }
+  }
+
+  onNoteBlur() {
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+    const changed = this.draftNote !== this.lastCommittedNote;
+    this.isNoteDirty = false;
+    this.state.markFieldDraftDirty('commentoPartita', false);
+    this.noteDisplayValue.set(this.draftNote);
+    this.isNoteFocused.set(false);
+    this.state.endFieldEdit('commentoPartita');
+    if (changed) {
+      this.lastCommittedNote = this.draftNote;
+      this.state.commentoPartita.set(this.draftNote);
+      this.state.triggerAutoSave(false, 150);
+    }
+  }
+
+  private flushAllDraftsToStateOnly(): boolean {
+    if (this.dataDebounceTimer) {
+      clearTimeout(this.dataDebounceTimer);
+      this.dataDebounceTimer = undefined;
+    }
+    if (this.orarioDebounceTimer) {
+      clearTimeout(this.orarioDebounceTimer);
+      this.orarioDebounceTimer = undefined;
+    }
+    if (this.luogoDebounceTimer) {
+      clearTimeout(this.luogoDebounceTimer);
+      this.luogoDebounceTimer = undefined;
+    }
+    if (this.noteDebounceTimer) {
+      clearTimeout(this.noteDebounceTimer);
+      this.noteDebounceTimer = undefined;
+    }
+
+    let flushed = false;
+
+    if (this.draftData !== this.lastCommittedData) {
+      this.lastCommittedData = this.draftData;
+      this.isDataDirty = false;
+      this.state.markFieldDraftDirty('dataPartita', false);
+      this.state.dataPartita.set(this.draftData);
+      flushed = true;
+    }
+
+    if (this.draftOrario !== this.lastCommittedOrario) {
+      this.lastCommittedOrario = this.draftOrario;
+      this.isOrarioDirty = false;
+      this.state.markFieldDraftDirty('orario', false);
+      this.state.orario.set(this.draftOrario);
+      flushed = true;
+    }
+
+    if (this.draftLuogo !== this.lastCommittedLuogo) {
+      this.lastCommittedLuogo = this.draftLuogo;
+      this.isLuogoDirty = false;
+      this.state.markFieldDraftDirty('luogo', false);
+      this.state.luogo.set(this.draftLuogo);
+      flushed = true;
+    }
+
+    if (this.draftNote !== this.lastCommittedNote) {
+      this.lastCommittedNote = this.draftNote;
+      this.isNoteDirty = false;
+      this.state.markFieldDraftDirty('commentoPartita', false);
+      this.state.commentoPartita.set(this.draftNote);
+      flushed = true;
+    }
+
+    return flushed;
   }
 
   vaiAConvocati() {

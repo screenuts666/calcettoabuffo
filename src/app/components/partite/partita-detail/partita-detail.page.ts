@@ -220,6 +220,12 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
     });
   }
 
+  ionViewWillLeave() {
+    if (this.isAdmin) {
+      void this.state.flushAutoSave();
+    }
+  }
+
   ngOnDestroy() {
     if (this.routeSub) {
       this.routeSub.unsubscribe();
@@ -228,7 +234,7 @@ export class PartitaDetailPage implements OnInit, OnDestroy {
       this.querySub.unsubscribe();
     }
     if (this.isAdmin) {
-      this.state.flushAutoSave();
+      void this.state.flushAutoSave();
     }
     this.state.fermaAscolto();
     this.state.soundSettings?.stopAllSounds();

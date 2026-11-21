@@ -137,6 +137,7 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
   fileSelezionato: File | null = null;
   hasSelectedFile = signal<boolean>(false);
   private initialSnapshot = signal<string>('');
+  private phoneEditedByUser = false;
 
   private computeCurrentSnapshot(): string {
     return JSON.stringify({
@@ -266,7 +267,18 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
     this.routeSub?.unsubscribe();
   }
 
+  onPhoneInput(val: string) {
+    this.phoneEditedByUser = true;
+    this.phoneNumber.set(val);
+  }
+
+  onSingleLineEnter(event: Event) {
+    event.preventDefault();
+    (event.target as HTMLElement | null)?.blur();
+  }
+
   private popolaCampi(g: Giocatore) {
+    this.phoneEditedByUser = false;
     this.nome.set(g.nome || '');
     this.soprannome.set(g.soprannome || '');
     this.numeroMaglia.set(
@@ -291,9 +303,20 @@ export class FormGiocatorePage implements OnInit, OnDestroy {
 
     if (g.id && this.auth.canViewPlayerPhone(g)) {
       this.auth.getPlayerPhoneNumber(g.id).then((phone) => {
-        if (phone !== null) {
+        if (phone !== null && !this.phoneEditedByUser) {
           this.phoneNumber.set(phone);
-          this.initialSnapshot.set(this.computeCurrentSnapshot());
+          try {
+            const prevSnap = this.initialSnapshot();
+            if (prevSnap) {
+              const parsed = JSON.parse(prevSnap);
+              parsed.phoneNumber = phone.trim();
+              this.initialSnapshot.set(JSON.stringify(parsed));
+            } else {
+              this.initialSnapshot.set(this.computeCurrentSnapshot());
+            }
+          } catch {
+            this.initialSnapshot.set(this.computeCurrentSnapshot());
+          }
         }
       });
     }

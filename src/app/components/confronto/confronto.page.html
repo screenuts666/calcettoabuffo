@@ -855,9 +855,10 @@
             data-1p-ignore="true"
             data-bwignore="true"
             placeholder="Cerca giocatore per nome..."
+            enterkeyhint="search"
+            [debounce]="0"
             [value]="pickerSearchQuery()"
             (ionInput)="aggiornaRicerca($event)"
-            debounce="100"
             class="picker-searchbar"
           ></ion-searchbar>
         </div>
